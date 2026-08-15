@@ -1,0 +1,111 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+@theme {
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #07080b;
+  color: #efeae0;
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2d35 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #2a2d35;
+  border-radius: 999px;
+}
+
+.react-flow {
+  background: transparent;
+}
+
+.react-flow__background {
+  background: #07080b !important;
+}
+
+.react-flow__attribution {
+  background: transparent !important;
+  color: #5c5850 !important;
+  font-family: var(--font-mono);
+  font-size: 9px !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  fill: #c8c2b4 !important;
+}
+
+.react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.react-flow__edge-path {
+  stroke-linecap: round;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #2ec4d6 !important;
+}
+
+.react-flow__handle {
+  transition: transform 120ms ease;
+}
+
+.react-flow__handle:hover {
+  transform: scale(1.35);
+}
+
+.react-flow__minimap-mask {
+  fill: rgba(7, 8, 11, 0.72);
+}
+
+.react-flow__selection {
+  background: rgba(46, 196, 214, 0.08);
+  border: 1px solid rgba(46, 196, 214, 0.4);
+}
+
+::selection {
+  background: rgba(46, 196, 214, 0.28);
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
