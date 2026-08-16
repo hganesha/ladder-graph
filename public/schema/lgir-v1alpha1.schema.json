@@ -35,7 +35,20 @@
             "properties": {
               "id": { "type": "string" },
               "kind": {
-                "enum": ["input", "output", "agent", "tool", "transform", "condition", "evaluate", "approval", "join", "loop", "group", "subgraph"]
+                "enum": [
+                  "input",
+                  "output",
+                  "agent",
+                  "tool",
+                  "transform",
+                  "condition",
+                  "evaluate",
+                  "approval",
+                  "join",
+                  "loop",
+                  "group",
+                  "subgraph"
+                ]
               },
               "name": { "type": "string" },
               "summary": { "type": "string" },

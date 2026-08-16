@@ -255,8 +255,9 @@ button:disabled {
 .workflow-tabs {
   display: flex;
   flex: none;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
+  overflow-x: visible;
   margin-bottom: 16px;
   padding: 0 0 10px;
   scrollbar-width: thin;
@@ -283,6 +284,21 @@ button:disabled {
 .workflow-tabs button.active {
   border-color: color-mix(in srgb, var(--cyan) 62%, #263138);
   background: color-mix(in srgb, var(--cyan) 13%, #0d1216);
+  color: var(--cyan);
+}
+.workflow-tabs button small {
+  display: grid;
+  min-width: 19px;
+  height: 19px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #66757d;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+}
+.workflow-tabs button.active small {
+  background: color-mix(in srgb, var(--cyan) 13%, transparent);
   color: var(--cyan);
 }
 .workflow-tab-panel {
@@ -2577,6 +2593,8 @@ button:disabled {
     font-size: clamp(30px, 10vw, 40px);
   }
   .workflow-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
     margin-inline: calc(-1 * max(16px, env(safe-area-inset-left)));
     padding-inline: max(16px, env(safe-area-inset-left));
     scroll-padding-inline: max(16px, env(safe-area-inset-left));

@@ -44,6 +44,16 @@ const multimodalSkills: CapabilityOption[] = [
     description: "Choose a model from modality, quality, latency, cost, and provider constraints.",
   },
   {
+    id: "image-understanding",
+    label: "Image understanding",
+    description: "Analyze a supplied image while grounding claims in observable regions and preserving uncertainty.",
+  },
+  {
+    id: "optical-character-recognition",
+    label: "Optical character recognition",
+    description: "Extract text and layout from supplied images or documents with confidence and reading-order metadata.",
+  },
+  {
     id: "image-generation",
     label: "Image generation",
     description: "Turn an approved visual brief into generated image assets with explicit dimensions and format.",
@@ -150,6 +160,39 @@ const sharedConnectors: CapabilityOption[] = [
     id: "mcp:construction-management",
     label: "Construction management",
     description: "Schedules, RFIs, submittals, field evidence, issues, procurement, and change control.",
+  },
+  { id: "mcp:zotero", label: "Zotero", description: "Source libraries, citation metadata, notes, and bibliographies." },
+  {
+    id: "mcp:primary-texts",
+    label: "Primary-text corpora",
+    description: "Public-domain and licensed primary texts from sources such as Perseus and Project Gutenberg.",
+  },
+  {
+    id: "mcp:academic-research",
+    label: "Academic research",
+    description: "Scholarly indexes, journals, books, and research metadata available to the user.",
+  },
+  {
+    id: "mcp:archives",
+    label: "Archives",
+    description: "Primary-source collections, finding aids, provenance records, and digitized archival material.",
+  },
+  {
+    id: "mcp:museum-collections",
+    label: "Museum collections",
+    description: "Collection records, artwork images, provenance, material data, and curatorial context.",
+  },
+  {
+    id: "mcp:document-editor",
+    label: "Document editor",
+    description: "Versioned manuscripts, comments, suggestions, outlines, and revision history.",
+  },
+  { id: "mcp:task-management", label: "Task management", description: "Goals, tasks, priorities, habits, and review queues." },
+  { id: "mcp:calendar", label: "Calendar", description: "Time blocks, review cadences, milestones, and scheduling context." },
+  {
+    id: "mcp:journaling",
+    label: "Journaling",
+    description: "User-authorized journal entries, reflection prompts, tags, and longitudinal patterns.",
   },
   {
     id: "api:openrouter/google/gemini-3-pro-image",
@@ -410,11 +453,16 @@ export function recommendedCapabilities(target: Target, node: LgirNode) {
     connectors.add("mcp:siem");
     connectors.add("mcp:incident-management");
   }
+  const isImageUnderstanding = match(["ocr", "extract text", "read image", "analyze image", "describe image", "image understanding"]);
+  const isImageEditing = match(["edit image", "reference image", "image-to-image", "transform image", "restyle image"]);
   if (match(["image", "visual asset", "illustration", "rendering"])) {
-    skills.add("image-generation");
+    skills.add(isImageUnderstanding ? "image-understanding" : "image-generation");
+    if (isImageUnderstanding && match(["ocr", "extract text", "read image"])) skills.add("optical-character-recognition");
+    if (isImageEditing) skills.add("image-editing");
     skills.add("multimodal-model-selection");
-    connectors.add("api:openrouter/google/gemini-2.5-flash-image");
+    if (!isImageUnderstanding || isImageEditing) connectors.add("api:openrouter/google/gemini-2.5-flash-image");
     if (target === "hermes") connectors.add("provider:openrouter");
+    if (target === "hermes" && isImageUnderstanding) connectors.add("hermes:toolset:vision");
   }
   if (match(["video", "storyboard"])) {
     skills.add("video-generation");
@@ -446,6 +494,26 @@ export function recommendedCapabilities(target: Target, node: LgirNode) {
     connectors.add("mcp:browser");
     connectors.add("mcp:notion");
     if (target === "hermes") connectors.add("hermes:toolset:web");
+  }
+  if (match(["history", "historical", "archive", "historiograph", "primary source"])) {
+    skills.add("historical-research");
+    skills.add("source-criticism");
+    connectors.add("mcp:archives");
+    connectors.add("mcp:zotero");
+  }
+  if (match(["philosoph", "socratic", "ethic", "argument", "logic"])) {
+    skills.add(match(["argument", "logic"]) ? "logic-analysis" : "socratic-dialogue");
+    connectors.add("mcp:primary-texts");
+    connectors.add("mcp:zotero");
+  }
+  if (match(["manuscript", "prose", "memoir", "writing", "editor"])) {
+    skills.add(match(["line editor", "line edit", "prose stylist"]) ? "line-editing" : "developmental-editing");
+    connectors.add("mcp:document-editor");
+  }
+  if (match(["goal", "habit", "productivity", "career", "journal", "reflection"])) {
+    skills.add(match(["habit"]) ? "behavior-change" : "goal-planning");
+    connectors.add("mcp:task-management");
+    connectors.add("mcp:calendar");
   }
   if (match(["product manager", "opportunity", "feature", "roadmap"])) {
     skills.add("product-management");

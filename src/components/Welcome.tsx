@@ -1,4 +1,18 @@
-import { ArrowRight, Beaker, Boxes, Building2, Code2, Images, Megaphone, PenTool, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Beaker,
+  BookOpen,
+  Boxes,
+  Building2,
+  Code2,
+  Feather,
+  Images,
+  Megaphone,
+  PenTool,
+  ShieldCheck,
+  Sparkles,
+  Target,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { listProjects } from "../lib/persistence";
 import { WORKFLOW_TEMPLATES } from "../lib/templates";
@@ -24,6 +38,21 @@ const WORKFLOW_AREAS = [
     name: "Architecture & design",
     description: "Building design, engineering, interiors, compliance, performance, cost, and coordinated delivery.",
     icon: Building2,
+  },
+  {
+    name: "Humanities",
+    description: "Philosophy, history, close reading, source criticism, rhetoric, and interdisciplinary inquiry.",
+    icon: BookOpen,
+  },
+  {
+    name: "Writing",
+    description: "Developmental editing, prose, creative practice, memoir, academic argument, and voice preservation.",
+    icon: Feather,
+  },
+  {
+    name: "Personal development",
+    description: "Values-aligned goals, behavior design, productivity systems, career discernment, and reflection.",
+    icon: Target,
   },
 ] as const;
 
@@ -66,7 +95,10 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
         <div className="section-heading library-heading">
           <div>
             <h1 id="gallery-title">Starter workflows</h1>
-            <p>Choose an area, open a workflow, and adapt its roles and contracts in the studio.</p>
+            <p>
+              {WORKFLOW_TEMPLATES.length} workflows across {WORKFLOW_AREAS.length} areas. Choose one and adapt its roles and contracts in
+              the studio.
+            </p>
           </div>
           <button className="quiet-button new-workflow-button" onClick={onBlank}>
             New workflow <ArrowRight size={15} />
@@ -108,6 +140,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
               >
                 <AreaIcon size={15} aria-hidden="true" />
                 <span>{area.name}</span>
+                <small aria-hidden="true">{WORKFLOW_TEMPLATES.filter((template) => template.area === area.name).length}</small>
               </button>
             );
           })}

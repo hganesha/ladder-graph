@@ -524,7 +524,10 @@ fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
         "group" => output.push_str(&format!("\nAccept the group input, run {} in `{}` mode, then `{}` every member output before releasing any group output. The group is complete only after all members finish.\n", node.config.members.iter().map(|id| format!("`{id}`")).collect::<Vec<_>>().join(", "), node.config.execution, node.config.exit)),
         "tool" => output.push_str(&format!("\nThis node documents required tools ({}) and connectors ({}). Use only capabilities already available and permitted in the current environment.\n", list_or_none(&node.capabilities.tools), list_or_none(&node.capabilities.connectors))),
         "subgraph" => output.push_str("\nTreat this as a named phase boundary. Complete its referenced child work before continuing.\n"),
-        "input" => output.push_str("\nCapture the user's objective and constraints without adding assumptions that change scope.\n"),
+        "input" => {
+            output.push_str("\nCapture only inputs that satisfy the declared contract. Treat media values as host-provided references; do not assume the compiler uploaded, fetched, or authorized an asset.\n");
+            if node.input_schema != Value::Null { output.push_str(&format!("\n**Expected input contract**\n\n```json\n{}\n```\n", serde_json::to_string_pretty(&node.input_schema).unwrap_or_default())); }
+        }
         "output" => output.push_str("\nReturn the final deliverable, unresolved risks, and a concise account of validation performed.\n"),
         _ => {}
     }
@@ -725,8 +728,12 @@ fn analyze_inner(source: &str, target: Option<&str>) -> AnalysisResult {
 }
 
 fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
+    let has_multimodal_input = workflow.spec.nodes.iter().any(|n| {
+        n.kind == "input" && n.input_schema.get("x-ladder-input-mode").and_then(Value::as_str).map(|mode| mode != "text").unwrap_or(false)
+    });
     if target == "python" || target == "typescript" {
         let mut instructional = vec!["typed data contracts".into()];
+        if has_multimodal_input { instructional.push("multimodal input contracts".into()); }
         if workflow.spec.nodes.iter().any(|n| n.kind == "loop") { instructional.push("bounded loops".into()); }
         if workflow.spec.nodes.iter().any(|n| n.kind == "approval") { instructional.push("human approval gates".into()); }
         if workflow.spec.nodes.iter().any(|n| n.kind == "group") { instructional.push("bounded group orchestration".into()); }
@@ -740,6 +747,7 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
     }
     let mut native = vec!["ordered instructions".into(), "parallel delegation guidance".into(), "copy/paste workflow".into()];
     let mut instructional = vec!["typed data contracts".into()];
+    if has_multimodal_input { instructional.push("multimodal input contracts".into()); }
     if workflow.spec.nodes.iter().any(|n| n.kind == "loop") { instructional.push("bounded loops".into()); }
     if workflow.spec.nodes.iter().any(|n| n.kind == "approval") { instructional.push("human approval gates".into()); }
     if workflow.spec.nodes.iter().any(|n| n.kind == "group") { instructional.push("bounded group orchestration".into()); }
@@ -906,6 +914,18 @@ spec:
         let output = compile(&with_connector, "codex");
         assert!(output.contains("**Required connectors:** mcp:github"));
         assert!(output.contains(".agents/skills/"));
+    }
+
+    #[test]
+    fn compiles_multimodal_input_contracts() {
+        let with_image = VALID.replace(
+            "name: Request",
+            "name: Request\n      inputSchema:\n        type: object\n        required: [asset]\n        properties:\n          asset:\n            type: string\n            contentMediaType: image/*\n        x-ladder-input-mode: image",
+        );
+        let output = compile(&with_image, "codex");
+        assert!(output.contains("Expected input contract"));
+        assert!(output.contains("contentMediaType"));
+        assert!(output.contains("multimodal input contracts"));
     }
 
     #[test]

@@ -86,6 +86,19 @@ describe("LGIR fallback compiler", () => {
     expect(claude.content).toContain("ladder-target: claude");
   });
 
+  it("compiles multimodal input contracts into target instructions", async () => {
+    const template = WORKFLOW_TEMPLATES.find((candidate) => candidate.id === "image-text-extraction");
+    if (!template) throw new Error("The image extraction template is required.");
+
+    const result = await compileFallback(template.yaml, "codex");
+
+    expect(result.ok).toBe(true);
+    expect(result.content).toContain("**Expected input contract**");
+    expect(result.content).toContain('"contentMediaType": "image/*"');
+    expect(result.content).toContain('"x-ladder-input-mode": "image"');
+    expect(result.capabilityReport.instructional).toContain("multimodal input contracts");
+  });
+
   it("compiles a Hermes Agent SKILL.md workflow with declarative connectors", async () => {
     const workflow = parse(WORKFLOW_TEMPLATES[2].yaml) as Workflow;
     const agent = workflow.spec.nodes.find((node) => node.kind === "agent");
