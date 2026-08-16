@@ -6,6 +6,7 @@ import {
   Bot,
   Boxes,
   Building2,
+  Cable,
   Calculator,
   CircleHelp,
   Code2,
@@ -28,6 +29,7 @@ import { useStudioStore } from "../store/useStudioStore";
 import type { ProjectRecord } from "../types";
 import { Brand } from "./Brand";
 import { LazyHelpDialog } from "./LazyHelpDialog";
+import { StorageDialog } from "./StorageDialog";
 import { ThemeToggle } from "./ThemeToggle";
 
 const WORKFLOW_AREAS = [
@@ -229,6 +231,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeArea, setActiveArea] = useState<(typeof WORKFLOW_AREAS)[number]["name"]>("Core patterns");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [mcpOpen, setMcpOpen] = useState(false);
   const [activeLibraryTab, setActiveLibraryTab] = useState<LibraryTab>("workflows");
   const areaRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -259,6 +262,10 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
       <header className="welcome-header">
         <Brand />
         <div className="welcome-header-actions">
+          <button className="quiet-button" onClick={() => setMcpOpen(true)} type="button" aria-label="Open MCP companion">
+            <Cable size={16} aria-hidden="true" />
+            <span>MCP</span>
+          </button>
           <button className="quiet-button welcome-help-button" onClick={() => setHelpOpen(true)} type="button">
             <CircleHelp size={16} aria-hidden="true" />
             <span>Intro &amp; help</span>
@@ -449,6 +456,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
         <span>Open source · offline-first · no account · never runs agents</span>
         <span>LGIR v1alpha1</span>
       </footer>
+      {mcpOpen ? <StorageDialog onClose={() => setMcpOpen(false)} /> : null}
       {helpOpen ? <LazyHelpDialog onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );
