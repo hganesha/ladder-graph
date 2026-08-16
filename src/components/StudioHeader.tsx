@@ -14,7 +14,7 @@ import {
   Undo2,
   WandSparkles,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStudioStore } from "../store/useStudioStore";
 import type { Target } from "../types";
 import { Brand } from "./Brand";
@@ -28,6 +28,30 @@ export function StudioHeader({ onStorage, mcpPaired }: { onStorage: () => void; 
   const errors = state.analysis?.diagnostics.filter((item) => item.severity === "error").length ?? 0;
   const warnings = state.analysis?.diagnostics.filter((item) => item.severity === "warning").length ?? 0;
   const workflow = state.analysis?.normalized;
+  const [titleDraft, setTitleDraft] = useState("");
+  const [descriptionDraft, setDescriptionDraft] = useState("");
+
+  useEffect(() => {
+    setTitleDraft(workflow?.metadata.title ?? workflow?.metadata.name ?? "");
+    setDescriptionDraft(workflow?.metadata.description ?? "");
+  }, [workflow?.metadata.description, workflow?.metadata.name, workflow?.metadata.title]);
+
+  const saveTitle = async (value: string) => {
+    const title = value.trim();
+    if (!workflow || !title) {
+      setTitleDraft(workflow?.metadata.title ?? workflow?.metadata.name ?? "");
+      return;
+    }
+    setTitleDraft(title);
+    if (title !== workflow.metadata.title) await state.patchWorkflowMetadata({ title });
+  };
+
+  const saveDescription = async (value: string) => {
+    const description = value.trim();
+    if (!workflow) return;
+    setDescriptionDraft(description);
+    if (description !== (workflow.metadata.description ?? "")) await state.patchWorkflowMetadata({ description });
+  };
 
   return (
     <header className="studio-header">
@@ -37,10 +61,34 @@ export function StudioHeader({ onStorage, mcpPaired }: { onStorage: () => void; 
         </button>
         <Brand compact />
         <span className="header-divider" />
-        <div className="workflow-title">
-          <strong>{workflow?.metadata.title ?? "Invalid YAML"}</strong>
-          <small>{workflow?.metadata.description ?? "Fix the source to resume visual editing."}</small>
-        </div>
+        {workflow ? (
+          <div className="workflow-title workflow-metadata-fields">
+            <input
+              aria-label="Workflow name"
+              value={titleDraft}
+              onChange={(event) => setTitleDraft(event.target.value)}
+              onBlur={(event) => void saveTitle(event.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
+            />
+            <input
+              aria-label="Workflow description"
+              placeholder="Add workflow details"
+              value={descriptionDraft}
+              onChange={(event) => setDescriptionDraft(event.target.value)}
+              onBlur={(event) => void saveDescription(event.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
+            />
+          </div>
+        ) : (
+          <div className="workflow-title">
+            <strong>Invalid YAML</strong>
+            <small>Fix the source to resume visual editing.</small>
+          </div>
+        )}
       </div>
       <div className="header-actions">
         <ThemeToggle compact />
