@@ -48,7 +48,7 @@ export function Palette() {
           </button>
         </div>
       )}
-      <details open>
+      <details aria-label="Visual macros" open>
         <summary>
           Visual macros <ChevronDown size={13} />
         </summary>
@@ -71,7 +71,26 @@ export function Palette() {
           </button>
         </div>
       </details>
-      <details open>
+      <details aria-label="Primitives" open={Boolean(query) && groups.length > 0}>
+        <summary>
+          Primitives <ChevronDown size={13} />
+        </summary>
+        <div className="palette-list">
+          {groups.map((kind) => {
+            const meta = NODE_META[kind];
+            return (
+              <button key={kind} onClick={() => void addNode(kind)}>
+                <span className="palette-dot" style={{ background: meta.color }} />
+                <span>
+                  <strong>{meta.label}</strong>
+                  <small>{meta.hint}</small>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </details>
+      <details aria-label="Agent templates" open={Boolean(query) && visibleRoleCount > 0}>
         <summary>
           Agent templates · {visibleRoleCount} <ChevronDown size={13} />
         </summary>
@@ -81,7 +100,7 @@ export function Palette() {
               aria-label={`${category.label} agent templates (${category.roles.length})`}
               className="role-category"
               key={category.id}
-              open
+              open={Boolean(query)}
             >
               <summary>
                 <span>
@@ -105,25 +124,6 @@ export function Palette() {
             </details>
           ))}
           {visibleRoleCount === 0 && <p className="role-empty">No agent templates match this search.</p>}
-        </div>
-      </details>
-      <details open>
-        <summary>
-          Primitives <ChevronDown size={13} />
-        </summary>
-        <div className="palette-list">
-          {groups.map((kind) => {
-            const meta = NODE_META[kind];
-            return (
-              <button key={kind} onClick={() => void addNode(kind)}>
-                <span className="palette-dot" style={{ background: meta.color }} />
-                <span>
-                  <strong>{meta.label}</strong>
-                  <small>{meta.hint}</small>
-                </span>
-              </button>
-            );
-          })}
         </div>
       </details>
       <div className="palette-foot">

@@ -16,6 +16,8 @@ type FormNode = LgirNode & {
   config: NonNullable<LgirNode["config"]>;
 };
 
+const WORKING_DIRECTORY_KINDS = new Set<LgirNode["kind"]>(["agent", "tool", "evaluate", "teacher"]);
+
 function normalized(node: LgirNode): FormNode {
   return {
     ...node,
@@ -145,6 +147,21 @@ export function Inspector() {
                 onBlur={() => commit({ summary: draft.summary })}
               />
             </Field>
+            {WORKING_DIRECTORY_KINDS.has(draft.kind) && (
+              <Field label="Working folder">
+                <input
+                  aria-label="Working folder"
+                  autoComplete="off"
+                  value={draft.config.workingDirectory ?? ""}
+                  placeholder="Workflow default"
+                  onChange={(event) => setDraft({ ...draft, config: { ...draft.config, workingDirectory: event.target.value } })}
+                  onBlur={(event) => commit({ config: { ...draft.config, workingDirectory: event.target.value.trim() } })}
+                />
+                <small className="field-help">
+                  Optional host-resolved path. Leave blank to use the workflow default; Ladder Graph records the folder but never reads it.
+                </small>
+              </Field>
+            )}
             {(draft.kind === "agent" || draft.kind === "evaluate" || draft.kind === "teacher") && (
               <>
                 <Field label="Role">

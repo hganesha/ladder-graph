@@ -90,6 +90,7 @@
                   "aggregation": { "enum": ["collect", "merge", "concat", "vote", ""] },
                   "teacherModel": { "type": "string" },
                   "feedbackMode": { "enum": ["critique", "score", "rubric", ""] },
+                  "workingDirectory": { "type": "string" },
                   "body": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
                   "exitCondition": { "type": "string" },
                   "maxIterations": { "type": "integer", "minimum": 0, "maximum": 100 },

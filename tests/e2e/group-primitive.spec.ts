@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-test.use({ launchOptions: { channel: "chrome" } });
-
 test("group primitive contains members and exposes an aggregate boundary", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
@@ -12,6 +10,7 @@ test("group primitive contains members and exposes an aggregate boundary", async
   await page.getByRole("button", { name: /new workflow/i }).click();
   await expect(page.getByLabel("Workflow graph canvas")).toBeVisible();
 
+  await page.getByLabel("Primitives").locator("summary").click();
   await page.getByRole("button", { name: /group bounded sequential or parallel phase/i }).click();
   await expect(page.getByLabel("Group: Execution group")).toBeVisible();
   await page.getByRole("button", { name: /agent one focused role and prompt/i }).click();

@@ -57,6 +57,15 @@ describe("input contract inspector", () => {
 
     render(<Inspector />);
 
+    const workingFolder = screen.getByLabelText("Working folder");
+    expect(workingFolder).toHaveValue("");
+    fireEvent.change(workingFolder, { target: { value: " packages/reviewer " } });
+    fireEvent.blur(workingFolder);
+    expect(patchNode).toHaveBeenCalledWith(
+      teacher.id,
+      expect.objectContaining({ config: expect.objectContaining({ workingDirectory: "packages/reviewer" }) }),
+    );
+
     const model = screen.getByLabelText("Teacher model reference");
     fireEvent.change(model, { target: { value: "host:reviewer-v2" } });
     fireEvent.blur(model);
@@ -71,5 +80,24 @@ describe("input contract inspector", () => {
       teacher.id,
       expect.objectContaining({ config: expect.objectContaining({ feedbackMode: "rubric" }) }),
     );
+  });
+
+  it("only offers a working folder for host-executed nodes", () => {
+    const workflow = parse(WORKFLOW_TEMPLATES[0].yaml) as Workflow;
+    const transform = defaultNode("transform", workflow.spec.nodes.length + 1);
+    workflow.spec.nodes.push(transform);
+    const analysis: AnalysisResult = {
+      ok: true,
+      sourceHash: "test",
+      diagnostics: [],
+      normalized: workflow,
+      nodeOrder: workflow.spec.nodes.map((node) => node.id),
+      stats: { nodes: workflow.spec.nodes.length, edges: workflow.spec.edges.length, agents: 2, loops: 1, maxParallelism: 1 },
+    };
+    useStudioStore.setState({ analysis, selectedNodeId: transform.id, inspectorTab: "basics", patchNode: vi.fn(async () => undefined) });
+
+    render(<Inspector />);
+
+    expect(screen.queryByLabelText("Working folder")).not.toBeInTheDocument();
   });
 });

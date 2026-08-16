@@ -341,6 +341,7 @@ function renderNode(workflow: Workflow, node: LgirNode, index: number): string {
     ? deps.map((edge) => `\`${edge.from}\` via ${edge.kind}${edge.contract ? ` carrying \`${edge.contract}\`` : ""}`).join("; ")
     : "Starts when the workflow begins";
   let body = `\n### ${index + 1}. ${node.name || node.id} (\`${node.id}\`)\n\n- **Kind:** \`${node.kind}\`\n- **Depends on:** ${depends}\n- **Purpose:** ${node.summary || "No summary provided."}\n`;
+  if (node.config?.workingDirectory?.trim()) body += `- **Working directory:** \`${node.config.workingDirectory.trim()}\`\n`;
   if (node.kind === "agent" || node.kind === "evaluate" || node.kind === "teacher") {
     body += `- **Role:** ${node.role || "Focused workflow specialist"}\n- **Required skills:** ${list(node.capabilities?.skills)}\n- **Required connectors:** ${list(node.capabilities?.connectors)}\n- **Required tools:** ${list(node.capabilities?.tools)}\n- **Permissions:** ${list(node.capabilities?.permissions)}\n\n**Task instructions**\n\n${node.prompt}\n`;
     if (node.kind === "teacher")
@@ -388,6 +389,7 @@ function capabilities(workflow: Workflow, target: Target): CapabilityReport {
   if (workflow.spec.nodes.some((node) => node.kind === "group")) instructional.push("bounded group orchestration");
   if (workflow.spec.nodes.some((node) => node.kind === "aggregator")) instructional.push("multi-output aggregation");
   if (workflow.spec.nodes.some((node) => node.kind === "teacher")) instructional.push("teacher-model feedback");
+  if (workflow.spec.nodes.some((node) => node.config?.workingDirectory?.trim())) instructional.push("per-node working directories");
   if (workflow.spec.nodes.some((node) => node.capabilities?.connectors?.length)) instructional.push("declared connector availability");
   if (isCodeTarget(target)) {
     return {
