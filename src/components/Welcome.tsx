@@ -11,10 +11,12 @@ import {
   CircleHelp,
   Code2,
   Feather,
+  HardHat,
   Images,
   Megaphone,
   Music2,
   PenTool,
+  Plane,
   ShieldCheck,
   Sparkles,
   Target,
@@ -219,6 +221,16 @@ const WORKFLOW_AREAS = [
     name: "Crisis & emergency management",
     description: "Incident intake, operations, logistics, communications, recovery, and after-action review.",
     icon: ShieldCheck,
+  },
+  {
+    name: "Airline flight operations",
+    description: "Dispatch, fuel planning, operational barriers, airworthiness, and ordered release authority.",
+    icon: Plane,
+  },
+  {
+    name: "Oil & gas drilling & well operations",
+    description: "Well design, anti-collision, control barriers, integrity, permits, and drill-ahead decisions.",
+    icon: HardHat,
   },
 ] as const;
 

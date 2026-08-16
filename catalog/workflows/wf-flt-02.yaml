@@ -1,0 +1,198 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-flt-02
+  title: Fuel plan + independent re-derivation
+  description: Derive the fuel figure twice — planner judgment against a declared flight planning engine
+    — and gate the release on the two agreeing above final reserve.
+  version: 1.0.0
+spec:
+  objective: Release a fuel figure that was independently re-derived, with trip, contingency, alternate,
+    and final reserve shown separately and any divergence explained before the aircraft is fuelled.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Route, payload, and forecast
+      summary: Route, payload, and forecast
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - route
+              - payload
+              - forecast_winds
+              - alternate_options
+              - reserve_policy
+            properties:
+              route: {}
+              payload: {}
+              forecast_winds: {}
+              alternate_options: {}
+              reserve_policy: {}
+        x-ladder-input-mode: document
+    - id: n-select
+      kind: transform
+      name: Select figures under test
+      summary: select the route, payload, forecast winds, and reserve policy for the sector under review
+      config:
+        operation: select
+        expression: select the route, payload, forecast winds, and reserve policy for the sector under
+          review
+    - id: n-derive
+      kind: agent
+      name: Planner fuel figure with margins shown
+      summary: First derivation, from the specification.
+      role: Planner building route, altitude, and fuel figures against payload, weather, and reserve policy.
+      prompt: You are a Flight Planning & Fuel Analyst. You build the route, cruise profile, and fuel
+        figure from the actual aircraft performance data, forecast winds, payload, and reserve policy,
+        and you show trip, contingency, alternate, final reserve, taxi, and any extra fuel as separate
+        lines. You never present a plan that reaches destination or alternate below final reserve, and
+        you state the assumption — a wind forecast, a step climb, a runway in use — that the margin actually
+        depends on.
+      capabilities:
+        skills:
+          - flight-planning
+          - fuel-policy-application
+          - reserve-margin-discipline
+          - wind-and-route-optimization
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:flight-planning
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-recompute
+      kind: tool
+      name: Flight planning engine run
+      summary: Host-supplied flight planning and fuel computation against the certified performance data.
+        Declared as a requirement; Ladder Graph does not execute it and no computed figure may be presented
+        as a certified performance result.
+      capabilities:
+        skills:
+          - flight-planning
+          - numeric-verification
+        tools:
+          - calculate
+          - mcp:flight-planning
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-agree
+      kind: aggregator
+      name: Compare the two derivations
+      summary: Tally the two independently derived values; a tie is a discrepancy, not an average.
+      config:
+        aggregation: vote
+    - id: n-discrepancy
+      kind: condition
+      name: Within tolerance?
+      summary: Route on the two figures agree within the declared tolerance and both leave final reserve
+        intact at destination and alternate.
+      config:
+        expression: the two figures agree within the declared tolerance and both leave final reserve intact
+          at destination and alternate
+        branches:
+          - label: Agreed
+            when: agreed
+          - label: Discrepant
+            when: discrepant
+    - id: n-reconcile
+      kind: agent
+      name: Explain the fuel divergence before fuelling
+      summary: Explain the discrepancy before anything downstream consumes the number.
+      role: Licensed dispatcher holding joint responsibility with the captain for the safe conduct of
+        a flight.
+      prompt: You are a Flight Dispatcher. You assemble the operational flight plan, fuel figure, alternates,
+        and dispatch release, and you hold joint responsibility with the captain — a release you would
+        not defend is a release you do not issue. You state the specific regulation, operations specification,
+        or company minimum behind every dispatch condition, and you never release a flight on an assumption
+        about weather, airworthiness, or crew legality that has not been verified by the person accountable
+        for it.
+      capabilities:
+        skills:
+          - flight-dispatch
+          - dispatch-release-authority
+          - regulatory-minima-citation
+          - operational-control-discipline
+          - failure-mode-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:flight-planning
+          - mcp:ops-control
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Dispatcher and commander accept the fuel figure
+      summary: Pause for the dispatcher and commander jointly; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Fuel plan + independent re-derivation deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-flt-02-edge-1
+      from: n-intake
+      to: n-select
+      kind: data
+    - id: wf-flt-02-edge-2
+      from: n-select
+      to: n-derive
+      kind: data
+    - id: wf-flt-02-edge-3
+      from: n-select
+      to: n-recompute
+      kind: data
+    - id: wf-flt-02-edge-4
+      from: n-derive
+      to: n-agree
+      kind: data
+    - id: wf-flt-02-edge-5
+      from: n-recompute
+      to: n-agree
+      kind: data
+    - id: wf-flt-02-edge-6
+      from: n-agree
+      to: n-discrepancy
+      kind: data
+    - id: wf-flt-02-edge-7
+      from: n-discrepancy
+      to: n-approval
+      kind: control
+      condition: agreed
+    - id: wf-flt-02-edge-8
+      from: n-discrepancy
+      to: n-reconcile
+      kind: control
+      condition: discrepant
+    - id: wf-flt-02-edge-9
+      from: n-reconcile
+      to: n-approval
+      kind: data
+    - id: wf-flt-02-edge-10
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

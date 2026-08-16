@@ -935,6 +935,94 @@
       "topology": "Merge transform + exceptions",
       "accent": "#5fd6cd",
       "file": "workflows/wf-crisis-02.yaml"
+    },
+    {
+      "id": "wf-flt-01",
+      "path": "research/aviation/flight-operations/wf-flt-01",
+      "area": "Airline flight operations",
+      "title": "Dispatch release + barrier verification",
+      "eyebrow": "Barrier verification",
+      "description": "Verify each dispatch barrier independently — weather and alternates, performance, airspace, crew legality, airworthiness — and hard-stop the release if any one fails.",
+      "topology": "Barrier verification + hard stop",
+      "accent": "#4f9dde",
+      "file": "workflows/wf-flt-01.yaml"
+    },
+    {
+      "id": "wf-flt-02",
+      "path": "research/aviation/flight-operations/wf-flt-02",
+      "area": "Airline flight operations",
+      "title": "Fuel plan + independent re-derivation",
+      "eyebrow": "Numeric discipline",
+      "description": "Derive the fuel figure twice — planner judgment against a declared flight planning engine — and gate the release on the two agreeing above final reserve.",
+      "topology": "Dual derivation + tie-out",
+      "accent": "#4f9dde",
+      "file": "workflows/wf-flt-02.yaml"
+    },
+    {
+      "id": "wf-flt-03",
+      "path": "research/aviation/flight-operations/wf-flt-03",
+      "area": "Airline flight operations",
+      "title": "Departure go / hold / no-go",
+      "eyebrow": "Contingency branch",
+      "description": "Assess conditions against criteria declared before the decision point, then go, hold and reassess within a bounded limit, or take the pre-planned alternative.",
+      "topology": "Go / hold / no-go + contingency",
+      "accent": "#4f9dde",
+      "file": "workflows/wf-flt-03.yaml"
+    },
+    {
+      "id": "wf-flt-04",
+      "path": "research/aviation/flight-operations/wf-flt-04",
+      "area": "Airline flight operations",
+      "title": "Deferral and maintenance release authority chain",
+      "eyebrow": "Ordered authority chain",
+      "description": "Prepare the deferral evidence in order, check for conflicting work on the aircraft, and route it through an authority chain that cannot be reordered or skipped.",
+      "topology": "Ordered authority chain",
+      "accent": "#4f9dde",
+      "file": "workflows/wf-flt-04.yaml"
+    },
+    {
+      "id": "wf-well-01",
+      "path": "research/wells/drilling/wf-well-01",
+      "area": "Oil & gas drilling & well operations",
+      "title": "Anti-collision clearance + independent re-derivation",
+      "eyebrow": "Numeric discipline",
+      "description": "Compute separation from offset wells twice — directional analysis against a declared survey-uncertainty engine — and gate drilling ahead on the two agreeing above the minimum separation factor.",
+      "topology": "Dual derivation + tie-out",
+      "accent": "#c9762f",
+      "file": "workflows/wf-well-01.yaml"
+    },
+    {
+      "id": "wf-well-02",
+      "path": "research/wells/drilling/wf-well-02",
+      "area": "Oil & gas drilling & well operations",
+      "title": "Well control barrier verification",
+      "eyebrow": "Barrier verification",
+      "description": "Verify each barrier element independently — mud column, casing and cement, BOP and wellhead, and integrity envelope — and hard-stop the operation if any one is unproven.",
+      "topology": "Barrier verification + hard stop",
+      "accent": "#c9762f",
+      "file": "workflows/wf-well-02.yaml"
+    },
+    {
+      "id": "wf-well-03",
+      "path": "research/wells/drilling/wf-well-03",
+      "area": "Oil & gas drilling & well operations",
+      "title": "Permit to work + simultaneous operations gate",
+      "eyebrow": "Ordered authority chain",
+      "description": "Prepare hazard, isolation, and SIMOPS evidence in order, deconflict activities that cannot run together, and route the permit through an authority chain that cannot be reordered.",
+      "topology": "Ordered authority chain",
+      "accent": "#c9762f",
+      "file": "workflows/wf-well-03.yaml"
+    },
+    {
+      "id": "wf-well-04",
+      "path": "research/wells/drilling/wf-well-04",
+      "area": "Oil & gas drilling & well operations",
+      "title": "Drill-ahead go / hold / no-go",
+      "eyebrow": "Contingency branch",
+      "description": "Assess the well against criteria declared before the section, then drill ahead, circulate and reassess within a bounded limit, or set the contingency casing point.",
+      "topology": "Go / hold / no-go + contingency",
+      "accent": "#c9762f",
+      "file": "workflows/wf-well-04.yaml"
     }
   ],
   "agents": [
@@ -2683,6 +2771,102 @@
       "path": "research/multimodal/audio",
       "title": "Speech & Audio Specialist",
       "file": "agents/media-04.yaml"
+    },
+    {
+      "id": "flt-01",
+      "path": "research/aviation/flight-operations",
+      "title": "Flight Dispatcher",
+      "file": "agents/flt-01.yaml"
+    },
+    {
+      "id": "flt-02",
+      "path": "research/aviation/flight-operations",
+      "title": "Flight Planning & Fuel Analyst",
+      "file": "agents/flt-02.yaml"
+    },
+    {
+      "id": "flt-03",
+      "path": "research/aviation/flight-operations",
+      "title": "Aviation Meteorologist",
+      "file": "agents/flt-03.yaml"
+    },
+    {
+      "id": "flt-04",
+      "path": "research/aviation/flight-operations",
+      "title": "Aircraft Performance Engineer",
+      "file": "agents/flt-04.yaml"
+    },
+    {
+      "id": "flt-05",
+      "path": "research/aviation/flight-operations",
+      "title": "NOTAM & Airspace Compliance Analyst",
+      "file": "agents/flt-05.yaml"
+    },
+    {
+      "id": "flt-06",
+      "path": "research/aviation/flight-operations",
+      "title": "Crew Legality & Fatigue Analyst",
+      "file": "agents/flt-06.yaml"
+    },
+    {
+      "id": "flt-07",
+      "path": "research/aviation/flight-operations",
+      "title": "MEL & Airworthiness Controller",
+      "file": "agents/flt-07.yaml"
+    },
+    {
+      "id": "flt-08",
+      "path": "research/aviation/flight-operations",
+      "title": "Flight Safety & FDM Analyst",
+      "file": "agents/flt-08.yaml"
+    },
+    {
+      "id": "well-01",
+      "path": "research/wells/drilling",
+      "title": "Well Planning Engineer",
+      "file": "agents/well-01.yaml"
+    },
+    {
+      "id": "well-02",
+      "path": "research/wells/drilling",
+      "title": "Directional Drilling & Anti-Collision Analyst",
+      "file": "agents/well-02.yaml"
+    },
+    {
+      "id": "well-03",
+      "path": "research/wells/drilling",
+      "title": "Geomechanics & Pore Pressure Analyst",
+      "file": "agents/well-03.yaml"
+    },
+    {
+      "id": "well-04",
+      "path": "research/wells/drilling",
+      "title": "Well Control & Barrier Engineer",
+      "file": "agents/well-04.yaml"
+    },
+    {
+      "id": "well-05",
+      "path": "research/wells/drilling",
+      "title": "Casing & Cementing Engineer",
+      "file": "agents/well-05.yaml"
+    },
+    {
+      "id": "well-06",
+      "path": "research/wells/drilling",
+      "title": "Drilling Performance Engineer",
+      "file": "agents/well-06.yaml"
+    },
+    {
+      "id": "well-07",
+      "path": "research/wells/drilling",
+      "title": "Well Integrity & Abandonment Analyst",
+      "file": "agents/well-07.yaml"
+    },
+    {
+      "id": "well-08",
+      "path": "research/wells/drilling",
+      "title": "Drilling HSE & Permit Coordinator",
+      "file": "agents/well-08.yaml"
     }
   ]
 }

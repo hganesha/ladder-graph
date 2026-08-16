@@ -27,6 +27,8 @@ const SUBJECT_PATH_PREFIXES: Record<string, string[]> = {
   "Transportation & mobility": ["research/industry/mobility"],
   "Real estate & construction": ["research/industry/built-environment"],
   "Agriculture & food systems": ["research/industry/agriculture"],
+  "Airline flight operations": ["research/aviation/flight-operations"],
+  "Oil & gas drilling & well operations": ["research/wells/drilling"],
   "Chemistry & materials science": ["research/applied-science/chemistry"],
   "Biology & bioinformatics": ["research/applied-science/biology"],
   "Environmental & climate science": ["research/applied-science/environment"],

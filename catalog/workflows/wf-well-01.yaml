@@ -1,0 +1,197 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-well-01
+  title: Anti-collision clearance + independent re-derivation
+  description: Compute separation from offset wells twice — directional analysis against a declared survey-uncertainty
+    engine — and gate drilling ahead on the two agreeing above the minimum separation factor.
+  version: 1.0.0
+spec:
+  objective: Clear a well section to drill ahead only when separation from every offset wellbore has been
+    independently re-derived with positional uncertainty carried, and any divergence explained before
+    the bit moves.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Planned trajectory and offset well surveys
+      summary: Planned trajectory and offset well surveys
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - planned_trajectory
+              - offset_surveys
+              - survey_tool_codes
+              - minimum_separation_factor
+            properties:
+              planned_trajectory: {}
+              offset_surveys: {}
+              survey_tool_codes: {}
+              minimum_separation_factor: {}
+        x-ladder-input-mode: document
+    - id: n-select
+      kind: transform
+      name: Select figures under test
+      summary: select the planned trajectory, the offset wellbores in the scan radius, and the survey
+        tool and error model for each
+      config:
+        operation: select
+        expression: select the planned trajectory, the offset wellbores in the scan radius, and the survey
+          tool and error model for each
+    - id: n-derive
+      kind: agent
+      name: Directional anti-collision analysis
+      summary: First derivation, from the specification.
+      role: Directional specialist computing separation from offset wells with survey uncertainty carried
+        explicitly.
+      prompt: You are a Directional Drilling & Anti-Collision Analyst. You compute separation from every
+        offset well using corrected surveys and the positional uncertainty of both wellbores, and you
+        report the separation factor with the error model, tool code, and correction applied. You never
+        report clearance from raw or uncorrected survey data, and you treat a separation factor below
+        the declared minimum as a stop rather than as a monitoring item — the ellipsoids, not the plan
+        lines, are what actually pass or collide.
+      capabilities:
+        skills:
+          - anti-collision-analysis
+          - survey-uncertainty-modeling
+          - separation-factor-computation
+          - survey-correction-verification
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:survey-management
+          - mcp:well-planning
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-recompute
+      kind: tool
+      name: Survey uncertainty engine run
+      summary: Host-supplied positional uncertainty and separation factor computation against the declared
+        error model. Declared as a requirement; Ladder Graph does not execute it and no computed clearance
+        may be treated as a survey of record.
+      capabilities:
+        skills:
+          - separation-factor-computation
+          - numeric-verification
+        tools:
+          - calculate
+          - mcp:survey-management
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-agree
+      kind: aggregator
+      name: Compare the two derivations
+      summary: Tally the two independently derived values; a tie is a discrepancy, not an average.
+      config:
+        aggregation: vote
+    - id: n-discrepancy
+      kind: condition
+      name: Within tolerance?
+      summary: Route on both derivations return a separation factor above the declared minimum for every
+        offset wellbore, using corrected surveys and the same error model.
+      config:
+        expression: both derivations return a separation factor above the declared minimum for every offset
+          wellbore, using corrected surveys and the same error model
+        branches:
+          - label: Agreed
+            when: agreed
+          - label: Discrepant
+            when: discrepant
+    - id: n-reconcile
+      kind: agent
+      name: Explain the separation divergence before drilling ahead
+      summary: Explain the discrepancy before anything downstream consumes the number.
+      role: Well engineer taking objectives to a drillable design within the geomechanical window.
+      prompt: You are a Well Planning Engineer. You take subsurface objectives to a trajectory, casing
+        scheme, and mud weight program that fit inside the pore pressure and fracture gradient window
+        at every depth, and you state the uncertainty on the prognosis each depth is planned against.
+        You name the contingency casing point and the conditions that would trigger it, because a design
+        with no planned contingency forces the decision to be made under pressure at the rig floor.
+      capabilities:
+        skills:
+          - well-design
+          - casing-scheme-design
+          - pressure-window-analysis
+          - contingency-depth-planning
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:well-planning
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Drilling superintendent clears the section to drill ahead
+      summary: Pause for the drilling superintendent; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Anti-collision clearance + independent re-derivation deliverable,
+        the evidence behind it, and every unresolved item.
+  edges:
+    - id: wf-well-01-edge-1
+      from: n-intake
+      to: n-select
+      kind: data
+    - id: wf-well-01-edge-2
+      from: n-select
+      to: n-derive
+      kind: data
+    - id: wf-well-01-edge-3
+      from: n-select
+      to: n-recompute
+      kind: data
+    - id: wf-well-01-edge-4
+      from: n-derive
+      to: n-agree
+      kind: data
+    - id: wf-well-01-edge-5
+      from: n-recompute
+      to: n-agree
+      kind: data
+    - id: wf-well-01-edge-6
+      from: n-agree
+      to: n-discrepancy
+      kind: data
+    - id: wf-well-01-edge-7
+      from: n-discrepancy
+      to: n-approval
+      kind: control
+      condition: agreed
+    - id: wf-well-01-edge-8
+      from: n-discrepancy
+      to: n-reconcile
+      kind: control
+      condition: discrepant
+    - id: wf-well-01-edge-9
+      from: n-reconcile
+      to: n-approval
+      kind: data
+    - id: wf-well-01-edge-10
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

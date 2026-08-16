@@ -1,0 +1,241 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-well-03
+  title: Permit to work + simultaneous operations gate
+  description: Prepare hazard, isolation, and SIMOPS evidence in order, deconflict activities that cannot
+    run together, and route the permit through an authority chain that cannot be reordered.
+  version: 1.0.0
+spec:
+  objective: Authorize wellsite work only when hazards are assessed, isolation is proved at the point
+    of work, and conflicting simultaneous activities have been resolved before any authority signs.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-authority-1
+      - n-authority-2
+      - n-authority-3
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Requested work and current wellsite activity
+      summary: Requested work and current wellsite activity
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - work_request
+              - active_operations
+              - isolation_points
+              - personnel_on_board
+            properties:
+              work_request: {}
+              active_operations: {}
+              isolation_points: {}
+              personnel_on_board: {}
+        x-ladder-input-mode: document
+    - id: n-scope
+      kind: transform
+      name: Select the work and the systems it touches
+      summary: select the requested task, the systems it touches, and the isolations it requires
+      config:
+        operation: select
+        expression: select the requested task, the systems it touches, and the isolations it requires
+    - id: n-prep1
+      kind: agent
+      name: Hazard assessment for the task as scoped
+      summary: 'Preparation step 1: hazard assessment for the task as scoped.'
+      role: Coordinator running permit to work, isolation, and simultaneous operations control at the
+        wellsite.
+      prompt: 'You are a Drilling HSE & Permit Coordinator. You run permit to work, energy isolation,
+        and simultaneous operations control: what work is authorized, who holds each authority, what is
+        isolated, and which activities cannot run at the same time. You refuse a permit whose isolation
+        has not been proved at the point of work, and you treat a change to the scope as requiring a new
+        authorization rather than an amended one.'
+      capabilities:
+        skills:
+          - permit-to-work-control
+          - energy-isolation-verification
+          - simultaneous-operations-control
+          - management-of-change
+          - failure-mode-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:permit-system
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-prep2
+      kind: agent
+      name: Energy isolation plan proved at the point of work
+      summary: 'Preparation step 2: energy isolation plan proved at the point of work.'
+      role: Coordinator running permit to work, isolation, and simultaneous operations control at the
+        wellsite.
+      prompt: 'You are a Drilling HSE & Permit Coordinator. You run permit to work, energy isolation,
+        and simultaneous operations control: what work is authorized, who holds each authority, what is
+        isolated, and which activities cannot run at the same time. You refuse a permit whose isolation
+        has not been proved at the point of work, and you treat a change to the scope as requiring a new
+        authorization rather than an amended one.'
+      capabilities:
+        skills:
+          - permit-to-work-control
+          - energy-isolation-verification
+          - simultaneous-operations-control
+          - management-of-change
+          - failure-mode-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:permit-system
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-prep3
+      kind: agent
+      name: Well control effect of the requested work
+      summary: 'Preparation step 3: well control effect of the requested work.'
+      role: Well control engineer maintaining two tested barriers between the reservoir and the environment.
+      prompt: You are a Well Control & Barrier Engineer. You identify the primary and secondary barrier
+        elements for the current operation, verify each has been tested and is in its validity period,
+        and state the maximum allowable annular surface pressure the current configuration supports. You
+        treat an untested or expired barrier element as absent — a barrier assumed to be intact is not
+        a barrier — and you stop the operation rather than proceeding on a single verified barrier.
+      capabilities:
+        skills:
+          - well-control-analysis
+          - barrier-envelope-verification
+          - bop-test-currency-checking
+          - kick-detection-review
+          - failure-mode-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:drilling-data
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-preparation
+      kind: group
+      name: Permit evidence sequence
+      summary: Each preparation step consumes the previous one; the group exits only after the whole sequence
+        has been serialized in the order the permit requires.
+      config:
+        members:
+          - n-prep1
+          - n-prep2
+          - n-prep3
+        execution: sequential
+        exit: serialize
+    - id: n-conflict
+      kind: condition
+      name: Simultaneous operations conflict?
+      summary: Route on the requested work conflicts with an active operation under simultaneous operations
+        rules.
+      config:
+        expression: the requested work conflicts with an active operation under simultaneous operations
+          rules
+        branches:
+          - label: Clear
+            when: clear
+          - label: Conflict
+            when: conflict
+    - id: n-deconflict
+      kind: agent
+      name: Resolve or reschedule the conflicting activity
+      summary: Resolve the conflicting activity before any authority signs.
+      role: Engineer optimizing drilling parameters without exceeding mechanical or hole-condition limits.
+      prompt: You are a Drilling Performance Engineer. You optimize weight on bit, rotary speed, flow,
+        and hydraulics against measured response — rate of penetration, vibration, torque and drag, hole
+        cleaning — and you state the limit each parameter is bounded by. You refuse an optimization that
+        trades hole condition or downhole tool life for short-term rate, because the stuck pipe or twist-off
+        that follows costs more than the days it saved.
+      capabilities:
+        skills:
+          - drilling-optimization
+          - vibration-and-dysfunction-analysis
+          - hole-cleaning-assessment
+          - parameter-limit-setting
+          - failure-mode-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:drilling-data
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-authority-1
+      kind: approval
+      name: Isolating authority confirms and signs the isolation
+      summary: Pause for the isolating authority; on timeout, escalate.
+    - id: n-authority-2
+      kind: approval
+      name: Area authority authorizes work in the area
+      summary: Pause for the area authority; on timeout, escalate.
+    - id: n-authority-3
+      kind: approval
+      name: Offshore installation manager or well-site leader issues the permit
+      summary: Pause for the installation manager or well-site leader; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Permit to work + simultaneous operations gate deliverable, the evidence
+        behind it, and every unresolved item.
+  edges:
+    - id: wf-well-03-edge-1
+      from: n-intake
+      to: n-scope
+      kind: data
+    - id: wf-well-03-edge-2
+      from: n-scope
+      to: n-preparation
+      kind: data
+    - id: wf-well-03-edge-3
+      from: n-preparation
+      to: n-conflict
+      kind: data
+    - id: wf-well-03-edge-4
+      from: n-conflict
+      to: n-authority-1
+      kind: control
+      condition: clear
+    - id: wf-well-03-edge-5
+      from: n-conflict
+      to: n-deconflict
+      kind: control
+      condition: conflict
+    - id: wf-well-03-edge-6
+      from: n-deconflict
+      to: n-authority-1
+      kind: data
+    - id: wf-well-03-edge-7
+      from: n-authority-1
+      to: n-authority-2
+      kind: control
+      condition: approved
+    - id: wf-well-03-edge-8
+      from: n-authority-2
+      to: n-authority-3
+      kind: control
+      condition: approved
+    - id: wf-well-03-edge-9
+      from: n-authority-3
+      to: workflow-output
+      kind: dependency
+      condition: approved
