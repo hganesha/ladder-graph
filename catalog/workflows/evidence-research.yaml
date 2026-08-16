@@ -1,0 +1,226 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: evidence-research
+  title: Evidence research
+  description: Parallel evidence collection, synthesis, and an explicit source-quality evaluation.
+  version: 1.0.0
+spec:
+  objective: Produce a concise answer grounded in primary and contradictory evidence.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: question
+      kind: input
+      name: Research question
+      summary: Question, date boundary, and evidence standard.
+      position:
+        x: 100
+        y: 220
+    - id: primary
+      kind: agent
+      name: Primary sources
+      summary: Find direct authoritative evidence.
+      role: Primary-source researcher
+      prompt: Find the strongest primary sources. Return claim-level evidence, dates, and direct source
+        identifiers. Separate facts from inference.
+      capabilities:
+        skills:
+          - research
+        tools:
+          - search
+          - read
+        permissions:
+          - network-read
+      outputSchema:
+        type: object
+        required:
+          - claims
+        properties:
+          claims:
+            type: array
+            items:
+              type: object
+      position:
+        x: 390
+        y: 70
+    - id: counter
+      kind: agent
+      name: Contradictory evidence
+      summary: Search for the strongest disconfirming case.
+      role: Skeptical researcher
+      prompt: Find credible contradictory evidence and missing context. Return the claim challenged,
+        evidence, date, and source.
+      capabilities:
+        skills:
+          - research
+        tools:
+          - search
+          - read
+        permissions:
+          - network-read
+      outputSchema:
+        type: object
+        required:
+          - challenges
+        properties:
+          challenges:
+            type: array
+            items:
+              type: object
+      position:
+        x: 390
+        y: 240
+    - id: recency
+      kind: agent
+      name: Recency check
+      summary: Verify time-sensitive facts.
+      role: Recency and provenance analyst
+      prompt: Check which claims may have changed. Return current authoritative evidence or mark the claim
+        unresolved.
+      capabilities:
+        skills:
+          - research
+        tools:
+          - search
+          - read
+        permissions:
+          - network-read
+      outputSchema:
+        type: object
+        required:
+          - updates
+        properties:
+          updates:
+            type: array
+            items:
+              type: object
+      position:
+        x: 390
+        y: 410
+    - id: evidence-join
+      kind: join
+      name: Evidence barrier
+      summary: Wait for all evidence branches.
+      config:
+        join: allSettled
+      position:
+        x: 670
+        y: 240
+    - id: synthesis
+      kind: agent
+      name: Cited synthesis
+      summary: Write from supported claims only.
+      role: Evidence synthesis editor
+      prompt: Synthesize only supported claims. Put a source identifier after each factual statement and
+        describe material disagreement.
+      capabilities:
+        skills:
+          - synthesis
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - answer
+          - sources
+        properties:
+          answer:
+            type: string
+          sources:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 180
+    - id: evaluation
+      kind: evaluate
+      name: Source-quality gate
+      summary: Reject unsupported synthesis.
+      role: Citation and evidence evaluator
+      prompt: Check every factual statement against the supplied evidence. Pass only when each material
+        claim is supported and current enough for the question.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 900
+        y: 350
+    - id: report
+      kind: output
+      name: Verified answer
+      summary: Answer, evidence limits, and sources.
+      position:
+        x: 1180
+        y: 240
+  edges:
+    - id: e1
+      from: question
+      to: primary
+      kind: data
+      contract: ResearchQuestion
+    - id: e2
+      from: question
+      to: counter
+      kind: data
+      contract: ResearchQuestion
+    - id: e3
+      from: question
+      to: recency
+      kind: data
+      contract: ResearchQuestion
+    - id: e4
+      from: primary
+      to: evidence-join
+      kind: data
+      contract: PrimaryEvidence
+    - id: e5
+      from: counter
+      to: evidence-join
+      kind: data
+      contract: CounterEvidence
+    - id: e6
+      from: recency
+      to: evidence-join
+      kind: data
+      contract: RecencyEvidence
+    - id: e7
+      from: evidence-join
+      to: synthesis
+      kind: dependency
+    - id: e8
+      from: synthesis
+      to: evaluation
+      kind: data
+      contract: CitedDraft
+    - id: e9
+      from: evaluation
+      to: report
+      kind: control
+      condition: passed == true

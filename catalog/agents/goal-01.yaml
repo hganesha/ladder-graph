@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: goal-01
+  title: Life Coach / Values-Based Goal Strategist
+  description: Values-based goal strategist
+  version: 1.0.0
+spec:
+  path: research/personal-development/goals
+  role: Values-based goal strategist
+  prompt: Clarify what matters across life domains before formalizing goals. Check goals against the
+    user's stated values, convert aligned aims into concrete measures, and revisit them as
+    circumstances change without substituting your values for theirs.
+  capabilities:
+    skills:
+      - values-based-goals
+      - goal-planning
+    tools:
+      - read
+    connectors:
+      - mcp:task-management
+      - mcp:calendar
+    permissions:
+      - read-only

@@ -30,6 +30,37 @@ npm run wasm:build
 npm run build
 ```
 
+## Local MCP companion
+
+`ladder-graph-mcp` is a native, read-only MCP server for the built-in catalog and workflows explicitly published from this browser. It does not require an account and does not read IndexedDB or OPFS directly.
+
+```bash
+cargo build --release -p ladder-graph-mcp
+
+# Terminal 1: keep the browser sync service running
+./target/release/ladder-graph-mcp serve
+
+# Terminal 2: create a one-time browser pairing code
+./target/release/ladder-graph-mcp pair
+```
+
+Open **Local storage → MCP companion** in Ladder Graph, enter the code, and publish the saved library. The stdio MCP server can then be configured with:
+
+```json
+{
+  "mcpServers": {
+    "ladder-graph": {
+      "command": "/absolute/path/to/ladder-graph-mcp",
+      "args": ["stdio"]
+    }
+  }
+}
+```
+
+It exposes MCP resources for workflows and agent templates plus `search_catalog`, `get_workflow`, `get_agent_template`, `validate_workflow`, and `compile_workflow`. Run `ladder-graph-mcp doctor` to inspect local setup, `status` for catalog counts, or `revoke` to invalidate all browser pairing tokens.
+
+The sync service binds only to loopback. Development origins are allowed by default; a deployed PWA origin must be added explicitly with `serve --allow-origin https://your-origin.example`.
+
 The Rust-generated files in `src/wasm/pkg` are intentionally committed so static deployments do not need a Rust toolchain.
 
 ## What the MVP includes
@@ -42,7 +73,7 @@ The Rust-generated files in `src/wasm/pkg` are intentionally committed so static
 - Target-aware skill and connector templates with per-node customization stored directly in LGIR, including 15 declarative OpenRouter image, video, speech, music, and transcription profiles.
 - IndexedDB and OPFS persistence, invalid-draft recovery, import/export, revisions, installable PWA behavior, and no telemetry.
 
-See [ladder-graph-specs.md](ladder-graph-specs.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [ladder-graph-validation-plan.md](ladder-graph-validation-plan.md).
+See [ladder-graph-specs.md](ladder-graph-specs.md), [ARCHITECTURE.md](ARCHITECTURE.md), [ladder-graph-validation-plan.md](ladder-graph-validation-plan.md), and [ladder-graph-mcp-native-plan.md](ladder-graph-mcp-native-plan.md).
 
 ## Security model
 

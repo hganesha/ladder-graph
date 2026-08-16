@@ -1,7 +1,7 @@
 {
-  "name": "lgir-core",
+  "name": "lgir-wasm",
   "type": "module",
-  "description": "Deterministic Ladder Graph IR validation and target compilation core",
+  "description": "Browser WebAssembly facade for the Ladder Graph compiler",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "files": [

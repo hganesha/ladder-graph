@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
-use wasm_bindgen::prelude::*;
 
 const API_VERSION: &str = "ladder.dev/v1alpha1";
 const COMPILER_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -180,7 +179,7 @@ pub struct Edge {
 
 fn default_edge_kind() -> String { "dependency".into() }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Diagnostic {
     pub code: String,
@@ -197,7 +196,7 @@ pub struct Diagnostic {
     pub fix: Option<Fix>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Fix {
     pub label: String,
@@ -205,7 +204,7 @@ pub struct Fix {
     pub value: Value,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnalysisResult {
     pub ok: bool,
@@ -216,7 +215,7 @@ pub struct AnalysisResult {
     pub stats: Stats,
 }
 
-#[derive(Debug, Clone, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Stats {
     pub nodes: usize,
@@ -226,7 +225,7 @@ pub struct Stats {
     pub max_parallelism: usize,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CapabilityReport {
     pub target: String,
@@ -235,7 +234,7 @@ pub struct CapabilityReport {
     pub unsupported: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CompileResult {
     pub ok: bool,
@@ -246,6 +245,14 @@ pub struct CompileResult {
     pub compiler_version: String,
     pub adapter_version: String,
     pub capability_report: CapabilityReport,
+    pub diagnostics: Vec<Diagnostic>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FormatResult {
+    pub ok: bool,
+    pub content: String,
     pub diagnostics: Vec<Diagnostic>,
 }
 
@@ -810,41 +817,38 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
     CapabilityReport { target: target.into(), native, instructional, unsupported: vec![] }
 }
 
-fn to_json<T: Serialize>(value: &T) -> String {
-    serde_json::to_string(value).unwrap_or_else(|error| format!("{{\"ok\":false,\"error\":{}}}", serde_json::to_string(&error.to_string()).unwrap_or_else(|_| "\"serialization error\"".into())))
+pub fn analyze(source: &str, target: Option<&str>) -> AnalysisResult {
+    analyze_inner(source, target)
 }
 
-#[wasm_bindgen]
-pub fn analyze(source: &str, target: Option<String>) -> String {
-    to_json(&analyze_inner(source, target.as_deref()))
-}
-
-#[wasm_bindgen]
-pub fn format(source: &str) -> String {
+pub fn format(source: &str) -> FormatResult {
     match parse(source) {
-        Ok(workflow) => to_json(&json!({ "ok": true, "content": serde_yaml_ng::to_string(&workflow).unwrap_or_default(), "diagnostics": [] })),
-        Err(error) => to_json(&json!({ "ok": false, "content": source, "diagnostics": [error] })),
+        Ok(workflow) => FormatResult {
+            ok: true,
+            content: serde_yaml_ng::to_string(&workflow).unwrap_or_default(),
+            diagnostics: vec![],
+        },
+        Err(error) => FormatResult { ok: false, content: source.into(), diagnostics: vec![error] },
     }
 }
 
-#[wasm_bindgen]
-pub fn compile(source: &str, target: &str) -> String {
+pub fn compile(source: &str, target: &str) -> CompileResult {
     if !["codex", "claude", "hermes", "python", "typescript"].contains(&target) {
-        return to_json(&CompileResult {
+        return CompileResult {
             ok: false, content: String::new(), suggested_filename: String::new(), mime_type: "text/markdown".into(), source_hash: String::new(), compiler_version: COMPILER_VERSION.into(), adapter_version: "v1".into(),
             capability_report: CapabilityReport { target: target.into(), native: vec![], instructional: vec![], unsupported: vec!["unknown target".into()] },
             diagnostics: vec![diag("LG300", "error", "/target", "Target must be codex, claude, hermes, python, or typescript.")],
-        });
+        };
     }
     let analysis = analyze_inner(source, Some(target));
     if !analysis.ok {
-        return to_json(&CompileResult { ok: false, content: String::new(), suggested_filename: String::new(), mime_type: "text/markdown".into(), source_hash: analysis.source_hash, compiler_version: COMPILER_VERSION.into(), adapter_version: "v1".into(), capability_report: CapabilityReport { target: target.into(), native: vec![], instructional: vec![], unsupported: vec!["invalid LGIR".into()] }, diagnostics: analysis.diagnostics });
+        return CompileResult { ok: false, content: String::new(), suggested_filename: String::new(), mime_type: "text/markdown".into(), source_hash: analysis.source_hash, compiler_version: COMPILER_VERSION.into(), adapter_version: "v1".into(), capability_report: CapabilityReport { target: target.into(), native: vec![], instructional: vec![], unsupported: vec!["invalid LGIR".into()] }, diagnostics: analysis.diagnostics };
     }
     let workflow = analysis.normalized.expect("valid analysis includes workflow");
     let is_python = target == "python";
     let is_typescript = target == "typescript";
     let content = if is_python { compile_python(&workflow, &analysis.node_order) } else if is_typescript { compile_typescript(&workflow, &analysis.node_order) } else { compile_workflow(&workflow, target, &analysis.node_order) };
-    to_json(&CompileResult {
+    CompileResult {
         ok: true,
         content,
         suggested_filename: if is_python { format!("{}.ladder.py", workflow.metadata.name) } else if is_typescript { format!("{}.ladder.ts", workflow.metadata.name) } else { format!("{}.{}.md", workflow.metadata.name, target) },
@@ -854,20 +858,23 @@ pub fn compile(source: &str, target: &str) -> String {
         adapter_version: if is_python || is_typescript { format!("{target}-data-v1") } else { format!("{target}-skill-v1") },
         capability_report: capability_report(&workflow, target),
         diagnostics: analysis.diagnostics,
-    })
+    }
 }
 
-#[wasm_bindgen]
-pub fn migrate(source: &str, to_version: &str) -> String {
+pub fn migrate(source: &str, to_version: &str) -> FormatResult {
     if to_version != API_VERSION {
-        return to_json(&json!({ "ok": false, "content": source, "diagnostics": [diag("LG400", "error", "/apiVersion", format!("No migration path exists to {to_version}."))] }));
+        return FormatResult {
+            ok: false,
+            content: source.into(),
+            diagnostics: vec![diag("LG400", "error", "/apiVersion", format!("No migration path exists to {to_version}."))],
+        };
     }
     match parse(source) {
         Ok(mut workflow) => {
             workflow.api_version = API_VERSION.into();
-            to_json(&json!({ "ok": true, "content": serde_yaml_ng::to_string(&workflow).unwrap_or_default(), "diagnostics": [] }))
+            FormatResult { ok: true, content: serde_yaml_ng::to_string(&workflow).unwrap_or_default(), diagnostics: vec![] }
         }
-        Err(error) => to_json(&json!({ "ok": false, "content": source, "diagnostics": [error] })),
+        Err(error) => FormatResult { ok: false, content: source.into(), diagnostics: vec![error] },
     }
 }
 
@@ -912,8 +919,8 @@ spec:
         assert!(analysis.ok, "{:?}", analysis.diagnostics);
         let first = compile(VALID, "codex");
         let second = compile(VALID, "codex");
-        assert_eq!(first, second);
-        assert!(first.contains("ladder-source-hash"));
+        assert_eq!(first.content, second.content);
+        assert!(first.content.contains("ladder-source-hash"));
     }
 
     #[test]
@@ -963,12 +970,12 @@ spec:
         assert!(analysis.ok, "{:?}", analysis.diagnostics);
         assert_eq!(analysis.stats.agents, 3);
         let output = compile(source, "codex");
-        assert!(output.contains("ordered array of { source, value } entries"));
-        assert!(output.contains("teacher model reference `host:teacher` in `critique` mode"));
-        assert!(output.contains("**Working directory:** `packages/reviewer`"));
-        assert!(output.contains("per-node working directories"));
-        assert!(output.contains("multi-output aggregation"));
-        assert!(output.contains("teacher-model feedback"));
+        assert!(output.content.contains("ordered array of { source, value } entries"));
+        assert!(output.content.contains("teacher model reference `host:teacher` in `critique` mode"));
+        assert!(output.content.contains("**Working directory:** `packages/reviewer`"));
+        assert!(output.capability_report.instructional.contains(&"per-node working directories".into()));
+        assert!(output.capability_report.instructional.contains(&"multi-output aggregation".into()));
+        assert!(output.capability_report.instructional.contains(&"teacher-model feedback".into()));
     }
 
     #[test]
@@ -976,24 +983,24 @@ spec:
         let python_first = compile(VALID, "python");
         let python_second = compile(VALID, "python");
         let typescript = compile(VALID, "typescript");
-        assert_eq!(python_first, python_second);
-        assert!(python_first.contains("smoke-test.ladder.py"));
-        assert!(python_first.contains("def ready_nodes"));
-        assert!(typescript.contains("smoke-test.ladder.ts"));
-        assert!(typescript.contains("export function readyNodes"));
-        assert!(typescript.contains("capability templates"));
+        assert_eq!(python_first.content, python_second.content);
+        assert_eq!(python_first.suggested_filename, "smoke-test.ladder.py");
+        assert!(python_first.content.contains("def ready_nodes"));
+        assert_eq!(typescript.suggested_filename, "smoke-test.ladder.ts");
+        assert!(typescript.content.contains("export function readyNodes"));
+        assert!(typescript.content.contains("capability templates"));
     }
 
     #[test]
     fn compiles_hermes_agent_skill() {
         let first = compile(VALID, "hermes");
         let second = compile(VALID, "hermes");
-        assert_eq!(first, second);
-        assert!(first.contains("smoke-test.hermes.md"));
-        assert!(first.contains("ladder-target: hermes"));
-        assert!(first.contains("Hermes Agent SKILL.md metadata"));
-        assert!(first.contains("~/.hermes/skills/ladder-graph/smoke-test/SKILL.md"));
-        assert!(first.contains("hermes-skill-v1"));
+        assert_eq!(first.content, second.content);
+        assert_eq!(first.suggested_filename, "smoke-test.hermes.md");
+        assert!(first.content.contains("ladder-target: hermes"));
+        assert!(first.capability_report.native.contains(&"Hermes Agent SKILL.md metadata".into()));
+        assert!(first.content.contains("~/.hermes/skills/ladder-graph/smoke-test/SKILL.md"));
+        assert_eq!(first.adapter_version, "hermes-skill-v1");
     }
 
     #[test]
@@ -1016,8 +1023,8 @@ spec:
         let analysis = analyze_inner(&with_connector, Some("codex"));
         assert!(analysis.diagnostics.iter().any(|d| d.code == "LG201"));
         let output = compile(&with_connector, "codex");
-        assert!(output.contains("**Required connectors:** mcp:github"));
-        assert!(output.contains(".agents/skills/"));
+        assert!(output.content.contains("**Required connectors:** mcp:github"));
+        assert!(output.content.contains(".agents/skills/"));
     }
 
     #[test]
@@ -1027,9 +1034,9 @@ spec:
             "name: Request\n      inputSchema:\n        type: object\n        required: [asset]\n        properties:\n          asset:\n            type: string\n            contentMediaType: image/*\n        x-ladder-input-mode: image",
         );
         let output = compile(&with_image, "codex");
-        assert!(output.contains("Expected input contract"));
-        assert!(output.contains("contentMediaType"));
-        assert!(output.contains("multimodal input contracts"));
+        assert!(output.content.contains("Expected input contract"));
+        assert!(output.content.contains("contentMediaType"));
+        assert!(output.capability_report.instructional.contains(&"multimodal input contracts".into()));
     }
 
     #[test]

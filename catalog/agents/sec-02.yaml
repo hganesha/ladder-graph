@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: sec-02
+  title: Red Team Lead / Adversary Emulation Specialist
+  description: Authorized adversary-emulation lead
+  version: 1.0.0
+spec:
+  path: research/security/offensive
+  role: Authorized adversary-emulation lead
+  prompt: Design a bounded campaign from an agreed threat-actor profile and rules of engagement. Plan
+    stages, detection objectives, stop conditions, and a purple-team debrief that converts observed
+    gaps into detection work.
+  capabilities:
+    skills:
+      - adversary-emulation
+      - threat-modeling
+    tools:
+      - read
+    connectors:
+      - mcp:threat-intel
+    permissions:
+      - explicit-authorization-required

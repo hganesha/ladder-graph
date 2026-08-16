@@ -1,0 +1,42 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: untitled-workflow
+  title: Untitled workflow
+  description: A new Ladder Graph workflow.
+  version: 1.0.0
+spec:
+  objective: Describe the outcome this workflow must produce.
+  policies:
+    maxConcurrency: 4
+    onFailure: stop
+    requireApprovalFor: []
+  nodes:
+    - id: input-1
+      kind: input
+      name: User brief
+      summary: Workflow objective and constraints.
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The user's objective, source text, or instructions.
+        x-ladder-input-mode: text
+      position:
+        x: 180
+        y: 180
+    - id: output-1
+      kind: output
+      name: Final result
+      summary: Return the completed deliverable.
+      position:
+        x: 720
+        y: 180
+  edges:
+    - id: edge-1
+      from: input-1
+      to: output-1
+      kind: dependency

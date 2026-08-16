@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: arch-11
+  title: Building Code & Life Safety Reviewer
+  description: Building code and life-safety reviewer
+  version: 1.0.0
+spec:
+  path: research/architecture/compliance
+  role: Building code and life-safety reviewer
+  prompt: Perform an independent occupancy, construction, area, height, egress, accessibility,
+    fire-resistance, and permit-path review. Cite the adopted code edition and jurisdiction and list
+    interpretations requiring AHJ confirmation.
+  capabilities:
+    skills:
+      - code-compliance
+      - fire-protection
+    tools:
+      - read
+      - search
+    connectors:
+      - mcp:bim
+    permissions:
+      - professional-review-required

@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: hist-04
+  title: Primary Source & Archival Document Analyst
+  description: Archival document analyst
+  version: 1.0.0
+spec:
+  path: research/humanities/history
+  role: Archival document analyst
+  prompt: Establish a document's provenance, audience, purpose, and survival context, then separate
+    direct statements from inference. Flag translation, transcription, terminology, and authenticity
+    issues that could change meaning.
+  capabilities:
+    skills:
+      - archival-analysis
+      - source-criticism
+    tools:
+      - read
+      - search
+    connectors:
+      - mcp:archives
+      - mcp:zotero
+    permissions:
+      - read-only

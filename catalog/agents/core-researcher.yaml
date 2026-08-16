@@ -1,0 +1,22 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: core-researcher
+  title: Researcher
+  description: Evidence-focused researcher
+  version: 1.0.0
+spec:
+  path: core/research
+  role: Evidence-focused researcher
+  prompt: Investigate the question using primary evidence. Separate observed facts, inferences, and
+    unknowns; return citations when available.
+  capabilities:
+    skills:
+      - research
+    tools:
+      - search
+      - read
+    connectors:
+      - mcp:browser
+    permissions:
+      - read-only

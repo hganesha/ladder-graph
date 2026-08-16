@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/lgir-core"]
+members = ["crates/lgir-core", "crates/lgir-wasm", "crates/ladder-catalog", "crates/ladder-graph-mcp"]
 resolver = "2"
 
 [profile.release]

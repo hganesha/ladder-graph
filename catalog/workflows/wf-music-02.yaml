@@ -1,0 +1,343 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: personalized-recommendation-pipeline
+  title: Personalized Recommendation Pipeline
+  description: Builds a listener preference profile and seed-track feature analysis in parallel,
+    generates and curates candidate recommendations, loops regeneration until a relevance/diversity
+    bar is met, and gates editorial-playlist placement behind a human curator's approval.
+  version: 1.0.0
+spec:
+  objective: "Builds a listener preference profile and seed-track feature analysis in parallel,
+    generates and curates candidate recommendations, loops regeneration until a relevance/diversity
+    bar is met, and gates editorial-playlist placement behind a human curator's approval. Trigger:
+    user or upstream system supplies listening history and/or seed tracks"
+  policies:
+    maxConcurrency: 4
+    onFailure: stop
+    requireApprovalFor:
+      - n10
+  nodes:
+    - id: n1
+      kind: input
+      name: Listening History / Seed Tracks Intake
+      summary: Listening History / Seed Tracks Intake
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The user's objective, source text, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - user_id
+              - listening_history
+              - seed_tracks_optional
+              - request_context
+            properties:
+              user_id: {}
+              listening_history: {}
+              seed_tracks_optional: {}
+              request_context: {}
+        x-ladder-input-mode: text
+    - id: n2
+      kind: agent
+      name: Build Preference Profile
+      summary: Build Preference Profile
+      role: Recommender-systems specialist building interpretable user taste profiles.
+      prompt: You are a Listener Preference Profiler agent. You build a structured preference profile from
+        listening history and/or explicit seed tracks, capturing genre, tempo, harmonic complexity,
+        era, and artist affinities as distinct, inspectable dimensions rather than a single opaque
+        embedding the user can't reason about. You distinguish stable long-term taste from recent or
+        contextual listening (a workout playlist shouldn't overwrite everyday preference signal),
+        and you flag when the available history is too thin or too narrow (e.g., only one genre) to
+        produce a confident profile.
+      capabilities:
+        skills:
+          - streaming-service
+          - audio-feature-extraction
+          - taste-profile-vector-embedding-construction
+          - recency-weighting-logic
+          - listening-history-data-quality-checks
+        tools:
+          - read
+          - audio
+        connectors:
+          - api:music-catalog
+          - mcp:daw
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n3
+      kind: agent
+      name: Extract Harmonic/Style Features of Seed Tracks
+      summary: Extract Harmonic/Style Features of Seed Tracks
+      role: Music theorist specializing in harmonic analysis — functional harmony, jazz chord-scale
+        theory, and roman numeral analysis.
+      prompt: You are a Chord & Harmony Analyzer agent. You identify chords and chord progressions from
+        audio or symbolic input, label harmonic function using roman numeral analysis relative to
+        the detected key (tonic, subdominant, dominant function), and detect the key itself along
+        with any modulations. You distinguish genuinely ambiguous harmonic moments — a chord that
+        could reasonably be analyzed two different ways depending on context — from cases with a
+        single clear answer, and you present the ambiguity explicitly rather than forcing a single
+        label where music theorists would actually disagree.
+      capabilities:
+        skills:
+          - chord-recognition-model
+          - key-modulation-detection
+          - roman-numeral-analysis-engine
+          - symbolic-music-toolkit
+          - harmonic-function-reference
+        tools:
+          - read
+          - audio
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n4
+      kind: join
+      name: Merge Profile + Seed Features
+      summary: Merge Profile + Seed Features
+      config:
+        join: all
+    - id: n5
+      kind: agent
+      name: Generate Candidate Recommendations
+      summary: Generate Candidate Recommendations
+      role: Recommender-systems engineer generating candidate track/playlist recommendations from a
+        preference profile.
+      prompt: You are a Music Recommendation Engine agent. You generate candidate recommendations by
+        combining content-based similarity (audio and harmonic features) with collaborative signals
+        (what listeners with similar profiles enjoyed), and you explain why each recommendation was
+        surfaced in terms a listener would actually recognize ("similar tempo and harmonic
+        complexity to X, popular among listeners of Y") rather than an unexplained black-box score.
+        You avoid over-indexing on the single most recent listen at the expense of the broader
+        profile, and you flag when the candidate pool for a request is thin (a very niche seed
+        genre) rather than padding it with weak matches presented as strong ones.
+      capabilities:
+        skills:
+          - content-based-similarity-engine
+          - collaborative-filtering-model
+          - streaming-service
+          - recommendation-explanation-generation
+          - candidate-pool-quality-checks
+        tools:
+          - read
+          - audio
+        connectors:
+          - api:music-catalog
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n6
+      kind: agent
+      name: Apply Discovery/Diversity Curation
+      summary: Apply Discovery/Diversity Curation
+      role: Recommender-systems specialist focused on catalog diversity and filter-bubble mitigation.
+      prompt: You are a Discovery & Diversity Curator agent. Given a candidate recommendation list, you
+        re-balance it for discovery by injecting a deliberate, bounded share of novel artists or
+        genres adjacent to — but not identical to — the listener's established taste, while
+        protecting against recommending material so far outside the profile that it reads as
+        irrelevant noise. You track a diversity metric explicitly (genre spread, artist repetition,
+        novelty ratio) rather than leaving "variety" as a vague, unmeasured adjustment, and you
+        report the tradeoff you made between pure relevance and discovery so it's an inspectable
+        choice, not a hidden one.
+      capabilities:
+        skills:
+          - diversity-novelty-scoring-metrics
+          - genre-artist-catalog-metadata
+          - exploration-exploitation-balancing-logic
+          - catalog-coverage-analytics
+          - a-b-testable-curation-parameter-tuning
+        tools:
+          - read
+          - audio
+        connectors:
+          - api:musicbrainz
+          - mcp:daw
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n7
+      kind: evaluate
+      name: Score Relevance & Diversity
+      summary: Evaluate relevance and diversity index.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result using relevance and diversity index. Return a score, pass/fail
+        verdict, evidence, uncertainty, and the smallest corrective action. Do not claim
+        programmatic measurement unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n8
+      kind: condition
+      name: Meets Quality Bar
+      summary: Meets Quality Bar
+      config:
+        expression: rec_score.relevance >= 0.7 AND rec_score.diversity >= 0.3
+        branches:
+          - label: "True"
+            when: "true"
+          - label: "False"
+            when: "false"
+    - id: n_loop4
+      kind: loop
+      name: Regenerate Until Quality Bar Met
+      summary: Repeat a bounded revision sequence until rec_score meets quality bar.
+      config:
+        body:
+          - n5
+          - n6
+          - n7
+          - n8
+        exitCondition: rec_score meets quality bar
+        maxIterations: 3
+        onExhausted: stop
+    - id: n9
+      kind: condition
+      name: Editorial Placement Required
+      summary: Editorial Placement Required
+      config:
+        expression: request_context == 'editorial_playlist'
+        branches:
+          - label: "True"
+            when: "true"
+          - label: "False"
+            when: "false"
+    - id: n10
+      kind: approval
+      name: Human Curator Approval for Editorial Playlist
+      summary: Pause for music editorial curator; on timeout, escalate.
+    - id: n11
+      kind: agent
+      name: Deliver Final Playlist
+      summary: Deliver Final Playlist
+      role: Recommender-systems engineer generating candidate track/playlist recommendations from a
+        preference profile.
+      prompt: You are a Music Recommendation Engine agent. You generate candidate recommendations by
+        combining content-based similarity (audio and harmonic features) with collaborative signals
+        (what listeners with similar profiles enjoyed), and you explain why each recommendation was
+        surfaced in terms a listener would actually recognize ("similar tempo and harmonic
+        complexity to X, popular among listeners of Y") rather than an unexplained black-box score.
+        You avoid over-indexing on the single most recent listen at the expense of the broader
+        profile, and you flag when the candidate pool for a request is thin (a very niche seed
+        genre) rather than padding it with weak matches presented as strong ones.
+      capabilities:
+        skills:
+          - content-based-similarity-engine
+          - collaborative-filtering-model
+          - streaming-service
+          - recommendation-explanation-generation
+          - candidate-pool-quality-checks
+        tools:
+          - read
+          - audio
+        connectors:
+          - api:music-catalog
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: workflow-output
+      kind: output
+      name: Validated result
+      summary: Return the completed personalized recommendation pipeline deliverable, validation evidence,
+        and unresolved uncertainty.
+  edges:
+    - id: wf-music-02-edge-1
+      from: n1
+      to: n2
+      kind: data
+    - id: wf-music-02-edge-2
+      from: n1
+      to: n3
+      kind: data
+    - id: wf-music-02-edge-3
+      from: n2
+      to: n4
+      kind: data
+    - id: wf-music-02-edge-4
+      from: n3
+      to: n4
+      kind: data
+    - id: wf-music-02-edge-5
+      from: n4
+      to: n5
+      kind: data
+    - id: wf-music-02-edge-6
+      from: n5
+      to: n6
+      kind: data
+    - id: wf-music-02-edge-7
+      from: n6
+      to: n7
+      kind: data
+    - id: wf-music-02-edge-8
+      from: n7
+      to: n8
+      kind: data
+    - id: wf-music-02-edge-9
+      from: n8
+      to: n9
+      kind: control
+      condition: "true"
+    - id: wf-music-02-edge-10
+      from: n8
+      to: n_loop4
+      kind: control
+      condition: "false"
+    - id: wf-music-02-edge-11
+      from: n_loop4
+      to: n9
+      kind: control
+      condition: loop_exit
+    - id: wf-music-02-edge-12
+      from: n9
+      to: n10
+      kind: control
+      condition: "true"
+    - id: wf-music-02-edge-13
+      from: n9
+      to: n11
+      kind: control
+      condition: "false"
+    - id: wf-music-02-edge-14
+      from: n10
+      to: n11
+      kind: control
+      condition: approved
+    - id: wf-music-02-output-1
+      from: n11
+      to: workflow-output
+      kind: dependency

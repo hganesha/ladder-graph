@@ -1,0 +1,1040 @@
+{
+  "schemaVersion": 1,
+  "workflows": [
+    {
+      "id": "refinement",
+      "path": "core/refinement",
+      "area": "Core patterns",
+      "title": "Draft → critique → revise",
+      "eyebrow": "Bounded refinement",
+      "description": "Create a complete draft, challenge it independently, and revise without an open-ended loop.",
+      "topology": "Chain + structured loop",
+      "accent": "#e879a9",
+      "file": "workflows/refinement.yaml"
+    },
+    {
+      "id": "implementation-review",
+      "path": "core/software",
+      "area": "Software engineering",
+      "title": "Implementation + risk review",
+      "eyebrow": "Parallel decision",
+      "description": "Let delivery and risk specialists work independently, then join them into one reviewed plan.",
+      "topology": "Diamond + join",
+      "accent": "#54d7cf",
+      "file": "workflows/implementation-review.yaml"
+    },
+    {
+      "id": "full-stack-delivery",
+      "path": "core/software",
+      "area": "Software engineering",
+      "title": "Full-stack app → production",
+      "eyebrow": "End-to-end delivery",
+      "description": "Design and architect the app, define evaluation gates, build in parallel, verify, approve, and deploy.",
+      "topology": "Phased pipeline + gates",
+      "accent": "#54d7cf",
+      "file": "workflows/full-stack-delivery.yaml"
+    },
+    {
+      "id": "secure-software-delivery",
+      "path": "research/software/delivery",
+      "area": "Software engineering",
+      "title": "Secure software delivery",
+      "eyebrow": "Specialist delivery",
+      "description": "Clarify requirements, review architecture and threats, build test-first, then fan out independent release gates.",
+      "topology": "Plan join + gated fan-out",
+      "accent": "#54d7cf",
+      "file": "workflows/secure-software-delivery.yaml"
+    },
+    {
+      "id": "evidence-research",
+      "path": "core/research",
+      "area": "Research",
+      "title": "Evidence research",
+      "eyebrow": "Source-grounded",
+      "description": "Fan out evidence collection, synthesize only supported claims, and gate the result explicitly.",
+      "topology": "Fan-out + evaluation",
+      "accent": "#a990f5",
+      "file": "workflows/evidence-research.yaml"
+    },
+    {
+      "id": "literature-review",
+      "path": "core/research",
+      "area": "Research",
+      "title": "Literature review + gap analysis",
+      "eyebrow": "Research planning",
+      "description": "Map prior work, challenge claimed gaps, and produce a defensible research agenda.",
+      "topology": "Parallel review + gate",
+      "accent": "#a990f5",
+      "file": "workflows/literature-review.yaml"
+    },
+    {
+      "id": "bug-resolution",
+      "path": "core/software",
+      "area": "Software engineering",
+      "title": "Bug diagnosis + regression gate",
+      "eyebrow": "Failure resolution",
+      "description": "Investigate root cause and blast radius independently before approving a minimal repair plan.",
+      "topology": "Parallel review + gate",
+      "accent": "#54d7cf",
+      "file": "workflows/bug-resolution.yaml"
+    },
+    {
+      "id": "opportunity-framing",
+      "path": "core/product",
+      "area": "Product management",
+      "title": "Opportunity framing + decision",
+      "eyebrow": "Product discovery",
+      "description": "Balance user evidence with business constraints and define the next measurable bet.",
+      "topology": "Parallel evidence + gate",
+      "accent": "#e8bd58",
+      "file": "workflows/opportunity-framing.yaml"
+    },
+    {
+      "id": "feature-spec",
+      "path": "core/product",
+      "area": "Product management",
+      "title": "Feature spec + feasibility review",
+      "eyebrow": "Delivery framing",
+      "description": "Reconcile the user contract and technical constraints into one buildable specification.",
+      "topology": "Parallel review + synthesis",
+      "accent": "#e8bd58",
+      "file": "workflows/feature-spec.yaml"
+    },
+    {
+      "id": "ux-audit",
+      "path": "core/product-design",
+      "area": "Product design",
+      "title": "UX audit + redesign brief",
+      "eyebrow": "Journey improvement",
+      "description": "Inspect task friction and accessibility, then produce a focused evidence-backed redesign brief.",
+      "topology": "Dual audit + gate",
+      "accent": "#e879a9",
+      "file": "workflows/ux-audit.yaml"
+    },
+    {
+      "id": "design-critique",
+      "path": "core/product-design",
+      "area": "Product design",
+      "title": "Design critique + validation plan",
+      "eyebrow": "Design quality",
+      "description": "Challenge a design from user and system perspectives before defining the next iteration.",
+      "topology": "Parallel critique + gate",
+      "accent": "#e879a9",
+      "file": "workflows/design-critique.yaml"
+    },
+    {
+      "id": "positioning-launch",
+      "path": "core/market",
+      "area": "Go-to-market",
+      "title": "Positioning + launch experiment",
+      "eyebrow": "Market entry",
+      "description": "Ground differentiated positioning in customer urgency, alternatives, proof, and a measurable test.",
+      "topology": "Evidence join + gate",
+      "accent": "#f0a05a",
+      "file": "workflows/positioning-launch.yaml"
+    },
+    {
+      "id": "threat-model",
+      "path": "core/security",
+      "area": "Security",
+      "title": "Threat model + mitigation review",
+      "eyebrow": "Security review",
+      "description": "Map abuse and data risks independently, then gate prioritized mitigations and residual risk.",
+      "topology": "Dual review + gate",
+      "accent": "#3ecf8e",
+      "file": "workflows/threat-model.yaml"
+    },
+    {
+      "id": "security-incident-response",
+      "path": "research/security/incident-response",
+      "area": "Security",
+      "title": "Security incident response",
+      "eyebrow": "Defensive operations",
+      "description": "Triage, investigate, approve containment, recover, verify, and coordinate fact-based communications.",
+      "topology": "Investigation fan-out + approvals",
+      "accent": "#3ecf8e",
+      "file": "workflows/security-incident-response.yaml"
+    },
+    {
+      "id": "multimodal-production",
+      "path": "research/multimodal/production",
+      "area": "Multimodal",
+      "title": "Multimodal asset production",
+      "eyebrow": "OpenRouter profiles",
+      "description": "Select and approve a current image, video, or audio profile, generate the asset, then gate safety and provenance.",
+      "topology": "Modality router + release gate",
+      "accent": "#a990f5",
+      "file": "workflows/multimodal-production.yaml"
+    },
+    {
+      "id": "image-text-extraction",
+      "path": "research/multimodal/understanding",
+      "area": "Multimodal",
+      "title": "Image → structured text",
+      "eyebrow": "OCR + vision",
+      "description": "Accept a host-provided image, extract text and layout with confidence, and gate the result against the source.",
+      "topology": "Vision pipeline + fidelity gate",
+      "accent": "#a990f5",
+      "file": "workflows/image-text-extraction.yaml"
+    },
+    {
+      "id": "reference-image-transformation",
+      "path": "research/multimodal/image-editing",
+      "area": "Multimodal",
+      "title": "Reference image → new image",
+      "eyebrow": "Image-to-image",
+      "description": "Accept a reference image, approve edits and invariants, generate a derivative, and review fidelity and safety.",
+      "topology": "Approval + transformation gate",
+      "accent": "#a990f5",
+      "file": "workflows/reference-image-transformation.yaml"
+    },
+    {
+      "id": "coordinated-building-design",
+      "path": "research/architecture/design",
+      "area": "Architecture & design",
+      "title": "Coordinated building design",
+      "eyebrow": "Multidisciplinary concept",
+      "description": "Coordinate program, architecture, structure, MEP, life safety, universal design, cost, and BIM review.",
+      "topology": "Discipline fan-out + issue gate",
+      "accent": "#de9f54",
+      "file": "workflows/coordinated-building-design.yaml"
+    },
+    {
+      "id": "humanities-inquiry",
+      "path": "research/humanities/inquiry",
+      "area": "Humanities",
+      "title": "Humanities inquiry + seminar",
+      "eyebrow": "Text + context",
+      "description": "Read primary material closely, establish its historical frame, and gate a Socratic seminar guide against evidence.",
+      "topology": "Dual inquiry + evidence gate",
+      "accent": "#8e79c6",
+      "file": "workflows/humanities-inquiry.yaml"
+    },
+    {
+      "id": "writing-studio",
+      "path": "research/writing/editorial",
+      "area": "Writing",
+      "title": "Manuscript development + editorial gate",
+      "eyebrow": "Voice-preserving edit",
+      "description": "Separate structural and reader reviews before creating a staged revision plan that preserves the writer's voice.",
+      "topology": "Dual review + editorial gate",
+      "accent": "#ce728d",
+      "file": "workflows/writing-studio.yaml"
+    },
+    {
+      "id": "values-to-action",
+      "path": "research/personal-development/goals",
+      "area": "Personal development",
+      "title": "Values → sustainable action system",
+      "eyebrow": "Direction to practice",
+      "description": "Reconcile values and behavior design into a small, realistic action system with humane review and adjustment.",
+      "topology": "Alignment join + safety gate",
+      "accent": "#68a56f",
+      "file": "workflows/values-to-action.yaml"
+    },
+    {
+      "id": "wf-math-01",
+      "path": "research/mathematics/wf-math-01",
+      "area": "Mathematics",
+      "title": "Optimization Problem Solving Pipeline",
+      "eyebrow": "Formal reasoning",
+      "description": "Takes a natural-language decision problem through formal modeling, routes it to the right solution method by problem class, evaluates solution quality, iterates on the model if the solution is infeasible or suboptimal, and gates final release behind analyst sign-off.",
+      "topology": "Branch + bounded loop",
+      "accent": "#4f8bd6",
+      "file": "workflows/wf-math-01.yaml"
+    },
+    {
+      "id": "wf-math-02",
+      "path": "research/mathematics/wf-math-02",
+      "area": "Mathematics",
+      "title": "Trigonometric Identity Verification & Tutoring Loop",
+      "eyebrow": "Formal reasoning",
+      "description": "Verifies a student-submitted trig identity claim, builds an explanation appropriate to whichever outcome (proved or disproved), and loops a tutoring explanation with comprehension checks until the student demonstrates mastery or a max-attempt cap is reached.",
+      "topology": "Branch + bounded loop",
+      "accent": "#4f8bd6",
+      "file": "workflows/wf-math-02.yaml"
+    },
+    {
+      "id": "wf-math-03",
+      "path": "research/mathematics/wf-math-03",
+      "area": "Mathematics",
+      "title": "Advanced Algebra Proof & Peer-Review Workflow",
+      "eyebrow": "Formal reasoning",
+      "description": "Constructs a proof for a submitted theorem, runs an independent step-by-step verification, loops revision-and-reverification until every step is valid (or a cap is hit), then gates publication behind a human mathematician's sign-off.",
+      "topology": "Branch + bounded loop",
+      "accent": "#4f8bd6",
+      "file": "workflows/wf-math-03.yaml"
+    },
+    {
+      "id": "wf-music-01",
+      "path": "research/music/wf-music-01",
+      "area": "Music",
+      "title": "Audio-to-Analysis Pipeline",
+      "eyebrow": "Analysis + creation",
+      "description": "Transcribes an uploaded audio/MIDI file to notes, branches rhythm analysis by detected content type, runs harmony analysis in parallel, merges everything into a structural analysis, and routes low-confidence transcriptions to a human musicologist before compiling the final report.",
+      "topology": "Validated pipeline",
+      "accent": "#ce728d",
+      "file": "workflows/wf-music-01.yaml"
+    },
+    {
+      "id": "wf-music-02",
+      "path": "research/music/wf-music-02",
+      "area": "Music",
+      "title": "Personalized Recommendation Pipeline",
+      "eyebrow": "Analysis + creation",
+      "description": "Builds a listener preference profile and seed-track feature analysis in parallel, generates and curates candidate recommendations, loops regeneration until a relevance/diversity bar is met, and gates editorial-playlist placement behind a human curator's approval.",
+      "topology": "Branch + bounded loop",
+      "accent": "#ce728d",
+      "file": "workflows/wf-music-02.yaml"
+    },
+    {
+      "id": "wf-music-03",
+      "path": "research/music/wf-music-03",
+      "area": "Music",
+      "title": "Collaborative Co-Composition Workflow",
+      "eyebrow": "Analysis + creation",
+      "description": "Generates a melodic/harmonic sketch and loops it through composer approval, then fans out into parallel lyric-writing and arrangement, joins the results, checks structural consistency, and loops revision until the piece is coherent.",
+      "topology": "Branch + bounded loop",
+      "accent": "#ce728d",
+      "file": "workflows/wf-music-03.yaml"
+    },
+    {
+      "id": "wf-phys-01",
+      "path": "research/physics/wf-phys-01",
+      "area": "Physics",
+      "title": "Physics Problem Solving & Verification Pipeline",
+      "eyebrow": "Model + verification",
+      "description": "Classifies an incoming physics problem by domain, routes it to the matching specialist solver, runs a dimensional/units and numerical sanity check on the result, and loops re-solving with error feedback until the answer passes sanity checks or a cap is hit.",
+      "topology": "Branch + bounded loop",
+      "accent": "#7d83d6",
+      "file": "workflows/wf-phys-01.yaml"
+    },
+    {
+      "id": "wf-phys-02",
+      "path": "research/physics/wf-phys-02",
+      "area": "Physics",
+      "title": "Experimental Data Analysis & Simulation Validation Workflow",
+      "eyebrow": "Model + verification",
+      "description": "Fits raw experimental data and runs a theoretical simulation in parallel, joins them for a goodness-of-fit comparison, loops model-parameter revision until the fit is acceptable, and gates the final conclusions behind PI/advisor sign-off before the lab report is generated.",
+      "topology": "Branch + bounded loop",
+      "accent": "#7d83d6",
+      "file": "workflows/wf-phys-02.yaml"
+    }
+  ],
+  "agents": [
+    {
+      "id": "core-implementer",
+      "path": "core/software",
+      "title": "Implementer",
+      "file": "agents/core-implementer.yaml"
+    },
+    {
+      "id": "core-test-engineer",
+      "path": "core/software",
+      "title": "Test engineer",
+      "file": "agents/core-test-engineer.yaml"
+    },
+    {
+      "id": "core-researcher",
+      "path": "core/research",
+      "title": "Researcher",
+      "file": "agents/core-researcher.yaml"
+    },
+    {
+      "id": "core-evaluator",
+      "path": "core/quality",
+      "title": "Critic / evaluator",
+      "file": "agents/core-evaluator.yaml"
+    },
+    {
+      "id": "core-product-manager",
+      "path": "core/product",
+      "title": "Product manager",
+      "file": "agents/core-product-manager.yaml"
+    },
+    {
+      "id": "core-designer",
+      "path": "core/product",
+      "title": "Designer",
+      "file": "agents/core-designer.yaml"
+    },
+    {
+      "id": "core-gtm",
+      "path": "core/market",
+      "title": "GTM specialist",
+      "file": "agents/core-gtm.yaml"
+    },
+    {
+      "id": "core-security-reviewer",
+      "path": "core/security",
+      "title": "Security reviewer",
+      "file": "agents/core-security-reviewer.yaml"
+    },
+    {
+      "id": "dev-01",
+      "path": "research/software/discovery",
+      "title": "Requirements Analyst",
+      "file": "agents/dev-01.yaml"
+    },
+    {
+      "id": "dev-02",
+      "path": "research/software/discovery",
+      "title": "Systems Architect",
+      "file": "agents/dev-02.yaml"
+    },
+    {
+      "id": "dev-03",
+      "path": "research/software/discovery",
+      "title": "Tech Stack Curator",
+      "file": "agents/dev-03.yaml"
+    },
+    {
+      "id": "dev-04",
+      "path": "research/software/implementation",
+      "title": "Feature Developer",
+      "file": "agents/dev-04.yaml"
+    },
+    {
+      "id": "dev-05",
+      "path": "research/software/implementation",
+      "title": "API Designer",
+      "file": "agents/dev-05.yaml"
+    },
+    {
+      "id": "dev-06",
+      "path": "research/software/implementation",
+      "title": "Database Engineer",
+      "file": "agents/dev-06.yaml"
+    },
+    {
+      "id": "dev-07",
+      "path": "research/software/implementation",
+      "title": "UI/UX Implementer",
+      "file": "agents/dev-07.yaml"
+    },
+    {
+      "id": "dev-08",
+      "path": "research/software/implementation",
+      "title": "Integration Specialist",
+      "file": "agents/dev-08.yaml"
+    },
+    {
+      "id": "dev-09",
+      "path": "research/software/quality",
+      "title": "Test Engineer",
+      "file": "agents/dev-09.yaml"
+    },
+    {
+      "id": "dev-10",
+      "path": "research/software/quality",
+      "title": "Security Auditor",
+      "file": "agents/dev-10.yaml"
+    },
+    {
+      "id": "dev-11",
+      "path": "research/software/quality",
+      "title": "Performance Profiler",
+      "file": "agents/dev-11.yaml"
+    },
+    {
+      "id": "dev-12",
+      "path": "research/software/quality",
+      "title": "Accessibility Inspector",
+      "file": "agents/dev-12.yaml"
+    },
+    {
+      "id": "dev-13",
+      "path": "research/software/maintenance",
+      "title": "Code Reviewer / Critic",
+      "file": "agents/dev-13.yaml"
+    },
+    {
+      "id": "dev-14",
+      "path": "research/software/maintenance",
+      "title": "Refactoring Specialist",
+      "file": "agents/dev-14.yaml"
+    },
+    {
+      "id": "dev-15",
+      "path": "research/software/maintenance",
+      "title": "Legacy Archaeologist",
+      "file": "agents/dev-15.yaml"
+    },
+    {
+      "id": "dev-16",
+      "path": "research/software/maintenance",
+      "title": "Documentation Writer",
+      "file": "agents/dev-16.yaml"
+    },
+    {
+      "id": "dev-17",
+      "path": "research/software/operations",
+      "title": "DevOps / SRE Agent",
+      "file": "agents/dev-17.yaml"
+    },
+    {
+      "id": "dev-18",
+      "path": "research/software/operations",
+      "title": "Incident Responder",
+      "file": "agents/dev-18.yaml"
+    },
+    {
+      "id": "dev-19",
+      "path": "research/software/orchestration",
+      "title": "Context Manager / Librarian",
+      "file": "agents/dev-19.yaml"
+    },
+    {
+      "id": "dev-20",
+      "path": "research/software/orchestration",
+      "title": "Onboarding Agent",
+      "file": "agents/dev-20.yaml"
+    },
+    {
+      "id": "sec-01",
+      "path": "research/security/offensive",
+      "title": "Penetration Tester / Red Team Operator",
+      "file": "agents/sec-01.yaml"
+    },
+    {
+      "id": "sec-02",
+      "path": "research/security/offensive",
+      "title": "Red Team Lead / Adversary Emulation Specialist",
+      "file": "agents/sec-02.yaml"
+    },
+    {
+      "id": "sec-03",
+      "path": "research/security/defensive",
+      "title": "SOC Analyst",
+      "file": "agents/sec-03.yaml"
+    },
+    {
+      "id": "sec-04",
+      "path": "research/security/defensive",
+      "title": "Threat Intelligence Analyst",
+      "file": "agents/sec-04.yaml"
+    },
+    {
+      "id": "sec-05",
+      "path": "research/security/defensive",
+      "title": "DFIR Specialist",
+      "file": "agents/sec-05.yaml"
+    },
+    {
+      "id": "sec-06",
+      "path": "research/security/defensive",
+      "title": "Malware Analyst / Reverse Engineer",
+      "file": "agents/sec-06.yaml"
+    },
+    {
+      "id": "sec-07",
+      "path": "research/security/cloud",
+      "title": "Cloud Security Architect",
+      "file": "agents/sec-07.yaml"
+    },
+    {
+      "id": "sec-08",
+      "path": "research/security/identity",
+      "title": "IAM Specialist",
+      "file": "agents/sec-08.yaml"
+    },
+    {
+      "id": "sec-09",
+      "path": "research/security/privacy",
+      "title": "Privacy Officer / Data Protection Specialist",
+      "file": "agents/sec-09.yaml"
+    },
+    {
+      "id": "sec-10",
+      "path": "research/security/grc",
+      "title": "GRC Analyst",
+      "file": "agents/sec-10.yaml"
+    },
+    {
+      "id": "sec-11",
+      "path": "research/security/grc",
+      "title": "Third-Party / Vendor Risk Analyst",
+      "file": "agents/sec-11.yaml"
+    },
+    {
+      "id": "sec-12",
+      "path": "research/security/devsecops",
+      "title": "Application Security Engineer",
+      "file": "agents/sec-12.yaml"
+    },
+    {
+      "id": "sec-13",
+      "path": "research/security/devsecops",
+      "title": "DevSecOps Engineer",
+      "file": "agents/sec-13.yaml"
+    },
+    {
+      "id": "sec-14",
+      "path": "research/security/specialized",
+      "title": "Vulnerability Management Analyst",
+      "file": "agents/sec-14.yaml"
+    },
+    {
+      "id": "sec-15",
+      "path": "research/security/specialized",
+      "title": "Cryptography Specialist",
+      "file": "agents/sec-15.yaml"
+    },
+    {
+      "id": "sec-16",
+      "path": "research/security/specialized",
+      "title": "OT/ICS Security Specialist",
+      "file": "agents/sec-16.yaml"
+    },
+    {
+      "id": "sec-17",
+      "path": "research/security/specialized",
+      "title": "Physical Security Consultant",
+      "file": "agents/sec-17.yaml"
+    },
+    {
+      "id": "sec-18",
+      "path": "research/security/specialized",
+      "title": "Security Awareness Trainer",
+      "file": "agents/sec-18.yaml"
+    },
+    {
+      "id": "sec-19",
+      "path": "research/security/specialized",
+      "title": "Zero Trust Architect",
+      "file": "agents/sec-19.yaml"
+    },
+    {
+      "id": "sec-20",
+      "path": "research/security/specialized",
+      "title": "Incident Response Communications Lead",
+      "file": "agents/sec-20.yaml"
+    },
+    {
+      "id": "arch-01",
+      "path": "research/architecture/design",
+      "title": "Building Architect / Design Architect",
+      "file": "agents/arch-01.yaml"
+    },
+    {
+      "id": "arch-02",
+      "path": "research/architecture/engineering",
+      "title": "Structural Engineer",
+      "file": "agents/arch-02.yaml"
+    },
+    {
+      "id": "arch-03",
+      "path": "research/architecture/site",
+      "title": "Geotechnical Engineer",
+      "file": "agents/arch-03.yaml"
+    },
+    {
+      "id": "arch-04",
+      "path": "research/architecture/systems",
+      "title": "MEP Engineer",
+      "file": "agents/arch-04.yaml"
+    },
+    {
+      "id": "arch-05",
+      "path": "research/architecture/systems",
+      "title": "Fire Protection Engineer",
+      "file": "agents/arch-05.yaml"
+    },
+    {
+      "id": "arch-06",
+      "path": "research/architecture/systems",
+      "title": "Facade Engineer",
+      "file": "agents/arch-06.yaml"
+    },
+    {
+      "id": "arch-07",
+      "path": "research/architecture/site",
+      "title": "Landscape Architect",
+      "file": "agents/arch-07.yaml"
+    },
+    {
+      "id": "arch-08",
+      "path": "research/architecture/interiors",
+      "title": "Interior Designer",
+      "file": "agents/arch-08.yaml"
+    },
+    {
+      "id": "arch-09",
+      "path": "research/architecture/interiors",
+      "title": "FF&E Specialist",
+      "file": "agents/arch-09.yaml"
+    },
+    {
+      "id": "arch-10",
+      "path": "research/architecture/interiors",
+      "title": "Kitchen & Bath Designer",
+      "file": "agents/arch-10.yaml"
+    },
+    {
+      "id": "arch-11",
+      "path": "research/architecture/compliance",
+      "title": "Building Code & Life Safety Reviewer",
+      "file": "agents/arch-11.yaml"
+    },
+    {
+      "id": "arch-12",
+      "path": "research/architecture/performance",
+      "title": "Sustainable Building Consultant",
+      "file": "agents/arch-12.yaml"
+    },
+    {
+      "id": "arch-13",
+      "path": "research/architecture/compliance",
+      "title": "Universal Design Consultant",
+      "file": "agents/arch-13.yaml"
+    },
+    {
+      "id": "arch-14",
+      "path": "research/architecture/performance",
+      "title": "Acoustic Consultant",
+      "file": "agents/arch-14.yaml"
+    },
+    {
+      "id": "arch-15",
+      "path": "research/architecture/environment",
+      "title": "Lighting Designer",
+      "file": "agents/arch-15.yaml"
+    },
+    {
+      "id": "arch-16",
+      "path": "research/architecture/delivery",
+      "title": "BIM Coordinator / VDC Manager",
+      "file": "agents/arch-16.yaml"
+    },
+    {
+      "id": "arch-17",
+      "path": "research/architecture/delivery",
+      "title": "Construction Cost Estimator",
+      "file": "agents/arch-17.yaml"
+    },
+    {
+      "id": "arch-18",
+      "path": "research/architecture/delivery",
+      "title": "Construction Project Manager",
+      "file": "agents/arch-18.yaml"
+    },
+    {
+      "id": "arch-19",
+      "path": "research/architecture/specialized",
+      "title": "Historic Preservation Architect",
+      "file": "agents/arch-19.yaml"
+    },
+    {
+      "id": "arch-20",
+      "path": "research/architecture/programming",
+      "title": "Space Planner / Programmer",
+      "file": "agents/arch-20.yaml"
+    },
+    {
+      "id": "phil-01",
+      "path": "research/humanities/philosophy",
+      "title": "Socratic Dialogue Partner",
+      "file": "agents/phil-01.yaml"
+    },
+    {
+      "id": "phil-02",
+      "path": "research/humanities/philosophy",
+      "title": "Ethics Consultant / Applied Ethicist",
+      "file": "agents/phil-02.yaml"
+    },
+    {
+      "id": "phil-03",
+      "path": "research/humanities/philosophy",
+      "title": "Logic & Argumentation Coach",
+      "file": "agents/phil-03.yaml"
+    },
+    {
+      "id": "phil-04",
+      "path": "research/humanities/philosophy",
+      "title": "Epistemology & Philosophy of Mind Tutor",
+      "file": "agents/phil-04.yaml"
+    },
+    {
+      "id": "phil-05",
+      "path": "research/humanities/philosophy",
+      "title": "Comparative Religion & Metaphysics Scholar",
+      "file": "agents/phil-05.yaml"
+    },
+    {
+      "id": "hist-01",
+      "path": "research/humanities/history",
+      "title": "Historical Research Analyst",
+      "file": "agents/hist-01.yaml"
+    },
+    {
+      "id": "hist-02",
+      "path": "research/humanities/history",
+      "title": "Narrative Historian",
+      "file": "agents/hist-02.yaml"
+    },
+    {
+      "id": "hist-03",
+      "path": "research/humanities/history",
+      "title": "Comparative & World History Analyst",
+      "file": "agents/hist-03.yaml"
+    },
+    {
+      "id": "hist-04",
+      "path": "research/humanities/history",
+      "title": "Primary Source & Archival Document Analyst",
+      "file": "agents/hist-04.yaml"
+    },
+    {
+      "id": "hist-05",
+      "path": "research/humanities/history",
+      "title": "Historiography & Bias Critic",
+      "file": "agents/hist-05.yaml"
+    },
+    {
+      "id": "lib-01",
+      "path": "research/humanities/liberal-arts",
+      "title": "Great Books / Close-Reading Tutor",
+      "file": "agents/lib-01.yaml"
+    },
+    {
+      "id": "lib-02",
+      "path": "research/humanities/liberal-arts",
+      "title": "Literary Critic / Theory Guide",
+      "file": "agents/lib-02.yaml"
+    },
+    {
+      "id": "lib-03",
+      "path": "research/humanities/liberal-arts",
+      "title": "Classical Rhetoric & Public Speaking Coach",
+      "file": "agents/lib-03.yaml"
+    },
+    {
+      "id": "lib-04",
+      "path": "research/humanities/liberal-arts",
+      "title": "Art & Cultural History Analyst",
+      "file": "agents/lib-04.yaml"
+    },
+    {
+      "id": "lib-05",
+      "path": "research/humanities/liberal-arts",
+      "title": "Interdisciplinary Seminar Facilitator",
+      "file": "agents/lib-05.yaml"
+    },
+    {
+      "id": "write-01",
+      "path": "research/writing/craft",
+      "title": "Developmental Editor",
+      "file": "agents/write-01.yaml"
+    },
+    {
+      "id": "write-02",
+      "path": "research/writing/craft",
+      "title": "Line Editor / Prose Stylist",
+      "file": "agents/write-02.yaml"
+    },
+    {
+      "id": "write-03",
+      "path": "research/writing/craft",
+      "title": "Creative Writing Workshop Leader",
+      "file": "agents/write-03.yaml"
+    },
+    {
+      "id": "write-04",
+      "path": "research/writing/craft",
+      "title": "Personal Essay / Memoir Coach",
+      "file": "agents/write-04.yaml"
+    },
+    {
+      "id": "write-05",
+      "path": "research/writing/craft",
+      "title": "Academic & Research Writing Coach",
+      "file": "agents/write-05.yaml"
+    },
+    {
+      "id": "goal-01",
+      "path": "research/personal-development/goals",
+      "title": "Life Coach / Values-Based Goal Strategist",
+      "file": "agents/goal-01.yaml"
+    },
+    {
+      "id": "goal-02",
+      "path": "research/personal-development/goals",
+      "title": "Habit Formation & Behavior Change Coach",
+      "file": "agents/goal-02.yaml"
+    },
+    {
+      "id": "goal-03",
+      "path": "research/personal-development/goals",
+      "title": "Productivity & Systems Coach",
+      "file": "agents/goal-03.yaml"
+    },
+    {
+      "id": "goal-04",
+      "path": "research/personal-development/goals",
+      "title": "Career & Vocational Discernment Coach",
+      "file": "agents/goal-04.yaml"
+    },
+    {
+      "id": "goal-05",
+      "path": "research/personal-development/goals",
+      "title": "Reflective Journaling & Self-Examination Guide",
+      "file": "agents/goal-05.yaml"
+    },
+    {
+      "id": "math-trig-01",
+      "path": "research/mathematics/trigonometry",
+      "title": "Trigonometry Problem Solver & Tutor",
+      "file": "agents/math-trig-01.yaml"
+    },
+    {
+      "id": "math-trig-02",
+      "path": "research/mathematics/trigonometry",
+      "title": "Trigonometric Identity Verifier",
+      "file": "agents/math-trig-02.yaml"
+    },
+    {
+      "id": "math-alg-01",
+      "path": "research/mathematics/advanced-algebra",
+      "title": "Advanced Algebra Specialist",
+      "file": "agents/math-alg-01.yaml"
+    },
+    {
+      "id": "math-alg-02",
+      "path": "research/mathematics/advanced-algebra",
+      "title": "Equation & System Solver",
+      "file": "agents/math-alg-02.yaml"
+    },
+    {
+      "id": "math-opt-01",
+      "path": "research/mathematics/optimization",
+      "title": "Optimization Modeler",
+      "file": "agents/math-opt-01.yaml"
+    },
+    {
+      "id": "math-opt-02",
+      "path": "research/mathematics/optimization",
+      "title": "Optimization Solver",
+      "file": "agents/math-opt-02.yaml"
+    },
+    {
+      "id": "math-gen-01",
+      "path": "research/mathematics/general-support",
+      "title": "Proof Verifier / Logic Checker",
+      "file": "agents/math-gen-01.yaml"
+    },
+    {
+      "id": "math-gen-02",
+      "path": "research/mathematics/general-support",
+      "title": "Math Visualization & Graphing Agent",
+      "file": "agents/math-gen-02.yaml"
+    },
+    {
+      "id": "music-an-01",
+      "path": "research/music/analyzer",
+      "title": "Note & Pitch Transcriber",
+      "file": "agents/music-an-01.yaml"
+    },
+    {
+      "id": "music-an-02",
+      "path": "research/music/analyzer",
+      "title": "Chord & Harmony Analyzer",
+      "file": "agents/music-an-02.yaml"
+    },
+    {
+      "id": "music-an-03",
+      "path": "research/music/analyzer",
+      "title": "Rhythm & Meter Analyzer",
+      "file": "agents/music-an-03.yaml"
+    },
+    {
+      "id": "music-an-04",
+      "path": "research/music/analyzer",
+      "title": "Structure & Form Analyzer",
+      "file": "agents/music-an-04.yaml"
+    },
+    {
+      "id": "music-rec-01",
+      "path": "research/music/recommender",
+      "title": "Listener Preference Profiler",
+      "file": "agents/music-rec-01.yaml"
+    },
+    {
+      "id": "music-rec-02",
+      "path": "research/music/recommender",
+      "title": "Music Recommendation Engine",
+      "file": "agents/music-rec-02.yaml"
+    },
+    {
+      "id": "music-rec-03",
+      "path": "research/music/recommender",
+      "title": "Discovery & Diversity Curator",
+      "file": "agents/music-rec-03.yaml"
+    },
+    {
+      "id": "music-cc-01",
+      "path": "research/music/co-creator",
+      "title": "Melody & Harmonic Co-Composer",
+      "file": "agents/music-cc-01.yaml"
+    },
+    {
+      "id": "music-cc-02",
+      "path": "research/music/co-creator",
+      "title": "Lyricist / Songwriting Partner",
+      "file": "agents/music-cc-02.yaml"
+    },
+    {
+      "id": "music-cc-03",
+      "path": "research/music/co-creator",
+      "title": "Arrangement & Orchestration Assistant",
+      "file": "agents/music-cc-03.yaml"
+    },
+    {
+      "id": "phys-01",
+      "path": "research/physics/classical-mechanics",
+      "title": "Classical Mechanics Problem Solver",
+      "file": "agents/phys-01.yaml"
+    },
+    {
+      "id": "phys-02",
+      "path": "research/physics/electromagnetism",
+      "title": "Electromagnetism Analyst",
+      "file": "agents/phys-02.yaml"
+    },
+    {
+      "id": "phys-03",
+      "path": "research/physics/thermodynamics",
+      "title": "Thermodynamics & Statistical Mechanics Solver",
+      "file": "agents/phys-03.yaml"
+    },
+    {
+      "id": "phys-04",
+      "path": "research/physics/quantum-mechanics",
+      "title": "Quantum Mechanics Tutor",
+      "file": "agents/phys-04.yaml"
+    },
+    {
+      "id": "phys-05",
+      "path": "research/physics/computational-physics",
+      "title": "Physics Simulation & Numerical Modeling Agent",
+      "file": "agents/phys-05.yaml"
+    },
+    {
+      "id": "phys-06",
+      "path": "research/physics/foundations-method",
+      "title": "Dimensional Analysis & Units Checker",
+      "file": "agents/phys-06.yaml"
+    },
+    {
+      "id": "phys-07",
+      "path": "research/physics/experimental-physics",
+      "title": "Experimental Data Analyst",
+      "file": "agents/phys-07.yaml"
+    },
+    {
+      "id": "phys-08",
+      "path": "research/physics/foundations-method",
+      "title": "Physics Concept & Intuition Explainer",
+      "file": "agents/phys-08.yaml"
+    }
+  ]
+}

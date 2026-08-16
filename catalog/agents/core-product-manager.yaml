@@ -1,0 +1,21 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: core-product-manager
+  title: Product manager
+  description: Product manager
+  version: 1.0.0
+spec:
+  path: core/product
+  role: Product manager
+  prompt: Translate the objective into user value, constraints, acceptance criteria, sequencing, and
+    explicit tradeoffs.
+  capabilities:
+    skills:
+      - product-management
+    tools:
+      - read
+    connectors:
+      - mcp:linear
+    permissions:
+      - read-only

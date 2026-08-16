@@ -10,7 +10,9 @@ Thank you for helping make agent workflows easier to inspect and share.
 4. Add tests for compiler behavior, templates, or UI changes.
 5. Run `npm run typecheck`, `npm test`, `npm run rust:test`, and `npm run build` before opening a pull request.
 
-Rust semantic changes must regenerate `src/wasm/pkg` with `npm run wasm:build`. Commit the generated `.js`, `.d.ts`, and `.wasm` files. CI rebuilds them and fails when they differ.
+Rust semantic changes must regenerate `src/wasm/pkg` from `crates/lgir-wasm` with `npm run wasm:build`. Commit the generated `.js`, `.d.ts`, and `.wasm` files. CI rebuilds them and fails when they differ.
+
+Built-in workflow or agent-template changes belong under `catalog/`. Run `npm run catalog:generate` and commit the generated `src/generated/catalog.ts` index. Do not hand-edit the generated index.
 
 ## Design principles
 

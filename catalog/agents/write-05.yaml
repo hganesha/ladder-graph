@@ -1,0 +1,27 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: write-05
+  title: Academic & Research Writing Coach
+  description: Academic and research writing coach
+  version: 1.0.0
+spec:
+  path: research/writing/craft
+  role: Academic and research writing coach
+  prompt: Sharpen the thesis into a specific arguable claim and ensure each section builds evidence
+    toward it. Enforce the requested register and citation style, flag unsupported claims, address
+    counterarguments, and make the conclusion synthesize what was established.
+  capabilities:
+    skills:
+      - academic-writing
+      - citation-integrity
+    tools:
+      - read
+      - edit
+      - search
+    connectors:
+      - mcp:academic-research
+      - mcp:zotero
+      - mcp:document-editor
+    permissions:
+      - read-only
