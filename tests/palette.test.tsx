@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Palette } from "../src/components/Palette";
+import { groupRoleTemplates } from "../src/lib/roleCategories";
 import { ROLE_TEMPLATES } from "../src/lib/roleTemplates";
 import { useStudioStore } from "../src/store/useStudioStore";
 
@@ -16,6 +17,13 @@ describe("agent template palette", () => {
 
     expect(ROLE_TEMPLATES).toHaveLength(93);
     expect(screen.getByText("93 agents")).toBeInTheDocument();
+    expect(screen.getByLabelText("Core agent templates (8)")).toBeInTheDocument();
+    expect(screen.getByLabelText("SWE agent templates (20)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Security agent templates (20)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Architecture & design agent templates (20)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Humanities agent templates (15)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Writing agent templates (5)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Personal development agent templates (5)")).toBeInTheDocument();
     expect(screen.getByText("Requirements Analyst")).toBeInTheDocument();
     expect(screen.getByText("Penetration Tester / Red Team Operator")).toBeInTheDocument();
     expect(screen.getByText("Building Architect / Design Architect")).toBeInTheDocument();
@@ -32,5 +40,22 @@ describe("agent template palette", () => {
     expect(screen.getByText("DFIR Specialist")).toBeInTheDocument();
     expect(screen.queryByText("Requirements Analyst")).not.toBeInTheDocument();
     expect(screen.getByText("Agent templates · 1")).toBeInTheDocument();
+    expect(screen.getByLabelText("Security agent templates (1)")).toBeInTheDocument();
+  });
+
+  it("groups every role once and supports category-level search", () => {
+    const groups = groupRoleTemplates(ROLE_TEMPLATES);
+
+    expect(groups.map(({ label, roles }) => [label, roles.length])).toEqual([
+      ["Core", 8],
+      ["SWE", 20],
+      ["Security", 20],
+      ["Architecture & design", 20],
+      ["Humanities", 15],
+      ["Writing", 5],
+      ["Personal development", 5],
+    ]);
+    expect(groups.flatMap((group) => group.roles)).toHaveLength(ROLE_TEMPLATES.length);
+    expect(groupRoleTemplates(ROLE_TEMPLATES, "SWE").map(({ label, roles }) => [label, roles.length])).toEqual([["SWE", 20]]);
   });
 });

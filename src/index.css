@@ -1113,7 +1113,7 @@ button:disabled {
 .palette summary::-webkit-details-marker {
   display: none;
 }
-.palette details[open] summary svg {
+.palette details[open] > summary svg {
   transform: rotate(180deg);
 }
 .macro-grid {
@@ -1183,6 +1183,62 @@ button:disabled {
 .role-tree {
   display: grid;
   gap: 3px;
+}
+.role-categories {
+  display: grid;
+  gap: 6px;
+}
+.palette .role-category {
+  overflow: hidden;
+  border: 1px solid #202a30;
+  border-radius: 8px;
+  padding: 0;
+  background: #0d1317;
+}
+.palette .role-category > summary {
+  padding: 8px 9px;
+  color: #9aa7ad;
+  letter-spacing: 0.06em;
+}
+.role-category > summary > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.role-category > summary strong {
+  color: #c8d1d4;
+  font-size: 10px;
+  font-weight: 650;
+}
+.role-category > summary small {
+  min-width: 20px;
+  border-radius: 999px;
+  padding: 2px 5px;
+  background: #192228;
+  color: #85949b;
+  font-size: 8px;
+  line-height: 1;
+  text-align: center;
+}
+.role-category > p {
+  margin: 0;
+  padding: 0 9px 7px;
+  color: #64737a;
+  font-size: 9px;
+  line-height: 1.35;
+}
+.role-category .role-tree {
+  padding: 0 4px 5px;
+}
+.role-empty {
+  margin: 0;
+  border: 1px dashed #28343a;
+  border-radius: 8px;
+  padding: 12px;
+  color: #738087;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
 }
 .role-tree button {
   display: flex;
@@ -2405,6 +2461,21 @@ button:disabled {
 :root[data-theme="light"] .recent-list button:hover {
   background: var(--surface-3);
   color: var(--text);
+}
+:root[data-theme="light"] .palette .role-category {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+:root[data-theme="light"] .role-category > summary strong {
+  color: var(--text);
+}
+:root[data-theme="light"] .role-category > summary small {
+  background: var(--surface-3);
+  color: var(--muted);
+}
+:root[data-theme="light"] .role-category > p,
+:root[data-theme="light"] .role-empty {
+  color: var(--muted);
 }
 :root[data-theme="light"] .workflow-tabs button.active {
   border-color: color-mix(in srgb, var(--cyan) 48%, var(--border));
