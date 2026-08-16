@@ -1,6 +1,7 @@
 import { Boxes, ChevronDown, Combine, GitMerge, Layers3, Search, ShieldCheck, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NODE_META, PALETTE_ORDER, ROLE_TEMPLATES } from "../lib/nodeMeta";
+import { groupRoleTemplates, roleSubcategory } from "../lib/roleCategories";
 import { useStudioStore } from "../store/useStudioStore";
 
 export function Palette() {
@@ -23,10 +24,8 @@ export function Palette() {
         !normalized || `${NODE_META[kind].label} ${NODE_META[kind].hint} ${NODE_META[kind].category}`.toLowerCase().includes(normalized),
     );
   }, [query]);
-  const roles = useMemo(
-    () => ROLE_TEMPLATES.filter((role) => !query || `${role.name} ${role.role} ${role.path}`.toLowerCase().includes(query.toLowerCase())),
-    [query],
-  );
+  const roleGroups = useMemo(() => groupRoleTemplates(ROLE_TEMPLATES, query), [query]);
+  const visibleRoleCount = useMemo(() => roleGroups.reduce((count, category) => count + category.roles.length, 0), [roleGroups]);
 
   return (
     <aside className="palette panel" aria-label="Node and template palette">
@@ -74,18 +73,38 @@ export function Palette() {
       </details>
       <details open>
         <summary>
-          Agent templates · {roles.length} <ChevronDown size={13} />
+          Agent templates · {visibleRoleCount} <ChevronDown size={13} />
         </summary>
-        <div className="role-tree">
-          {roles.map((role) => (
-            <button key={role.name} onClick={() => void addRole(role.name)}>
-              <Boxes size={13} />
-              <span>
-                <small>{role.path}</small>
-                <strong>{role.name}</strong>
-              </span>
-            </button>
+        <div className="role-categories">
+          {roleGroups.map((category) => (
+            <details
+              aria-label={`${category.label} agent templates (${category.roles.length})`}
+              className="role-category"
+              key={category.id}
+              open
+            >
+              <summary>
+                <span>
+                  <strong>{category.label}</strong>
+                  <small>{category.roles.length}</small>
+                </span>
+                <ChevronDown size={12} />
+              </summary>
+              <p>{category.description}</p>
+              <div className="role-tree">
+                {category.roles.map((role) => (
+                  <button key={role.id} onClick={() => void addRole(role.name)}>
+                    <Boxes size={13} />
+                    <span>
+                      <small>{roleSubcategory(role)}</small>
+                      <strong>{role.name}</strong>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </details>
           ))}
+          {visibleRoleCount === 0 && <p className="role-empty">No agent templates match this search.</p>}
         </div>
       </details>
       <details open>
