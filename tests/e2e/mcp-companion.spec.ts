@@ -13,9 +13,9 @@ test("local MCP companion is available from the visible MCP control", async ({ p
   const dialog = page.getByRole("dialog", { name: "Local storage" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText("MCP companion", { exact: true })).toBeVisible();
-  await expect(dialog.getByLabel("Companion URL")).toHaveValue("http://127.0.0.1:7341");
-  await expect(dialog.getByLabel("Pairing code")).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Pair browser" })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "Check again" })).toBeVisible();
+  await expect(dialog.getByText(/no pairing code required/i)).toBeVisible();
+  await expect(dialog.getByLabel("Pairing code")).toHaveCount(0);
   await expect(dialog).toContainText("MCP access is read-only");
   expect(errors).toEqual([]);
 });

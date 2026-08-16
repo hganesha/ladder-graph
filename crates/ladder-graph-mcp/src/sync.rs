@@ -7,7 +7,8 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post, put},
 };
-use chrono::{Duration, Utc};
+#[cfg(test)]
+use chrono::Utc;
 use ladder_catalog::{Catalog, CatalogSnapshot, write_snapshot};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
@@ -22,13 +23,6 @@ struct SyncState {
     paths: AppPaths,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct PairingRecord {
-    code_hash: String,
-    expires_at: String,
-}
-
 #[derive(Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct AuthStore {
@@ -37,14 +31,13 @@ struct AuthStore {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct PairRequest {
-    code: String,
+struct ConnectRequest {
     installation_id: String,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct PairResponse {
+struct ConnectResponse {
     token: String,
     installation_id: String,
 }
@@ -63,7 +56,7 @@ pub async fn serve(paths: AppPaths, bind: SocketAddr, allowed_origins: Vec<Strin
     let cors = cors_layer(&allowed_origins)?;
     let app = Router::new()
         .route("/health", get(health))
-        .route("/api/v1/pair", post(pair))
+        .route("/api/v1/connect", post(connect))
         .route("/api/v1/catalog/user", put(publish))
         .with_state(state)
         .layer(DefaultBodyLimit::max(ladder_catalog::MAX_SNAPSHOT_BYTES))
@@ -80,32 +73,9 @@ pub async fn serve(paths: AppPaths, bind: SocketAddr, allowed_origins: Vec<Strin
     Ok(())
 }
 
-pub fn create_pairing_code(paths: &AppPaths) -> Result<String> {
-    paths.ensure()?;
-    let mut bytes = [0_u8; 8];
-    rand::rng().fill_bytes(&mut bytes);
-    let raw = hex::encode_upper(bytes);
-    let code = raw
-        .as_bytes()
-        .chunks(4)
-        .map(|chunk| std::str::from_utf8(chunk).expect("hex is UTF-8"))
-        .collect::<Vec<_>>()
-        .join("-");
-    let record = PairingRecord {
-        code_hash: hash_secret(&normalize_code(&code)),
-        expires_at: (Utc::now() + Duration::minutes(5)).to_rfc3339(),
-    };
-    write_private_json(&paths.pairing, &record)?;
-    Ok(code)
-}
-
 pub fn revoke(paths: &AppPaths) -> Result<()> {
     if paths.auth.exists() {
         fs::remove_file(&paths.auth).with_context(|| format!("remove {}", paths.auth.display()))?;
-    }
-    if paths.pairing.exists() {
-        fs::remove_file(&paths.pairing)
-            .with_context(|| format!("remove {}", paths.pairing.display()))?;
     }
     Ok(())
 }
@@ -117,13 +87,13 @@ pub fn status(paths: &AppPaths) -> Result<serde_json::Value> {
         .iter()
         .filter(|entry| entry.scope == ladder_catalog::CatalogScope::User)
         .count();
-    let paired_installations = read_auth_store(paths)?.tokens.len();
+    let connected_installations = read_auth_store(paths)?.tokens.len();
     Ok(json!({
         "dataDirectory": paths.data_dir,
         "snapshot": paths.snapshot,
         "userEntries": user_entries,
         "builtinEntries": catalog.entries().len() - user_entries,
-        "pairedInstallations": paired_installations,
+        "connectedInstallations": connected_installations,
     }))
 }
 
@@ -145,31 +115,20 @@ async fn health(State(state): State<Arc<SyncState>>) -> impl IntoResponse {
     Json(json!({ "ok": true, "service": "ladder-graph-mcp", "details": details }))
 }
 
-async fn pair(State(state): State<Arc<SyncState>>, Json(request): Json<PairRequest>) -> Response {
-    match pair_inner(&state.paths, request) {
+async fn connect(
+    State(state): State<Arc<SyncState>>,
+    Json(request): Json<ConnectRequest>,
+) -> Response {
+    match connect_inner(&state.paths, request) {
         Ok(response) => (StatusCode::OK, Json(response)).into_response(),
-        Err(error) => api_error(StatusCode::UNAUTHORIZED, error),
+        Err(error) => api_error(StatusCode::BAD_REQUEST, error),
     }
 }
 
-fn pair_inner(paths: &AppPaths, request: PairRequest) -> Result<PairResponse> {
+fn connect_inner(paths: &AppPaths, request: ConnectRequest) -> Result<ConnectResponse> {
     if request.installation_id.is_empty() || request.installation_id.len() > 128 {
         anyhow::bail!("installationId is required");
     }
-    let bytes =
-        fs::read(&paths.pairing).context("no active pairing code; run ladder-graph-mcp pair")?;
-    let record: PairingRecord = serde_json::from_slice(&bytes)?;
-    let expires_at = chrono::DateTime::parse_from_rfc3339(&record.expires_at)?;
-    if expires_at < Utc::now() {
-        let _ = fs::remove_file(&paths.pairing);
-        anyhow::bail!("pairing code expired; generate a new code");
-    }
-    let candidate = hash_secret(&normalize_code(&request.code));
-    if !constant_time_eq(&candidate, &record.code_hash) {
-        anyhow::bail!("pairing code is invalid");
-    }
-    fs::remove_file(&paths.pairing)?;
-
     let mut token_bytes = [0_u8; 32];
     rand::rng().fill_bytes(&mut token_bytes);
     let token = hex::encode(token_bytes);
@@ -178,7 +137,7 @@ fn pair_inner(paths: &AppPaths, request: PairRequest) -> Result<PairResponse> {
         .tokens
         .insert(request.installation_id.clone(), hash_secret(&token));
     write_private_json(&paths.auth, &store)?;
-    Ok(PairResponse {
+    Ok(ConnectResponse {
         token,
         installation_id: request.installation_id,
     })
@@ -219,7 +178,7 @@ fn publish_inner(
     let expected = store
         .tokens
         .get(&snapshot.installation_id)
-        .context("browser installation is not paired")?;
+        .context("browser installation is not connected")?;
     if !constant_time_eq(&hash_secret(token), expected) {
         anyhow::bail!("bearer token is invalid");
     }
@@ -243,13 +202,6 @@ fn write_private_json(path: &std::path::Path, value: &impl Serialize) -> Result<
     fs::write(path, serde_json::to_vec_pretty(value)?)?;
     set_private_permissions(path)?;
     Ok(())
-}
-
-fn normalize_code(code: &str) -> String {
-    code.chars()
-        .filter(|value| value.is_ascii_hexdigit())
-        .flat_map(char::to_uppercase)
-        .collect()
 }
 
 fn hash_secret(secret: &str) -> String {
@@ -288,26 +240,18 @@ mod tests {
     use ladder_catalog::{CatalogEntry, CatalogKind, CatalogScope};
 
     #[test]
-    fn normalizes_human_pairing_codes() {
-        assert_eq!(normalize_code("ab12-CD34 ef56"), "AB12CD34EF56");
-    }
-
-    #[test]
-    fn pairing_authorizes_an_atomic_user_publish() {
+    fn automatic_connection_authorizes_an_atomic_user_publish() {
         let directory = tempfile::tempdir().unwrap();
         let data_dir = directory.path().to_path_buf();
         let paths = AppPaths {
             snapshot: data_dir.join("catalog-v1.json"),
-            pairing: data_dir.join("pairing-v1.json"),
             auth: data_dir.join("auth-v1.json"),
             data_dir,
         };
-        let code = create_pairing_code(&paths).unwrap();
         let installation_id = "browser-installation".to_string();
-        let paired = pair_inner(
+        let connected = connect_inner(
             &paths,
-            PairRequest {
-                code,
+            ConnectRequest {
                 installation_id: installation_id.clone(),
             },
         )
@@ -324,7 +268,7 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert(
             header::AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", paired.token)).unwrap(),
+            HeaderValue::from_str(&format!("Bearer {}", connected.token)).unwrap(),
         );
         let response = publish_inner(
             &paths,

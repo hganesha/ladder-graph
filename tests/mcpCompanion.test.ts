@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { pairCompanion, publishToCompanion } from "../src/lib/mcpCompanion";
+import { connectCompanion, publishToCompanion } from "../src/lib/mcpCompanion";
 import { db, getSetting, setSetting } from "../src/lib/persistence";
 import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
 
@@ -18,20 +18,20 @@ describe("local MCP companion", () => {
     vi.restoreAllMocks();
   });
 
-  it("pairs an anonymous browser installation with a loopback companion", async () => {
+  it("connects an anonymous browser installation to a loopback companion automatically", async () => {
     const fetchMock = vi
       .fn<typeof fetch>()
-      .mockResolvedValueOnce(jsonResponse({ token: "local-token" }))
-      .mockResolvedValueOnce(jsonResponse({ ok: true, details: { builtinEntries: 114, userEntries: 0 } }));
+      .mockResolvedValueOnce(jsonResponse({ ok: true, details: { builtinEntries: 114, userEntries: 0 } }))
+      .mockResolvedValueOnce(jsonResponse({ token: "local-token" }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const status = await pairCompanion("ABCD-EF01-2345-6789");
+    const status = await connectCompanion();
 
     expect(status).toMatchObject({ reachable: true, paired: true, url: "http://127.0.0.1:7341" });
     expect(await getSetting("mcp.syncToken")).toBe("local-token");
-    const request = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
-    expect(request).toMatchObject({ code: "ABCD-EF01-2345-6789" });
+    const request = JSON.parse(String(fetchMock.mock.calls[1][1]?.body));
     expect(request.installationId).toEqual(expect.any(String));
+    expect(fetchMock.mock.calls[1][0]).toBe("http://127.0.0.1:7341/api/v1/connect");
   });
 
   it("publishes last-valid workflow YAML as a full local snapshot", async () => {
@@ -64,7 +64,7 @@ describe("local MCP companion", () => {
     expect(snapshot.entries[0].content).toBe(WORKFLOW_TEMPLATES[0].yaml);
   });
 
-  it("refuses to send pairing codes to a non-loopback URL", async () => {
-    await expect(pairCompanion("code", "https://example.com")).rejects.toThrow("loopback");
+  it("refuses to connect to a non-loopback URL", async () => {
+    await expect(connectCompanion("https://example.com")).rejects.toThrow("loopback");
   });
 });

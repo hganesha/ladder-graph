@@ -44,7 +44,7 @@ The application requests persistent browser storage only after an explicit user 
 
 Built-in workflows and agent templates are canonical files under `catalog/`. A generated TypeScript index lets the PWA use those same assets, while the native binary embeds them at build time.
 
-The PWA generates an anonymous installation UUID and pairs with the loopback companion using a short-lived one-time code. Publishing sends a complete valid user catalog; the companion verifies it through `lgir-core` and atomically replaces its local snapshot. Desktop MCP clients use stdio and can read the snapshot even when the browser sync service is stopped. There is no human user identity, cloud account, bidirectional editing, or workflow execution.
+The PWA generates an anonymous installation UUID. When a desktop MCP client starts the stdio server, that same native process starts an origin-restricted loopback bridge. The PWA discovers it and receives an installation-scoped token automatically, without a pasted code or human user identity. Publishing sends a complete valid user catalog; the companion verifies it through `lgir-core` and atomically replaces its local snapshot. Desktop MCP clients read that snapshot through stdio. There is no cloud account, bidirectional editing, or workflow execution.
 
 ## Deployment
 
