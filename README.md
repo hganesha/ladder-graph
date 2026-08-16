@@ -2,7 +2,7 @@
 
 Design agent workflows visually. Validate the hard parts. Compile prompts or deterministic code.
 
-Ladder Graph is an open-source, offline-first visual compiler for agent workflows. It provides a synchronized graph and LGIR YAML editor, structured loops, sequential or parallel execution groups, typed dependencies, diagnostics, local templates, deterministic Markdown adapters for Codex, Claude, and Hermes Agent, and deterministic data modules for Python and TypeScript. It does not run agents or contact model providers.
+Ladder Graph is an open-source, offline-first visual compiler for agent workflows. Its starting screen organizes 85 workflows and 291 agent templates across 43 subject areas, while the Studio provides a synchronized graph and LGIR YAML editor, structured loops, sequential or parallel execution groups, typed dependencies, diagnostics, deterministic Markdown adapters for Codex, Claude, and Hermes Agent, and deterministic data modules for Python and TypeScript. It does not run agents or contact model providers.
 
 ## Run locally
 
@@ -20,9 +20,20 @@ npm run build
 npm run preview
 ```
 
+## Start a workflow
+
+Choose a subject area on the starting screen, then select one of two starting-point tabs:
+
+- **Workflows** opens the existing complete workflow templates for that area.
+- **Agents** lists the agents associated with that area. Selecting an agent creates a new workflow with exactly two connected nodes: an input node and the selected agent template.
+
+Use **New workflow** to begin with a blank graph. The MCP companion, introductory guide, and theme controls are also available directly from the starting-screen header.
+
 ## Verify
 
 ```bash
+npm run format:check
+npm run lint
 npm run typecheck
 npm test
 npm run rust:test
@@ -44,7 +55,7 @@ cargo build --release -p ladder-graph-mcp
 ./target/release/ladder-graph-mcp pair
 ```
 
-Open **Local storage → MCP companion** in Ladder Graph, enter the code, and publish the saved library. The stdio MCP server can then be configured with:
+Select **MCP** in the starting-screen header (or **Storage details → MCP companion** in Studio), enter the code, and publish the saved library. The stdio MCP server can then be configured with:
 
 ```json
 {
@@ -65,7 +76,8 @@ The Rust-generated files in `src/wasm/pkg` are intentionally committed so static
 
 ## What the MVP includes
 
-- Twenty-nine outcome-led starter workflows and 119 editable role templates, including researched software, security, architecture/design, humanities, writing, personal-development, mathematics, music, and physics specialists.
+- Eighty-five outcome-led starter workflows and 291 editable agent templates across 43 subject areas, including researched software, security, architecture/design, humanities, writing, personal-development, mathematics, music, physics, and multimodal specialists.
+- Subject-area filtering with dedicated **Workflows** and **Agents** tabs, including two-node input-to-agent starter workflows.
 - Fourteen canonical node kinds, including multi-output aggregators and teacher-model feedback, three edge kinds, and four visual macros.
 - DAG validation, structured bounded loops, bounded execution groups with aggregate or serialized exits, safe declarative transforms, explicit aggregation strategies, teacher-model feedback declarations, target capability reporting, and stable diagnostics.
 - One self-contained Markdown artifact for Codex, Claude, or Hermes Agent, or an importable deterministic data module for Python or TypeScript.
