@@ -24,8 +24,8 @@ describe("welcome gallery", () => {
     useStudioStore.setState({ openTemplate });
     render(<Welcome onBlank={() => undefined} />);
     expect(screen.getByRole("heading", { name: "Starter workflows" })).toBeInTheDocument();
-    expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows across 15 areas`, { exact: false })).toBeInTheDocument();
-    expect(screen.getAllByRole("tab")).toHaveLength(15);
+    expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows across 43 areas`, { exact: false })).toBeInTheDocument();
+    expect(screen.getAllByRole("tab")).toHaveLength(43);
     expect(screen.getByRole("tab", { name: "Core patterns" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(1);
     fireEvent.click(screen.getByRole("tab", { name: "Software engineering" }));
@@ -81,6 +81,19 @@ describe("welcome gallery", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Physics" }));
     expect(screen.getByRole("button", { name: /open physics problem solving & verification pipeline in studio/i })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(2);
+  });
+
+  it("exposes the added domain workflow areas", () => {
+    render(<Welcome onBlank={() => undefined} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Supply chain & logistics" }));
+    expect(screen.getByRole("button", { name: /open demand forecast \+ independent tie-out in studio/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Robotics & embodied AI" }));
+    expect(screen.getByRole("button", { name: /open manipulation plan \+ hardware tie-out in studio/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Crisis & emergency management" }));
+    expect(screen.getByRole("button", { name: /open incident intake → dispatch with coverage gate in studio/i })).toBeInTheDocument();
   });
 
   it("switches themes and remembers the choice", () => {

@@ -1,0 +1,229 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-cs-01
+  title: Ticket triage → resolution or escalation
+  description: Classify inbound tickets, filter and rank them by measured impact, cut a queue that fits
+    the shift, and route the top band to a named escalation owner.
+  version: 1.0.0
+spec:
+  objective: Convert an undifferentiated inbound queue into ranked, capacity-sized work with an explicit
+    escalation path and a verified resolution on every closed item.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Inbound ticket batch
+      summary: Inbound ticket batch
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - tickets
+              - entitlement_tier
+              - known_incidents
+              - shift_capacity
+            properties:
+              tickets: {}
+              entitlement_tier: {}
+              known_incidents: {}
+              shift_capacity: {}
+        x-ladder-input-mode: text
+    - id: n-classify
+      kind: agent
+      name: Classify by cause class and measured impact
+      summary: Score and label every incoming item before anything is queued.
+      role: Support triager classifying tickets by cause class, severity, and required expertise.
+      prompt: You are a Support Triage Classifier. You classify each ticket by likely cause class, customer
+        impact, and the expertise required to resolve it, and you return a confidence with every label
+        so low-confidence routing can be reviewed rather than trusted. You separate a customer's stated
+        urgency from measured impact and report both, because triaging on tone alone starves quiet outages
+        of attention.
+      capabilities:
+        skills:
+          - ticket-triage
+          - impact-scoring
+          - confidence-reporting
+          - routing-taxonomy-application
+          - failure-mode-analysis
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:helpdesk
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - label
+          - severity
+          - confidence
+          - rationale
+        properties:
+          label: {}
+          severity: {}
+          confidence: {}
+          rationale: {}
+    - id: n-filter
+      kind: transform
+      name: Drop out-of-scope items
+      summary: keep tickets that are in scope for this queue and not already attached to a known incident
+      config:
+        operation: filter
+        expression: keep tickets that are in scope for this queue and not already attached to a known
+          incident
+    - id: n-rank
+      kind: transform
+      name: Rank by urgency
+      summary: sort by measured_impact descending, then by sla_time_remaining ascending
+      config:
+        operation: sort
+        expression: sort by measured_impact descending, then by sla_time_remaining ascending
+    - id: n-queue
+      kind: transform
+      name: Cut the actionable queue
+      summary: take the first shift_capacity tickets as this shift's queue
+      config:
+        operation: slice
+        expression: take the first shift_capacity tickets as this shift's queue
+    - id: n-severity
+      kind: condition
+      name: Severity routing
+      summary: Route on ticket.severity selects one declared branch.
+      config:
+        expression: ticket.severity selects one declared branch
+        branches:
+          - label: Escalate
+            when: escalate
+          - label: Standard
+            when: standard
+          - label: Default
+            when: default
+    - id: n-escalate
+      kind: agent
+      name: Own the escalated case to closure
+      summary: Escalation path for the top band.
+      role: Escalation owner running high-impact incidents through to customer closure.
+      prompt: 'You are an Escalation Manager. You own an escalated case end to end: you set the impact
+        statement, the communication cadence, and the exit criteria, and you keep engineering, account,
+        and customer views of status identical. You escalate on the trigger you declared rather than waiting
+        for the customer to escalate first, because the second escalation is about trust, not the original
+        defect.'
+      capabilities:
+        skills:
+          - escalation-management
+          - impact-statement-drafting
+          - stakeholder-communication
+          - exit-criteria-definition
+          - incident-communication
+        tools:
+          - read
+          - write
+        connectors:
+          - mcp:helpdesk
+          - mcp:slack
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-handle
+      kind: agent
+      name: Reproduce, diagnose, and verify the fix
+      summary: Standard resolution path.
+      role: Support engineer producing reproducible diagnoses and verified resolutions.
+      prompt: You are a Resolution Specialist. You reproduce the reported behavior against the customer's
+        actual configuration, state the diagnosis with the evidence that supports it, and give the customer
+        a resolution plus the verification step that proves it worked. You say explicitly when you could
+        not reproduce the issue instead of shipping a plausible fix, because an unverified fix returns
+        as a worse ticket.
+      capabilities:
+        skills:
+          - issue-reproduction
+          - root-cause-diagnosis
+          - resolution-verification
+          - customer-communication
+          - failure-mode-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:helpdesk
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-rejoin
+      kind: join
+      name: Reconverge after routing
+      summary: Release whichever routed path completed.
+      config:
+        join: first
+    - id: n-approval
+      kind: approval
+      name: Support lead approves customer-facing escalation commitments
+      summary: Pause for the support lead; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Ticket triage → resolution or escalation deliverable, the evidence
+        behind it, and every unresolved item.
+  edges:
+    - id: wf-cs-01-edge-1
+      from: n-intake
+      to: n-classify
+      kind: data
+    - id: wf-cs-01-edge-2
+      from: n-classify
+      to: n-filter
+      kind: data
+    - id: wf-cs-01-edge-3
+      from: n-filter
+      to: n-rank
+      kind: data
+    - id: wf-cs-01-edge-4
+      from: n-rank
+      to: n-queue
+      kind: data
+    - id: wf-cs-01-edge-5
+      from: n-queue
+      to: n-severity
+      kind: data
+    - id: wf-cs-01-edge-6
+      from: n-severity
+      to: n-escalate
+      kind: control
+      condition: escalate
+    - id: wf-cs-01-edge-7
+      from: n-severity
+      to: n-handle
+      kind: control
+      condition: standard
+    - id: wf-cs-01-edge-8
+      from: n-escalate
+      to: n-rejoin
+      kind: data
+    - id: wf-cs-01-edge-9
+      from: n-handle
+      to: n-rejoin
+      kind: data
+    - id: wf-cs-01-edge-10
+      from: n-rejoin
+      to: n-approval
+      kind: data
+    - id: wf-cs-01-edge-11
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

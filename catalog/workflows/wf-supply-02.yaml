@@ -1,0 +1,228 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-supply-02
+  title: Disruption triage + recovery routing
+  description: Score live supply exceptions by downstream impact, cut a queue that fits the shift, and
+    route the top band to a costed recovery decision.
+  version: 1.0.0
+spec:
+  objective: Turn an undifferentiated exception feed into a ranked, capacity-sized action queue with an
+    explicit escalation path for exceptions that will stop production.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Live exception feed
+      summary: Live exception feed
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - exception_events
+              - production_schedule
+              - customer_commitments
+              - shift_capacity
+            properties:
+              exception_events: {}
+              production_schedule: {}
+              customer_commitments: {}
+              shift_capacity: {}
+        x-ladder-input-mode: text
+    - id: n-classify
+      kind: agent
+      name: Score exceptions by downstream impact
+      summary: Score and label every incoming item before anything is queued.
+      role: Control-tower operator triaging in-flight shipment and supply exceptions.
+      prompt: You are a Logistics Exception Controller. You classify live exceptions — delay, damage,
+        short-ship, customs hold, capacity failure — by downstream production or customer impact rather
+        than by how alarming the alert text sounds, and you propose the specific recovery action with
+        its cost. You state what will break and when if nothing is done, because an exception without
+        a deadline gets treated as background noise.
+      capabilities:
+        skills:
+          - exception-triage
+          - impact-scoring
+          - recovery-option-costing
+          - carrier-escalation-protocols
+          - failure-mode-analysis
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:tms
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - label
+          - severity
+          - confidence
+          - rationale
+        properties:
+          label: {}
+          severity: {}
+          confidence: {}
+          rationale: {}
+    - id: n-filter
+      kind: transform
+      name: Drop out-of-scope items
+      summary: keep exceptions whose impact touches a committed order or a scheduled production run
+      config:
+        operation: filter
+        expression: keep exceptions whose impact touches a committed order or a scheduled production run
+    - id: n-rank
+      kind: transform
+      name: Rank by urgency
+      summary: sort by hours_until_impact ascending, then by committed_revenue descending
+      config:
+        operation: sort
+        expression: sort by hours_until_impact ascending, then by committed_revenue descending
+    - id: n-queue
+      kind: transform
+      name: Cut the actionable queue
+      summary: take the first shift_capacity items as the actionable queue
+      config:
+        operation: slice
+        expression: take the first shift_capacity items as the actionable queue
+    - id: n-severity
+      kind: condition
+      name: Severity routing
+      summary: Route on queue_item.severity selects one declared branch.
+      config:
+        expression: queue_item.severity selects one declared branch
+        branches:
+          - label: Escalate
+            when: escalate
+          - label: Standard
+            when: standard
+          - label: Default
+            when: default
+    - id: n-escalate
+      kind: agent
+      name: Costed recovery options for line-down risk
+      summary: Escalation path for the top band.
+      role: Logistics engineer optimizing routing, load building, and network flow under real constraints.
+      prompt: You are a Network & Route Optimizer. You formulate routing and network-flow problems with
+        their real constraints — vehicle capacity, driver hours, time windows, dock capacity, cross-dock
+        timing — and report the objective value with its optimality gap. You never present a heuristic
+        solution as provably optimal, and you name which constraint is binding so a planner knows what
+        to relax to get a better answer.
+      capabilities:
+        skills:
+          - route-optimization
+          - network-flow-modeling
+          - constraint-formalization
+          - optimality-gap-reporting
+          - failure-mode-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:tms
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-handle
+      kind: agent
+      name: Standard carrier and inventory recovery
+      summary: Standard resolution path.
+      role: Inventory planner setting safety stock, reorder points, and service-level policy.
+      prompt: You are an Inventory Policy Planner. You translate a demand distribution and a lead-time
+        distribution into reorder points, safety stock, and order quantities against an explicit service-level
+        target, and you show which input drives each number. You state the cost of the service level you
+        are buying rather than presenting a policy as if it were free, and you flag items where lead-time
+        variance, not demand variance, is the binding problem.
+      capabilities:
+        skills:
+          - inventory-optimization
+          - safety-stock-modeling
+          - service-level-tradeoff-analysis
+          - lead-time-variance-analysis
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-rejoin
+      kind: join
+      name: Reconverge after routing
+      summary: Release whichever routed path completed.
+      config:
+        join: first
+    - id: n-approval
+      kind: approval
+      name: Control tower lead approves spend-bearing recovery actions
+      summary: Pause for the control tower lead; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Disruption triage + recovery routing deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-supply-02-edge-1
+      from: n-intake
+      to: n-classify
+      kind: data
+    - id: wf-supply-02-edge-2
+      from: n-classify
+      to: n-filter
+      kind: data
+    - id: wf-supply-02-edge-3
+      from: n-filter
+      to: n-rank
+      kind: data
+    - id: wf-supply-02-edge-4
+      from: n-rank
+      to: n-queue
+      kind: data
+    - id: wf-supply-02-edge-5
+      from: n-queue
+      to: n-severity
+      kind: data
+    - id: wf-supply-02-edge-6
+      from: n-severity
+      to: n-escalate
+      kind: control
+      condition: escalate
+    - id: wf-supply-02-edge-7
+      from: n-severity
+      to: n-handle
+      kind: control
+      condition: standard
+    - id: wf-supply-02-edge-8
+      from: n-escalate
+      to: n-rejoin
+      kind: data
+    - id: wf-supply-02-edge-9
+      from: n-handle
+      to: n-rejoin
+      kind: data
+    - id: wf-supply-02-edge-10
+      from: n-rejoin
+      to: n-approval
+      kind: data
+    - id: wf-supply-02-edge-11
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

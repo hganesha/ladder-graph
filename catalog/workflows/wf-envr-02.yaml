@@ -1,0 +1,232 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-envr-02
+  title: Scope consolidation + double-count register
+  description: Extract direct and value-chain emissions separately, merge them declaratively, and keep
+    every overlapping tonne as a source-tagged exception instead of a silent adjustment.
+  version: 1.0.0
+spec:
+  objective: Consolidate emissions across scopes with every double-count and unreconciled boundary listed
+    as an exception carrying its source.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Scope-level emissions submissions
+      summary: Scope-level emissions submissions
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - scope_one_and_two
+              - scope_three_categories
+              - boundary_definitions
+              - reporting_period
+            properties:
+              scope_one_and_two: {}
+              scope_three_categories: {}
+              boundary_definitions: {}
+              reporting_period: {}
+        x-ladder-input-mode: document
+    - id: n-source1
+      kind: agent
+      name: Direct and purchased-energy extraction
+      summary: 'Source extraction 1: direct and purchased-energy extraction.'
+      role: Inventory analyst building greenhouse gas inventories with declared boundaries and factors.
+      prompt: You are an Emissions Inventory Analyst. You build inventories with the organizational boundary,
+        scope definitions, activity data source, and emission factor version stated for every line, and
+        you keep estimated and metered activity data distinguishable. You surface double counting between
+        scopes rather than resolving it silently, because the same tonne appearing twice is the most common
+        inventory error and the easiest to hide.
+      capabilities:
+        skills:
+          - emissions-inventory
+          - boundary-definition
+          - emission-factor-versioning
+          - double-counting-detection
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:ghg-inventory
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-source2
+      kind: agent
+      name: Value-chain category extraction
+      summary: 'Source extraction 2: value-chain category extraction.'
+      role: Data analyst testing environmental measurement chains for defensibility.
+      prompt: You are an Environmental Data Quality Analyst. You test measurement chains for calibration
+        currency, detection limits, chain of custody, and gap-filling method, and you mark values that
+        are estimated, substituted, or below detection rather than passing them through as measurements.
+        You state how much of a reported total is estimated, because an inventory that is mostly estimation
+        should not be defended as measurement.
+      capabilities:
+        skills:
+          - measurement-chain-auditing
+          - detection-limit-handling
+          - gap-filling-disclosure
+          - data-lineage-analysis
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:ghg-inventory
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-union
+      kind: transform
+      name: Merge scope submissions
+      summary: merge the extracted emission records on entity, scope, category, and period
+      config:
+        operation: merge
+        expression: merge the extracted emission records on entity, scope, category, and period
+    - id: n-reconcile
+      kind: agent
+      name: Reconcile overlapping boundaries
+      summary: Reconcile fields that arrived from more than one source.
+      role: Inventory analyst building greenhouse gas inventories with declared boundaries and factors.
+      prompt: You are an Emissions Inventory Analyst. You build inventories with the organizational boundary,
+        scope definitions, activity data source, and emission factor version stated for every line, and
+        you keep estimated and metered activity data distinguishable. You surface double counting between
+        scopes rather than resolving it silently, because the same tonne appearing twice is the most common
+        inventory error and the easiest to hide.
+      capabilities:
+        skills:
+          - emissions-inventory
+          - boundary-definition
+          - emission-factor-versioning
+          - double-counting-detection
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:ghg-inventory
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-exceptions
+      kind: agent
+      name: State every double count and boundary gap
+      summary: Everything that could not be reconciled, stated as an exception.
+      role: Compliance analyst mapping permits, limits, and monitoring evidence.
+      prompt: You are an Environmental Compliance Analyst. You map each permit condition to the monitoring
+        evidence that demonstrates compliance, with limit, averaging period, and method named, and you
+        flag conditions where monitoring exists but does not measure what the limit regulates. You report
+        an exceedance as an exceedance regardless of how it is later averaged.
+      capabilities:
+        skills:
+          - permit-condition-mapping
+          - monitoring-method-verification
+          - exceedance-detection
+          - regulatory-mapping
+          - citation-verification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-register
+      kind: aggregator
+      name: Collect the exception register
+      summary: Every unreconciled field is source-tagged so an exception keeps its provenance.
+      config:
+        aggregation: collect
+    - id: n-clean
+      kind: condition
+      name: Exception register empty?
+      summary: Route on register.exceptions is empty.
+      config:
+        expression: register.exceptions is empty
+        branches:
+          - label: Clean
+            when: clean
+          - label: Exceptions
+            when: exceptions
+    - id: n-approval
+      kind: approval
+      name: Assurance reviewer accepts the consolidated inventory
+      summary: Pause for the assurance reviewer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Scope consolidation + double-count register deliverable, the evidence
+        behind it, and every unresolved item.
+  edges:
+    - id: wf-envr-02-edge-1
+      from: n-intake
+      to: n-source1
+      kind: data
+    - id: wf-envr-02-edge-2
+      from: n-intake
+      to: n-source2
+      kind: data
+    - id: wf-envr-02-edge-3
+      from: n-source1
+      to: n-union
+      kind: data
+    - id: wf-envr-02-edge-4
+      from: n-source2
+      to: n-union
+      kind: data
+    - id: wf-envr-02-edge-5
+      from: n-union
+      to: n-reconcile
+      kind: data
+    - id: wf-envr-02-edge-6
+      from: n-reconcile
+      to: n-exceptions
+      kind: data
+    - id: wf-envr-02-edge-7
+      from: n-reconcile
+      to: n-register
+      kind: data
+    - id: wf-envr-02-edge-8
+      from: n-exceptions
+      to: n-register
+      kind: data
+    - id: wf-envr-02-edge-9
+      from: n-register
+      to: n-clean
+      kind: data
+    - id: wf-envr-02-edge-10
+      from: n-clean
+      to: n-approval
+      kind: control
+      condition: clean
+    - id: wf-envr-02-edge-11
+      from: n-clean
+      to: n-approval
+      kind: control
+      condition: exceptions
+    - id: wf-envr-02-edge-12
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

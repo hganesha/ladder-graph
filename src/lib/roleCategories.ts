@@ -83,6 +83,48 @@ export const ROLE_CATEGORIES: RoleCategory[] = [
     pathPrefix: "research/physics/",
     searchTerms: ["science", "mechanics", "quantum", "simulation", "experimental"],
   },
+  {
+    id: "operations",
+    label: "Business operations",
+    description: "Supply chain, talent, revenue, support, growth, and finance operations.",
+    pathPrefix: "research/operations/",
+    searchTerms: ["business", "enterprise", "supply chain", "hr", "sales", "support", "marketing", "accounting"],
+  },
+  {
+    id: "industry",
+    label: "Industry & infrastructure",
+    description: "Manufacturing, energy, mobility, built environment, and agriculture.",
+    pathPrefix: "research/industry/",
+    searchTerms: ["manufacturing", "energy", "utilities", "transportation", "construction", "agriculture"],
+  },
+  {
+    id: "applied-science",
+    label: "Applied science",
+    description: "Chemistry, biology, environment, astronomy, and geospatial analysis.",
+    pathPrefix: "research/applied-science/",
+    searchTerms: ["chemistry", "materials", "bioinformatics", "climate", "space", "remote sensing"],
+  },
+  {
+    id: "creative-social",
+    label: "Creative & social",
+    description: "Games, film and post, fashion, social policy, and linguistics.",
+    pathPrefix: "research/creative/",
+    searchTerms: ["games", "film", "post-production", "fashion", "policy", "language"],
+  },
+  {
+    id: "professional-services",
+    label: "Professional services",
+    description: "Insurance, events and hospitality, and quality assurance and compliance.",
+    pathPrefix: "research/professional/",
+    searchTerms: ["insurance", "underwriting", "events", "hospitality", "compliance", "audit"],
+  },
+  {
+    id: "emerging",
+    label: "Emerging",
+    description: "Robotics and embodied AI, scholarly publishing, and crisis management.",
+    pathPrefix: "research/emerging/",
+    searchTerms: ["robotics", "peer review", "publishing", "crisis", "emergency"],
+  },
 ];
 
 export function groupRoleTemplates(roles: RoleTemplate[], query = ""): RoleCategoryGroup[] {

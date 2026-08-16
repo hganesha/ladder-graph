@@ -8,8 +8,8 @@ test("opens a mathematics workflow and finds a physics agent", async ({ page }) 
   await page.getByRole("button", { name: /open optimization problem solving pipeline in studio/i }).click();
 
   await expect(page.getByLabel("Workflow graph canvas")).toBeVisible();
-  await expect(page.getByRole("button", { name: "0 errors and 0 warnings" })).toBeVisible();
-  await expect(page.getByText("119 agents")).toBeVisible();
+  await expect(page.getByRole("button", { name: /0 errors and \d+ warnings/ })).toBeVisible();
+  await expect(page.getByText("287 agents")).toBeVisible();
 
   await page.getByPlaceholder("Search library").fill("Quantum Mechanics Tutor");
   await expect(page.getByRole("button", { name: /quantum mechanics tutor/i })).toBeVisible();

@@ -1,0 +1,220 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-agri-01
+  title: Field signal → prescription with scored review
+  description: Normalize mixed field data onto one canonical vocabulary, build the prescription, and gate
+    machine release on a scored teacher review.
+  version: 1.0.0
+spec:
+  objective: Release a variable-rate prescription that is agronomically justified, legal at every point
+    in the field, and executable by the machine it is written for.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Field layers and crop context
+      summary: Field layers and crop context
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - imagery_layers
+              - soil_tests
+              - yield_history
+              - machine_profile
+            properties:
+              imagery_layers: {}
+              soil_tests: {}
+              yield_history: {}
+              machine_profile: {}
+        x-ladder-input-mode: document
+    - id: n-normalize
+      kind: transform
+      name: Normalize to the canonical vocabulary
+      summary: 'rename source layer fields onto the canonical vocabulary: field_id, zone, crop_stage,
+        measured_index, target_rate'
+      config:
+        operation: rename
+        expression: 'rename source layer fields onto the canonical vocabulary: field_id, zone, crop_stage,
+          measured_index, target_rate'
+    - id: n-specialist
+      kind: agent
+      name: Build the variable-rate prescription
+      summary: Specialist pass over normalized fields.
+      role: Precision-agriculture planner turning zone maps into machine-ready prescriptions.
+      prompt: You are a Precision Application Planner. You build management zones and variable-rate prescriptions
+        from yield, soil, and imagery layers, and you validate that the prescription is executable by
+        the machine and legal at every point in the field. You keep buffer, waterway, and setback geometry
+        inside the prescription rather than leaving it to the operator, because a prescription that requires
+        manual override will be overridden inconsistently.
+      capabilities:
+        skills:
+          - prescription-mapping
+          - management-zone-delineation
+          - machine-compatibility-checking
+          - buffer-geometry-encoding
+          - geospatial-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:farm-management
+          - mcp:gis
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-score
+      kind: teacher
+      name: Scored teacher feedback
+      summary: Score feedback from a host-resolved teacher model.
+      role: Host-resolved teacher model
+      prompt: You are the review teacher for this prescription. Score it on agronomic justification per
+        zone, label and buffer compliance at every point, and machine executability. Return per-zone scores
+        and name the specific zone and reason behind every deduction.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        teacherModel: host:teacher-model
+        feedbackMode: score
+    - id: n-gate
+      kind: evaluate
+      name: Score the specialist result
+      summary: Evaluate agronomic justification, label and buffer compliance, and machine executability.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against agronomic justification, label and buffer compliance,
+        and machine executability. Return a score, pass/fail verdict, the evidence behind the verdict,
+        remaining uncertainty, and the smallest corrective action. Do not claim programmatic measurement
+        unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-pass
+      kind: condition
+      name: Above the bar?
+      summary: Route on gate.passed.
+      config:
+        expression: gate.passed
+        branches:
+          - label: Pass
+            when: 'true'
+          - label: Rework
+            when: 'false'
+    - id: n-rework
+      kind: agent
+      name: Correct the flagged zones
+      summary: Corrective pass on the scored weaknesses.
+      role: Agronomist converting field, soil, and weather evidence into management decisions.
+      prompt: You are an Agronomic Decision Analyst. You combine soil tests, crop stage, weather, and
+        field history into specific management recommendations with rates, timings, and the agronomic
+        reasoning attached. You state label, buffer, and re-entry constraints on every product recommendation,
+        and you decline to recommend a rate the label does not support regardless of what the agronomic
+        model suggests.
+      capabilities:
+        skills:
+          - agronomic-recommendation
+          - soil-test-interpretation
+          - growth-stage-timing
+          - label-constraint-compliance
+          - regulatory-mapping
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:farm-management
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Agronomist sign-off before the prescription goes to the machine
+      summary: Pause for the supervising agronomist; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Field signal → prescription with scored review deliverable, the evidence
+        behind it, and every unresolved item.
+  edges:
+    - id: wf-agri-01-edge-1
+      from: n-intake
+      to: n-normalize
+      kind: data
+    - id: wf-agri-01-edge-2
+      from: n-normalize
+      to: n-specialist
+      kind: data
+    - id: wf-agri-01-edge-3
+      from: n-specialist
+      to: n-score
+      kind: data
+    - id: wf-agri-01-edge-4
+      from: n-score
+      to: n-gate
+      kind: data
+    - id: wf-agri-01-edge-5
+      from: n-gate
+      to: n-pass
+      kind: data
+    - id: wf-agri-01-edge-6
+      from: n-pass
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-agri-01-edge-7
+      from: n-pass
+      to: n-rework
+      kind: control
+      condition: 'false'
+    - id: wf-agri-01-edge-8
+      from: n-rework
+      to: n-approval
+      kind: data
+    - id: wf-agri-01-edge-9
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

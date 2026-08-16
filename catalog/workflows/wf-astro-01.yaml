@@ -1,0 +1,228 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-astro-01
+  title: Observation queue + feasibility routing
+  description: Score observation requests by science priority and feasibility, cut a queue that fits the
+    night, and route time-critical targets to an explicit override decision.
+  version: 1.0.0
+spec:
+  objective: Produce a night plan where every scheduled observation is feasible under the forecast conditions
+    and every dropped request names the constraint that excluded it.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Observation requests and conditions
+      summary: Observation requests and conditions
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - observation_requests
+              - visibility_windows
+              - weather_forecast
+              - available_hours
+            properties:
+              observation_requests: {}
+              visibility_windows: {}
+              weather_forecast: {}
+              available_hours: {}
+        x-ladder-input-mode: text
+    - id: n-classify
+      kind: agent
+      name: Score requests by priority and feasibility
+      summary: Score and label every incoming item before anything is queued.
+      role: Scheduler allocating telescope time against visibility, conditions, and science priority.
+      prompt: You are an Observation Scheduler. You rank observation requests against visibility windows,
+        airmass, lunar and weather conditions, instrument configuration, and science priority, and you
+        state the specific constraint that excluded any request you dropped. You never schedule an observation
+        whose required conditions cannot occur in the window, because an infeasible plan consumes the
+        night that a feasible one would have used.
+      capabilities:
+        skills:
+          - observation-scheduling
+          - visibility-window-computation
+          - constraint-feasibility-checking
+          - priority-ranking
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:observatory-scheduler
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - label
+          - severity
+          - confidence
+          - rationale
+        properties:
+          label: {}
+          severity: {}
+          confidence: {}
+          rationale: {}
+    - id: n-filter
+      kind: transform
+      name: Drop out-of-scope items
+      summary: keep requests whose visibility window and instrument configuration are achievable tonight
+      config:
+        operation: filter
+        expression: keep requests whose visibility window and instrument configuration are achievable
+          tonight
+    - id: n-rank
+      kind: transform
+      name: Rank by urgency
+      summary: sort by science_priority descending, then by window_closing_time ascending
+      config:
+        operation: sort
+        expression: sort by science_priority descending, then by window_closing_time ascending
+    - id: n-queue
+      kind: transform
+      name: Cut the actionable queue
+      summary: take the first available_hours worth of requests as the night queue
+      config:
+        operation: slice
+        expression: take the first available_hours worth of requests as the night queue
+    - id: n-severity
+      kind: condition
+      name: Severity routing
+      summary: Route on request.time_criticality selects one declared branch.
+      config:
+        expression: request.time_criticality selects one declared branch
+        branches:
+          - label: Escalate
+            when: escalate
+          - label: Standard
+            when: standard
+          - label: Default
+            when: default
+    - id: n-escalate
+      kind: agent
+      name: Time-critical override assessment
+      summary: Escalation path for the top band.
+      role: Operations analyst managing spacecraft health, contacts, and conjunction risk.
+      prompt: You are a Satellite Operations Analyst. You assess spacecraft telemetry against expected
+        behavior, plan contact and downlink schedules against real link budgets, and evaluate conjunction
+        warnings with the covariance behind them rather than the miss distance alone. You escalate on
+        the declared risk threshold instead of waiting for a closer approach, because the maneuver window
+        closes before the uncertainty does.
+      capabilities:
+        skills:
+          - spacecraft-telemetry-analysis
+          - contact-scheduling
+          - conjunction-risk-assessment
+          - anomaly-detection
+          - failure-mode-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:ground-station
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-handle
+      kind: agent
+      name: Standard queue placement and setup
+      summary: Standard resolution path.
+      role: Specialist maintaining and validating the calibration chain of an instrument.
+      prompt: You are an Instrument Calibration Specialist. You maintain the calibration chain — reference
+        standards, transfer, drift, and validity period — and you state the traceability and the epoch
+        of every calibration product applied. You invalidate downstream results when a calibration is
+        found to be out of date rather than correcting them quietly, because silent recalibration destroys
+        the comparability of an archive.
+      capabilities:
+        skills:
+          - calibration-management
+          - traceability-tracking
+          - drift-analysis
+          - archive-comparability-protection
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:archive
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-rejoin
+      kind: join
+      name: Reconverge after routing
+      summary: Release whichever routed path completed.
+      config:
+        join: first
+    - id: n-approval
+      kind: approval
+      name: Duty astronomer approves the night plan
+      summary: Pause for the duty astronomer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Observation queue + feasibility routing deliverable, the evidence
+        behind it, and every unresolved item.
+  edges:
+    - id: wf-astro-01-edge-1
+      from: n-intake
+      to: n-classify
+      kind: data
+    - id: wf-astro-01-edge-2
+      from: n-classify
+      to: n-filter
+      kind: data
+    - id: wf-astro-01-edge-3
+      from: n-filter
+      to: n-rank
+      kind: data
+    - id: wf-astro-01-edge-4
+      from: n-rank
+      to: n-queue
+      kind: data
+    - id: wf-astro-01-edge-5
+      from: n-queue
+      to: n-severity
+      kind: data
+    - id: wf-astro-01-edge-6
+      from: n-severity
+      to: n-escalate
+      kind: control
+      condition: escalate
+    - id: wf-astro-01-edge-7
+      from: n-severity
+      to: n-handle
+      kind: control
+      condition: standard
+    - id: wf-astro-01-edge-8
+      from: n-escalate
+      to: n-rejoin
+      kind: data
+    - id: wf-astro-01-edge-9
+      from: n-handle
+      to: n-rejoin
+      kind: data
+    - id: wf-astro-01-edge-10
+      from: n-rejoin
+      to: n-approval
+      kind: data
+    - id: wf-astro-01-edge-11
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

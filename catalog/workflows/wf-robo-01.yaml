@@ -1,0 +1,206 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-robo-01
+  title: Manipulation plan + hardware tie-out
+  description: Set the planned motion against a declared simulation or hardware trial, merge the results,
+    and loop on assumptions until planned and observed behavior agree.
+  version: 1.0.0
+spec:
+  objective: Reach a manipulation plan whose predicted behavior matches observed behavior, with the sim-to-real
+    gap quantified and no simulated result reported as measured performance.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Task, scene, and robot configuration
+      summary: Task, scene, and robot configuration
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - task_specification
+              - scene_model
+              - robot_configuration
+              - perception_uncertainty
+            properties:
+              task_specification: {}
+              scene_model: {}
+              robot_configuration: {}
+              perception_uncertainty: {}
+        x-ladder-input-mode: document
+    - id: n-model
+      kind: agent
+      name: Planned grasp and motion
+      summary: Model-side estimate with stated assumptions.
+      role: Robotics engineer planning grasps and motions that respect real uncertainty.
+      prompt: You are a Manipulation Planning Engineer. You plan grasps and motions against the object
+        model, contact assumptions, and the actual perception uncertainty, and you state the failure mode
+        of each plan. You report when the plan depends on a pose estimate more precise than the sensor
+        supports, because that is where a confident plan becomes a collision.
+      capabilities:
+        skills:
+          - manipulation-planning
+          - grasp-synthesis
+          - perception-uncertainty-propagation
+          - collision-checking
+          - failure-mode-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:robotics-stack
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-run
+      kind: tool
+      name: Simulation or hardware trial run
+      summary: Host-supplied physics simulation or instrumented hardware trial. Declared as a requirement;
+        Ladder Graph does not execute it and no simulated outcome may be reported as measured.
+      capabilities:
+        skills:
+          - sim-to-real-analysis
+          - numeric-verification
+        tools:
+          - test
+          - mcp:robotics-stack
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-compare
+      kind: aggregator
+      name: Merge estimate and instrument run
+      summary: Merge the two result objects; every field where they disagree is surfaced as a collision
+        rather than silently overwritten.
+      config:
+        aggregation: merge
+    - id: n-fit
+      kind: evaluate
+      name: Score agreement
+      summary: Evaluate agreement between predicted and observed outcome across the stated condition set.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against agreement between predicted and observed outcome across
+        the stated condition set. Return a score, pass/fail verdict, the evidence behind the verdict,
+        remaining uncertainty, and the smallest corrective action. Do not claim programmatic measurement
+        unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-converged
+      kind: condition
+      name: Converged?
+      summary: Route on fit.passed.
+      config:
+        expression: fit.passed
+        branches:
+          - label: Converged
+            when: 'true'
+          - label: Refine
+            when: 'false'
+    - id: n-refine
+      kind: loop
+      name: Refine assumptions until agreement
+      summary: Repeat a bounded revision sequence until agreement between the estimate and the instrument
+        run meets the declared threshold.
+      config:
+        body:
+          - n-model
+          - n-run
+          - n-compare
+          - n-fit
+          - n-converged
+        exitCondition: agreement between the estimate and the instrument run meets the declared threshold
+        maxIterations: 4
+        onExhausted: stop
+    - id: n-approval
+      kind: approval
+      name: Safety engineer authorizes execution on hardware near people
+      summary: Pause for the robot safety engineer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Manipulation plan + hardware tie-out deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-robo-01-edge-1
+      from: n-intake
+      to: n-model
+      kind: data
+    - id: wf-robo-01-edge-2
+      from: n-intake
+      to: n-run
+      kind: data
+    - id: wf-robo-01-edge-3
+      from: n-model
+      to: n-compare
+      kind: data
+    - id: wf-robo-01-edge-4
+      from: n-run
+      to: n-compare
+      kind: data
+    - id: wf-robo-01-edge-5
+      from: n-compare
+      to: n-fit
+      kind: data
+    - id: wf-robo-01-edge-6
+      from: n-fit
+      to: n-converged
+      kind: data
+    - id: wf-robo-01-edge-7
+      from: n-converged
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-robo-01-edge-8
+      from: n-converged
+      to: n-refine
+      kind: control
+      condition: 'false'
+    - id: wf-robo-01-edge-9
+      from: n-refine
+      to: n-approval
+      kind: control
+      condition: loop_exit
+    - id: wf-robo-01-edge-10
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved
