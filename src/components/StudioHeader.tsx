@@ -1,7 +1,7 @@
 import {
-  AlignHorizontalDistributeCenter,
   ArrowLeft,
   Braces,
+  Cable,
   CheckCircle2,
   CircleHelp,
   Code2,
@@ -9,8 +9,8 @@ import {
   Database,
   Download,
   FileUp,
-  PanelLeftClose,
-  PanelRightClose,
+  Minus,
+  Plus,
   Redo2,
   Undo2,
   WandSparkles,
@@ -22,21 +22,21 @@ import { Brand } from "./Brand";
 import { download } from "./OutputPanel";
 import { ThemeToggle } from "./ThemeToggle";
 
-export function StudioHeader({ onHelp, onStorage }: { onHelp: () => void; onStorage: () => void }) {
+export function StudioHeader({
+  onHelp,
+  onStorage,
+  mcpPaired,
+}: {
+  onHelp: () => void;
+  onStorage: () => void;
+  mcpPaired: boolean;
+}) {
   const state = useStudioStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState("");
   const errors = state.analysis?.diagnostics.filter((item) => item.severity === "error").length ?? 0;
   const warnings = state.analysis?.diagnostics.filter((item) => item.severity === "warning").length ?? 0;
   const workflow = state.analysis?.normalized;
-  const togglePalette = () => {
-    if (!state.paletteOpen && state.inspectorOpen && window.matchMedia("(max-width: 880px)").matches) state.toggleInspector();
-    state.togglePalette();
-  };
-  const toggleInspector = () => {
-    if (!state.inspectorOpen && state.paletteOpen && window.matchMedia("(max-width: 880px)").matches) state.togglePalette();
-    state.toggleInspector();
-  };
 
   return (
     <header className="studio-header">
@@ -89,30 +89,28 @@ export function StudioHeader({ onHelp, onStorage }: { onHelp: () => void; onStor
         >
           <Redo2 size={15} />
         </button>
-        <button
-          className="icon-button secondary-action"
-          title="Align nodes to grid"
-          aria-label="Align nodes to grid"
-          onClick={() => void state.layout()}
-        >
-          <AlignHorizontalDistributeCenter size={15} />
-        </button>
-        <button
-          className={`icon-button panel-toggle ${state.paletteOpen ? "active" : ""}`}
-          title="Toggle library"
-          aria-label="Toggle library"
-          onClick={togglePalette}
-        >
-          <PanelLeftClose size={15} />
-        </button>
-        <button
-          className={`icon-button panel-toggle ${state.inspectorOpen ? "active" : ""}`}
-          title="Toggle inspector"
-          aria-label="Toggle inspector"
-          onClick={toggleInspector}
-        >
-          <PanelRightClose size={15} />
-        </button>
+        <fieldset className="node-spacing-control secondary-action">
+          <legend className="sr-only">Node spacing</legend>
+          <button
+            type="button"
+            title="Decrease node spacing"
+            aria-label="Decrease node spacing"
+            disabled={state.nodeSpacing <= 0.8}
+            onClick={() => void state.adjustNodeSpacing(-1)}
+          >
+            <Minus size={14} />
+          </button>
+          <output aria-label={`Node spacing ${Math.round(state.nodeSpacing * 100)} percent`}>{Math.round(state.nodeSpacing * 100)}%</output>
+          <button
+            type="button"
+            title="Increase node spacing"
+            aria-label="Increase node spacing"
+            disabled={state.nodeSpacing >= 1.6}
+            onClick={() => void state.adjustNodeSpacing(1)}
+          >
+            <Plus size={14} />
+          </button>
+        </fieldset>
         <fieldset className="mode-switch">
           <legend className="sr-only">Editor view</legend>
           <button
@@ -152,6 +150,16 @@ export function StudioHeader({ onHelp, onStorage }: { onHelp: () => void; onStor
         <button className="compile-button" disabled={state.busy} onClick={() => void state.compile()}>
           <WandSparkles size={15} />
           <span>{state.busy ? "Checking…" : "Compile"}</span>
+        </button>
+        <button
+          className={`mcp-status-button ${mcpPaired ? "paired" : ""}`}
+          title={mcpPaired ? "MCP paired — open companion settings" : "Set up MCP companion"}
+          aria-label={mcpPaired ? "MCP paired — open companion settings" : "Set up MCP companion"}
+          onClick={onStorage}
+        >
+          <Cable size={14} />
+          <span>MCP</span>
+          <i aria-hidden="true" />
         </button>
         <button className="icon-button" title="Import YAML" aria-label="Import YAML" onClick={() => fileRef.current?.click()}>
           <FileUp size={15} />
@@ -240,6 +248,14 @@ export function StudioHeader({ onHelp, onStorage }: { onHelp: () => void; onStor
           onClick={() => download(`${workflow?.metadata.name ?? "workflow"}.yaml`, state.source, "application/yaml")}
         >
           <Download size={15} />
+        </button>
+        <button
+          className={`icon-button mobile-mcp-button ${mcpPaired ? "paired" : ""}`}
+          title={mcpPaired ? "MCP paired — open companion settings" : "Set up MCP companion"}
+          aria-label={mcpPaired ? "MCP paired — open companion settings" : "Set up MCP companion"}
+          onClick={onStorage}
+        >
+          <Cable size={15} />
         </button>
         <button className="icon-button" title="Storage" aria-label="Storage details" onClick={onStorage}>
           <Database size={15} />

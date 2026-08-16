@@ -2,7 +2,7 @@ import { parseDocument } from "yaml";
 import { create } from "zustand";
 import { compiler } from "../compiler/client";
 import { createAgentStarterSource } from "../lib/agentStarter";
-import { autoLayout, groupMemberPosition } from "../lib/layout";
+import { autoLayout, groupMemberPosition, scaleNodeSpacing } from "../lib/layout";
 import { defaultNode, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { requestPersistentStorage, saveProject } from "../lib/persistence";
 import { BLANK_WORKFLOW, WORKFLOW_TEMPLATES } from "../lib/templates";
@@ -29,6 +29,7 @@ interface StudioState {
   diagnosticsOpen: boolean;
   paletteOpen: boolean;
   inspectorOpen: boolean;
+  nodeSpacing: number;
   busy: boolean;
   runtime: "wasm" | "fallback";
   savedAt: number | null;
@@ -59,7 +60,7 @@ interface StudioState {
   addMacro: (macro: "parallel" | "pipeline" | "reduce" | "verify") => Promise<void>;
   connect: (edge: Omit<LgirEdge, "id">) => Promise<void>;
   updatePositions: (positions: Record<string, { x: number; y: number }>) => Promise<void>;
-  layout: () => Promise<void>;
+  adjustNodeSpacing: (direction: -1 | 1) => Promise<void>;
   applyFix: (diagnostic: Diagnostic) => Promise<void>;
   undo: () => Promise<void>;
   redo: () => Promise<void>;
@@ -130,6 +131,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   diagnosticsOpen: false,
   paletteOpen: true,
   inspectorOpen: true,
+  nodeSpacing: 1,
   busy: false,
   runtime: "fallback",
   savedAt: null,
@@ -152,6 +154,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
+      nodeSpacing: 1,
       past: [],
       future: [],
     });
@@ -185,6 +188,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
+      nodeSpacing: 1,
       past: [],
       future: [],
     });
@@ -201,6 +205,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
+      nodeSpacing: 1,
       past: [],
       future: [],
     });
@@ -379,11 +384,15 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const source = patchYaml(get().source, ["spec", "nodes"], nodes);
     await get().setSource(source, false);
   },
-  layout: async () => {
+  adjustNodeSpacing: async (direction) => {
     const workflow = parseWorkflow(get().source);
     if (!workflow) return;
-    const nodes = autoLayout(workflow.spec.nodes, workflow.spec.edges);
+    const current = get().nodeSpacing;
+    const next = Math.max(0.8, Math.min(1.6, Number((current + direction * 0.2).toFixed(1))));
+    if (next === current) return;
+    const nodes = scaleNodeSpacing(workflow.spec.nodes, next / current);
     const source = patchYaml(get().source, ["spec", "nodes"], nodes);
+    set({ nodeSpacing: next });
     await get().setSource(source);
   },
   applyFix: async (diagnostic) => {

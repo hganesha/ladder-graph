@@ -729,6 +729,87 @@ button:disabled {
   border-radius: 6px;
   background: transparent;
 }
+.node-spacing-control {
+  display: flex;
+  align-items: center;
+  height: 31px;
+  margin: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 2px;
+  background: var(--surface);
+}
+.node-spacing-control button {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+}
+.node-spacing-control button:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.node-spacing-control button:disabled {
+  color: color-mix(in srgb, var(--dim) 45%, transparent);
+}
+.node-spacing-control output {
+  min-width: 32px;
+  color: var(--dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  text-align: center;
+}
+.mcp-status-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 31px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 0 9px;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.mcp-status-button:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.mcp-status-button i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dim);
+}
+.mcp-status-button.paired {
+  border-color: color-mix(in srgb, var(--green) 42%, var(--border));
+  color: var(--green);
+}
+.mcp-status-button.paired i,
+.mobile-mcp-button.paired::after {
+  background: var(--green);
+}
+.mobile-mcp-button {
+  position: relative;
+}
+.mobile-mcp-button::after {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--surface);
+  border-radius: 50%;
+  background: var(--dim);
+  content: "";
+}
 .target-select {
   height: 31px;
   border: 1px solid #314048;
@@ -766,6 +847,7 @@ button:disabled {
   font-size: 11px;
 }
 .studio-workspace {
+  position: relative;
   display: grid;
   height: calc(100% - var(--header-h) - var(--status-h));
   grid-template-columns: minmax(0, 1fr);
@@ -811,6 +893,56 @@ button:disabled {
   font-size: 8px;
   font-weight: 500;
   letter-spacing: 0.08em;
+}
+.panel-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-collapse {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dim);
+}
+.panel-collapse:hover {
+  border-color: var(--border);
+  background: var(--surface-3);
+  color: var(--text);
+}
+.panel-restore {
+  position: absolute;
+  top: 12px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--muted);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--bg) 45%, transparent);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+.panel-restore:hover {
+  border-color: var(--cyan);
+  color: var(--text);
+}
+.panel-restore-left {
+  left: 12px;
+}
+.panel-restore-right {
+  right: 12px;
 }
 .center-workspace {
   position: relative;
@@ -2840,7 +2972,8 @@ button:disabled {
     display: none;
   }
   .status-button,
-  .header-actions > .secondary-action {
+  .header-actions > .secondary-action,
+  .header-actions > .mcp-status-button {
     display: none;
   }
   .palette-visible.inspector-visible .studio-workspace,
@@ -2851,8 +2984,8 @@ button:disabled {
   .palette,
   .inspector {
     position: absolute;
-    top: var(--header-h);
-    bottom: var(--status-h);
+    top: 0;
+    bottom: 0;
     z-index: 35;
     width: min(310px, 88vw);
     max-width: 100%;

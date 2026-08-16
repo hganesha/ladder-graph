@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { autoLayout, GRID_LAYOUT, groupDimensions } from "../src/lib/layout";
+import { autoLayout, GRID_LAYOUT, groupDimensions, scaleNodeSpacing } from "../src/lib/layout";
 import type { LgirEdge, LgirNode } from "../src/types";
 
 const nodes: LgirNode[] = [
@@ -77,5 +77,20 @@ describe("grid auto-layout", () => {
       expect((position?.y ?? 0) + GRID_LAYOUT.nodeHeight).toBeLessThan(group.position.y + dimensions.height);
     }
     expect(result.get("output")?.position?.x ?? 0).toBeGreaterThan(group.position.x + dimensions.width);
+  });
+
+  it("increases and decreases visible spacing without changing graph structure", () => {
+    const laidOut = autoLayout(nodes, edges);
+    const expanded = scaleNodeSpacing(laidOut, 1.2);
+    const restored = scaleNodeSpacing(expanded, 1 / 1.2);
+    const distance = (items: LgirNode[]) => {
+      const input = items.find((node) => node.id === "input")?.position?.x ?? 0;
+      const output = items.find((node) => node.id === "output")?.position?.x ?? 0;
+      return output - input;
+    };
+
+    expect(distance(expanded)).toBeGreaterThan(distance(laidOut));
+    expect(distance(restored)).toBeLessThan(distance(expanded));
+    expect(expanded.map((node) => node.id)).toEqual(laidOut.map((node) => node.id));
   });
 });
