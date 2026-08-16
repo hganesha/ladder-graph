@@ -1,0 +1,251 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-soc-01
+  title: Coder reliability + rubric calibration
+  description: Code the same material blind across three coders, then let a teacher model critique the
+    coders against the codebook until reliability is demonstrated rather than asserted.
+  version: 1.0.0
+spec:
+  objective: Produce coded qualitative data with inter-coder reliability established and codebook ambiguities
+    repaired before any finding is drawn from the codes.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Transcripts and codebook
+      summary: Transcripts and codebook
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - transcripts
+              - codebook
+              - coding_unit
+              - agreement_threshold
+            properties:
+              transcripts: {}
+              codebook: {}
+              coding_unit: {}
+              agreement_threshold: {}
+        x-ladder-input-mode: document
+    - id: n-assess1
+      kind: agent
+      name: First blind coding pass
+      summary: Blind assessment 1; no sight of the other assessments.
+      role: Qualitative analyst applying a codebook consistently and transparently.
+      prompt: You are a Qualitative Coding Analyst. You apply the codebook to text with the excerpt behind
+        every code assignment, and you record codes that were ambiguous rather than forcing them into
+        the nearest category. You code independently of other coders when the design calls for it, because
+        reconciled-in-the-moment coding cannot produce a meaningful reliability statistic.
+      capabilities:
+        skills:
+          - qualitative-coding
+          - codebook-application
+          - excerpt-evidence-linking
+          - ambiguity-recording
+          - rubric-design
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assess2
+      kind: agent
+      name: Second blind coding pass
+      summary: Blind assessment 2; no sight of the other assessments.
+      role: Qualitative analyst applying a codebook consistently and transparently.
+      prompt: You are a Qualitative Coding Analyst. You apply the codebook to text with the excerpt behind
+        every code assignment, and you record codes that were ambiguous rather than forcing them into
+        the nearest category. You code independently of other coders when the design calls for it, because
+        reconciled-in-the-moment coding cannot produce a meaningful reliability statistic.
+      capabilities:
+        skills:
+          - qualitative-coding
+          - codebook-application
+          - excerpt-evidence-linking
+          - ambiguity-recording
+          - rubric-design
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assess3
+      kind: agent
+      name: Methodological review of the coding frame
+      summary: Blind assessment 3; no sight of the other assessments.
+      role: Methodologist designing instruments and samples that measure what they claim to.
+      prompt: You are a Survey Methodologist. You design instruments with tested question wording, response
+        options that do not force a position, and a sampling plan whose frame and expected non-response
+        are stated. You name the population a sample can actually support inference about, because the
+        gap between the sampled frame and the population of interest is where most survey claims fail.
+      capabilities:
+        skills:
+          - survey-design
+          - question-wording-testing
+          - sampling-frame-analysis
+          - nonresponse-bias-assessment
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-panel
+      kind: group
+      name: Blind coding panel
+      summary: Every assessor runs on the same evidence in parallel; the group exits only once all member
+        results are aggregated.
+      config:
+        members:
+          - n-assess1
+          - n-assess2
+          - n-assess3
+        execution: parallel
+        exit: aggregate
+    - id: n-teacher
+      kind: teacher
+      name: Rubric calibration
+      summary: Critique the assessors against the rubric — this scores the graders, not the work.
+      role: Host-resolved teacher model
+      prompt: 'You are the calibration teacher for this coding panel. Critique the coders against the
+        codebook: which codes were applied inconsistently, which excerpts were coded without supporting
+        text, and which code definitions are themselves ambiguous enough to guarantee disagreement? Return
+        coder-level feedback and proposed codebook wording changes.'
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        teacherModel: host:teacher-model
+        feedbackMode: rubric
+    - id: n-agreement
+      kind: evaluate
+      name: Score inter-assessor agreement
+      summary: Evaluate inter-coder agreement per code and excerpt evidence behind each assignment.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against inter-coder agreement per code and excerpt evidence
+        behind each assignment. Return a score, pass/fail verdict, the evidence behind the verdict, remaining
+        uncertainty, and the smallest corrective action. Do not claim programmatic measurement unless
+        the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+    - id: n-calibrated
+      kind: condition
+      name: Calibrated?
+      summary: Route on agreement.passed.
+      config:
+        expression: agreement.passed
+        branches:
+          - label: Calibrated
+            when: 'true'
+          - label: Not calibrated
+            when: 'false'
+    - id: n-recalibrate
+      kind: loop
+      name: Recalibrate until assessors agree
+      summary: Repeat a bounded revision sequence until inter-assessor agreement meets the declared threshold.
+      config:
+        body:
+          - n-panel
+          - n-teacher
+          - n-agreement
+          - n-calibrated
+        exitCondition: inter-assessor agreement meets the declared threshold
+        maxIterations: 3
+        onExhausted: stop
+    - id: n-approval
+      kind: approval
+      name: Principal investigator accepts the calibrated coding
+      summary: Pause for the principal investigator; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Coder reliability + rubric calibration deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-soc-01-edge-1
+      from: n-intake
+      to: n-panel
+      kind: data
+    - id: wf-soc-01-edge-2
+      from: n-panel
+      to: n-teacher
+      kind: data
+    - id: wf-soc-01-edge-3
+      from: n-teacher
+      to: n-agreement
+      kind: data
+    - id: wf-soc-01-edge-4
+      from: n-agreement
+      to: n-calibrated
+      kind: data
+    - id: wf-soc-01-edge-5
+      from: n-calibrated
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-soc-01-edge-6
+      from: n-calibrated
+      to: n-recalibrate
+      kind: control
+      condition: 'false'
+    - id: wf-soc-01-edge-7
+      from: n-recalibrate
+      to: n-approval
+      kind: control
+      condition: loop_exit
+    - id: wf-soc-01-edge-8
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

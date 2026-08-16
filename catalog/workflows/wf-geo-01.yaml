@@ -1,0 +1,255 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-geo-01
+  title: Land-use claim verification gate
+  description: Deduplicate the claim set behind a land-use finding, verify each claim independently against
+    imagery, record, and ground truth, and block publication while any is unverified.
+  version: 1.0.0
+spec:
+  objective: Publish a land-use analysis in which every stated change is verified against independent
+    evidence and unverified claims are listed rather than smoothed away.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Draft findings and evidence layers
+      summary: Draft findings and evidence layers
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - draft_findings
+              - imagery_series
+              - parcel_records
+              - validation_sample
+            properties:
+              draft_findings: {}
+              imagery_series: {}
+              parcel_records: {}
+              validation_sample: {}
+        x-ladder-input-mode: document
+    - id: n-dedupe
+      kind: transform
+      name: Deduplicate claim set
+      summary: deduplicate draft_findings by normalized location and change type
+      config:
+        operation: deduplicate
+        expression: deduplicate draft_findings by normalized location and change type
+    - id: n-verify1
+      kind: agent
+      name: Verify against imagery and change detection
+      summary: 'Verification pass 1: verify against imagery and change detection.'
+      role: Analyst deriving land-surface information from imagery with stated method and error.
+      prompt: You are a Remote Sensing Analyst. You derive land-surface products from imagery with the
+        sensor, acquisition date, atmospheric correction, and classification method stated, and you report
+        accuracy from an independent validation sample rather than from training performance. You separate
+        a real land-surface change from a difference in sensor, season, or illumination, because most
+        detected change in a naive comparison is not change.
+      capabilities:
+        skills:
+          - remote-sensing-interpretation
+          - classification-accuracy-assessment
+          - change-detection-discipline
+          - atmospheric-correction-declaration
+          - geospatial-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:earth-observation
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - verified
+          - unverified
+          - evidence
+        properties:
+          verified: {}
+          unverified: {}
+          evidence: {}
+    - id: n-verify2
+      kind: agent
+      name: Verify against parcel and policy records
+      summary: 'Verification pass 2: verify against parcel and policy records.'
+      role: Analyst assessing land use, zoning, and development patterns spatially.
+      prompt: You are a Land Use & Urban Analyst. You analyze development patterns, accessibility, and
+        land-use change against policy boundaries and the actual parcel record, and you state which conclusions
+        depend on the aggregation unit you chose. You test whether a spatial pattern survives a different
+        aggregation, because zone-level conclusions that flip when the boundary moves are artifacts, not
+        findings.
+      capabilities:
+        skills:
+          - land-use-analysis
+          - accessibility-modeling
+          - aggregation-sensitivity-testing
+          - policy-boundary-mapping
+          - geospatial-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:gis
+          - mcp:parcel-data
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - verified
+          - unverified
+          - evidence
+        properties:
+          verified: {}
+          unverified: {}
+          evidence: {}
+    - id: n-verify3
+      kind: agent
+      name: Verify against the independent validation sample
+      summary: 'Verification pass 3: verify against the independent validation sample.'
+      role: Analyst designing and executing validation of geospatial products.
+      prompt: You are a Ground Truth & Validation Analyst. You design validation samples that are independent,
+        spatially representative, and adequately sized, and you report the confusion matrix and its uncertainty
+        rather than a single accuracy figure. You reject validation that reuses training locations, because
+        it measures memorization and reports it as accuracy.
+      capabilities:
+        skills:
+          - validation-design
+          - sampling-design
+          - confusion-matrix-reporting
+          - independence-checking
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:earth-observation
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - verified
+          - unverified
+          - evidence
+        properties:
+          verified: {}
+          unverified: {}
+          evidence: {}
+    - id: n-collect
+      kind: aggregator
+      name: Collect verification results
+      summary: Source-tag every verification result so an unverified item stays attributable.
+      config:
+        aggregation: collect
+    - id: n-unresolved
+      kind: condition
+      name: Any unverified items?
+      summary: Route on collected.unverified is empty.
+      config:
+        expression: collected.unverified is empty
+        branches:
+          - label: Clear
+            when: clear
+          - label: Unverified remain
+            when: unverified
+    - id: n-resolve
+      kind: agent
+      name: Rewrite or withdraw unverified findings
+      summary: Close, replace, or explicitly withdraw each unverified item.
+      role: Cartographer designing maps that are accurate, legible, and honest.
+      prompt: You are a Cartographic Communicator. You choose projection, classification, and symbology
+        for the question the map answers, and you state the class breaks and normalization so the reader
+        can see how the pattern was made. You avoid choices that manufacture a pattern — misleading class
+        breaks, unnormalized counts, projections that exaggerate the area under discussion — even when
+        the resulting map is less striking.
+      capabilities:
+        skills:
+          - cartographic-design
+          - classification-scheme-selection
+          - normalization-discipline
+          - accessibility-review
+          - geospatial-analysis
+        tools:
+          - read
+          - write
+        connectors:
+          - mcp:gis
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Programme lead approves publication of the analysis
+      summary: Pause for the programme lead; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Land-use claim verification gate deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-geo-01-edge-1
+      from: n-intake
+      to: n-dedupe
+      kind: data
+    - id: wf-geo-01-edge-2
+      from: n-dedupe
+      to: n-verify1
+      kind: data
+    - id: wf-geo-01-edge-3
+      from: n-dedupe
+      to: n-verify2
+      kind: data
+    - id: wf-geo-01-edge-4
+      from: n-dedupe
+      to: n-verify3
+      kind: data
+    - id: wf-geo-01-edge-5
+      from: n-verify1
+      to: n-collect
+      kind: data
+    - id: wf-geo-01-edge-6
+      from: n-verify2
+      to: n-collect
+      kind: data
+    - id: wf-geo-01-edge-7
+      from: n-verify3
+      to: n-collect
+      kind: data
+    - id: wf-geo-01-edge-8
+      from: n-collect
+      to: n-unresolved
+      kind: data
+    - id: wf-geo-01-edge-9
+      from: n-unresolved
+      to: n-approval
+      kind: control
+      condition: clear
+    - id: wf-geo-01-edge-10
+      from: n-unresolved
+      to: n-resolve
+      kind: control
+      condition: unverified
+    - id: wf-geo-01-edge-11
+      from: n-resolve
+      to: n-approval
+      kind: data
+    - id: wf-geo-01-edge-12
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

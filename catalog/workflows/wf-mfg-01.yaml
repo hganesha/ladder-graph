@@ -1,0 +1,209 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-mfg-01
+  title: Predictive maintenance call + instrument tie-out
+  description: Set a reliability engineer's remaining-life estimate against a declared condition-monitoring
+    run, merge the two, and loop on the assumptions until they agree.
+  version: 1.0.0
+spec:
+  objective: Reach a maintenance decision whose remaining-useful-life estimate agrees with the instrument
+    evidence, with every disagreement resolved before a machine is pulled.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Asset condition evidence
+      summary: Asset condition evidence
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - vibration_history
+              - thermal_history
+              - load_profile
+              - maintenance_log
+            properties:
+              vibration_history: {}
+              thermal_history: {}
+              load_profile: {}
+              maintenance_log: {}
+        x-ladder-input-mode: document
+    - id: n-model
+      kind: agent
+      name: Engineering remaining-life estimate
+      summary: Model-side estimate with stated assumptions.
+      role: Reliability engineer converting asset condition evidence into maintenance decisions.
+      prompt: You are a Reliability & Maintenance Engineer. You read vibration, thermal, lubricant, and
+        load history against known failure modes for the asset class, and you state remaining useful life
+        as a range with the evidence and the assumption behind it. You distinguish a sensor fault from
+        a machine fault before recommending an intervention, because tearing down a healthy machine on
+        bad data costs the program its credibility.
+      capabilities:
+        skills:
+          - predictive-maintenance
+          - failure-mode-analysis
+          - condition-monitoring-interpretation
+          - remaining-useful-life-estimation
+          - sensor-fault-discrimination
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:historian
+          - mcp:cmms
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-run
+      kind: tool
+      name: Condition-monitoring analysis run
+      summary: Host-supplied spectral and trend analysis over the raw condition data. Declared as a requirement;
+        Ladder Graph does not execute it.
+      capabilities:
+        skills:
+          - condition-monitoring-interpretation
+          - numeric-verification
+        tools:
+          - calculate
+          - mcp:historian
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-compare
+      kind: aggregator
+      name: Merge estimate and instrument run
+      summary: Merge the two result objects; every field where they disagree is surfaced as a collision
+        rather than silently overwritten.
+      config:
+        aggregation: merge
+    - id: n-fit
+      kind: evaluate
+      name: Score agreement
+      summary: Evaluate agreement between the engineering estimate and the instrument run on failure mode
+        and remaining-life band.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against agreement between the engineering estimate and the
+        instrument run on failure mode and remaining-life band. Return a score, pass/fail verdict, the
+        evidence behind the verdict, remaining uncertainty, and the smallest corrective action. Do not
+        claim programmatic measurement unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-converged
+      kind: condition
+      name: Converged?
+      summary: Route on fit.passed.
+      config:
+        expression: fit.passed
+        branches:
+          - label: Converged
+            when: 'true'
+          - label: Refine
+            when: 'false'
+    - id: n-refine
+      kind: loop
+      name: Refine assumptions until agreement
+      summary: Repeat a bounded revision sequence until agreement between the estimate and the instrument
+        run meets the declared threshold.
+      config:
+        body:
+          - n-model
+          - n-run
+          - n-compare
+          - n-fit
+          - n-converged
+        exitCondition: agreement between the estimate and the instrument run meets the declared threshold
+        maxIterations: 4
+        onExhausted: stop
+    - id: n-approval
+      kind: approval
+      name: Maintenance planner authorizes the intervention window
+      summary: Pause for the maintenance planner; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Predictive maintenance call + instrument tie-out deliverable, the
+        evidence behind it, and every unresolved item.
+  edges:
+    - id: wf-mfg-01-edge-1
+      from: n-intake
+      to: n-model
+      kind: data
+    - id: wf-mfg-01-edge-2
+      from: n-intake
+      to: n-run
+      kind: data
+    - id: wf-mfg-01-edge-3
+      from: n-model
+      to: n-compare
+      kind: data
+    - id: wf-mfg-01-edge-4
+      from: n-run
+      to: n-compare
+      kind: data
+    - id: wf-mfg-01-edge-5
+      from: n-compare
+      to: n-fit
+      kind: data
+    - id: wf-mfg-01-edge-6
+      from: n-fit
+      to: n-converged
+      kind: data
+    - id: wf-mfg-01-edge-7
+      from: n-converged
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-mfg-01-edge-8
+      from: n-converged
+      to: n-refine
+      kind: control
+      condition: 'false'
+    - id: wf-mfg-01-edge-9
+      from: n-refine
+      to: n-approval
+      kind: control
+      condition: loop_exit
+    - id: wf-mfg-01-edge-10
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

@@ -5,10 +5,10 @@ import {
   BookOpen,
   Boxes,
   Building2,
+  Calculator,
   Code2,
   Feather,
   Images,
-  Calculator,
   Megaphone,
   Music2,
   PenTool,
@@ -71,6 +71,146 @@ const WORKFLOW_AREAS = [
     name: "Physics",
     description: "Problem solving, dimensional checks, simulation, experimental analysis, and model validation.",
     icon: Atom,
+  },
+  {
+    name: "Supply chain & logistics",
+    description: "Demand, inventory, supplier risk, logistics exceptions, and S&OP decisions.",
+    icon: Boxes,
+  },
+  {
+    name: "HR & talent operations",
+    description: "Structured selection, fairness review, workforce capacity, compensation, and onboarding.",
+    icon: Target,
+  },
+  {
+    name: "Sales & business development",
+    description: "Account research, qualification, outreach, deal review, and competitive positioning.",
+    icon: Megaphone,
+  },
+  {
+    name: "Customer success & support",
+    description: "Support triage, escalations, knowledge management, churn risk, and customer insight.",
+    icon: Target,
+  },
+  {
+    name: "Marketing & growth",
+    description: "Campaigns, experiments, discovery, distribution, brand review, and measured lift.",
+    icon: Megaphone,
+  },
+  {
+    name: "Accounting, tax & audit",
+    description: "Classification, reconciliation, tax research, controls, audit evidence, and disclosure.",
+    icon: Calculator,
+  },
+  {
+    name: "Manufacturing & industrial operations",
+    description: "Reliability, process quality, line optimization, FMEA, validation, and supplier quality.",
+    icon: Building2,
+  },
+  {
+    name: "Energy & utilities",
+    description: "Generation forecasts, grid balancing, outage response, asset health, and compliance.",
+    icon: Atom,
+  },
+  {
+    name: "Transportation & mobility",
+    description: "Fleet operations, networks, dispatch, autonomy safety, transit, and incident response.",
+    icon: Boxes,
+  },
+  {
+    name: "Real estate & construction",
+    description: "Valuation, permits, estimating, scheduling, contract risk, and building performance.",
+    icon: Building2,
+  },
+  {
+    name: "Agriculture & food systems",
+    description: "Agronomy, crop monitoring, precision application, traceability, safety, and yield.",
+    icon: Beaker,
+  },
+  {
+    name: "Chemistry & materials science",
+    description: "Molecular design, synthesis, characterization, scale-up, laboratory safety, and experiments.",
+    icon: Beaker,
+  },
+  {
+    name: "Biology & bioinformatics",
+    description: "Variant interpretation, pipelines, systems models, protocols, biostatistics, and stewardship.",
+    icon: Beaker,
+  },
+  {
+    name: "Environmental & climate science",
+    description: "Emissions, climate impact, conservation, compliance, disaster risk, and data quality.",
+    icon: Atom,
+  },
+  {
+    name: "Astronomy & space",
+    description: "Observation planning, data reduction, trajectories, satellite operations, and instruments.",
+    icon: Sparkles,
+  },
+  {
+    name: "Geospatial & earth observation",
+    description: "Remote sensing, geospatial data, land use, cartography, validation, and privacy.",
+    icon: Images,
+  },
+  {
+    name: "Gaming & interactive media",
+    description: "Game systems, NPC behavior, procedural content, narrative, playtesting, and live balance.",
+    icon: Sparkles,
+  },
+  {
+    name: "Film, video & post-production",
+    description: "Editorial, VFX, colour, sound, finishing, delivery pipelines, and quality control.",
+    icon: Images,
+  },
+  {
+    name: "Fashion & textiles",
+    description: "Trends, sustainable materials, technical fit, sourcing, merchandising, and compliance.",
+    icon: Sparkles,
+  },
+  {
+    name: "Social sciences & policy",
+    description: "Surveys, qualitative coding, public opinion, policy impact, ethics, and evidence synthesis.",
+    icon: BookOpen,
+  },
+  {
+    name: "Linguistics & language preservation",
+    description: "Field documentation, language analysis, corpora, translation, variation, and revitalization.",
+    icon: Feather,
+  },
+  {
+    name: "Insurance & underwriting",
+    description: "Claims, underwriting, actuarial review, fraud analysis, policy wording, and catastrophe risk.",
+    icon: ShieldCheck,
+  },
+  {
+    name: "Event planning & hospitality",
+    description: "Venues, vendors, guest experience, production schedules, safety, and budget control.",
+    icon: Target,
+  },
+  {
+    name: "Quality assurance & compliance",
+    description: "Regulatory change, controls, audit evidence, certification, CAPA, and quality systems.",
+    icon: ShieldCheck,
+  },
+  {
+    name: "DevOps & site reliability",
+    description: "Incident command, diagnosis, capacity, releases, observability, and postmortems.",
+    icon: Code2,
+  },
+  {
+    name: "Robotics & embodied AI",
+    description: "Manipulation, coordination, perception, safety, simulation, and deployment readiness.",
+    icon: Atom,
+  },
+  {
+    name: "Scientific peer review & publishing",
+    description: "Methodology, statistics, reproducibility, citation integrity, and editorial decisions.",
+    icon: BookOpen,
+  },
+  {
+    name: "Crisis & emergency management",
+    description: "Incident intake, operations, logistics, communications, recovery, and after-action review.",
+    icon: ShieldCheck,
   },
 ] as const;
 

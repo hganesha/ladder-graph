@@ -1,0 +1,316 @@
+# Domain expansion pack
+
+Status: proposed catalog addition, generated against the checked-in `catalog/` contract
+Companion documents: [ladder-graph-library-expansion.md](ladder-graph-library-expansion.md), [ladder-graph-specs.md](ladder-graph-specs.md)
+
+---
+
+## 1. What this pack adds
+
+| | Before | Added | After |
+| --- | ---: | ---: | ---: |
+| Workflow templates | 29 | 56 | 85 |
+| Agent templates | 119 | 168 | 287 |
+| Subject areas | 15 | 28 | 43 |
+| Role categories | 10 | 6 | 16 |
+
+Every file is canonical `catalog/` YAML registered in `catalog/manifest.json`, so `npm run catalog:generate` picks the pack up with no bespoke adapter and no TypeScript change beyond the six new role categories.
+
+## 2. Primitive coverage
+
+The expansion proposal's finding was that 8 of 14 node kinds, 0 of 4 aggregation strategies, 0 of 7 transform operations, 0 of 4 group configurations, and 0 of 3 teacher feedback modes were demonstrated by any shipped template. This pack closes all five gaps.
+
+| Surface | Coverage in this pack |
+| --- | --- |
+| Node kinds | 14 of 14 — `agent` (174), `aggregator` (34), `approval` (56), `condition` (56), `evaluate` (25), `group` (10), `input` (56), `join` (7), `loop` (11), `output` (56), `subgraph` (5), `teacher` (14), `tool` (11), `transform` (50) |
+| Aggregation strategies | 4 of 4 — `collect` (11), `concat` (4), `merge` (10), `vote` (9) |
+| Transform operations | 7 of 7 — `deduplicate` (6), `filter` (7), `merge` (5), `rename` (5), `select` (13), `slice` (7), `sort` (7) |
+| Group configurations | 4 of 4 — `parallel/aggregate` (4), `parallel/serialize` (1), `sequential/aggregate` (1), `sequential/serialize` (4) |
+| Teacher feedback modes | 3 of 3 — `critique` (4), `rubric` (5), `score` (5) |
+
+Selection rule applied per the proposal: a template earns its place only if it opens value the library cannot currently serve **and** exercises a primitive, strategy, or shape nothing else exercises. Every workflow below names the primitive it lights up.
+
+The three core patterns the proposal asked for first are present as reusable shapes rather than one-off templates: blind dual read → discordance resolution (4 workflows), independent re-derivation (5), and the verified citation/claim gate (6). The remaining eight shapes compose from the same primitives.
+
+## 3. Areas, workflows, and agents
+
+### Business operations & enterprise
+
+#### Supply chain & logistics
+
+`research/operations/supply-chain` — Demand Forecast Analyst, Inventory Policy Planner, Network & Route Optimizer, Supplier Risk Analyst, Logistics Exception Controller, S&OP Reconciler
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Demand forecast + independent tie-out | Dual derivation + tie-out | `tool` node, `transform: select`, `aggregator: vote` on scalars |
+| Disruption triage + recovery routing | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+
+#### HR & talent operations
+
+`research/operations/talent` — Talent Sourcing Researcher, Structured Screening Interviewer, Selection Fairness Reviewer, Onboarding Program Designer, Workforce Capacity Planner, Compensation Band Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Blind screening panel + rubric calibration | Blind panel + teacher loop | `group` (parallel), `teacher: rubric`, bounded `loop` |
+| Role opening → ramped hire | Sequential group + subgraph | `group` (sequential), `subgraph` |
+
+#### Sales & business development
+
+`research/operations/revenue` — Account Research Analyst, Opportunity Qualification Analyst, Outreach Sequence Designer, Deal Desk Reviewer, Pipeline Hygiene Auditor, Competitive Position Strategist
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Account research + claim verification gate | Verification fan-out + collect | `transform: deduplicate`, `aggregator: collect` |
+| Deal desk review + position merge | Position merge + collisions | `aggregator: merge` with collision surfacing |
+
+#### Customer success & support
+
+`research/operations/support` — Support Triage Classifier, Resolution Specialist, Escalation Manager, Knowledge Base Curator, Churn Risk Analyst, Voice-of-Customer Synthesizer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Ticket triage → resolution or escalation | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+| Knowledge base refresh + scored review | Normalize + scored gate | `transform: rename`, `teacher: score` |
+
+#### Marketing & growth
+
+`research/operations/growth` — Campaign Strategist, Experiment Designer, SEO & Discovery Analyst, Channel Distribution Planner, Brand & Claims Reviewer, Growth Lift Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Experiment readout + statistical tie-out | Dual derivation + tie-out | `tool` node, `transform: select`, `aggregator: vote` on scalars |
+| Campaign assembly + teacher critique | Ordered assembly + critique | `aggregator: concat`, `teacher: critique` |
+
+#### Accounting, tax & audit
+
+`research/operations/finance-ops` — Transaction Classification Analyst, Reconciliation Analyst, Tax Position Researcher, Internal Control Tester, Audit Evidence Reviewer, Disclosure & Reporting Reviewer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Close reconciliation + exception register | Merge transform + exceptions | `transform: merge`, `aggregator: collect` |
+| Two-person review + discordance resolution | Blind panel + vote | `aggregator: vote` with ties preserved, multi-branch `condition` |
+
+### Physical industries & infrastructure
+
+#### Manufacturing & industrial operations
+
+`research/industry/manufacturing` — Reliability & Maintenance Engineer, Process Quality Engineer, Production Line Optimizer, FMEA Facilitator, Manufacturing Process Validator, Supplier Quality Engineer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Predictive maintenance call + instrument tie-out | Tool run + bounded loop | `tool` node, `aggregator: merge`, bounded `loop` |
+| New line qualification | Sequential group + subgraph | `group` (sequential), `subgraph` |
+
+#### Energy & utilities
+
+`research/industry/energy` — Renewable Generation Forecaster, Grid Balancing Analyst, Outage Response Coordinator, Asset Health & Investment Planner, Demand Response & Flexibility Analyst, Energy Regulatory & Compliance Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Renewable forecast + reserve tie-out | Dual derivation + tie-out | `tool` node, `transform: select`, `aggregator: vote` on scalars |
+| Balancing scenario + contingency run | Tool run + bounded loop | `tool` node, `aggregator: merge`, bounded `loop` |
+
+#### Transportation & mobility
+
+`research/industry/mobility` — Fleet Operations Analyst, Traffic & Network Coordinator, Routing & Dispatch Engineer, Autonomy Safety Case Analyst, Transit Service Planner, Mobility Incident Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Fleet record reconciliation + exception register | Merge transform + exceptions | `transform: merge`, `aggregator: collect` |
+| Network incident triage + dispatch | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+
+#### Real estate & construction
+
+`research/industry/built-environment` — Property Valuation Analyst, Permit & Entitlement Analyst, Construction Cost Estimator, Project Scheduler, Construction Risk & Contract Reviewer, Building Performance Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Valuation + independent re-derivation | Dual derivation + tie-out | `tool` node, `transform: select`, `aggregator: vote` on scalars |
+| Design review + position merge | Position merge + collisions | `aggregator: merge` with collision surfacing |
+
+#### Agriculture & food systems
+
+`research/industry/agriculture` — Agronomic Decision Analyst, Remote Crop Monitoring Analyst, Precision Application Planner, Food Traceability Analyst, Food Safety & Compliance Reviewer, Yield & Margin Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Field signal → prescription with scored review | Normalize + scored gate | `transform: rename`, `teacher: score` |
+| Lot trace reconciliation + exception register | Merge transform + exceptions | `transform: merge`, `aggregator: collect` |
+
+### Science, engineering & research adjacent
+
+#### Chemistry & materials science
+
+`research/applied-science/chemistry` — Molecular Design Chemist, Synthesis Route Planner, Materials Characterization Analyst, Process Chemistry Scale-Up Engineer, Laboratory Safety & Compliance Reviewer, Experimental Design Statistician
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Property prediction + computational run | Tool run + bounded loop | `tool` node, `aggregator: merge`, bounded `loop` |
+| Synthesis route → reviewed protocol | Sequential group + subgraph | `group` (sequential), `subgraph` |
+
+#### Biology & bioinformatics
+
+`research/applied-science/biology` — Genomic Variant Interpreter, Bioinformatics Pipeline Analyst, Pathway & Systems Modeler, Laboratory Protocol Designer, Biostatistics Reviewer, Research Data Steward
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Blind dual variant read + discordance resolution | Blind panel + vote | `aggregator: vote` with ties preserved, multi-branch `condition` |
+| Sequence analysis + scored QC gate | Normalize + scored gate | `transform: rename`, `teacher: score` |
+
+#### Environmental & climate science
+
+`research/applied-science/environment` — Emissions Inventory Analyst, Climate Impact Modeler, Conservation Planner, Environmental Compliance Analyst, Disaster Risk & Response Analyst, Environmental Data Quality Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Emissions inventory + independent tie-out | Dual derivation + tie-out | `tool` node, `transform: select`, `aggregator: vote` on scalars |
+| Scope consolidation + double-count register | Merge transform + exceptions | `transform: merge`, `aggregator: collect` |
+
+#### Astronomy & space
+
+`research/applied-science/astronomy` — Observation Scheduler, Astrophysical Data Reduction Analyst, Mission & Trajectory Analyst, Satellite Operations Analyst, Instrument Calibration Specialist, Science Case Writer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Observation queue + feasibility routing | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+| Measurement + model comparison | Tool run + bounded loop | `tool` node, `aggregator: merge`, bounded `loop` |
+
+#### Geospatial & earth observation
+
+`research/applied-science/geospatial` — Remote Sensing Analyst, Geospatial Data Engineer, Land Use & Urban Analyst, Cartographic Communicator, Ground Truth & Validation Analyst, Geospatial Privacy Reviewer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Land-use claim verification gate | Verification fan-out + collect | `transform: deduplicate`, `aggregator: collect` |
+| Layer normalization + scored release review | Normalize + scored gate | `transform: rename`, `teacher: score` |
+
+### Creative, social & cultural
+
+#### Gaming & interactive media
+
+`research/creative/games` — Game Systems Designer, NPC Behavior Designer, Procedural Content Designer, Narrative Designer, Playtest Research Lead, Live Balance Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Playtest panel + rubric calibration | Blind panel + teacher loop | `group` (parallel), `teacher: rubric`, bounded `loop` |
+| Content beat assembly + teacher critique | Ordered assembly + critique | `aggregator: concat`, `teacher: critique` |
+
+#### Film, video & post-production
+
+`research/creative/film` — Post Pipeline Supervisor, Editorial Story Analyst, VFX Shot Planner, Colour & Finishing Specialist, Sound Design & Mix Lead, Delivery QC Reviewer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Cut → delivery pipeline | Sequential group + subgraph | `group` (sequential), `subgraph` |
+| Reel assembly + teacher critique | Ordered assembly + critique | `aggregator: concat`, `teacher: critique` |
+
+#### Fashion & textiles
+
+`research/creative/fashion` — Trend Research Analyst, Materials & Sustainability Specialist, Technical Design & Fit Specialist, Sourcing & Supplier Analyst, Merchandise Planner, Product Compliance Reviewer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Line direction + position merge | Position merge + collisions | `aggregator: merge` with collision surfacing |
+| Tech pack normalization + scored review | Normalize + scored gate | `transform: rename`, `teacher: score` |
+
+#### Social sciences & policy
+
+`research/creative/social-policy` — Survey Methodologist, Qualitative Coding Analyst, Public Opinion Analyst, Policy Impact Modeler, Research Ethics Reviewer, Evidence Synthesis Reviewer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Coder reliability + rubric calibration | Blind panel + teacher loop | `group` (parallel), `teacher: rubric`, bounded `loop` |
+| Policy claim verification gate | Verification fan-out + collect | `transform: deduplicate`, `aggregator: collect` |
+
+#### Linguistics & language preservation
+
+`research/creative/linguistics` — Field Documentation Linguist, Phonological & Morphological Analyst, Corpus & Lexicography Specialist, Translation & Localization Reviewer, Dialect & Variation Analyst, Language Revitalization Planner
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Documentation claim verification gate | Verification fan-out + collect | `transform: deduplicate`, `aggregator: collect` |
+| Learner material assembly + teacher critique | Ordered assembly + critique | `aggregator: concat`, `teacher: critique` |
+
+### Specialized professional services
+
+#### Insurance & underwriting
+
+`research/professional/insurance` — Claims Adjuster, Underwriting Risk Analyst, Actuarial Reviewer, Fraud Detection Analyst, Policy Wording Analyst, Catastrophe Exposure Modeler
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Blind dual claim review + discordance resolution | Blind panel + vote | `aggregator: vote` with ties preserved, multi-branch `condition` |
+| Alert triage + investigation routing | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+
+#### Event planning & hospitality
+
+`research/professional/events` — Venue & Logistics Coordinator, Vendor & Contract Manager, Guest Experience Designer, Event Production Scheduler, Event Risk & Safety Planner, Event Budget Controller
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Venue and vendor selection + position merge | Position merge + collisions | `aggregator: merge` with collision surfacing |
+| Brief → run of show | Sequential group + subgraph | `group` (sequential), `subgraph` |
+
+#### Quality assurance & compliance
+
+`research/professional/compliance` — Regulatory Change Monitor, Control Design Analyst, Audit Evidence Collector, Certification Readiness Assessor, Nonconformance & CAPA Analyst, Quality Management Reviewer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Audit rubric calibration | Blind panel + teacher loop | `group` (parallel), `teacher: rubric`, bounded `loop` |
+| Regulatory change → verified obligations | Verification fan-out + collect | `transform: deduplicate`, `aggregator: collect` |
+
+#### DevOps & site reliability
+
+`research/software/reliability` — Incident Commander, Reliability Diagnostician, Capacity & Performance Planner, Deployment & Release Engineer, Observability Engineer, Postmortem Facilitator
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Alert triage → incident response | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+| Capacity plan + load test tie-out | Tool run + bounded loop | `tool` node, `aggregator: merge`, bounded `loop` |
+
+### Emerging & cross-cutting
+
+#### Robotics & embodied AI
+
+`research/emerging/robotics` — Manipulation Planning Engineer, Multi-Robot Coordination Engineer, Robot Perception Engineer, Robot Safety Engineer, Simulation & Sim-to-Real Analyst, Deployment Readiness Assessor
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Manipulation plan + hardware tie-out | Tool run + bounded loop | `tool` node, `aggregator: merge`, bounded `loop` |
+| Blind safety case review + discordance resolution | Blind panel + vote | `aggregator: vote` with ties preserved, multi-branch `condition` |
+
+#### Scientific peer review & publishing
+
+`research/emerging/peer-review` — Manuscript Triage Editor, Reviewer Matching Analyst, Methods & Statistics Reviewer, Reproducibility Analyst, Research Integrity Screener, Editorial Decision Writer
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Reviewer calibration panel | Blind panel + teacher loop | `group` (parallel), `teacher: rubric`, bounded `loop` |
+| Reproducibility + citation verification gate | Verification fan-out + collect | `transform: deduplicate`, `aggregator: collect` |
+
+#### Crisis & emergency management
+
+`research/emerging/crisis` — Emergency Dispatch Coordinator, Scenario Simulation Analyst, Resource & Logistics Officer, Public Information Officer, Situation Assessment Analyst, Recovery & Continuity Planner
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Incident intake → dispatch with coverage gate | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+| Multi-agency resource reconciliation | Merge transform + exceptions | `transform: merge`, `aggregator: collect` |
+
+## 4. Guardrails
+
+Every workflow ends at a named professional-review `approval` node listed in `spec.policies.requireApprovalFor`, positioned so the released output cannot bypass it. Areas touching regulated or consequential decisions carry their non-claim in the workflow objective, which survives compilation into every target — the variant interpretation workflow states that it structures interpretation for a qualified professional and is not a diagnostic device, and the tax, claims, and valuation roles state the same boundary in their prompts.
+
+Roles handling personal or health data declare `pii-restricted` or `phi-restricted` permissions; roles that can affect physical systems or people declare `explicit-authorization-required`. A reviewer reads the handling constraint off the node rather than inferring it from the prompt.
+
+Where a workflow depends on a deterministic calculation, simulation, or instrument run, it declares a `tool` node whose summary states plainly that Ladder Graph does not execute it — closing the prose-only tooling gap the proposal identified. Consistent with the product line, every catalog entry remains an authoring suggestion: Ladder Graph does not inspect configuration, install skills, or verify that any declared capability exists.
+
+## 5. Applying the pack
+
+```sh
+npm run catalog:generate   # regenerates src/generated/catalog.ts from catalog/
+npm run check              # typecheck, tests, build
+```
+
+`scripts/generate-catalog-index.mjs` asserts that the files on disk match `catalog/manifest.json` exactly. This pack was validated against that assertion, against the checked-in JSON Schema at `public/schema/lgir-v1alpha1.schema.json`, and against the TypeScript parity compiler in `src/compiler/fallback.ts`: 56 of 56 workflows analyze with zero errors and zero warnings.

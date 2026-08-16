@@ -1,0 +1,206 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-sre-02
+  title: Capacity plan + load test tie-out
+  description: Set the capacity model against a declared load test, merge the results so disagreements
+    surface, and loop on the assumptions until the plan matches measured behavior.
+  version: 1.0.0
+spec:
+  objective: Produce a capacity plan whose headroom claim is supported by a measured saturation point
+    rather than a linear extrapolation.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Growth forecast and current utilization
+      summary: Growth forecast and current utilization
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - load_history
+              - growth_forecast
+              - resource_limits
+              - slo_targets
+            properties:
+              load_history: {}
+              growth_forecast: {}
+              resource_limits: {}
+              slo_targets: {}
+        x-ladder-input-mode: document
+    - id: n-model
+      kind: agent
+      name: Capacity model and headroom estimate
+      summary: Model-side estimate with stated assumptions.
+      role: Planner sizing systems against measured behavior rather than nominal specs.
+      prompt: You are a Capacity & Performance Planner. You size capacity from measured load curves, saturation
+        points, and growth, and you state headroom in terms of the resource that saturates first. You
+        test for the nonlinear region rather than extrapolating linearly, because systems do not degrade
+        gracefully past the knee and a linear forecast hides exactly the failure being planned against.
+      capabilities:
+        skills:
+          - capacity-planning
+          - saturation-analysis
+          - load-testing-interpretation
+          - nonlinear-degradation-modeling
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:observability
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-run
+      kind: tool
+      name: Load test run
+      summary: Host-supplied load generation and measurement against a representative environment. Declared
+        as a requirement; Ladder Graph does not execute it.
+      capabilities:
+        skills:
+          - load-testing-interpretation
+          - numeric-verification
+        tools:
+          - test
+          - mcp:observability
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-compare
+      kind: aggregator
+      name: Merge estimate and instrument run
+      summary: Merge the two result objects; every field where they disagree is surfaced as a collision
+        rather than silently overwritten.
+      config:
+        aggregation: merge
+    - id: n-fit
+      kind: evaluate
+      name: Score agreement
+      summary: Evaluate agreement between modelled and measured saturation point and headroom at the SLO.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against agreement between modelled and measured saturation
+        point and headroom at the SLO. Return a score, pass/fail verdict, the evidence behind the verdict,
+        remaining uncertainty, and the smallest corrective action. Do not claim programmatic measurement
+        unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-converged
+      kind: condition
+      name: Converged?
+      summary: Route on fit.passed.
+      config:
+        expression: fit.passed
+        branches:
+          - label: Converged
+            when: 'true'
+          - label: Refine
+            when: 'false'
+    - id: n-refine
+      kind: loop
+      name: Refine assumptions until agreement
+      summary: Repeat a bounded revision sequence until agreement between the estimate and the instrument
+        run meets the declared threshold.
+      config:
+        body:
+          - n-model
+          - n-run
+          - n-compare
+          - n-fit
+          - n-converged
+        exitCondition: agreement between the estimate and the instrument run meets the declared threshold
+        maxIterations: 4
+        onExhausted: stop
+    - id: n-approval
+      kind: approval
+      name: Service owner approves the capacity plan and any spend it implies
+      summary: Pause for the service owner; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Capacity plan + load test tie-out deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-sre-02-edge-1
+      from: n-intake
+      to: n-model
+      kind: data
+    - id: wf-sre-02-edge-2
+      from: n-intake
+      to: n-run
+      kind: data
+    - id: wf-sre-02-edge-3
+      from: n-model
+      to: n-compare
+      kind: data
+    - id: wf-sre-02-edge-4
+      from: n-run
+      to: n-compare
+      kind: data
+    - id: wf-sre-02-edge-5
+      from: n-compare
+      to: n-fit
+      kind: data
+    - id: wf-sre-02-edge-6
+      from: n-fit
+      to: n-converged
+      kind: data
+    - id: wf-sre-02-edge-7
+      from: n-converged
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-sre-02-edge-8
+      from: n-converged
+      to: n-refine
+      kind: control
+      condition: 'false'
+    - id: wf-sre-02-edge-9
+      from: n-refine
+      to: n-approval
+      kind: control
+      condition: loop_exit
+    - id: wf-sre-02-edge-10
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

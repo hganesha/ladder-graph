@@ -1,0 +1,289 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-film-02
+  title: Reel assembly + teacher critique
+  description: Produce picture, sound, and finishing segments in declared order, concatenate them without
+    merging, and critique the assembled reel before it is shown.
+  version: 1.0.0
+spec:
+  objective: Assemble a review reel in sequence order, critique it as an audience would experience it,
+    and gate the screening on the notes being addressed.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Reel brief and available media
+      summary: Reel brief and available media
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - sequence_list
+              - available_media
+              - review_audience
+              - runtime_target
+            properties:
+              sequence_list: {}
+              available_media: {}
+              review_audience: {}
+              runtime_target: {}
+        x-ladder-input-mode: text
+    - id: n-scope
+      kind: transform
+      name: Select the segments to produce
+      summary: select the sequences to assemble, in reel order
+      config:
+        operation: select
+        expression: select the sequences to assemble, in reel order
+    - id: n-segment1
+      kind: agent
+      name: Picture segments and structure
+      summary: 'Segment 1: picture segments and structure.'
+      role: Editor working structure, pacing, and clarity in the cut.
+      prompt: You are an Editorial Story Analyst. You assess a cut for structural clarity, escalation,
+        and whether the audience has the information each scene assumes, and you propose specific structural
+        changes with the footage they require. You distinguish a pacing problem from a story problem,
+        because trimming a scene that is structurally necessary makes the cut faster and worse.
+      capabilities:
+        skills:
+          - editorial-analysis
+          - structure-and-pacing-assessment
+          - information-flow-checking
+          - coverage-gap-analysis
+          - storytelling
+        tools:
+          - read
+        connectors:
+          - mcp:mam
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-segment2
+      kind: agent
+      name: Sound design and dialogue pass
+      summary: 'Segment 2: sound design and dialogue pass.'
+      role: Sound lead building design, dialogue clarity, and compliant mixes.
+      prompt: You are a Sound Design & Mix Lead. You build the sound design around what the scene needs
+        the audience to feel and hear, protect dialogue intelligibility, and mix to the loudness and dynamic-range
+        specification of each delivery target. You flag where a mix that works in the room will fail on
+        a phone speaker, because that is where most of the audience will meet it.
+      capabilities:
+        skills:
+          - sound-design
+          - dialogue-intelligibility-protection
+          - loudness-compliance
+          - playback-target-testing
+          - post-pipeline-design
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-segment3
+      kind: agent
+      name: Look and finishing pass
+      summary: 'Segment 3: look and finishing pass.'
+      role: Colourist working look, consistency, and deliverable compliance.
+      prompt: You are a Colour & Finishing Specialist. You build a look that survives every delivery target,
+        keep shot-to-shot and scene-to-scene continuity, and check the grade against the actual broadcast
+        or streaming specification. You state where a creative choice violates a delivery limit rather
+        than shipping it and waiting for QC to catch it.
+      capabilities:
+        skills:
+          - colour-grading
+          - shot-continuity-management
+          - delivery-spec-compliance
+          - display-target-checking
+          - post-pipeline-design
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assemble
+      kind: aggregator
+      name: Assemble the reel in sequence order
+      summary: Preserve segment order exactly; concatenation is ordered assembly, not a merge.
+      config:
+        aggregation: concat
+    - id: n-critique
+      kind: teacher
+      name: Teacher critique of the assembled draft
+      summary: Critique feedback from a host-resolved teacher model.
+      role: Host-resolved teacher model
+      prompt: 'You are the critique teacher for this reel. Watch it as the review audience will: where
+        does the story lose the viewer, where does sound or picture pull focus from what the scene needs,
+        and where does a segment boundary show? Return specific critique per segment with the moment it
+        occurs.'
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        teacherModel: host:teacher-model
+        feedbackMode: critique
+    - id: n-quality
+      kind: evaluate
+      name: Score the assembled result
+      summary: Evaluate narrative clarity, technical consistency across segments, and runtime against
+        target.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against narrative clarity, technical consistency across segments,
+        and runtime against target. Return a score, pass/fail verdict, the evidence behind the verdict,
+        remaining uncertainty, and the smallest corrective action. Do not claim programmatic measurement
+        unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-accept
+      kind: condition
+      name: Meets the bar?
+      summary: Route on quality.passed.
+      config:
+        expression: quality.passed
+        branches:
+          - label: Accept
+            when: 'true'
+          - label: Revise
+            when: 'false'
+    - id: n-revise
+      kind: agent
+      name: Address the notes on the weakest segments
+      summary: Apply the teacher critique to the weakest segments.
+      role: Post supervisor designing conform, review, and delivery pipelines that hold up under change.
+      prompt: You are a Post Pipeline Supervisor. You design the path from camera original to deliverable
+        with the colour pipeline, naming convention, versioning, and review cadence fixed before work
+        starts, and you name the step where a late change becomes expensive. You keep the conform reproducible
+        from the original media, because a pipeline that cannot be re-run from source turns every note
+        into a negotiation.
+      capabilities:
+        skills:
+          - post-pipeline-design
+          - conform-and-versioning
+          - colour-pipeline-specification
+          - delivery-spec-compliance
+          - failure-mode-analysis
+        tools:
+          - read
+          - write
+        connectors:
+          - mcp:mam
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Director approves the reel for screening
+      summary: Pause for the director; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Reel assembly + teacher critique deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-film-02-edge-1
+      from: n-intake
+      to: n-scope
+      kind: data
+    - id: wf-film-02-edge-2
+      from: n-scope
+      to: n-segment1
+      kind: data
+    - id: wf-film-02-edge-3
+      from: n-scope
+      to: n-segment2
+      kind: data
+    - id: wf-film-02-edge-4
+      from: n-scope
+      to: n-segment3
+      kind: data
+    - id: wf-film-02-edge-5
+      from: n-segment1
+      to: n-assemble
+      kind: data
+    - id: wf-film-02-edge-6
+      from: n-segment2
+      to: n-assemble
+      kind: data
+    - id: wf-film-02-edge-7
+      from: n-segment3
+      to: n-assemble
+      kind: data
+    - id: wf-film-02-edge-8
+      from: n-assemble
+      to: n-critique
+      kind: data
+    - id: wf-film-02-edge-9
+      from: n-critique
+      to: n-quality
+      kind: data
+    - id: wf-film-02-edge-10
+      from: n-quality
+      to: n-accept
+      kind: data
+    - id: wf-film-02-edge-11
+      from: n-accept
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-film-02-edge-12
+      from: n-accept
+      to: n-revise
+      kind: control
+      condition: 'false'
+    - id: wf-film-02-edge-13
+      from: n-revise
+      to: n-approval
+      kind: data
+    - id: wf-film-02-edge-14
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

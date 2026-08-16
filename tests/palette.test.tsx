@@ -15,8 +15,8 @@ describe("agent template palette", () => {
   it("surfaces the expanded role count and researched specialists", () => {
     render(<Palette />);
 
-    expect(ROLE_TEMPLATES).toHaveLength(119);
-    expect(screen.getByText("119 agents")).toBeInTheDocument();
+    expect(ROLE_TEMPLATES).toHaveLength(287);
+    expect(screen.getByText("287 agents")).toBeInTheDocument();
     const macros = screen.getByLabelText("Visual macros");
     const primitives = screen.getByLabelText("Primitives");
     const agents = screen.getByLabelText("Agent templates");
@@ -26,7 +26,7 @@ describe("agent template palette", () => {
     expect(primitives.compareDocumentPosition(agents) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByLabelText("Core agent templates (8)")).toBeInTheDocument();
     expect(screen.getByLabelText("Core agent templates (8)")).not.toHaveAttribute("open");
-    expect(screen.getByLabelText("SWE agent templates (20)")).toBeInTheDocument();
+    expect(screen.getByLabelText("SWE agent templates (26)")).toBeInTheDocument();
     expect(screen.getByLabelText("Security agent templates (20)")).toBeInTheDocument();
     expect(screen.getByLabelText("Architecture & design agent templates (20)")).toBeInTheDocument();
     expect(screen.getByLabelText("Humanities agent templates (15)")).toBeInTheDocument();
@@ -35,6 +35,12 @@ describe("agent template palette", () => {
     expect(screen.getByLabelText("Mathematics agent templates (8)")).toBeInTheDocument();
     expect(screen.getByLabelText("Music agent templates (10)")).toBeInTheDocument();
     expect(screen.getByLabelText("Physics agent templates (8)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Business operations agent templates (36)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Industry & infrastructure agent templates (30)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Applied science agent templates (30)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Creative & social agent templates (30)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Professional services agent templates (18)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Emerging agent templates (18)")).toBeInTheDocument();
     expect(screen.getByText("Requirements Analyst")).toBeInTheDocument();
     expect(screen.getByText("Penetration Tester / Red Team Operator")).toBeInTheDocument();
     expect(screen.getByText("Building Architect / Design Architect")).toBeInTheDocument();
@@ -64,7 +70,7 @@ describe("agent template palette", () => {
 
     expect(groups.map(({ label, roles }) => [label, roles.length])).toEqual([
       ["Core", 8],
-      ["SWE", 20],
+      ["SWE", 26],
       ["Security", 20],
       ["Architecture & design", 20],
       ["Humanities", 15],
@@ -73,9 +79,15 @@ describe("agent template palette", () => {
       ["Mathematics", 8],
       ["Music", 10],
       ["Physics", 8],
+      ["Business operations", 36],
+      ["Industry & infrastructure", 30],
+      ["Applied science", 30],
+      ["Creative & social", 30],
+      ["Professional services", 18],
+      ["Emerging", 18],
     ]);
     expect(groups.flatMap((group) => group.roles)).toHaveLength(ROLE_TEMPLATES.length);
-    expect(groupRoleTemplates(ROLE_TEMPLATES, "SWE").map(({ label, roles }) => [label, roles.length])).toEqual([["SWE", 20]]);
+    expect(groupRoleTemplates(ROLE_TEMPLATES, "SWE").map(({ label, roles }) => [label, roles.length])).toEqual([["SWE", 26]]);
   });
 
   it("surfaces aggregator and teacher-model primitives", () => {

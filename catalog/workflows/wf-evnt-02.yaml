@@ -1,0 +1,248 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-evnt-02
+  title: Brief → run of show
+  description: Run experience design, production scheduling, and budget control in order, then focus the
+    safety and contingency phase where stop authority is actually decided.
+  version: 1.0.0
+spec:
+  objective: Produce a run of show with cue-level timing, named owners, and an explicit safety trigger
+    and stop authority before doors open.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Confirmed event parameters
+      summary: Confirmed event parameters
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - confirmed_venue
+              - attendee_profile
+              - programme
+              - budget
+            properties:
+              confirmed_venue: {}
+              attendee_profile: {}
+              programme: {}
+              budget: {}
+        x-ladder-input-mode: text
+    - id: n-phase1
+      kind: agent
+      name: Attendee journey design
+      summary: 'Phase 1: attendee journey design.'
+      role: Experience designer shaping the attendee journey end to end.
+      prompt: You are a Guest Experience Designer. You design the attendee journey from arrival to departure
+        with queue, wayfinding, dietary, and accessibility needs handled as first-class requirements rather
+        than exceptions. You identify where the experience breaks under peak load, because the moment
+        everyone arrives at once is the one attendees remember.
+      capabilities:
+        skills:
+          - experience-design
+          - journey-mapping
+          - peak-load-analysis
+          - accessibility-review
+          - ux-research
+        tools:
+          - read
+          - write
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-phase2
+      kind: agent
+      name: Run of show and crew plan
+      summary: 'Phase 2: run of show and crew plan.'
+      role: Producer building the run of show and the crew plan behind it.
+      prompt: You are an Event Production Scheduler. You build the run of show with cue-level timing,
+        crew assignments, and the dependencies each cue rests on, and you show where the schedule has
+        no recovery time. You mark the irreversible moments — doors, broadcast start, speaker slots —
+        because those set every constraint upstream.
+      capabilities:
+        skills:
+          - run-of-show-planning
+          - crew-scheduling
+          - dependency-sequencing
+          - contingency-time-analysis
+          - schedule-development
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:event-management
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-phase3
+      kind: agent
+      name: Budget and change control
+      summary: 'Phase 3: budget and change control.'
+      role: Controller keeping the event budget honest through commitment and change.
+      prompt: You are an Event Budget Controller. You track committed, spent, and forecast cost separately,
+        price every change request before it is approved, and keep contingency visible rather than absorbed.
+        You flag the point at which cancellation costs exceed proceeding costs, because that threshold
+        is the last moment a real decision exists.
+      capabilities:
+        skills:
+          - budget-control
+          - commitment-tracking
+          - change-costing
+          - cancellation-threshold-analysis
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-stages
+      kind: group
+      name: Ordered event build
+      summary: Each phase consumes the previous phase's output; the group exits only after every phase
+        result has been serialized in order.
+      config:
+        members:
+          - n-phase1
+          - n-phase2
+          - n-phase3
+        execution: sequential
+        exit: serialize
+    - id: n-focus
+      kind: subgraph
+      name: Safety and contingency phase
+      summary: The crowd, medical, weather, and evacuation phase, focused on the canvas because triggers
+        and stop authority are decided here.
+    - id: n-check
+      kind: evaluate
+      name: Check the staged result
+      summary: Evaluate cue-level feasibility, contingency time, and completeness of safety triggers and
+        owners.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against cue-level feasibility, contingency time, and completeness
+        of safety triggers and owners. Return a score, pass/fail verdict, the evidence behind the verdict,
+        remaining uncertainty, and the smallest corrective action. Do not claim programmatic measurement
+        unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-ready
+      kind: condition
+      name: Ready to commit?
+      summary: Route on check.passed.
+      config:
+        expression: check.passed
+        branches:
+          - label: Ready
+            when: 'true'
+          - label: Rework
+            when: 'false'
+    - id: n-rework
+      kind: agent
+      name: Repair the gaps in the plan
+      summary: Smallest corrective pass before re-gating.
+      role: Safety planner covering crowd, medical, weather, and emergency response.
+      prompt: You are an Event Risk & Safety Planner. You plan crowd flow and density, medical provision,
+        weather triggers, and evacuation routes against the actual attendee profile and site, with the
+        decision-maker for each trigger named. You define the stop-the-event authority explicitly, because
+        the moment to use it is not the moment to establish who holds it.
+      capabilities:
+        skills:
+          - crowd-safety-planning
+          - emergency-response-planning
+          - trigger-and-authority-definition
+          - medical-provisioning
+          - failure-mode-analysis
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Venue and safety officer sign off before doors
+      summary: Pause for the venue and safety officer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Brief → run of show deliverable, the evidence behind it, and every
+        unresolved item.
+  edges:
+    - id: wf-evnt-02-edge-1
+      from: n-intake
+      to: n-stages
+      kind: data
+    - id: wf-evnt-02-edge-2
+      from: n-stages
+      to: n-focus
+      kind: data
+    - id: wf-evnt-02-edge-3
+      from: n-focus
+      to: n-check
+      kind: data
+    - id: wf-evnt-02-edge-4
+      from: n-check
+      to: n-ready
+      kind: data
+    - id: wf-evnt-02-edge-5
+      from: n-ready
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-evnt-02-edge-6
+      from: n-ready
+      to: n-rework
+      kind: control
+      condition: 'false'
+    - id: wf-evnt-02-edge-7
+      from: n-rework
+      to: n-approval
+      kind: data
+    - id: wf-evnt-02-edge-8
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

@@ -5,7 +5,7 @@
       "id": "refinement",
       "path": "core/refinement",
       "area": "Core patterns",
-      "title": "Draft → critique → revise",
+      "title": "Draft \u2192 critique \u2192 revise",
       "eyebrow": "Bounded refinement",
       "description": "Create a complete draft, challenge it independently, and revise without an open-ended loop.",
       "topology": "Chain + structured loop",
@@ -27,7 +27,7 @@
       "id": "full-stack-delivery",
       "path": "core/software",
       "area": "Software engineering",
-      "title": "Full-stack app → production",
+      "title": "Full-stack app \u2192 production",
       "eyebrow": "End-to-end delivery",
       "description": "Design and architect the app, define evaluation gates, build in parallel, verify, approve, and deploy.",
       "topology": "Phased pipeline + gates",
@@ -170,7 +170,7 @@
       "id": "image-text-extraction",
       "path": "research/multimodal/understanding",
       "area": "Multimodal",
-      "title": "Image → structured text",
+      "title": "Image \u2192 structured text",
       "eyebrow": "OCR + vision",
       "description": "Accept a host-provided image, extract text and layout with confidence, and gate the result against the source.",
       "topology": "Vision pipeline + fidelity gate",
@@ -181,7 +181,7 @@
       "id": "reference-image-transformation",
       "path": "research/multimodal/image-editing",
       "area": "Multimodal",
-      "title": "Reference image → new image",
+      "title": "Reference image \u2192 new image",
       "eyebrow": "Image-to-image",
       "description": "Accept a reference image, approve edits and invariants, generate a derivative, and review fidelity and safety.",
       "topology": "Approval + transformation gate",
@@ -225,7 +225,7 @@
       "id": "values-to-action",
       "path": "research/personal-development/goals",
       "area": "Personal development",
-      "title": "Values → sustainable action system",
+      "title": "Values \u2192 sustainable action system",
       "eyebrow": "Direction to practice",
       "description": "Reconcile values and behavior design into a small, realistic action system with humane review and adjustment.",
       "topology": "Alignment join + safety gate",
@@ -319,6 +319,622 @@
       "topology": "Branch + bounded loop",
       "accent": "#7d83d6",
       "file": "workflows/wf-phys-02.yaml"
+    },
+    {
+      "id": "wf-supply-01",
+      "path": "research/operations/supply-chain/wf-supply-01",
+      "area": "Supply chain & logistics",
+      "title": "Demand forecast + independent tie-out",
+      "eyebrow": "Numeric discipline",
+      "description": "Derive the demand plan twice \u2014 once by judgment, once by a declared statistical engine \u2014 and gate the planning number on the two agreeing.",
+      "topology": "Dual derivation + tie-out",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-supply-01.yaml"
+    },
+    {
+      "id": "wf-supply-02",
+      "path": "research/operations/supply-chain/wf-supply-02",
+      "area": "Supply chain & logistics",
+      "title": "Disruption triage + recovery routing",
+      "eyebrow": "Live exceptions",
+      "description": "Score live supply exceptions by downstream impact, cut a queue that fits the shift, and route the top band to a costed recovery decision.",
+      "topology": "Scored queue + routing",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-supply-02.yaml"
+    },
+    {
+      "id": "wf-hr-01",
+      "path": "research/operations/talent/wf-hr-01",
+      "area": "HR & talent operations",
+      "title": "Blind screening panel + rubric calibration",
+      "eyebrow": "Calibrated judgment",
+      "description": "Score every candidate blind against the same rubric, then let a teacher model critique the assessors \u2014 not the candidates \u2014 until the panel is calibrated.",
+      "topology": "Blind panel + teacher loop",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-hr-01.yaml"
+    },
+    {
+      "id": "wf-hr-02",
+      "path": "research/operations/talent/wf-hr-02",
+      "area": "HR & talent operations",
+      "title": "Role opening \u2192 ramped hire",
+      "eyebrow": "Staged program",
+      "description": "Run capacity justification, sourcing, and onboarding design as one ordered pipeline, focusing the ramp-plan phase where the real design work happens.",
+      "topology": "Sequential group + subgraph",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-hr-02.yaml"
+    },
+    {
+      "id": "wf-sales-01",
+      "path": "research/operations/revenue/wf-sales-01",
+      "area": "Sales & business development",
+      "title": "Account research + claim verification gate",
+      "eyebrow": "Verified outreach",
+      "description": "Deduplicate the claim set behind an account brief, verify every claim independently, and block outreach while any claim is still unverified.",
+      "topology": "Verification fan-out + collect",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-sales-01.yaml"
+    },
+    {
+      "id": "wf-sales-02",
+      "path": "research/operations/revenue/wf-sales-02",
+      "area": "Sales & business development",
+      "title": "Deal desk review + position merge",
+      "eyebrow": "Collision surfacing",
+      "description": "Let commercial, risk, and forecast reviewers take independent positions on the same terms, then merge them so every disagreement surfaces as a negotiation point.",
+      "topology": "Position merge + collisions",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-sales-02.yaml"
+    },
+    {
+      "id": "wf-cs-01",
+      "path": "research/operations/support/wf-cs-01",
+      "area": "Customer success & support",
+      "title": "Ticket triage \u2192 resolution or escalation",
+      "eyebrow": "Scored queue",
+      "description": "Classify inbound tickets, filter and rank them by measured impact, cut a queue that fits the shift, and route the top band to a named escalation owner.",
+      "topology": "Scored queue + routing",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-cs-01.yaml"
+    },
+    {
+      "id": "wf-cs-02",
+      "path": "research/operations/support/wf-cs-02",
+      "area": "Customer success & support",
+      "title": "Knowledge base refresh + scored review",
+      "eyebrow": "Content upkeep",
+      "description": "Normalize article metadata to the canonical taxonomy, curate against the shipped version, and gate republication on a scored teacher review.",
+      "topology": "Normalize + scored gate",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-cs-02.yaml"
+    },
+    {
+      "id": "wf-mkt-01",
+      "path": "research/operations/growth/wf-mkt-01",
+      "area": "Marketing & growth",
+      "title": "Experiment readout + statistical tie-out",
+      "eyebrow": "Numeric discipline",
+      "description": "Read out an A/B test twice \u2014 analyst judgment against a declared statistics engine \u2014 and gate the claimed lift on the two agreeing.",
+      "topology": "Dual derivation + tie-out",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-mkt-01.yaml"
+    },
+    {
+      "id": "wf-mkt-02",
+      "path": "research/operations/growth/wf-mkt-02",
+      "area": "Marketing & growth",
+      "title": "Campaign assembly + teacher critique",
+      "eyebrow": "Ordered assembly",
+      "description": "Produce campaign segments in a declared order, concatenate them without merging, and put the assembled campaign through a teacher critique before brand review.",
+      "topology": "Ordered assembly + critique",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-mkt-02.yaml"
+    },
+    {
+      "id": "wf-acct-01",
+      "path": "research/operations/finance-ops/wf-acct-01",
+      "area": "Accounting, tax & audit",
+      "title": "Close reconciliation + exception register",
+      "eyebrow": "Merge + exceptions",
+      "description": "Extract balances from both systems, merge them declaratively, and drive everything that would not reconcile into a source-tagged exception register.",
+      "topology": "Merge transform + exceptions",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-acct-01.yaml"
+    },
+    {
+      "id": "wf-acct-02",
+      "path": "research/operations/finance-ops/wf-acct-02",
+      "area": "Accounting, tax & audit",
+      "title": "Two-person review + discordance resolution",
+      "eyebrow": "Blind dual read",
+      "description": "Two reviewers examine the same workpaper without seeing each other's conclusion; a vote preserves the tie, and disagreement routes to explicit resolution.",
+      "topology": "Blind panel + vote",
+      "accent": "#5aa9e6",
+      "file": "workflows/wf-acct-02.yaml"
+    },
+    {
+      "id": "wf-mfg-01",
+      "path": "research/industry/manufacturing/wf-mfg-01",
+      "area": "Manufacturing & industrial operations",
+      "title": "Predictive maintenance call + instrument tie-out",
+      "eyebrow": "Model vs instrument",
+      "description": "Set a reliability engineer's remaining-life estimate against a declared condition-monitoring run, merge the two, and loop on the assumptions until they agree.",
+      "topology": "Tool run + bounded loop",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-mfg-01.yaml"
+    },
+    {
+      "id": "wf-mfg-02",
+      "path": "research/industry/manufacturing/wf-mfg-02",
+      "area": "Manufacturing & industrial operations",
+      "title": "New line qualification",
+      "eyebrow": "Staged qualification",
+      "description": "Run FMEA, capability study, and supplier qualification as one ordered sequence, with the validation protocol phase focused on the canvas.",
+      "topology": "Sequential group + subgraph",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-mfg-02.yaml"
+    },
+    {
+      "id": "wf-enrg-01",
+      "path": "research/industry/energy/wf-enrg-01",
+      "area": "Energy & utilities",
+      "title": "Renewable forecast + reserve tie-out",
+      "eyebrow": "Numeric discipline",
+      "description": "Derive the generation outlook twice \u2014 forecaster judgment against a declared numerical weather-to-power run \u2014 and gate the reserve decision on the two agreeing.",
+      "topology": "Dual derivation + tie-out",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-enrg-01.yaml"
+    },
+    {
+      "id": "wf-enrg-02",
+      "path": "research/industry/energy/wf-enrg-02",
+      "area": "Energy & utilities",
+      "title": "Balancing scenario + contingency run",
+      "eyebrow": "Model vs simulation",
+      "description": "Set the operator's balancing plan against a declared contingency simulation, merge the results so disagreements surface, and loop until the plan holds under contingency.",
+      "topology": "Tool run + bounded loop",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-enrg-02.yaml"
+    },
+    {
+      "id": "wf-mob-01",
+      "path": "research/industry/mobility/wf-mob-01",
+      "area": "Transportation & mobility",
+      "title": "Fleet record reconciliation + exception register",
+      "eyebrow": "Merge + exceptions",
+      "description": "Extract telematics and maintenance records separately, merge them declaratively, and drive everything that will not reconcile into a source-tagged exception register.",
+      "topology": "Merge transform + exceptions",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-mob-01.yaml"
+    },
+    {
+      "id": "wf-mob-02",
+      "path": "research/industry/mobility/wf-mob-02",
+      "area": "Transportation & mobility",
+      "title": "Network incident triage + dispatch",
+      "eyebrow": "Scored queue",
+      "description": "Score live network incidents by network effect, cut a queue that fits available crews, and route severe events to a coordinated response.",
+      "topology": "Scored queue + routing",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-mob-02.yaml"
+    },
+    {
+      "id": "wf-rec-01",
+      "path": "research/industry/built-environment/wf-rec-01",
+      "area": "Real estate & construction",
+      "title": "Valuation + independent re-derivation",
+      "eyebrow": "Numeric discipline",
+      "description": "Derive the value twice \u2014 appraiser reasoning against a declared valuation model run \u2014 and gate the reported value on the two agreeing within tolerance.",
+      "topology": "Dual derivation + tie-out",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-rec-01.yaml"
+    },
+    {
+      "id": "wf-rec-02",
+      "path": "research/industry/built-environment/wf-rec-02",
+      "area": "Real estate & construction",
+      "title": "Design review + position merge",
+      "eyebrow": "Collision surfacing",
+      "description": "Take independent code, cost, and schedule positions on the same design package, then merge them so every conflict surfaces as a decision rather than a compromise.",
+      "topology": "Position merge + collisions",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-rec-02.yaml"
+    },
+    {
+      "id": "wf-agri-01",
+      "path": "research/industry/agriculture/wf-agri-01",
+      "area": "Agriculture & food systems",
+      "title": "Field signal \u2192 prescription with scored review",
+      "eyebrow": "Normalize + scored gate",
+      "description": "Normalize mixed field data onto one canonical vocabulary, build the prescription, and gate machine release on a scored teacher review.",
+      "topology": "Normalize + scored gate",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-agri-01.yaml"
+    },
+    {
+      "id": "wf-agri-02",
+      "path": "research/industry/agriculture/wf-agri-02",
+      "area": "Agriculture & food systems",
+      "title": "Lot trace reconciliation + exception register",
+      "eyebrow": "Merge + exceptions",
+      "description": "Extract upstream and downstream lot records separately, merge them declaratively, and keep every break in the chain as a source-tagged exception.",
+      "topology": "Merge transform + exceptions",
+      "accent": "#e8a05a",
+      "file": "workflows/wf-agri-02.yaml"
+    },
+    {
+      "id": "wf-chem-01",
+      "path": "research/applied-science/chemistry/wf-chem-01",
+      "area": "Chemistry & materials science",
+      "title": "Property prediction + computational run",
+      "eyebrow": "Model vs simulation",
+      "description": "Set a chemist's structure\u2013property reasoning against a declared computational run, merge the two, and loop on assumptions until they agree.",
+      "topology": "Tool run + bounded loop",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-chem-01.yaml"
+    },
+    {
+      "id": "wf-chem-02",
+      "path": "research/applied-science/chemistry/wf-chem-02",
+      "area": "Chemistry & materials science",
+      "title": "Synthesis route \u2192 reviewed protocol",
+      "eyebrow": "Staged qualification",
+      "description": "Run route planning, characterization strategy, and experimental design in order, then focus the scale and hazard review phase before any protocol is approved.",
+      "topology": "Sequential group + subgraph",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-chem-02.yaml"
+    },
+    {
+      "id": "wf-bio-01",
+      "path": "research/applied-science/biology/wf-bio-01",
+      "area": "Biology & bioinformatics",
+      "title": "Blind dual variant read + discordance resolution",
+      "eyebrow": "Blind dual read",
+      "description": "Two interpreters classify the same variant without seeing each other's call; the vote preserves ties and discordance routes to explicit resolution before sign-out.",
+      "topology": "Blind panel + vote",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-bio-01.yaml"
+    },
+    {
+      "id": "wf-bio-02",
+      "path": "research/applied-science/biology/wf-bio-02",
+      "area": "Biology & bioinformatics",
+      "title": "Sequence analysis + scored QC gate",
+      "eyebrow": "Normalize + scored gate",
+      "description": "Normalize sample and run metadata to one canonical vocabulary, analyze, and gate interpretation on a scored review of QC and provenance.",
+      "topology": "Normalize + scored gate",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-bio-02.yaml"
+    },
+    {
+      "id": "wf-envr-01",
+      "path": "research/applied-science/environment/wf-envr-01",
+      "area": "Environmental & climate science",
+      "title": "Emissions inventory + independent tie-out",
+      "eyebrow": "Numeric discipline",
+      "description": "Derive the inventory twice \u2014 analyst build against a declared calculation engine \u2014 and gate the reported total on the two agreeing.",
+      "topology": "Dual derivation + tie-out",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-envr-01.yaml"
+    },
+    {
+      "id": "wf-envr-02",
+      "path": "research/applied-science/environment/wf-envr-02",
+      "area": "Environmental & climate science",
+      "title": "Scope consolidation + double-count register",
+      "eyebrow": "Merge + exceptions",
+      "description": "Extract direct and value-chain emissions separately, merge them declaratively, and keep every overlapping tonne as a source-tagged exception instead of a silent adjustment.",
+      "topology": "Merge transform + exceptions",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-envr-02.yaml"
+    },
+    {
+      "id": "wf-astro-01",
+      "path": "research/applied-science/astronomy/wf-astro-01",
+      "area": "Astronomy & space",
+      "title": "Observation queue + feasibility routing",
+      "eyebrow": "Scored queue",
+      "description": "Score observation requests by science priority and feasibility, cut a queue that fits the night, and route time-critical targets to an explicit override decision.",
+      "topology": "Scored queue + routing",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-astro-01.yaml"
+    },
+    {
+      "id": "wf-astro-02",
+      "path": "research/applied-science/astronomy/wf-astro-02",
+      "area": "Astronomy & space",
+      "title": "Measurement + model comparison",
+      "eyebrow": "Model vs instrument",
+      "description": "Set the reduced measurement against a declared model run, merge them so disagreements surface as collisions, and loop on assumptions until they reconcile.",
+      "topology": "Tool run + bounded loop",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-astro-02.yaml"
+    },
+    {
+      "id": "wf-geo-01",
+      "path": "research/applied-science/geospatial/wf-geo-01",
+      "area": "Geospatial & earth observation",
+      "title": "Land-use claim verification gate",
+      "eyebrow": "Verification fan-out",
+      "description": "Deduplicate the claim set behind a land-use finding, verify each claim independently against imagery, record, and ground truth, and block publication while any is unverified.",
+      "topology": "Verification fan-out + collect",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-geo-01.yaml"
+    },
+    {
+      "id": "wf-geo-02",
+      "path": "research/applied-science/geospatial/wf-geo-02",
+      "area": "Geospatial & earth observation",
+      "title": "Layer normalization + scored release review",
+      "eyebrow": "Normalize + scored gate",
+      "description": "Rename heterogeneous layer fields onto one canonical schema, engineer the release product, and gate publication on a scored review of accuracy and privacy.",
+      "topology": "Normalize + scored gate",
+      "accent": "#5ec9a8",
+      "file": "workflows/wf-geo-02.yaml"
+    },
+    {
+      "id": "wf-game-01",
+      "path": "research/creative/games/wf-game-01",
+      "area": "Gaming & interactive media",
+      "title": "Playtest panel + rubric calibration",
+      "eyebrow": "Calibrated judgment",
+      "description": "Score the same playtest evidence blind across three lenses, then let a teacher model critique the assessors until their reads agree enough to act on.",
+      "topology": "Blind panel + teacher loop",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-game-01.yaml"
+    },
+    {
+      "id": "wf-game-02",
+      "path": "research/creative/games/wf-game-02",
+      "area": "Gaming & interactive media",
+      "title": "Content beat assembly + teacher critique",
+      "eyebrow": "Ordered assembly",
+      "description": "Produce narrative, systems, and generated content beats in declared order, concatenate them without merging, and critique the assembled sequence as a player would meet it.",
+      "topology": "Ordered assembly + critique",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-game-02.yaml"
+    },
+    {
+      "id": "wf-film-01",
+      "path": "research/creative/film/wf-film-01",
+      "area": "Film, video & post-production",
+      "title": "Cut \u2192 delivery pipeline",
+      "eyebrow": "Staged pipeline",
+      "description": "Run editorial, VFX scoping, and colour as one ordered sequence, then focus the finishing and QC phase where delivery compliance is actually decided.",
+      "topology": "Sequential group + subgraph",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-film-01.yaml"
+    },
+    {
+      "id": "wf-film-02",
+      "path": "research/creative/film/wf-film-02",
+      "area": "Film, video & post-production",
+      "title": "Reel assembly + teacher critique",
+      "eyebrow": "Ordered assembly",
+      "description": "Produce picture, sound, and finishing segments in declared order, concatenate them without merging, and critique the assembled reel before it is shown.",
+      "topology": "Ordered assembly + critique",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-film-02.yaml"
+    },
+    {
+      "id": "wf-fash-01",
+      "path": "research/creative/fashion/wf-fash-01",
+      "area": "Fashion & textiles",
+      "title": "Line direction + position merge",
+      "eyebrow": "Collision surfacing",
+      "description": "Take independent trend, materials, and commercial positions on the same line plan, then merge them so every conflict surfaces as a decision rather than a compromise.",
+      "topology": "Position merge + collisions",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-fash-01.yaml"
+    },
+    {
+      "id": "wf-fash-02",
+      "path": "research/creative/fashion/wf-fash-02",
+      "area": "Fashion & textiles",
+      "title": "Tech pack normalization + scored review",
+      "eyebrow": "Normalize + scored gate",
+      "description": "Rename inherited spec fields onto one canonical vocabulary, build the tech pack, and gate factory release on a scored review of manufacturability and compliance.",
+      "topology": "Normalize + scored gate",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-fash-02.yaml"
+    },
+    {
+      "id": "wf-soc-01",
+      "path": "research/creative/social-policy/wf-soc-01",
+      "area": "Social sciences & policy",
+      "title": "Coder reliability + rubric calibration",
+      "eyebrow": "Calibrated judgment",
+      "description": "Code the same material blind across three coders, then let a teacher model critique the coders against the codebook until reliability is demonstrated rather than asserted.",
+      "topology": "Blind panel + teacher loop",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-soc-01.yaml"
+    },
+    {
+      "id": "wf-soc-02",
+      "path": "research/creative/social-policy/wf-soc-02",
+      "area": "Social sciences & policy",
+      "title": "Policy claim verification gate",
+      "eyebrow": "Verification fan-out",
+      "description": "Deduplicate the claims behind a policy brief, verify each against source data, the literature, and the model's own assumptions, and block release while any is unverified.",
+      "topology": "Verification fan-out + collect",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-soc-02.yaml"
+    },
+    {
+      "id": "wf-ling-01",
+      "path": "research/creative/linguistics/wf-ling-01",
+      "area": "Linguistics & language preservation",
+      "title": "Documentation claim verification gate",
+      "eyebrow": "Verification fan-out",
+      "description": "Deduplicate the analytical claims in a description, verify each against attested tokens, corpus evidence, and variation data, and block archiving while any is unverified.",
+      "topology": "Verification fan-out + collect",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-ling-01.yaml"
+    },
+    {
+      "id": "wf-ling-02",
+      "path": "research/creative/linguistics/wf-ling-02",
+      "area": "Linguistics & language preservation",
+      "title": "Learner material assembly + teacher critique",
+      "eyebrow": "Ordered assembly",
+      "description": "Produce lexical, grammatical, and usage segments in teaching order, concatenate them without merging, and critique the assembled material before community review.",
+      "topology": "Ordered assembly + critique",
+      "accent": "#d98cc8",
+      "file": "workflows/wf-ling-02.yaml"
+    },
+    {
+      "id": "wf-insr-01",
+      "path": "research/professional/insurance/wf-insr-01",
+      "area": "Insurance & underwriting",
+      "title": "Blind dual claim review + discordance resolution",
+      "eyebrow": "Blind dual read",
+      "description": "Two reviewers assess the same claim file without seeing each other's determination; the vote preserves ties and disagreement routes to explicit resolution before a decision.",
+      "topology": "Blind panel + vote",
+      "accent": "#b5a6f0",
+      "file": "workflows/wf-insr-01.yaml"
+    },
+    {
+      "id": "wf-insr-02",
+      "path": "research/professional/insurance/wf-insr-02",
+      "area": "Insurance & underwriting",
+      "title": "Alert triage + investigation routing",
+      "eyebrow": "Scored queue",
+      "description": "Score fraud and exception alerts on evidenced indicators, cut a queue that fits the investigation capacity, and route the strongest to a full investigation.",
+      "topology": "Scored queue + routing",
+      "accent": "#b5a6f0",
+      "file": "workflows/wf-insr-02.yaml"
+    },
+    {
+      "id": "wf-evnt-01",
+      "path": "research/professional/events/wf-evnt-01",
+      "area": "Event planning & hospitality",
+      "title": "Venue and vendor selection + position merge",
+      "eyebrow": "Collision surfacing",
+      "description": "Take independent logistics, commercial, and safety positions on the same options, then merge them so every conflict surfaces as a decision before anything is signed.",
+      "topology": "Position merge + collisions",
+      "accent": "#b5a6f0",
+      "file": "workflows/wf-evnt-01.yaml"
+    },
+    {
+      "id": "wf-evnt-02",
+      "path": "research/professional/events/wf-evnt-02",
+      "area": "Event planning & hospitality",
+      "title": "Brief \u2192 run of show",
+      "eyebrow": "Staged pipeline",
+      "description": "Run experience design, production scheduling, and budget control in order, then focus the safety and contingency phase where stop authority is actually decided.",
+      "topology": "Sequential group + subgraph",
+      "accent": "#b5a6f0",
+      "file": "workflows/wf-evnt-02.yaml"
+    },
+    {
+      "id": "wf-qac-01",
+      "path": "research/professional/compliance/wf-qac-01",
+      "area": "Quality assurance & compliance",
+      "title": "Audit rubric calibration",
+      "eyebrow": "Calibrated judgment",
+      "description": "Assess the same evidence blind across three auditors, then let a teacher model critique the auditors against the rubric until their grading agrees.",
+      "topology": "Blind panel + teacher loop",
+      "accent": "#b5a6f0",
+      "file": "workflows/wf-qac-01.yaml"
+    },
+    {
+      "id": "wf-qac-02",
+      "path": "research/professional/compliance/wf-qac-02",
+      "area": "Quality assurance & compliance",
+      "title": "Regulatory change \u2192 verified obligations",
+      "eyebrow": "Verification fan-out",
+      "description": "Deduplicate extracted obligations, verify each against the source text, an existing control, and evidence that the control operates, and block sign-off while any is open.",
+      "topology": "Verification fan-out + collect",
+      "accent": "#b5a6f0",
+      "file": "workflows/wf-qac-02.yaml"
+    },
+    {
+      "id": "wf-sre-01",
+      "path": "research/software/reliability/wf-sre-01",
+      "area": "DevOps & site reliability",
+      "title": "Alert triage \u2192 incident response",
+      "eyebrow": "Scored queue",
+      "description": "Score alerts by user-visible impact, drop the ones no action follows from, and route the severe band to incident command with an explicit authorization gate.",
+      "topology": "Scored queue + routing",
+      "accent": "#54d7cf",
+      "file": "workflows/wf-sre-01.yaml"
+    },
+    {
+      "id": "wf-sre-02",
+      "path": "research/software/reliability/wf-sre-02",
+      "area": "DevOps & site reliability",
+      "title": "Capacity plan + load test tie-out",
+      "eyebrow": "Model vs instrument",
+      "description": "Set the capacity model against a declared load test, merge the results so disagreements surface, and loop on the assumptions until the plan matches measured behavior.",
+      "topology": "Tool run + bounded loop",
+      "accent": "#54d7cf",
+      "file": "workflows/wf-sre-02.yaml"
+    },
+    {
+      "id": "wf-robo-01",
+      "path": "research/emerging/robotics/wf-robo-01",
+      "area": "Robotics & embodied AI",
+      "title": "Manipulation plan + hardware tie-out",
+      "eyebrow": "Model vs instrument",
+      "description": "Set the planned motion against a declared simulation or hardware trial, merge the results, and loop on assumptions until planned and observed behavior agree.",
+      "topology": "Tool run + bounded loop",
+      "accent": "#5fd6cd",
+      "file": "workflows/wf-robo-01.yaml"
+    },
+    {
+      "id": "wf-robo-02",
+      "path": "research/emerging/robotics/wf-robo-02",
+      "area": "Robotics & embodied AI",
+      "title": "Blind safety case review + discordance resolution",
+      "eyebrow": "Blind dual read",
+      "description": "Three reviewers assess the same safety case without seeing each other's verdict; the vote preserves ties and disagreement routes to explicit resolution before deployment.",
+      "topology": "Blind panel + vote",
+      "accent": "#5fd6cd",
+      "file": "workflows/wf-robo-02.yaml"
+    },
+    {
+      "id": "wf-peer-01",
+      "path": "research/emerging/peer-review/wf-peer-01",
+      "area": "Scientific peer review & publishing",
+      "title": "Reviewer calibration panel",
+      "eyebrow": "Calibrated judgment",
+      "description": "Review the same manuscript blind against a shared rubric, then let a teacher model critique the reviewers until their standards agree enough to decide on.",
+      "topology": "Blind panel + teacher loop",
+      "accent": "#5fd6cd",
+      "file": "workflows/wf-peer-01.yaml"
+    },
+    {
+      "id": "wf-peer-02",
+      "path": "research/emerging/peer-review/wf-peer-02",
+      "area": "Scientific peer review & publishing",
+      "title": "Reproducibility + citation verification gate",
+      "eyebrow": "Verification fan-out",
+      "description": "Deduplicate the claims and citations in a manuscript, verify each independently, and block acceptance while any remains unverified.",
+      "topology": "Verification fan-out + collect",
+      "accent": "#5fd6cd",
+      "file": "workflows/wf-peer-02.yaml"
+    },
+    {
+      "id": "wf-crisis-01",
+      "path": "research/emerging/crisis/wf-crisis-01",
+      "area": "Crisis & emergency management",
+      "title": "Incident intake \u2192 dispatch with coverage gate",
+      "eyebrow": "Scored queue",
+      "description": "Score simultaneous incidents by severity and capability required, cut the queue to available units, and route the top band through an explicit coverage decision.",
+      "topology": "Scored queue + routing",
+      "accent": "#5fd6cd",
+      "file": "workflows/wf-crisis-01.yaml"
+    },
+    {
+      "id": "wf-crisis-02",
+      "path": "research/emerging/crisis/wf-crisis-02",
+      "area": "Crisis & emergency management",
+      "title": "Multi-agency resource reconciliation",
+      "eyebrow": "Merge + exceptions",
+      "description": "Extract each agency's resource picture separately, merge them declaratively, and keep every double-committed or stale resource as a source-tagged exception.",
+      "topology": "Merge transform + exceptions",
+      "accent": "#5fd6cd",
+      "file": "workflows/wf-crisis-02.yaml"
     }
   ],
   "agents": [
@@ -1035,6 +1651,1014 @@
       "path": "research/physics/foundations-method",
       "title": "Physics Concept & Intuition Explainer",
       "file": "agents/phys-08.yaml"
+    },
+    {
+      "id": "supply-01",
+      "path": "research/operations/supply-chain",
+      "title": "Demand Forecast Analyst",
+      "file": "agents/supply-01.yaml"
+    },
+    {
+      "id": "supply-02",
+      "path": "research/operations/supply-chain",
+      "title": "Inventory Policy Planner",
+      "file": "agents/supply-02.yaml"
+    },
+    {
+      "id": "supply-03",
+      "path": "research/operations/supply-chain",
+      "title": "Network & Route Optimizer",
+      "file": "agents/supply-03.yaml"
+    },
+    {
+      "id": "supply-04",
+      "path": "research/operations/supply-chain",
+      "title": "Supplier Risk Analyst",
+      "file": "agents/supply-04.yaml"
+    },
+    {
+      "id": "supply-05",
+      "path": "research/operations/supply-chain",
+      "title": "Logistics Exception Controller",
+      "file": "agents/supply-05.yaml"
+    },
+    {
+      "id": "supply-06",
+      "path": "research/operations/supply-chain",
+      "title": "S&OP Reconciler",
+      "file": "agents/supply-06.yaml"
+    },
+    {
+      "id": "hr-01",
+      "path": "research/operations/talent",
+      "title": "Talent Sourcing Researcher",
+      "file": "agents/hr-01.yaml"
+    },
+    {
+      "id": "hr-02",
+      "path": "research/operations/talent",
+      "title": "Structured Screening Interviewer",
+      "file": "agents/hr-02.yaml"
+    },
+    {
+      "id": "hr-03",
+      "path": "research/operations/talent",
+      "title": "Selection Fairness Reviewer",
+      "file": "agents/hr-03.yaml"
+    },
+    {
+      "id": "hr-04",
+      "path": "research/operations/talent",
+      "title": "Onboarding Program Designer",
+      "file": "agents/hr-04.yaml"
+    },
+    {
+      "id": "hr-05",
+      "path": "research/operations/talent",
+      "title": "Workforce Capacity Planner",
+      "file": "agents/hr-05.yaml"
+    },
+    {
+      "id": "hr-06",
+      "path": "research/operations/talent",
+      "title": "Compensation Band Analyst",
+      "file": "agents/hr-06.yaml"
+    },
+    {
+      "id": "sales-01",
+      "path": "research/operations/revenue",
+      "title": "Account Research Analyst",
+      "file": "agents/sales-01.yaml"
+    },
+    {
+      "id": "sales-02",
+      "path": "research/operations/revenue",
+      "title": "Opportunity Qualification Analyst",
+      "file": "agents/sales-02.yaml"
+    },
+    {
+      "id": "sales-03",
+      "path": "research/operations/revenue",
+      "title": "Outreach Sequence Designer",
+      "file": "agents/sales-03.yaml"
+    },
+    {
+      "id": "sales-04",
+      "path": "research/operations/revenue",
+      "title": "Deal Desk Reviewer",
+      "file": "agents/sales-04.yaml"
+    },
+    {
+      "id": "sales-05",
+      "path": "research/operations/revenue",
+      "title": "Pipeline Hygiene Auditor",
+      "file": "agents/sales-05.yaml"
+    },
+    {
+      "id": "sales-06",
+      "path": "research/operations/revenue",
+      "title": "Competitive Position Strategist",
+      "file": "agents/sales-06.yaml"
+    },
+    {
+      "id": "cs-01",
+      "path": "research/operations/support",
+      "title": "Support Triage Classifier",
+      "file": "agents/cs-01.yaml"
+    },
+    {
+      "id": "cs-02",
+      "path": "research/operations/support",
+      "title": "Resolution Specialist",
+      "file": "agents/cs-02.yaml"
+    },
+    {
+      "id": "cs-03",
+      "path": "research/operations/support",
+      "title": "Escalation Manager",
+      "file": "agents/cs-03.yaml"
+    },
+    {
+      "id": "cs-04",
+      "path": "research/operations/support",
+      "title": "Knowledge Base Curator",
+      "file": "agents/cs-04.yaml"
+    },
+    {
+      "id": "cs-05",
+      "path": "research/operations/support",
+      "title": "Churn Risk Analyst",
+      "file": "agents/cs-05.yaml"
+    },
+    {
+      "id": "cs-06",
+      "path": "research/operations/support",
+      "title": "Voice-of-Customer Synthesizer",
+      "file": "agents/cs-06.yaml"
+    },
+    {
+      "id": "mkt-01",
+      "path": "research/operations/growth",
+      "title": "Campaign Strategist",
+      "file": "agents/mkt-01.yaml"
+    },
+    {
+      "id": "mkt-02",
+      "path": "research/operations/growth",
+      "title": "Experiment Designer",
+      "file": "agents/mkt-02.yaml"
+    },
+    {
+      "id": "mkt-03",
+      "path": "research/operations/growth",
+      "title": "SEO & Discovery Analyst",
+      "file": "agents/mkt-03.yaml"
+    },
+    {
+      "id": "mkt-04",
+      "path": "research/operations/growth",
+      "title": "Channel Distribution Planner",
+      "file": "agents/mkt-04.yaml"
+    },
+    {
+      "id": "mkt-05",
+      "path": "research/operations/growth",
+      "title": "Brand & Claims Reviewer",
+      "file": "agents/mkt-05.yaml"
+    },
+    {
+      "id": "mkt-06",
+      "path": "research/operations/growth",
+      "title": "Growth Lift Analyst",
+      "file": "agents/mkt-06.yaml"
+    },
+    {
+      "id": "acct-01",
+      "path": "research/operations/finance-ops",
+      "title": "Transaction Classification Analyst",
+      "file": "agents/acct-01.yaml"
+    },
+    {
+      "id": "acct-02",
+      "path": "research/operations/finance-ops",
+      "title": "Reconciliation Analyst",
+      "file": "agents/acct-02.yaml"
+    },
+    {
+      "id": "acct-03",
+      "path": "research/operations/finance-ops",
+      "title": "Tax Position Researcher",
+      "file": "agents/acct-03.yaml"
+    },
+    {
+      "id": "acct-04",
+      "path": "research/operations/finance-ops",
+      "title": "Internal Control Tester",
+      "file": "agents/acct-04.yaml"
+    },
+    {
+      "id": "acct-05",
+      "path": "research/operations/finance-ops",
+      "title": "Audit Evidence Reviewer",
+      "file": "agents/acct-05.yaml"
+    },
+    {
+      "id": "acct-06",
+      "path": "research/operations/finance-ops",
+      "title": "Disclosure & Reporting Reviewer",
+      "file": "agents/acct-06.yaml"
+    },
+    {
+      "id": "mfg-01",
+      "path": "research/industry/manufacturing",
+      "title": "Reliability & Maintenance Engineer",
+      "file": "agents/mfg-01.yaml"
+    },
+    {
+      "id": "mfg-02",
+      "path": "research/industry/manufacturing",
+      "title": "Process Quality Engineer",
+      "file": "agents/mfg-02.yaml"
+    },
+    {
+      "id": "mfg-03",
+      "path": "research/industry/manufacturing",
+      "title": "Production Line Optimizer",
+      "file": "agents/mfg-03.yaml"
+    },
+    {
+      "id": "mfg-04",
+      "path": "research/industry/manufacturing",
+      "title": "FMEA Facilitator",
+      "file": "agents/mfg-04.yaml"
+    },
+    {
+      "id": "mfg-05",
+      "path": "research/industry/manufacturing",
+      "title": "Manufacturing Process Validator",
+      "file": "agents/mfg-05.yaml"
+    },
+    {
+      "id": "mfg-06",
+      "path": "research/industry/manufacturing",
+      "title": "Supplier Quality Engineer",
+      "file": "agents/mfg-06.yaml"
+    },
+    {
+      "id": "enrg-01",
+      "path": "research/industry/energy",
+      "title": "Renewable Generation Forecaster",
+      "file": "agents/enrg-01.yaml"
+    },
+    {
+      "id": "enrg-02",
+      "path": "research/industry/energy",
+      "title": "Grid Balancing Analyst",
+      "file": "agents/enrg-02.yaml"
+    },
+    {
+      "id": "enrg-03",
+      "path": "research/industry/energy",
+      "title": "Outage Response Coordinator",
+      "file": "agents/enrg-03.yaml"
+    },
+    {
+      "id": "enrg-04",
+      "path": "research/industry/energy",
+      "title": "Asset Health & Investment Planner",
+      "file": "agents/enrg-04.yaml"
+    },
+    {
+      "id": "enrg-05",
+      "path": "research/industry/energy",
+      "title": "Demand Response & Flexibility Analyst",
+      "file": "agents/enrg-05.yaml"
+    },
+    {
+      "id": "enrg-06",
+      "path": "research/industry/energy",
+      "title": "Energy Regulatory & Compliance Analyst",
+      "file": "agents/enrg-06.yaml"
+    },
+    {
+      "id": "mob-01",
+      "path": "research/industry/mobility",
+      "title": "Fleet Operations Analyst",
+      "file": "agents/mob-01.yaml"
+    },
+    {
+      "id": "mob-02",
+      "path": "research/industry/mobility",
+      "title": "Traffic & Network Coordinator",
+      "file": "agents/mob-02.yaml"
+    },
+    {
+      "id": "mob-03",
+      "path": "research/industry/mobility",
+      "title": "Routing & Dispatch Engineer",
+      "file": "agents/mob-03.yaml"
+    },
+    {
+      "id": "mob-04",
+      "path": "research/industry/mobility",
+      "title": "Autonomy Safety Case Analyst",
+      "file": "agents/mob-04.yaml"
+    },
+    {
+      "id": "mob-05",
+      "path": "research/industry/mobility",
+      "title": "Transit Service Planner",
+      "file": "agents/mob-05.yaml"
+    },
+    {
+      "id": "mob-06",
+      "path": "research/industry/mobility",
+      "title": "Mobility Incident Analyst",
+      "file": "agents/mob-06.yaml"
+    },
+    {
+      "id": "rec-01",
+      "path": "research/industry/built-environment",
+      "title": "Property Valuation Analyst",
+      "file": "agents/rec-01.yaml"
+    },
+    {
+      "id": "rec-02",
+      "path": "research/industry/built-environment",
+      "title": "Permit & Entitlement Analyst",
+      "file": "agents/rec-02.yaml"
+    },
+    {
+      "id": "rec-03",
+      "path": "research/industry/built-environment",
+      "title": "Construction Cost Estimator",
+      "file": "agents/rec-03.yaml"
+    },
+    {
+      "id": "rec-04",
+      "path": "research/industry/built-environment",
+      "title": "Project Scheduler",
+      "file": "agents/rec-04.yaml"
+    },
+    {
+      "id": "rec-05",
+      "path": "research/industry/built-environment",
+      "title": "Construction Risk & Contract Reviewer",
+      "file": "agents/rec-05.yaml"
+    },
+    {
+      "id": "rec-06",
+      "path": "research/industry/built-environment",
+      "title": "Building Performance Analyst",
+      "file": "agents/rec-06.yaml"
+    },
+    {
+      "id": "agri-01",
+      "path": "research/industry/agriculture",
+      "title": "Agronomic Decision Analyst",
+      "file": "agents/agri-01.yaml"
+    },
+    {
+      "id": "agri-02",
+      "path": "research/industry/agriculture",
+      "title": "Remote Crop Monitoring Analyst",
+      "file": "agents/agri-02.yaml"
+    },
+    {
+      "id": "agri-03",
+      "path": "research/industry/agriculture",
+      "title": "Precision Application Planner",
+      "file": "agents/agri-03.yaml"
+    },
+    {
+      "id": "agri-04",
+      "path": "research/industry/agriculture",
+      "title": "Food Traceability Analyst",
+      "file": "agents/agri-04.yaml"
+    },
+    {
+      "id": "agri-05",
+      "path": "research/industry/agriculture",
+      "title": "Food Safety & Compliance Reviewer",
+      "file": "agents/agri-05.yaml"
+    },
+    {
+      "id": "agri-06",
+      "path": "research/industry/agriculture",
+      "title": "Yield & Margin Analyst",
+      "file": "agents/agri-06.yaml"
+    },
+    {
+      "id": "chem-01",
+      "path": "research/applied-science/chemistry",
+      "title": "Molecular Design Chemist",
+      "file": "agents/chem-01.yaml"
+    },
+    {
+      "id": "chem-02",
+      "path": "research/applied-science/chemistry",
+      "title": "Synthesis Route Planner",
+      "file": "agents/chem-02.yaml"
+    },
+    {
+      "id": "chem-03",
+      "path": "research/applied-science/chemistry",
+      "title": "Materials Characterization Analyst",
+      "file": "agents/chem-03.yaml"
+    },
+    {
+      "id": "chem-04",
+      "path": "research/applied-science/chemistry",
+      "title": "Process Chemistry Scale-Up Engineer",
+      "file": "agents/chem-04.yaml"
+    },
+    {
+      "id": "chem-05",
+      "path": "research/applied-science/chemistry",
+      "title": "Laboratory Safety & Compliance Reviewer",
+      "file": "agents/chem-05.yaml"
+    },
+    {
+      "id": "chem-06",
+      "path": "research/applied-science/chemistry",
+      "title": "Experimental Design Statistician",
+      "file": "agents/chem-06.yaml"
+    },
+    {
+      "id": "bio-01",
+      "path": "research/applied-science/biology",
+      "title": "Genomic Variant Interpreter",
+      "file": "agents/bio-01.yaml"
+    },
+    {
+      "id": "bio-02",
+      "path": "research/applied-science/biology",
+      "title": "Bioinformatics Pipeline Analyst",
+      "file": "agents/bio-02.yaml"
+    },
+    {
+      "id": "bio-03",
+      "path": "research/applied-science/biology",
+      "title": "Pathway & Systems Modeler",
+      "file": "agents/bio-03.yaml"
+    },
+    {
+      "id": "bio-04",
+      "path": "research/applied-science/biology",
+      "title": "Laboratory Protocol Designer",
+      "file": "agents/bio-04.yaml"
+    },
+    {
+      "id": "bio-05",
+      "path": "research/applied-science/biology",
+      "title": "Biostatistics Reviewer",
+      "file": "agents/bio-05.yaml"
+    },
+    {
+      "id": "bio-06",
+      "path": "research/applied-science/biology",
+      "title": "Research Data Steward",
+      "file": "agents/bio-06.yaml"
+    },
+    {
+      "id": "envr-01",
+      "path": "research/applied-science/environment",
+      "title": "Emissions Inventory Analyst",
+      "file": "agents/envr-01.yaml"
+    },
+    {
+      "id": "envr-02",
+      "path": "research/applied-science/environment",
+      "title": "Climate Impact Modeler",
+      "file": "agents/envr-02.yaml"
+    },
+    {
+      "id": "envr-03",
+      "path": "research/applied-science/environment",
+      "title": "Conservation Planner",
+      "file": "agents/envr-03.yaml"
+    },
+    {
+      "id": "envr-04",
+      "path": "research/applied-science/environment",
+      "title": "Environmental Compliance Analyst",
+      "file": "agents/envr-04.yaml"
+    },
+    {
+      "id": "envr-05",
+      "path": "research/applied-science/environment",
+      "title": "Disaster Risk & Response Analyst",
+      "file": "agents/envr-05.yaml"
+    },
+    {
+      "id": "envr-06",
+      "path": "research/applied-science/environment",
+      "title": "Environmental Data Quality Analyst",
+      "file": "agents/envr-06.yaml"
+    },
+    {
+      "id": "astro-01",
+      "path": "research/applied-science/astronomy",
+      "title": "Observation Scheduler",
+      "file": "agents/astro-01.yaml"
+    },
+    {
+      "id": "astro-02",
+      "path": "research/applied-science/astronomy",
+      "title": "Astrophysical Data Reduction Analyst",
+      "file": "agents/astro-02.yaml"
+    },
+    {
+      "id": "astro-03",
+      "path": "research/applied-science/astronomy",
+      "title": "Mission & Trajectory Analyst",
+      "file": "agents/astro-03.yaml"
+    },
+    {
+      "id": "astro-04",
+      "path": "research/applied-science/astronomy",
+      "title": "Satellite Operations Analyst",
+      "file": "agents/astro-04.yaml"
+    },
+    {
+      "id": "astro-05",
+      "path": "research/applied-science/astronomy",
+      "title": "Instrument Calibration Specialist",
+      "file": "agents/astro-05.yaml"
+    },
+    {
+      "id": "astro-06",
+      "path": "research/applied-science/astronomy",
+      "title": "Science Case Writer",
+      "file": "agents/astro-06.yaml"
+    },
+    {
+      "id": "geo-01",
+      "path": "research/applied-science/geospatial",
+      "title": "Remote Sensing Analyst",
+      "file": "agents/geo-01.yaml"
+    },
+    {
+      "id": "geo-02",
+      "path": "research/applied-science/geospatial",
+      "title": "Geospatial Data Engineer",
+      "file": "agents/geo-02.yaml"
+    },
+    {
+      "id": "geo-03",
+      "path": "research/applied-science/geospatial",
+      "title": "Land Use & Urban Analyst",
+      "file": "agents/geo-03.yaml"
+    },
+    {
+      "id": "geo-04",
+      "path": "research/applied-science/geospatial",
+      "title": "Cartographic Communicator",
+      "file": "agents/geo-04.yaml"
+    },
+    {
+      "id": "geo-05",
+      "path": "research/applied-science/geospatial",
+      "title": "Ground Truth & Validation Analyst",
+      "file": "agents/geo-05.yaml"
+    },
+    {
+      "id": "geo-06",
+      "path": "research/applied-science/geospatial",
+      "title": "Geospatial Privacy Reviewer",
+      "file": "agents/geo-06.yaml"
+    },
+    {
+      "id": "game-01",
+      "path": "research/creative/games",
+      "title": "Game Systems Designer",
+      "file": "agents/game-01.yaml"
+    },
+    {
+      "id": "game-02",
+      "path": "research/creative/games",
+      "title": "NPC Behavior Designer",
+      "file": "agents/game-02.yaml"
+    },
+    {
+      "id": "game-03",
+      "path": "research/creative/games",
+      "title": "Procedural Content Designer",
+      "file": "agents/game-03.yaml"
+    },
+    {
+      "id": "game-04",
+      "path": "research/creative/games",
+      "title": "Narrative Designer",
+      "file": "agents/game-04.yaml"
+    },
+    {
+      "id": "game-05",
+      "path": "research/creative/games",
+      "title": "Playtest Research Lead",
+      "file": "agents/game-05.yaml"
+    },
+    {
+      "id": "game-06",
+      "path": "research/creative/games",
+      "title": "Live Balance Analyst",
+      "file": "agents/game-06.yaml"
+    },
+    {
+      "id": "film-01",
+      "path": "research/creative/film",
+      "title": "Post Pipeline Supervisor",
+      "file": "agents/film-01.yaml"
+    },
+    {
+      "id": "film-02",
+      "path": "research/creative/film",
+      "title": "Editorial Story Analyst",
+      "file": "agents/film-02.yaml"
+    },
+    {
+      "id": "film-03",
+      "path": "research/creative/film",
+      "title": "VFX Shot Planner",
+      "file": "agents/film-03.yaml"
+    },
+    {
+      "id": "film-04",
+      "path": "research/creative/film",
+      "title": "Colour & Finishing Specialist",
+      "file": "agents/film-04.yaml"
+    },
+    {
+      "id": "film-05",
+      "path": "research/creative/film",
+      "title": "Sound Design & Mix Lead",
+      "file": "agents/film-05.yaml"
+    },
+    {
+      "id": "film-06",
+      "path": "research/creative/film",
+      "title": "Delivery QC Reviewer",
+      "file": "agents/film-06.yaml"
+    },
+    {
+      "id": "fash-01",
+      "path": "research/creative/fashion",
+      "title": "Trend Research Analyst",
+      "file": "agents/fash-01.yaml"
+    },
+    {
+      "id": "fash-02",
+      "path": "research/creative/fashion",
+      "title": "Materials & Sustainability Specialist",
+      "file": "agents/fash-02.yaml"
+    },
+    {
+      "id": "fash-03",
+      "path": "research/creative/fashion",
+      "title": "Technical Design & Fit Specialist",
+      "file": "agents/fash-03.yaml"
+    },
+    {
+      "id": "fash-04",
+      "path": "research/creative/fashion",
+      "title": "Sourcing & Supplier Analyst",
+      "file": "agents/fash-04.yaml"
+    },
+    {
+      "id": "fash-05",
+      "path": "research/creative/fashion",
+      "title": "Merchandise Planner",
+      "file": "agents/fash-05.yaml"
+    },
+    {
+      "id": "fash-06",
+      "path": "research/creative/fashion",
+      "title": "Product Compliance Reviewer",
+      "file": "agents/fash-06.yaml"
+    },
+    {
+      "id": "soc-01",
+      "path": "research/creative/social-policy",
+      "title": "Survey Methodologist",
+      "file": "agents/soc-01.yaml"
+    },
+    {
+      "id": "soc-02",
+      "path": "research/creative/social-policy",
+      "title": "Qualitative Coding Analyst",
+      "file": "agents/soc-02.yaml"
+    },
+    {
+      "id": "soc-03",
+      "path": "research/creative/social-policy",
+      "title": "Public Opinion Analyst",
+      "file": "agents/soc-03.yaml"
+    },
+    {
+      "id": "soc-04",
+      "path": "research/creative/social-policy",
+      "title": "Policy Impact Modeler",
+      "file": "agents/soc-04.yaml"
+    },
+    {
+      "id": "soc-05",
+      "path": "research/creative/social-policy",
+      "title": "Research Ethics Reviewer",
+      "file": "agents/soc-05.yaml"
+    },
+    {
+      "id": "soc-06",
+      "path": "research/creative/social-policy",
+      "title": "Evidence Synthesis Reviewer",
+      "file": "agents/soc-06.yaml"
+    },
+    {
+      "id": "ling-01",
+      "path": "research/creative/linguistics",
+      "title": "Field Documentation Linguist",
+      "file": "agents/ling-01.yaml"
+    },
+    {
+      "id": "ling-02",
+      "path": "research/creative/linguistics",
+      "title": "Phonological & Morphological Analyst",
+      "file": "agents/ling-02.yaml"
+    },
+    {
+      "id": "ling-03",
+      "path": "research/creative/linguistics",
+      "title": "Corpus & Lexicography Specialist",
+      "file": "agents/ling-03.yaml"
+    },
+    {
+      "id": "ling-04",
+      "path": "research/creative/linguistics",
+      "title": "Translation & Localization Reviewer",
+      "file": "agents/ling-04.yaml"
+    },
+    {
+      "id": "ling-05",
+      "path": "research/creative/linguistics",
+      "title": "Dialect & Variation Analyst",
+      "file": "agents/ling-05.yaml"
+    },
+    {
+      "id": "ling-06",
+      "path": "research/creative/linguistics",
+      "title": "Language Revitalization Planner",
+      "file": "agents/ling-06.yaml"
+    },
+    {
+      "id": "insr-01",
+      "path": "research/professional/insurance",
+      "title": "Claims Adjuster",
+      "file": "agents/insr-01.yaml"
+    },
+    {
+      "id": "insr-02",
+      "path": "research/professional/insurance",
+      "title": "Underwriting Risk Analyst",
+      "file": "agents/insr-02.yaml"
+    },
+    {
+      "id": "insr-03",
+      "path": "research/professional/insurance",
+      "title": "Actuarial Reviewer",
+      "file": "agents/insr-03.yaml"
+    },
+    {
+      "id": "insr-04",
+      "path": "research/professional/insurance",
+      "title": "Fraud Detection Analyst",
+      "file": "agents/insr-04.yaml"
+    },
+    {
+      "id": "insr-05",
+      "path": "research/professional/insurance",
+      "title": "Policy Wording Analyst",
+      "file": "agents/insr-05.yaml"
+    },
+    {
+      "id": "insr-06",
+      "path": "research/professional/insurance",
+      "title": "Catastrophe Exposure Modeler",
+      "file": "agents/insr-06.yaml"
+    },
+    {
+      "id": "evnt-01",
+      "path": "research/professional/events",
+      "title": "Venue & Logistics Coordinator",
+      "file": "agents/evnt-01.yaml"
+    },
+    {
+      "id": "evnt-02",
+      "path": "research/professional/events",
+      "title": "Vendor & Contract Manager",
+      "file": "agents/evnt-02.yaml"
+    },
+    {
+      "id": "evnt-03",
+      "path": "research/professional/events",
+      "title": "Guest Experience Designer",
+      "file": "agents/evnt-03.yaml"
+    },
+    {
+      "id": "evnt-04",
+      "path": "research/professional/events",
+      "title": "Event Production Scheduler",
+      "file": "agents/evnt-04.yaml"
+    },
+    {
+      "id": "evnt-05",
+      "path": "research/professional/events",
+      "title": "Event Risk & Safety Planner",
+      "file": "agents/evnt-05.yaml"
+    },
+    {
+      "id": "evnt-06",
+      "path": "research/professional/events",
+      "title": "Event Budget Controller",
+      "file": "agents/evnt-06.yaml"
+    },
+    {
+      "id": "qac-01",
+      "path": "research/professional/compliance",
+      "title": "Regulatory Change Monitor",
+      "file": "agents/qac-01.yaml"
+    },
+    {
+      "id": "qac-02",
+      "path": "research/professional/compliance",
+      "title": "Control Design Analyst",
+      "file": "agents/qac-02.yaml"
+    },
+    {
+      "id": "qac-03",
+      "path": "research/professional/compliance",
+      "title": "Audit Evidence Collector",
+      "file": "agents/qac-03.yaml"
+    },
+    {
+      "id": "qac-04",
+      "path": "research/professional/compliance",
+      "title": "Certification Readiness Assessor",
+      "file": "agents/qac-04.yaml"
+    },
+    {
+      "id": "qac-05",
+      "path": "research/professional/compliance",
+      "title": "Nonconformance & CAPA Analyst",
+      "file": "agents/qac-05.yaml"
+    },
+    {
+      "id": "qac-06",
+      "path": "research/professional/compliance",
+      "title": "Quality Management Reviewer",
+      "file": "agents/qac-06.yaml"
+    },
+    {
+      "id": "sre-01",
+      "path": "research/software/reliability",
+      "title": "Incident Commander",
+      "file": "agents/sre-01.yaml"
+    },
+    {
+      "id": "sre-02",
+      "path": "research/software/reliability",
+      "title": "Reliability Diagnostician",
+      "file": "agents/sre-02.yaml"
+    },
+    {
+      "id": "sre-03",
+      "path": "research/software/reliability",
+      "title": "Capacity & Performance Planner",
+      "file": "agents/sre-03.yaml"
+    },
+    {
+      "id": "sre-04",
+      "path": "research/software/reliability",
+      "title": "Deployment & Release Engineer",
+      "file": "agents/sre-04.yaml"
+    },
+    {
+      "id": "sre-05",
+      "path": "research/software/reliability",
+      "title": "Observability Engineer",
+      "file": "agents/sre-05.yaml"
+    },
+    {
+      "id": "sre-06",
+      "path": "research/software/reliability",
+      "title": "Postmortem Facilitator",
+      "file": "agents/sre-06.yaml"
+    },
+    {
+      "id": "robo-01",
+      "path": "research/emerging/robotics",
+      "title": "Manipulation Planning Engineer",
+      "file": "agents/robo-01.yaml"
+    },
+    {
+      "id": "robo-02",
+      "path": "research/emerging/robotics",
+      "title": "Multi-Robot Coordination Engineer",
+      "file": "agents/robo-02.yaml"
+    },
+    {
+      "id": "robo-03",
+      "path": "research/emerging/robotics",
+      "title": "Robot Perception Engineer",
+      "file": "agents/robo-03.yaml"
+    },
+    {
+      "id": "robo-04",
+      "path": "research/emerging/robotics",
+      "title": "Robot Safety Engineer",
+      "file": "agents/robo-04.yaml"
+    },
+    {
+      "id": "robo-05",
+      "path": "research/emerging/robotics",
+      "title": "Simulation & Sim-to-Real Analyst",
+      "file": "agents/robo-05.yaml"
+    },
+    {
+      "id": "robo-06",
+      "path": "research/emerging/robotics",
+      "title": "Deployment Readiness Assessor",
+      "file": "agents/robo-06.yaml"
+    },
+    {
+      "id": "peer-01",
+      "path": "research/emerging/peer-review",
+      "title": "Manuscript Triage Editor",
+      "file": "agents/peer-01.yaml"
+    },
+    {
+      "id": "peer-02",
+      "path": "research/emerging/peer-review",
+      "title": "Reviewer Matching Analyst",
+      "file": "agents/peer-02.yaml"
+    },
+    {
+      "id": "peer-03",
+      "path": "research/emerging/peer-review",
+      "title": "Methods & Statistics Reviewer",
+      "file": "agents/peer-03.yaml"
+    },
+    {
+      "id": "peer-04",
+      "path": "research/emerging/peer-review",
+      "title": "Reproducibility Analyst",
+      "file": "agents/peer-04.yaml"
+    },
+    {
+      "id": "peer-05",
+      "path": "research/emerging/peer-review",
+      "title": "Research Integrity Screener",
+      "file": "agents/peer-05.yaml"
+    },
+    {
+      "id": "peer-06",
+      "path": "research/emerging/peer-review",
+      "title": "Editorial Decision Writer",
+      "file": "agents/peer-06.yaml"
+    },
+    {
+      "id": "crisis-01",
+      "path": "research/emerging/crisis",
+      "title": "Emergency Dispatch Coordinator",
+      "file": "agents/crisis-01.yaml"
+    },
+    {
+      "id": "crisis-02",
+      "path": "research/emerging/crisis",
+      "title": "Scenario Simulation Analyst",
+      "file": "agents/crisis-02.yaml"
+    },
+    {
+      "id": "crisis-03",
+      "path": "research/emerging/crisis",
+      "title": "Resource & Logistics Officer",
+      "file": "agents/crisis-03.yaml"
+    },
+    {
+      "id": "crisis-04",
+      "path": "research/emerging/crisis",
+      "title": "Public Information Officer",
+      "file": "agents/crisis-04.yaml"
+    },
+    {
+      "id": "crisis-05",
+      "path": "research/emerging/crisis",
+      "title": "Situation Assessment Analyst",
+      "file": "agents/crisis-05.yaml"
+    },
+    {
+      "id": "crisis-06",
+      "path": "research/emerging/crisis",
+      "title": "Recovery & Continuity Planner",
+      "file": "agents/crisis-06.yaml"
     }
   ]
 }
