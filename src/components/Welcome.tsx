@@ -6,6 +6,7 @@ import {
   Boxes,
   Building2,
   Calculator,
+  CircleHelp,
   Code2,
   Feather,
   Images,
@@ -22,6 +23,7 @@ import { WORKFLOW_TEMPLATES } from "../lib/templates";
 import { useStudioStore } from "../store/useStudioStore";
 import type { ProjectRecord } from "../types";
 import { Brand } from "./Brand";
+import { LazyHelpDialog } from "./LazyHelpDialog";
 import { ThemeToggle } from "./ThemeToggle";
 
 const WORKFLOW_AREAS = [
@@ -219,6 +221,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
   const openProject = useStudioStore((state) => state.openProject);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeArea, setActiveArea] = useState<(typeof WORKFLOW_AREAS)[number]["name"]>("Core patterns");
+  const [helpOpen, setHelpOpen] = useState(false);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
@@ -246,7 +249,13 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
     <main className="welcome-shell">
       <header className="welcome-header">
         <Brand />
-        <ThemeToggle />
+        <div className="welcome-header-actions">
+          <button className="quiet-button welcome-help-button" onClick={() => setHelpOpen(true)} type="button">
+            <CircleHelp size={16} aria-hidden="true" />
+            <span>Intro &amp; help</span>
+          </button>
+          <ThemeToggle />
+        </div>
       </header>
 
       <section className="gallery-section workflow-library" aria-labelledby="gallery-title">
@@ -370,6 +379,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
         <span>Open source · offline-first · no account · never runs agents</span>
         <span>LGIR v1alpha1</span>
       </footer>
+      {helpOpen ? <LazyHelpDialog onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );
 }

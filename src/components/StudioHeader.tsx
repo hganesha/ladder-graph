@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Braces,
   CheckCircle2,
+  CircleHelp,
   Code2,
   Columns2,
   Database,
@@ -21,7 +22,7 @@ import { Brand } from "./Brand";
 import { download } from "./OutputPanel";
 import { ThemeToggle } from "./ThemeToggle";
 
-export function StudioHeader({ onStorage }: { onStorage: () => void }) {
+export function StudioHeader({ onHelp, onStorage }: { onHelp: () => void; onStorage: () => void }) {
   const state = useStudioStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState("");
@@ -52,6 +53,9 @@ export function StudioHeader({ onStorage }: { onStorage: () => void }) {
       </div>
       <div className="header-actions">
         <ThemeToggle compact />
+        <button className="icon-button" title="Intro and help" aria-label="Open intro and help" onClick={onHelp} type="button">
+          <CircleHelp size={15} aria-hidden="true" />
+        </button>
         <button
           className="status-button"
           onClick={() => state.toggleDiagnostics(true)}
@@ -239,6 +243,9 @@ export function StudioHeader({ onStorage }: { onStorage: () => void }) {
         </button>
         <button className="icon-button" title="Storage" aria-label="Storage details" onClick={onStorage}>
           <Database size={15} />
+        </button>
+        <button className="icon-button" title="Intro and help" aria-label="Open intro and help" onClick={onHelp} type="button">
+          <CircleHelp size={15} aria-hidden="true" />
         </button>
       </section>
       {importError && <div className="import-error">{importError}</div>}
