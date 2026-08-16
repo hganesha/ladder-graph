@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Atom,
   Beaker,
   BookOpen,
   Boxes,
@@ -7,7 +8,9 @@ import {
   Code2,
   Feather,
   Images,
+  Calculator,
   Megaphone,
+  Music2,
   PenTool,
   ShieldCheck,
   Sparkles,
@@ -53,6 +56,21 @@ const WORKFLOW_AREAS = [
     name: "Personal development",
     description: "Values-aligned goals, behavior design, productivity systems, career discernment, and reflection.",
     icon: Target,
+  },
+  {
+    name: "Mathematics",
+    description: "Trigonometry, algebra, optimization, formal proofs, and mathematical visualization.",
+    icon: Calculator,
+  },
+  {
+    name: "Music",
+    description: "Audio analysis, recommendation, composition, songwriting, arrangement, and orchestration.",
+    icon: Music2,
+  },
+  {
+    name: "Physics",
+    description: "Problem solving, dimensional checks, simulation, experimental analysis, and model validation.",
+    icon: Atom,
   },
 ] as const;
 

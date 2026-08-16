@@ -1,6 +1,7 @@
 import { stringify } from "yaml";
 import type { TemplateDefinition, Workflow } from "../types";
 import { inputContractSchema } from "./inputContracts";
+import { MATH_MUSIC_PHYSICS_WORKFLOW_TEMPLATES } from "./mathMusicPhysicsTemplates";
 
 const common = {
   apiVersion: "ladder.dev/v1alpha1" as const,
@@ -2650,6 +2651,7 @@ export const WORKFLOW_TEMPLATES: TemplateDefinition[] = [
     accent: "#68a56f",
     yaml: toYaml(valuesToAction),
   },
+  ...MATH_MUSIC_PHYSICS_WORKFLOW_TEMPLATES,
 ];
 
 export const BLANK_WORKFLOW = toYaml({

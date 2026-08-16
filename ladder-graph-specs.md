@@ -88,6 +88,8 @@ Agent, evaluator, teacher, and tool nodes may declare an optional host-resolved 
 
 Catalog entries are authoring suggestions, not an inventory of installed capabilities. Ladder Graph does not connect to a harness, inspect user configuration, install skills, grant permissions, import runtime packages, or invoke connectors. Compiled Markdown names every required skill and connector and embeds custom instructions. Generated code exposes the same declarations as inert data for an explicitly supplied host application. OpenRouter profiles are research snapshots: model slugs, endpoints, supported parameters, asynchronous behavior, availability, and pricing must be verified before use, and credentials must never be stored in LGIR.
 
+The bundled research library includes mathematics, music, and physics specialists and starter workflows. Symbolic solvers, recommendation systems, audio-analysis tools, scientific databases, simulation packages, and notation or DAW integrations remain declarative requirements; generated workflows must report uncertainty and cannot imply that an unavailable tool performed a calculation, transcription, simulation, or measurement.
+
 ### Structured loops
 
 A loop owns a body list, an exit-condition reference, `maxIterations` from 1 through 100, and an exhaustion policy. Back-edges and self-edges are invalid. Targets render loops as explicit bounded instructions and report the capability as instructional.
@@ -133,7 +135,7 @@ Python artifacts are importable `.ladder.py` modules. TypeScript artifacts are t
 - React 19, TypeScript, Vite, Tailwind 4, React Flow, CodeMirror 6, Zustand, and Dagre.
 - Rust owns parsing, normalization, semantic validation, stable diagnostics, hashing, and target compilation.
 - The UI owns browser I/O, graph interaction, layout, YAML CST patching, download/copy, and persistence.
-- Generated WebAssembly artifacts are committed. Static hosts only run the Node/Vite build.
+- Generated WebAssembly artifacts are committed after stripping non-semantic custom sections so macOS and Linux builds remain byte-reproducible. Static hosts only run the Node/Vite build.
 - The PWA precaches its shell, fonts, templates, schema, worker, and WebAssembly and has no runtime CDN dependency.
 
 ## Product success and GTM

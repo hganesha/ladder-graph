@@ -14,7 +14,9 @@
       "!visual-sde-graph-builder",
       "!agent_templates.json",
       "!security_architecture_agent_templates.json",
-      "!openrouter_multimodal_connectors.json"
+      "!openrouter_multimodal_connectors.json",
+      "!math_music_physics_agent_templates.json",
+      "!math_music_physics_workflow_templates.json"
     ]
   },
   "formatter": {

@@ -62,6 +62,27 @@ export const ROLE_CATEGORIES: RoleCategory[] = [
     pathPrefix: "research/personal-development/",
     searchTerms: ["goals", "coaching", "career", "productivity"],
   },
+  {
+    id: "mathematics",
+    label: "Mathematics",
+    description: "Trigonometry, algebra, optimization, proof verification, and mathematical visualization.",
+    pathPrefix: "research/mathematics/",
+    searchTerms: ["math", "algebra", "trigonometry", "optimization", "proof"],
+  },
+  {
+    id: "music",
+    label: "Music",
+    description: "Pitch, harmony, rhythm, form, recommendation, composition, lyrics, and orchestration.",
+    pathPrefix: "research/music/",
+    searchTerms: ["audio", "composition", "songwriting", "harmony", "recommendation"],
+  },
+  {
+    id: "physics",
+    label: "Physics",
+    description: "Mechanics, electromagnetism, thermodynamics, quantum, simulation, units, and experiments.",
+    pathPrefix: "research/physics/",
+    searchTerms: ["science", "mechanics", "quantum", "simulation", "experimental"],
+  },
 ];
 
 export function groupRoleTemplates(roles: RoleTemplate[], query = ""): RoleCategoryGroup[] {

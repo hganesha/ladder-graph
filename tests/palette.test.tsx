@@ -15,8 +15,8 @@ describe("agent template palette", () => {
   it("surfaces the expanded role count and researched specialists", () => {
     render(<Palette />);
 
-    expect(ROLE_TEMPLATES).toHaveLength(93);
-    expect(screen.getByText("93 agents")).toBeInTheDocument();
+    expect(ROLE_TEMPLATES).toHaveLength(119);
+    expect(screen.getByText("119 agents")).toBeInTheDocument();
     const macros = screen.getByLabelText("Visual macros");
     const primitives = screen.getByLabelText("Primitives");
     const agents = screen.getByLabelText("Agent templates");
@@ -32,12 +32,18 @@ describe("agent template palette", () => {
     expect(screen.getByLabelText("Humanities agent templates (15)")).toBeInTheDocument();
     expect(screen.getByLabelText("Writing agent templates (5)")).toBeInTheDocument();
     expect(screen.getByLabelText("Personal development agent templates (5)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Mathematics agent templates (8)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Music agent templates (10)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Physics agent templates (8)")).toBeInTheDocument();
     expect(screen.getByText("Requirements Analyst")).toBeInTheDocument();
     expect(screen.getByText("Penetration Tester / Red Team Operator")).toBeInTheDocument();
     expect(screen.getByText("Building Architect / Design Architect")).toBeInTheDocument();
     expect(screen.getByText("Socratic Dialogue Partner")).toBeInTheDocument();
     expect(screen.getByText("Developmental Editor")).toBeInTheDocument();
     expect(screen.getByText("Life Coach / Values-Based Goal Strategist")).toBeInTheDocument();
+    expect(screen.getByText("Trigonometry Problem Solver & Tutor")).toBeInTheDocument();
+    expect(screen.getByText("Melody & Harmonic Co-Composer")).toBeInTheDocument();
+    expect(screen.getByText("Quantum Mechanics Tutor")).toBeInTheDocument();
   });
 
   it("finds a researched role through the visible library search", () => {
@@ -64,6 +70,9 @@ describe("agent template palette", () => {
       ["Humanities", 15],
       ["Writing", 5],
       ["Personal development", 5],
+      ["Mathematics", 8],
+      ["Music", 10],
+      ["Physics", 8],
     ]);
     expect(groups.flatMap((group) => group.roles)).toHaveLength(ROLE_TEMPLATES.length);
     expect(groupRoleTemplates(ROLE_TEMPLATES, "SWE").map(({ label, roles }) => [label, roles.length])).toEqual([["SWE", 20]]);
