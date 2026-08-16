@@ -36,15 +36,9 @@ npm run build
 
 ```bash
 cargo build --release -p ladder-graph-mcp
-
-# Terminal 1: keep the browser sync service running
-./target/release/ladder-graph-mcp serve
-
-# Terminal 2: create a one-time browser pairing code
-./target/release/ladder-graph-mcp pair
 ```
 
-Open **Local storage → MCP companion** in Ladder Graph, enter the code, and publish the saved library. The stdio MCP server can then be configured with:
+Configure the stdio MCP server in your chat client:
 
 ```json
 {
@@ -57,9 +51,11 @@ Open **Local storage → MCP companion** in Ladder Graph, enter the code, and pu
 }
 ```
 
-It exposes MCP resources for workflows and agent templates plus `search_catalog`, `get_workflow`, `get_agent_template`, `validate_workflow`, and `compile_workflow`. Run `ladder-graph-mcp doctor` to inspect local setup, `status` for catalog counts, or `revoke` to invalidate all browser pairing tokens.
+The chat client starts the binary, and the same process starts its loopback browser bridge automatically. Open **MCP** in Ladder Graph and the browser connects using its anonymous local installation ID—there is no server command or pairing code to copy. Choose **Publish saved library** to expose custom workflows and templates to MCP clients.
 
-The sync service binds only to loopback. Development origins are allowed by default; a deployed PWA origin must be added explicitly with `serve --allow-origin https://your-origin.example`.
+It exposes MCP resources for workflows and agent templates plus `search_catalog`, `get_workflow`, `get_agent_template`, `validate_workflow`, and `compile_workflow`. Run `ladder-graph-mcp doctor` to inspect local setup, `status` for catalog counts, or `revoke` to invalidate all browser connection tokens.
+
+The sync service binds only to loopback. Ladder Graph's production origin and local development origins are allowed by default. Add custom deployments through the comma-separated `LADDER_GRAPH_MCP_ALLOWED_ORIGINS` environment variable or the standalone diagnostic command `serve --allow-origin https://your-origin.example`.
 
 The Rust-generated files in `src/wasm/pkg` are intentionally committed so static deployments do not need a Rust toolchain.
 

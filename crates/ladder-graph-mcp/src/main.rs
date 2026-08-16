@@ -6,10 +6,35 @@ use anyhow::{Context, Result};
 use paths::AppPaths;
 use rmcp::{ServiceExt, transport::stdio};
 use server::LadderGraphServer;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::Duration};
 use tracing_subscriber::EnvFilter;
 
 const DEFAULT_BIND: &str = "127.0.0.1:7341";
+
+fn default_allowed_origins() -> Vec<String> {
+    let mut origins = (5173..=5179)
+        .flat_map(|port| {
+            [
+                format!("http://localhost:{port}"),
+                format!("http://127.0.0.1:{port}"),
+            ]
+        })
+        .collect::<Vec<_>>();
+    origins.extend([
+        "https://ladder-graph.vercel.app".to_string(),
+        "https://ladder-graph-hariganesh-9080s-projects.vercel.app".to_string(),
+    ]);
+    if let Ok(additional) = std::env::var("LADDER_GRAPH_MCP_ALLOWED_ORIGINS") {
+        origins.extend(
+            additional
+                .split(',')
+                .map(str::trim)
+                .filter(|origin| !origin.is_empty())
+                .map(str::to_string),
+        );
+    }
+    origins
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -24,19 +49,13 @@ async fn main() -> Result<()> {
     match arguments.first().map(String::as_str).unwrap_or("stdio") {
         "stdio" => run_stdio(paths).await,
         "serve" => run_serve(paths, &arguments[1..]).await,
-        "pair" => {
-            let code = sync::create_pairing_code(&paths)?;
-            println!("{code}");
-            eprintln!("Pairing code expires in five minutes.");
-            Ok(())
-        }
         "status" => {
             println!("{}", serde_json::to_string_pretty(&sync::status(&paths)?)?);
             Ok(())
         }
         "revoke" => {
             sync::revoke(&paths)?;
-            println!("Revoked all browser pairings.");
+            println!("Revoked all browser connections.");
             Ok(())
         }
         "doctor" => doctor(paths),
@@ -50,20 +69,50 @@ async fn main() -> Result<()> {
 
 async fn run_stdio(paths: AppPaths) -> Result<()> {
     paths.ensure()?;
+    let sync_paths = paths.clone();
+    let sync_task = tokio::spawn(run_sync_bridge(sync_paths));
     let service = LadderGraphServer::new(paths.snapshot)
         .serve(stdio())
         .await
         .inspect_err(|error| tracing::error!(%error, "MCP stdio server failed to start"))?;
     service.waiting().await?;
+    sync_task.abort();
     Ok(())
+}
+
+async fn run_sync_bridge(paths: AppPaths) {
+    loop {
+        let result = sync::serve(
+            paths.clone(),
+            DEFAULT_BIND.parse().expect("default bind address is valid"),
+            default_allowed_origins(),
+        )
+        .await;
+        match result {
+            Ok(()) => break,
+            Err(error)
+                if error.chain().any(|cause| {
+                    cause
+                        .downcast_ref::<std::io::Error>()
+                        .is_some_and(|io_error| io_error.kind() == std::io::ErrorKind::AddrInUse)
+                }) =>
+            {
+                tracing::debug!(
+                    "browser sync bridge already owned by another MCP process; retrying"
+                );
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+            Err(error) => {
+                tracing::warn!(%error, "browser sync bridge unavailable");
+                break;
+            }
+        }
+    }
 }
 
 async fn run_serve(paths: AppPaths, arguments: &[String]) -> Result<()> {
     let mut bind = DEFAULT_BIND.parse::<SocketAddr>()?;
-    let mut origins = vec![
-        "http://localhost:5173".to_string(),
-        "http://127.0.0.1:5173".to_string(),
-    ];
+    let mut origins = default_allowed_origins();
     let mut index = 0;
     while index < arguments.len() {
         match arguments[index].as_str() {
@@ -99,7 +148,7 @@ fn doctor(paths: AppPaths) -> Result<()> {
     println!("data directory: {}", paths.data_dir.display());
     println!("built-in and user resources: {}", catalog.entries().len());
     println!("snapshot readable: {}", paths.snapshot.exists());
-    println!("browser pairing configured: {}", paths.auth.exists());
+    println!("browser connection configured: {}", paths.auth.exists());
     println!("status: ok");
     Ok(())
 }
@@ -110,7 +159,6 @@ fn print_help() {
          Usage:\n  \
          ladder-graph-mcp stdio\n  \
          ladder-graph-mcp serve [--bind 127.0.0.1:7341] [--allow-origin ORIGIN]\n  \
-         ladder-graph-mcp pair\n  \
          ladder-graph-mcp status\n  \
          ladder-graph-mcp revoke\n  \
          ladder-graph-mcp doctor"

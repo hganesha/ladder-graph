@@ -24,7 +24,7 @@ The native server reuses the existing Rust compiler directly. It does not embed 
 ```mermaid
 flowchart LR
     PWA["Ladder Graph PWA"]
-    Sync["Authenticated loopback sync API"]
+    Sync["Auto-discovered loopback sync API"]
     Snapshot["Atomic local catalog snapshot"]
     Stdio["ladder-graph-mcp stdio"]
     HTTP["ladder-graph-mcp serve /mcp"]
@@ -152,24 +152,24 @@ After resources and tools interoperate broadly, expose agent templates as MCP pr
 
 ## Browser-to-native synchronization
 
-The browser cannot safely or portably open IndexedDB/OPFS from a native process. The companion therefore provides a small loopback API in `ladder-graph-mcp serve`:
+The browser cannot safely or portably expose IndexedDB/OPFS to a native process. The companion therefore provides a small loopback API. It starts automatically beside the normal stdio MCP transport, so the user does not run a second process:
 
 ```text
 GET  /health
-POST /api/v1/pair
+POST /api/v1/connect
 PUT  /api/v1/catalog/user
 POST /mcp                       # Streamable HTTP, when enabled
 ```
 
-Pairing flow:
+Connection flow:
 
-1. The user starts the companion and requests a one-time pairing code.
-2. In Ladder Graph, the user chooses **Connect MCP companion** and enters the code.
-3. The service exchanges it for a scoped, revocable sync token.
-4. The PWA stores the token in its existing origin-scoped browser storage.
+1. The user configures `ladder-graph-mcp` once in ChatGPT, Claude, Codex, or another desktop MCP client.
+2. The client starts the stdio server, which also binds the origin-restricted loopback bridge.
+3. Ladder Graph discovers the bridge and presents its anonymous browser installation UUID.
+4. The service returns a scoped, revocable sync token; the PWA stores it in origin-scoped browser storage.
 5. **Publish to MCP** sends a complete valid user snapshot and shows the count, timestamp, and resulting catalog revision.
 
-The sync service binds only to `127.0.0.1`/`::1`, validates `Origin`, uses an explicit CORS allowlist, requires the pairing token for writes, limits request size, and rejects unexpected content types. Pairing codes are short-lived and single-use. Logs must never contain source bodies, prompts, codes, or tokens.
+The sync service binds only to `127.0.0.1`/`::1`, uses an explicit CORS allowlist, requires the installation token for writes, limits request size, and rejects unexpected content types. Custom deployed origins require explicit configuration. Logs must never contain source bodies, prompts, installation IDs, or tokens.
 
 The stdio MCP command reads the same snapshot file directly, so desktop clients can use the published catalog even when the loopback service is not running. All protocol messages go to stdout; diagnostics and logs go only to stderr.
 
@@ -178,7 +178,6 @@ The stdio MCP command reads the same snapshot file directly, so desktop clients 
 ```text
 ladder-graph-mcp stdio
 ladder-graph-mcp serve --bind 127.0.0.1:7341
-ladder-graph-mcp pair
 ladder-graph-mcp status
 ladder-graph-mcp revoke
 ladder-graph-mcp doctor
@@ -211,7 +210,7 @@ Exit gate: an MCP client can find a built-in workflow, retrieve its exact YAML, 
 ### Phase 2 — local user catalog publishing
 
 - Implement the versioned full-snapshot format and atomic snapshot store.
-- Implement loopback pairing, token rotation/revocation, origin validation, CORS, and request limits.
+- Implement automatic loopback discovery, installation-scoped token rotation/revocation, origin validation, CORS, and request limits.
 - Add the PWA connection, publish, status, and disconnect UI.
 - Publish user projects and user templates, using `lastValidYaml` when the current draft is invalid.
 - Reload changed snapshots safely in stdio processes.
@@ -245,7 +244,7 @@ Exit gate: HTTP transport passes conformance and threat-model review, including 
 | Core parity | Native and WASM analyze/format/compile outputs match for golden LGIR fixtures. |
 | Catalog | Stable IDs, deterministic ordering/hashes, duplicate rejection, full-snapshot deletion semantics. |
 | MCP | Initialize negotiation, pagination, resource templates, structured tool output, cancellation, malformed requests, clean shutdown. |
-| Sync | Pair expiry, replay rejection, token revoke, CORS/Origin rejection, size limits, atomic replacement, concurrent readers. |
+| Sync | Automatic connection, token replacement/revoke, CORS/Origin rejection, size limits, atomic replacement, concurrent readers. |
 | Security | YAML limits, no custom tags/aliases, path traversal, symlink handling, permissions, secret-free logs. |
 | Compatibility | MCP Inspector plus supported ChatGPT, Claude, and Codex configurations on each OS. |
 | Regression | Existing TypeScript, browser compiler, Rust, and end-to-end tests remain green. |
@@ -256,7 +255,7 @@ The first public release is complete when:
 
 1. A user can install one native binary and configure it as a local stdio MCP server.
 2. Built-in workflows and agent templates are discoverable as MCP resources.
-3. A user can pair the PWA, explicitly publish custom content, and see publish status.
+3. The PWA connects automatically once the MCP client starts the companion; the user can explicitly publish custom content and see publish status.
 4. A newly started MCP client can search and retrieve the published source YAML.
 5. The client can request JSON, Markdown, or a supported compiled target without changing the stored source.
 6. MCP cannot modify the Ladder Graph library.

@@ -1,6 +1,6 @@
-import { Cable, Database, HardDrive, Send, ShieldCheck, Unplug, X } from "lucide-react";
+import { Cable, Database, HardDrive, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { companionStatus, forgetCompanion, pairCompanion, publishToCompanion } from "../lib/mcpCompanion";
+import { companionStatus, connectCompanion, publishToCompanion } from "../lib/mcpCompanion";
 import { requestPersistentStorage, storageStatus } from "../lib/persistence";
 
 interface Status {
@@ -23,14 +23,21 @@ function bytes(value: number) {
 export function StorageDialog({ onClose }: { onClose: () => void }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [mcp, setMcp] = useState<McpStatus | null>(null);
-  const [pairCode, setPairCode] = useState("");
-  const [companionUrl, setCompanionUrl] = useState("http://127.0.0.1:7341");
   const [mcpBusy, setMcpBusy] = useState(false);
   const [mcpMessage, setMcpMessage] = useState("");
   const refreshMcp = useCallback(async () => {
-    const next = await companionStatus();
-    setMcp(next);
-    setCompanionUrl(next.url);
+    setMcpBusy(true);
+    setMcpMessage("");
+    try {
+      const next = await connectCompanion();
+      setMcp(next);
+      if (next.paired) setMcpMessage("Connected automatically to the local MCP companion.");
+    } catch (error) {
+      setMcp(await companionStatus());
+      setMcpMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setMcpBusy(false);
+    }
   }, []);
   useEffect(() => {
     void storageStatus().then(setStatus);
@@ -97,7 +104,7 @@ export function StorageDialog({ onClose }: { onClose: () => void }) {
             <Cable size={18} />
             <div>
               <strong id="mcp-companion-title">MCP companion</strong>
-              <span>{mcp?.reachable ? (mcp.paired ? "Connected" : "Ready to pair") : "Not running"}</span>
+              <span>{mcp?.reachable && mcp.paired ? "Connected" : "Waiting for local companion"}</span>
             </div>
           </div>
           <p>
@@ -105,41 +112,11 @@ export function StorageDialog({ onClose }: { onClose: () => void }) {
             read-only.
           </p>
           {!mcp?.paired ? (
-            <form
-              className="mcp-pair-form"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setMcpBusy(true);
-                setMcpMessage("");
-                try {
-                  const next = await pairCompanion(pairCode, companionUrl);
-                  setMcp(next);
-                  setPairCode("");
-                  setMcpMessage("This browser is paired with the local companion.");
-                } catch (error) {
-                  setMcpMessage(error instanceof Error ? error.message : String(error));
-                } finally {
-                  setMcpBusy(false);
-                }
-              }}
-            >
-              <label>
-                Companion URL
-                <input value={companionUrl} onChange={(event) => setCompanionUrl(event.target.value)} />
-              </label>
-              <label>
-                Pairing code
-                <input
-                  autoComplete="off"
-                  placeholder="XXXX-XXXX-XXXX-XXXX"
-                  value={pairCode}
-                  onChange={(event) => setPairCode(event.target.value)}
-                />
-              </label>
-              <button disabled={mcpBusy || !pairCode.trim()} type="submit">
-                <Cable size={14} /> Pair browser
+            <div className="mcp-actions">
+              <button disabled={mcpBusy} type="button" onClick={() => void refreshMcp()}>
+                <RefreshCw size={14} /> Check again
               </button>
-            </form>
+            </div>
           ) : (
             <div className="mcp-actions">
               <button
@@ -160,21 +137,11 @@ export function StorageDialog({ onClose }: { onClose: () => void }) {
               >
                 <Send size={14} /> Publish saved library
               </button>
-              <button
-                className="secondary"
-                disabled={mcpBusy}
-                onClick={async () => {
-                  await forgetCompanion();
-                  setMcpMessage("This browser disconnected from the companion. Run the CLI revoke command to invalidate the old token.");
-                  await refreshMcp();
-                }}
-              >
-                <Unplug size={14} /> Disconnect browser
-              </button>
             </div>
           )}
           <small>
-            Start <code>ladder-graph-mcp serve</code>, run <code>ladder-graph-mcp pair</code>, then enter its one-time code here.
+            Configure <code>ladder-graph-mcp</code> in your chat client once. The client starts it and this browser connects
+            automatically—no pairing code required.
           </small>
           {mcp?.details ? (
             <small>
