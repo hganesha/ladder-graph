@@ -35,8 +35,8 @@ The Rust-generated files in `src/wasm/pkg` are intentionally committed so static
 ## What the MVP includes
 
 - Twenty-one outcome-led starter workflows and 93 editable role templates, including researched software, security, architecture/design, humanities, writing, and personal-development specialists.
-- Eleven canonical node kinds, three edge kinds, and four visual macros.
-- DAG validation, structured bounded loops, bounded execution groups with aggregate or serialized exits, safe declarative transforms, target capability reporting, and stable diagnostics.
+- Fourteen canonical node kinds, including multi-output aggregators and teacher-model feedback, three edge kinds, and four visual macros.
+- DAG validation, structured bounded loops, bounded execution groups with aggregate or serialized exits, safe declarative transforms, explicit aggregation strategies, teacher-model feedback declarations, target capability reporting, and stable diagnostics.
 - One self-contained Markdown artifact for Codex, Claude, or Hermes Agent, or an importable deterministic data module for Python or TypeScript.
 - Typed text, image, audio, video, document, and mixed-media input contracts, including image-to-text and reference-image transformation workflows.
 - Target-aware skill and connector templates with per-node customization stored directly in LGIR, including 15 declarative OpenRouter image, video, speech, music, and transcription profiles.

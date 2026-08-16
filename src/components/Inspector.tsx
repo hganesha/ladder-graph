@@ -145,7 +145,7 @@ export function Inspector() {
                 onBlur={() => commit({ summary: draft.summary })}
               />
             </Field>
-            {(draft.kind === "agent" || draft.kind === "evaluate") && (
+            {(draft.kind === "agent" || draft.kind === "evaluate" || draft.kind === "teacher") && (
               <>
                 <Field label="Role">
                   <input
@@ -162,6 +162,20 @@ export function Inspector() {
                     onBlur={() => commit({ prompt: draft.prompt })}
                   />
                 </Field>
+                {draft.kind === "teacher" && (
+                  <Field label="Teacher model">
+                    <input
+                      aria-label="Teacher model reference"
+                      value={draft.config.teacherModel ?? ""}
+                      placeholder="provider:model or host alias"
+                      onChange={(event) => setDraft({ ...draft, config: { ...draft.config, teacherModel: event.target.value } })}
+                      onBlur={() => commit({ config: draft.config })}
+                    />
+                    <small className="field-help">
+                      A host-resolved model reference. Ladder Graph records it but never contacts the provider.
+                    </small>
+                  </Field>
+                )}
               </>
             )}
             {draft.kind === "condition" && (
@@ -579,6 +593,45 @@ function Advanced({
             <option value="all">All successful</option>
             <option value="allSettled">All settled</option>
             <option value="first">First result</option>
+          </select>
+        </Field>
+      )}
+      {node.kind === "aggregator" && (
+        <Field label="Aggregation strategy">
+          <select
+            value={node.config.aggregation ?? "collect"}
+            onChange={(event) =>
+              commit({
+                config: {
+                  ...node.config,
+                  aggregation: event.target.value as "collect" | "merge" | "concat" | "vote",
+                },
+              })
+            }
+          >
+            <option value="collect">Collect source-tagged results</option>
+            <option value="merge">Merge objects</option>
+            <option value="concat">Concatenate arrays</option>
+            <option value="vote">Tally matching values</option>
+          </select>
+        </Field>
+      )}
+      {node.kind === "teacher" && (
+        <Field label="Feedback mode">
+          <select
+            value={node.config.feedbackMode ?? "critique"}
+            onChange={(event) =>
+              commit({
+                config: {
+                  ...node.config,
+                  feedbackMode: event.target.value as "critique" | "score" | "rubric",
+                },
+              })
+            }
+          >
+            <option value="critique">Critique</option>
+            <option value="score">Score</option>
+            <option value="rubric">Rubric feedback</option>
           </select>
         </Field>
       )}

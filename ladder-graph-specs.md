@@ -30,8 +30,8 @@ Activation occurs when a user validates and copies or downloads a workflow with 
 ### Included
 
 - Visual and YAML authoring of deterministic workflows.
-- Dependencies, typed data edges, control edges, parallel branches, joins, conditions, evaluations, approvals, structured loops, execution groups, and subgraphs.
-- Canonical node kinds: `input`, `output`, `agent`, `tool`, `transform`, `condition`, `evaluate`, `approval`, `join`, `loop`, `group`, and `subgraph`.
+- Dependencies, typed data edges, control edges, parallel branches, joins, aggregators, conditions, evaluations, teacher-model feedback, approvals, structured loops, execution groups, and subgraphs.
+- Canonical node kinds: `input`, `output`, `agent`, `tool`, `transform`, `condition`, `evaluate`, `teacher`, `approval`, `join`, `aggregator`, `loop`, `group`, and `subgraph`.
 - Declarative transforms: select, rename, merge, filter, deduplicate, sort, and slice.
 - Visual macro insertion for Parallel, Pipeline, Reduce, and Verify. Macros materialize canonical nodes and edges before validation.
 - Role templates for the eight core roles plus 20 software-development, 20 security, and 20 architecture/design specialists. Research-derived roles preserve their narrow responsibility, handoff, verification, connector, and authorization boundaries.
@@ -89,6 +89,12 @@ Catalog entries are authoring suggestions, not an inventory of installed capabil
 ### Structured loops
 
 A loop owns a body list, an exit-condition reference, `maxIterations` from 1 through 100, and an exhaustion policy. Back-edges and self-edges are invalid. Targets render loops as explicit bounded instructions and report the capability as instructional.
+
+### Aggregators and teacher models
+
+An aggregator combines multiple upstream outputs using one explicit strategy: `collect` creates source-tagged entries, `merge` combines object fields while surfacing collisions, `concat` preserves array order, and `vote` tallies identical scalar or category values while preserving ties. A join only waits and releases branch outputs; it does not aggregate them.
+
+A teacher node requests feedback from a host-resolved `teacherModel` in `critique`, `score`, or `rubric` mode. It requires a prompt and emits a declared feedback contract. Ladder Graph records and compiles the model reference but never contacts the model provider or stores provider credentials.
 
 ### Execution groups
 

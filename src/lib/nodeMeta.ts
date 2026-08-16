@@ -11,8 +11,10 @@ export const NODE_META: Record<NodeKind, { label: string; hint: string; color: s
   transform: { label: "Transform", hint: "Safe declarative data mapping", color: "#e8bd58", category: "Data" },
   condition: { label: "Condition", hint: "Branch on an explicit expression", color: "#f0a05a", category: "Control" },
   evaluate: { label: "Evaluate", hint: "Score or critique a result", color: "#a990f5", category: "Control" },
+  teacher: { label: "Teacher model", hint: "Get feedback from a teacher model", color: "#b78cff", category: "Model" },
   approval: { label: "Approval", hint: "Pause for explicit user consent", color: "#f0cb76", category: "Control" },
   join: { label: "Join", hint: "Wait for parallel branches", color: "#3ecf8e", category: "Control" },
+  aggregator: { label: "Aggregator", hint: "Combine outputs from multiple nodes", color: "#2cc9a7", category: "Data" },
   loop: { label: "Loop", hint: "Bounded structured revision", color: "#e879a9", category: "Control" },
   group: { label: "Group", hint: "Bounded sequential or parallel phase", color: "#62b6e7", category: "Flow" },
   subgraph: { label: "Subgraph", hint: "Named collapsible phase", color: "#8391a6", category: "Flow" },
@@ -25,8 +27,10 @@ export const PALETTE_ORDER: NodeKind[] = [
   "transform",
   "condition",
   "evaluate",
+  "teacher",
   "approval",
   "join",
+  "aggregator",
   "loop",
   "group",
   "subgraph",
@@ -45,12 +49,14 @@ export function defaultNode(kind: NodeKind, index: number): import("../types").L
     config: {},
     position: { x: 220 + (index % 3) * 280, y: 120 + Math.floor(index / 3) * 190 },
   };
-  if (kind === "agent" || kind === "evaluate") {
-    base.role = kind === "evaluate" ? "Independent evaluator" : "Workflow specialist";
+  if (kind === "agent" || kind === "evaluate" || kind === "teacher") {
+    base.role = kind === "evaluate" ? "Independent evaluator" : kind === "teacher" ? "Teacher and feedback model" : "Workflow specialist";
     base.prompt =
       kind === "evaluate"
         ? "Evaluate the candidate against the contract and return a score with evidence."
-        : "Complete this focused task and return only the requested output.";
+        : kind === "teacher"
+          ? "Review the candidate output, identify specific improvements, and return actionable feedback without rewriting the candidate."
+          : "Complete this focused task and return only the requested output.";
     base.outputSchema =
       kind === "evaluate"
         ? {
@@ -58,7 +64,17 @@ export function defaultNode(kind: NodeKind, index: number): import("../types").L
             required: ["score", "passed", "reasons"],
             properties: { score: { type: "number" }, passed: { type: "boolean" }, reasons: { type: "array", items: { type: "string" } } },
           }
-        : { type: "object" };
+        : kind === "teacher"
+          ? {
+              type: "object",
+              required: ["feedback", "strengths", "improvements"],
+              properties: {
+                feedback: { type: "string" },
+                strengths: { type: "array", items: { type: "string" } },
+                improvements: { type: "array", items: { type: "string" } },
+              },
+            }
+          : { type: "object" };
   }
   if (kind === "input") base.inputSchema = inputContractSchema("text");
   if (kind === "transform") base.config = { operation: "select", expression: "$.result" };
@@ -71,6 +87,8 @@ export function defaultNode(kind: NodeKind, index: number): import("../types").L
       ],
     };
   if (kind === "join") base.config = { join: "all" };
+  if (kind === "aggregator") base.config = { aggregation: "collect" };
+  if (kind === "teacher") base.config = { teacherModel: "teacher-model", feedbackMode: "critique" };
   if (kind === "loop") base.config = { body: [], exitCondition: "evaluation.passed == true", maxIterations: 3, onExhausted: "stop" };
   if (kind === "group") {
     base.name = "Execution group";
