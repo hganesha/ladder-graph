@@ -58,4 +58,13 @@ describe("agent template palette", () => {
     expect(groups.flatMap((group) => group.roles)).toHaveLength(ROLE_TEMPLATES.length);
     expect(groupRoleTemplates(ROLE_TEMPLATES, "SWE").map(({ label, roles }) => [label, roles.length])).toEqual([["SWE", 20]]);
   });
+
+  it("surfaces aggregator and teacher-model primitives", () => {
+    render(<Palette />);
+
+    expect(screen.getByText("Aggregator")).toBeInTheDocument();
+    expect(screen.getByText("Teacher model")).toBeInTheDocument();
+    expect(screen.getByText("Combine outputs from multiple nodes")).toBeInTheDocument();
+    expect(screen.getByText("Get feedback from a teacher model")).toBeInTheDocument();
+  });
 });

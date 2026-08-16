@@ -6,6 +6,7 @@ import {
   CircleDot,
   Combine,
   Database,
+  GraduationCap,
   GitBranch,
   IterationCcw,
   LayoutPanelTop,
@@ -29,8 +30,10 @@ const icons = {
   transform: Database,
   condition: GitBranch,
   evaluate: ShieldCheck,
+  teacher: GraduationCap,
   approval: CheckCircle2,
   join: Combine,
+  aggregator: Combine,
   loop: IterationCcw,
   group: LayoutPanelTop,
   subgraph: CircleDot,
@@ -39,9 +42,18 @@ const icons = {
 export const TaskNode = memo(function TaskNode({ data, selected }: NodeProps<TaskFlowNode>) {
   const meta = NODE_META[data.kind];
   const Icon = icons[data.kind];
-  const incomplete = (data.kind === "agent" && !data.role) || (data.kind === "loop" && !data.config?.maxIterations);
+  const incomplete =
+    (data.kind === "agent" && !data.role) ||
+    (data.kind === "teacher" && !data.config?.teacherModel) ||
+    (data.kind === "loop" && !data.config?.maxIterations);
   const inputLabel = data.kind === "input" ? inputContractLabel(data.inputSchema) : null;
-  const configLabel = inputLabel ?? data.config?.maxIterations ?? data.config?.join ?? data.config?.operation;
+  const configLabel =
+    inputLabel ??
+    data.config?.teacherModel ??
+    data.config?.aggregation ??
+    data.config?.maxIterations ??
+    data.config?.join ??
+    data.config?.operation;
   return (
     <article
       className={`task-node ${selected ? "selected" : ""}`}

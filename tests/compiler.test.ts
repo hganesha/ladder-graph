@@ -5,6 +5,38 @@ import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
 import type { Workflow } from "../src/types";
 
 describe("LGIR fallback compiler", () => {
+  const primitiveWorkflow: Workflow = {
+    apiVersion: "ladder.dev/v1alpha1",
+    kind: "Workflow",
+    metadata: { name: "feedback-aggregation" },
+    spec: {
+      objective: "Combine two candidate results and request teacher feedback.",
+      nodes: [
+        { id: "input", kind: "input", name: "Input" },
+        { id: "draft-a", kind: "agent", name: "Draft A", role: "Writer", prompt: "Produce candidate A." },
+        { id: "draft-b", kind: "agent", name: "Draft B", role: "Writer", prompt: "Produce candidate B." },
+        { id: "combined", kind: "aggregator", name: "Combine", config: { aggregation: "collect" } },
+        {
+          id: "teacher",
+          kind: "teacher",
+          name: "Teacher feedback",
+          role: "Teacher",
+          prompt: "Identify strengths and specific improvements.",
+          config: { teacherModel: "host:teacher", feedbackMode: "critique" },
+        },
+        { id: "output", kind: "output", name: "Output" },
+      ],
+      edges: [
+        { id: "e1", from: "input", to: "draft-a", kind: "data" },
+        { id: "e2", from: "input", to: "draft-b", kind: "data" },
+        { id: "e3", from: "draft-a", to: "combined", kind: "data" },
+        { id: "e4", from: "draft-b", to: "combined", kind: "data" },
+        { id: "e5", from: "combined", to: "teacher", kind: "data" },
+        { id: "e6", from: "teacher", to: "output", kind: "data" },
+      ],
+    },
+  };
+
   it("analyzes every bundled workflow template", async () => {
     for (const template of WORKFLOW_TEMPLATES) {
       const result = await analyzeFallback(template.yaml, "codex");
@@ -20,6 +52,38 @@ describe("LGIR fallback compiler", () => {
     const loopError = result.diagnostics.find((item) => item.code === "LG120");
     expect(result.ok).toBe(false);
     expect(loopError?.fix).toEqual(expect.objectContaining({ value: 3 }));
+  });
+
+  it("validates and compiles aggregators and teacher-model feedback", async () => {
+    const source = stringify(primitiveWorkflow);
+    const analysis = await analyzeFallback(source, "codex");
+    const compiled = await compileFallback(source, "codex");
+
+    expect(analysis.ok).toBe(true);
+    expect(analysis.stats.agents).toBe(3);
+    expect(compiled.content).toContain("ordered array of { source, value } entries");
+    expect(compiled.content).toContain("teacher model reference `host:teacher` in `critique` mode");
+    expect(compiled.capabilityReport.instructional).toEqual(expect.arrayContaining(["multi-output aggregation", "teacher-model feedback"]));
+  });
+
+  it("rejects invalid aggregator and teacher-model configuration", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    const aggregator = workflow.spec.nodes.find((node) => node.kind === "aggregator");
+    const teacher = workflow.spec.nodes.find((node) => node.kind === "teacher");
+    if (!aggregator || !teacher) throw new Error("Primitive fixtures are required.");
+    aggregator.config = { aggregation: "" };
+    teacher.config = { teacherModel: "", feedbackMode: "" };
+
+    const result = await analyzeFallback(stringify(workflow));
+
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "LG116" }),
+        expect.objectContaining({ code: "LG117" }),
+        expect.objectContaining({ code: "LG118" }),
+      ]),
+    );
   });
 
   it("rejects arbitrary back edges", async () => {

@@ -431,7 +431,8 @@ export function recommendedCapabilities(target: Target, node: LgirNode) {
       connectors.add("hermes:toolset:terminal");
     }
   }
-  if (match(["test", "quality", "evaluate", "critic", "review"])) skills.add(node.kind === "evaluate" ? "evaluation" : "test-design");
+  if (match(["test", "quality", "evaluate", "critic", "review"]))
+    skills.add(node.kind === "evaluate" || node.kind === "teacher" ? "evaluation" : "test-design");
   if (match(["design", "ux", "accessib"])) {
     skills.add("product-design");
     skills.add("accessibility");

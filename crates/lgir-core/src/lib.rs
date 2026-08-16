@@ -121,6 +121,12 @@ pub struct NodeConfig {
     #[serde(default)]
     pub join: String,
     #[serde(default)]
+    pub aggregation: String,
+    #[serde(default)]
+    pub teacher_model: String,
+    #[serde(default)]
+    pub feedback_mode: String,
+    #[serde(default)]
     pub body: Vec<String>,
     #[serde(default)]
     pub exit_condition: String,
@@ -355,8 +361,10 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         diagnostics.push(diag("LG104", "error", "/spec/nodes", "Workflows are limited to 1,000 nodes."));
     }
 
-    let allowed_kinds: BTreeSet<&str> = ["input", "output", "agent", "tool", "transform", "condition", "evaluate", "approval", "join", "loop", "group", "subgraph"].into_iter().collect();
+    let allowed_kinds: BTreeSet<&str> = ["input", "output", "agent", "tool", "transform", "condition", "evaluate", "teacher", "approval", "join", "aggregator", "loop", "group", "subgraph"].into_iter().collect();
     let allowed_transforms: BTreeSet<&str> = ["select", "rename", "merge", "filter", "deduplicate", "sort", "slice"].into_iter().collect();
+    let allowed_aggregations: BTreeSet<&str> = ["collect", "merge", "concat", "vote"].into_iter().collect();
+    let allowed_feedback_modes: BTreeSet<&str> = ["critique", "score", "rubric"].into_iter().collect();
     let mut ids = BTreeSet::new();
     let mut input_count = 0;
     let mut output_count = 0;
@@ -369,8 +377,8 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         }
         if node.kind == "input" { input_count += 1; }
         if node.kind == "output" { output_count += 1; }
-        if ["agent", "evaluate"].contains(&node.kind.as_str()) && node.prompt.trim().is_empty() {
-            diagnostics.push(node_diag("LG112", "error", index, node, "Agent and evaluator nodes require a prompt."));
+        if ["agent", "evaluate", "teacher"].contains(&node.kind.as_str()) && node.prompt.trim().is_empty() {
+            diagnostics.push(node_diag("LG112", "error", index, node, "Agent, evaluator, and teacher nodes require a prompt."));
         }
         if node.kind == "agent" && node.role.trim().is_empty() {
             diagnostics.push(node_diag("LG113", "warning", index, node, "Add a role to make this agent's responsibility explicit."));
@@ -380,6 +388,17 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         }
         if node.kind == "transform" && !allowed_transforms.contains(node.config.operation.as_str()) {
             diagnostics.push(node_diag("LG115", "error", index, node, "Transform operation must be select, rename, merge, filter, deduplicate, sort, or slice."));
+        }
+        if node.kind == "teacher" {
+            if node.config.teacher_model.trim().is_empty() {
+                diagnostics.push(node_diag("LG116", "error", index, node, "Teacher model requires a host-resolved teacherModel reference."));
+            }
+            if !allowed_feedback_modes.contains(node.config.feedback_mode.as_str()) {
+                diagnostics.push(node_diag("LG117", "error", index, node, "Teacher feedbackMode must be critique, score, or rubric."));
+            }
+        }
+        if node.kind == "aggregator" && !allowed_aggregations.contains(node.config.aggregation.as_str()) {
+            diagnostics.push(node_diag("LG118", "error", index, node, "Aggregation strategy must be collect, merge, concat, or vote."));
         }
         if node.kind == "loop" {
             if node.config.max_iterations == 0 || node.config.max_iterations > 100 {
@@ -425,7 +444,7 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
             }
         }
         if let Some(target) = target {
-            if node.kind == "approval" || node.kind == "loop" || node.kind == "group" {
+            if node.kind == "approval" || node.kind == "loop" || node.kind == "group" || node.kind == "teacher" {
                 let mut d = node_diag("LG200", "info", index, node, format!("{} expresses '{}' as explicit instructions rather than a hard runtime guarantee.", title_case(target), node.kind));
                 d.capability = Some("instructional".into());
                 diagnostics.push(d);
@@ -472,13 +491,19 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
             diagnostics.push(diag("LG146", "warning", format!("/spec/edges/{index}"), format!("Route external input through group '{}' instead of directly to member '{}'.", target_group.expect("checked"), edge.to)));
         }
     }
+    for (index, node) in workflow.spec.nodes.iter().enumerate().filter(|(_, node)| node.kind == "aggregator") {
+        let inbound = workflow.spec.edges.iter().filter(|edge| edge.to == node.id && known.contains(&edge.from)).count();
+        if inbound < 2 {
+            diagnostics.push(node_diag("LG134", "warning", index, node, "Aggregator should receive outputs from at least two nodes."));
+        }
+    }
     let (order, cyclic, max_parallelism) = topological_order(workflow);
     if cyclic { diagnostics.push(diag("LG150", "error", "/spec/edges", "Arbitrary cycles are not allowed. Place repeated work inside a structured loop node.")); }
 
     let stats = Stats {
         nodes: workflow.spec.nodes.len(),
         edges: workflow.spec.edges.len(),
-        agents: workflow.spec.nodes.iter().filter(|n| n.kind == "agent" || n.kind == "evaluate").count(),
+        agents: workflow.spec.nodes.iter().filter(|n| n.kind == "agent" || n.kind == "evaluate" || n.kind == "teacher").count(),
         loops: workflow.spec.nodes.iter().filter(|n| n.kind == "loop").count(),
         max_parallelism,
     };
@@ -497,6 +522,15 @@ fn list_or_none(values: &[String]) -> String {
     if values.is_empty() { "None declared".into() } else { values.join(", ") }
 }
 
+fn aggregation_instruction(strategy: &str) -> &str {
+    match strategy {
+        "merge" => "merge object fields and report key collisions instead of overwriting them",
+        "concat" => "concatenate array items without changing their order",
+        "vote" => "tally identical scalar or category values and preserve every tied winner",
+        _ => "collect results into an ordered array of { source, value } entries",
+    }
+}
+
 fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
     let deps = dependencies(workflow, &node.id);
     let dep_text = if deps.is_empty() { "Starts when the workflow begins".into() } else {
@@ -504,8 +538,11 @@ fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
     };
     let mut output = format!("\n### {ordinal}. {} (`{}`)\n\n- **Kind:** `{}`\n- **Depends on:** {}\n- **Purpose:** {}\n", if node.name.is_empty() { &node.id } else { &node.name }, node.id, node.kind, dep_text, if node.summary.is_empty() { "No summary provided." } else { &node.summary });
     match node.kind.as_str() {
-        "agent" | "evaluate" => {
+        "agent" | "evaluate" | "teacher" => {
             output.push_str(&format!("- **Role:** {}\n- **Required skills:** {}\n- **Required connectors:** {}\n- **Required tools:** {}\n- **Permissions:** {}\n\n**Task instructions**\n\n{}\n", if node.role.is_empty() { "Focused workflow specialist" } else { &node.role }, list_or_none(&node.capabilities.skills), list_or_none(&node.capabilities.connectors), list_or_none(&node.capabilities.tools), list_or_none(&node.capabilities.permissions), node.prompt));
+            if node.kind == "teacher" {
+                output.push_str(&format!("\nUse teacher model reference `{}` in `{}` mode. Return feedback only; do not expose hidden chain-of-thought or silently replace the candidate.\n", node.config.teacher_model, node.config.feedback_mode));
+            }
             let selected = node.capabilities.skills.iter().chain(node.capabilities.connectors.iter());
             let customized: Vec<(&String, &CapabilityCustomization)> = selected.filter_map(|id| node.capabilities.customizations.get(id).map(|value| (id, value))).collect();
             if !customized.is_empty() {
@@ -518,7 +555,8 @@ fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
         }
         "condition" => output.push_str(&format!("\nEvaluate `{}` and follow exactly one declared control edge.\n", node.config.expression)),
         "transform" => output.push_str(&format!("\nApply the declarative `{}` operation using `{}`. Do not execute arbitrary code.\n", node.config.operation, node.config.expression)),
-        "join" => output.push_str(&format!("\nWait using the `{}` join policy, then summarize branch outputs without inventing missing results.\n", node.config.join)),
+        "join" => output.push_str(&format!("\nWait using the `{}` join policy. Release the available branch outputs unchanged; use an aggregator when they must be combined.\n", node.config.join)),
+        "aggregator" => output.push_str(&format!("\nAfter every declared dependency is available, {}. Preserve each source node ID and do not invent missing results.\n", aggregation_instruction(&node.config.aggregation))),
         "approval" => output.push_str("\nPause and request explicit user approval before continuing. State what will happen next.\n"),
         "loop" => output.push_str(&format!("\nRepeat nodes {} until `{}` is true, for at most {} iterations. On exhaustion: `{}`. Never exceed the bound.\n", node.config.body.iter().map(|id| format!("`{id}`")).collect::<Vec<_>>().join(", "), node.config.exit_condition, node.config.max_iterations, if node.config.on_exhausted.is_empty() { "stop" } else { &node.config.on_exhausted })),
         "group" => output.push_str(&format!("\nAccept the group input, run {} in `{}` mode, then `{}` every member output before releasing any group output. The group is complete only after all members finish.\n", node.config.members.iter().map(|id| format!("`{id}`")).collect::<Vec<_>>().join(", "), node.config.execution, node.config.exit)),
@@ -737,6 +775,8 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
         if workflow.spec.nodes.iter().any(|n| n.kind == "loop") { instructional.push("bounded loops".into()); }
         if workflow.spec.nodes.iter().any(|n| n.kind == "approval") { instructional.push("human approval gates".into()); }
         if workflow.spec.nodes.iter().any(|n| n.kind == "group") { instructional.push("bounded group orchestration".into()); }
+        if workflow.spec.nodes.iter().any(|n| n.kind == "aggregator") { instructional.push("multi-output aggregation".into()); }
+        if workflow.spec.nodes.iter().any(|n| n.kind == "teacher") { instructional.push("teacher-model feedback".into()); }
         if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
         return CapabilityReport {
             target: target.into(),
@@ -751,6 +791,8 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
     if workflow.spec.nodes.iter().any(|n| n.kind == "loop") { instructional.push("bounded loops".into()); }
     if workflow.spec.nodes.iter().any(|n| n.kind == "approval") { instructional.push("human approval gates".into()); }
     if workflow.spec.nodes.iter().any(|n| n.kind == "group") { instructional.push("bounded group orchestration".into()); }
+    if workflow.spec.nodes.iter().any(|n| n.kind == "aggregator") { instructional.push("multi-output aggregation".into()); }
+    if workflow.spec.nodes.iter().any(|n| n.kind == "teacher") { instructional.push("teacher-model feedback".into()); }
     if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
     if target == "codex" { native.push("Agent Skills frontmatter".into()); }
     if target == "claude" { native.push("Claude Code skill frontmatter".into()); }
@@ -865,6 +907,58 @@ spec:
         let second = compile(VALID, "codex");
         assert_eq!(first, second);
         assert!(first.contains("ladder-source-hash"));
+    }
+
+    #[test]
+    fn validates_and_compiles_aggregation_with_teacher_feedback() {
+        let source = r#"
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: teacher-feedback
+spec:
+  objective: Aggregate two drafts and request teacher feedback.
+  nodes:
+    - id: first
+      kind: agent
+      name: First draft
+      role: Writer
+      prompt: Produce the first draft.
+    - id: second
+      kind: agent
+      name: Second draft
+      role: Writer
+      prompt: Produce the second draft.
+    - id: combined
+      kind: aggregator
+      name: Combined drafts
+      config:
+        aggregation: collect
+    - id: teacher
+      kind: teacher
+      name: Teacher feedback
+      role: Teacher
+      prompt: Provide actionable feedback.
+      config:
+        teacherModel: host:teacher
+        feedbackMode: critique
+    - id: output
+      kind: output
+      name: Feedback
+  edges:
+    - { id: e1, from: first, to: combined, kind: data }
+    - { id: e2, from: second, to: combined, kind: data }
+    - { id: e3, from: combined, to: teacher, kind: data }
+    - { id: e4, from: teacher, to: output, kind: data }
+"#;
+        let analysis = analyze_inner(source, Some("codex"));
+        assert!(analysis.ok, "{:?}", analysis.diagnostics);
+        assert_eq!(analysis.stats.agents, 3);
+        let output = compile(source, "codex");
+        assert!(output.contains("ordered array of { source, value } entries"));
+        assert!(output.contains("teacher model reference `host:teacher` in `critique` mode"));
+        assert!(output.contains("multi-output aggregation"));
+        assert!(output.contains("teacher-model feedback"));
     }
 
     #[test]

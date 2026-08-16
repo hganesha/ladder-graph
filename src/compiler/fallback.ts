@@ -11,13 +11,17 @@ const KINDS = new Set([
   "transform",
   "condition",
   "evaluate",
+  "teacher",
   "approval",
   "join",
+  "aggregator",
   "loop",
   "group",
   "subgraph",
 ]);
 const TRANSFORMS = new Set(["select", "rename", "merge", "filter", "deduplicate", "sort", "slice"]);
+const AGGREGATIONS = new Set(["collect", "merge", "concat", "vote"]);
+const FEEDBACK_MODES = new Set(["critique", "score", "rubric"]);
 
 function targetLabel(target: Target) {
   if (target === "codex") return "Codex";
@@ -158,14 +162,22 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
     if (ids.has(node.id)) diagnostics.push(diagnostic("LG110", "error", path, `Duplicate node id '${node.id}'.`, node.id));
     ids.add(node.id);
     if (!KINDS.has(node.kind)) diagnostics.push(diagnostic("LG111", "error", path, `Unsupported node kind '${node.kind}'.`, node.id));
-    if ((node.kind === "agent" || node.kind === "evaluate") && !node.prompt?.trim())
-      diagnostics.push(diagnostic("LG112", "error", path, "Agent and evaluator nodes require a prompt.", node.id));
+    if ((node.kind === "agent" || node.kind === "evaluate" || node.kind === "teacher") && !node.prompt?.trim())
+      diagnostics.push(diagnostic("LG112", "error", path, "Agent, evaluator, and teacher nodes require a prompt.", node.id));
     if (node.kind === "agent" && !node.role?.trim())
       diagnostics.push(diagnostic("LG113", "warning", path, "Add a role to make this agent's responsibility explicit.", node.id));
     if (node.kind === "tool" && !node.capabilities?.tools?.length)
       diagnostics.push(diagnostic("LG114", "warning", path, "Tool requirement has no declared tool identifier.", node.id));
     if (node.kind === "transform" && !TRANSFORMS.has(node.config?.operation ?? ""))
       diagnostics.push(diagnostic("LG115", "error", path, "Transform operation is not part of the safe declarative set.", node.id));
+    if (node.kind === "teacher") {
+      if (!node.config?.teacherModel?.trim())
+        diagnostics.push(diagnostic("LG116", "error", path, "Teacher model requires a host-resolved teacherModel reference.", node.id));
+      if (!FEEDBACK_MODES.has(node.config?.feedbackMode ?? ""))
+        diagnostics.push(diagnostic("LG117", "error", path, "Teacher feedbackMode must be critique, score, or rubric.", node.id));
+    }
+    if (node.kind === "aggregator" && !AGGREGATIONS.has(node.config?.aggregation ?? ""))
+      diagnostics.push(diagnostic("LG118", "error", path, "Aggregation strategy must be collect, merge, concat, or vote.", node.id));
     if (node.kind === "loop") {
       const max = node.config?.maxIterations ?? 0;
       if (max < 1 || max > 100)
@@ -202,7 +214,7 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
           diagnostics.push(diagnostic("LG132", "error", path, "Groups cannot contain themselves or another group.", node.id));
       });
     }
-    if (target && (node.kind === "loop" || node.kind === "approval" || node.kind === "group"))
+    if (target && (node.kind === "loop" || node.kind === "approval" || node.kind === "group" || node.kind === "teacher"))
       diagnostics.push({
         ...diagnostic(
           "LG200",
@@ -272,6 +284,21 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
         ),
       );
   });
+  nodes
+    .filter((node) => node.kind === "aggregator")
+    .forEach((node) => {
+      const inbound = edges.filter((edge) => edge.to === node.id && ids.has(edge.from)).length;
+      if (inbound < 2)
+        diagnostics.push(
+          diagnostic(
+            "LG134",
+            "warning",
+            `/spec/nodes/${nodes.indexOf(node)}`,
+            "Aggregator should receive outputs from at least two nodes.",
+            node.id,
+          ),
+        );
+    });
   const sorted = topological(workflow);
   if (sorted.cyclic)
     diagnostics.push(
@@ -286,7 +313,7 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
     stats: {
       nodes: nodes.length,
       edges: edges.length,
-      agents: nodes.filter((node) => node.kind === "agent" || node.kind === "evaluate").length,
+      agents: nodes.filter((node) => node.kind === "agent" || node.kind === "evaluate" || node.kind === "teacher").length,
       loops: nodes.filter((node) => node.kind === "loop").length,
       maxParallelism: sorted.maxParallelism,
     },
@@ -301,14 +328,23 @@ function list(values: string[] | undefined) {
   return values?.length ? values.join(", ") : "None declared";
 }
 
+function aggregationInstruction(strategy: string | undefined) {
+  if (strategy === "merge") return "merge object fields and report key collisions instead of overwriting them";
+  if (strategy === "concat") return "concatenate array items without changing their order";
+  if (strategy === "vote") return "tally identical scalar or category values and preserve every tied winner";
+  return "collect results into an ordered array of { source, value } entries";
+}
+
 function renderNode(workflow: Workflow, node: LgirNode, index: number): string {
   const deps = dependencies(workflow, node.id);
   const depends = deps.length
     ? deps.map((edge) => `\`${edge.from}\` via ${edge.kind}${edge.contract ? ` carrying \`${edge.contract}\`` : ""}`).join("; ")
     : "Starts when the workflow begins";
   let body = `\n### ${index + 1}. ${node.name || node.id} (\`${node.id}\`)\n\n- **Kind:** \`${node.kind}\`\n- **Depends on:** ${depends}\n- **Purpose:** ${node.summary || "No summary provided."}\n`;
-  if (node.kind === "agent" || node.kind === "evaluate") {
+  if (node.kind === "agent" || node.kind === "evaluate" || node.kind === "teacher") {
     body += `- **Role:** ${node.role || "Focused workflow specialist"}\n- **Required skills:** ${list(node.capabilities?.skills)}\n- **Required connectors:** ${list(node.capabilities?.connectors)}\n- **Required tools:** ${list(node.capabilities?.tools)}\n- **Permissions:** ${list(node.capabilities?.permissions)}\n\n**Task instructions**\n\n${node.prompt}\n`;
+    if (node.kind === "teacher")
+      body += `\nUse teacher model reference \`${node.config?.teacherModel}\` in \`${node.config?.feedbackMode}\` mode. Return feedback only; do not expose hidden chain-of-thought or silently replace the candidate.\n`;
     const selectedCapabilities = [...(node.capabilities?.skills ?? []), ...(node.capabilities?.connectors ?? [])];
     const customized = selectedCapabilities.filter((id) => node.capabilities?.customizations?.[id]);
     if (customized.length) {
@@ -324,7 +360,9 @@ function renderNode(workflow: Workflow, node: LgirNode, index: number): string {
   else if (node.kind === "transform")
     body += `\nApply the declarative \`${node.config?.operation}\` operation using \`${node.config?.expression}\`. Do not execute arbitrary code.\n`;
   else if (node.kind === "join")
-    body += `\nWait using the \`${node.config?.join}\` policy, then summarize branch outputs without inventing missing results.\n`;
+    body += `\nWait using the \`${node.config?.join}\` policy. Release the available branch outputs unchanged; use an aggregator when they must be combined.\n`;
+  else if (node.kind === "aggregator")
+    body += `\nAfter every declared dependency is available, ${aggregationInstruction(node.config?.aggregation)}. Preserve each source node ID and do not invent missing results.\n`;
   else if (node.kind === "approval") body += "\nPause and request explicit user approval before continuing. State what will happen next.\n";
   else if (node.kind === "loop")
     body += `\nRepeat ${(node.config?.body ?? []).map((id) => `\`${id}\``).join(", ")} until \`${node.config?.exitCondition}\` is true, for at most ${node.config?.maxIterations} iterations. On exhaustion: \`${node.config?.onExhausted || "stop"}\`. Never exceed the bound.\n`;
@@ -348,6 +386,8 @@ function capabilities(workflow: Workflow, target: Target): CapabilityReport {
   if (workflow.spec.nodes.some((node) => node.kind === "loop")) instructional.push("bounded loops");
   if (workflow.spec.nodes.some((node) => node.kind === "approval")) instructional.push("human approval gates");
   if (workflow.spec.nodes.some((node) => node.kind === "group")) instructional.push("bounded group orchestration");
+  if (workflow.spec.nodes.some((node) => node.kind === "aggregator")) instructional.push("multi-output aggregation");
+  if (workflow.spec.nodes.some((node) => node.kind === "teacher")) instructional.push("teacher-model feedback");
   if (workflow.spec.nodes.some((node) => node.capabilities?.connectors?.length)) instructional.push("declared connector availability");
   if (isCodeTarget(target)) {
     return {

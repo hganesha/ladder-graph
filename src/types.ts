@@ -8,8 +8,10 @@ export type NodeKind =
   | "transform"
   | "condition"
   | "evaluate"
+  | "teacher"
   | "approval"
   | "join"
+  | "aggregator"
   | "loop"
   | "group"
   | "subgraph";
@@ -31,6 +33,9 @@ export interface NodeConfig {
   expression?: string;
   branches?: Branch[];
   join?: "all" | "allSettled" | "first" | "";
+  aggregation?: "collect" | "merge" | "concat" | "vote" | "";
+  teacherModel?: string;
+  feedbackMode?: "critique" | "score" | "rubric" | "";
   body?: string[];
   exitCondition?: string;
   maxIterations?: number;
