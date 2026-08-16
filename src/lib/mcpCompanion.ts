@@ -78,6 +78,10 @@ export async function companionStatus() {
   }
 }
 
+export async function companionPairingState() {
+  return { paired: Boolean(await getSetting(TOKEN)), url: await baseUrl() };
+}
+
 export async function pairCompanion(code: string, url = DEFAULT_URL) {
   const id = await installationId();
   const normalizedUrl = normalizeCompanionUrl(url);

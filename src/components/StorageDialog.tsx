@@ -165,11 +165,11 @@ export function StorageDialog({ onClose }: { onClose: () => void }) {
                 disabled={mcpBusy}
                 onClick={async () => {
                   await forgetCompanion();
-                  setMcpMessage("This browser forgot its local pairing. Run the CLI revoke command to invalidate the old token.");
+                  setMcpMessage("This browser disconnected from the companion. Run the CLI revoke command to invalidate the old token.");
                   await refreshMcp();
                 }}
               >
-                <Unplug size={14} /> Forget
+                <Unplug size={14} /> Disconnect browser
               </button>
             </div>
           )}

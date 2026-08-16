@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("local MCP companion is available from storage details", async ({ page }) => {
+test("local MCP companion is available from the visible MCP control", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error" && !message.text().includes("127.0.0.1:7341") && !message.text().includes("ERR_CONNECTION_REFUSED"))
@@ -8,7 +8,7 @@ test("local MCP companion is available from storage details", async ({ page }) =
   });
   await page.goto("/");
   await page.getByRole("button", { name: /New workflow/ }).click();
-  await page.getByRole("button", { name: "Storage details" }).first().click();
+  await page.getByRole("button", { name: "Set up MCP companion" }).first().click();
 
   const dialog = page.getByRole("dialog", { name: "Local storage" });
   await expect(dialog).toBeVisible();

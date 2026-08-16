@@ -170,3 +170,46 @@ export function autoLayout(nodes: LgirNode[], edges: LgirEdge[]): LgirNode[] {
     return { ...node, position: { x: groupPosition.x + relative.x, y: groupPosition.y + relative.y } };
   });
 }
+
+export function scaleNodeSpacing(nodes: LgirNode[], factor: number): LgirNode[] {
+  if (nodes.length < 2 || !Number.isFinite(factor) || factor <= 0) return nodes;
+  const prepared = nodes.every((node) => node.position) ? nodes : autoLayout(nodes, []);
+  const { groups, owner, topLevel } = collapsedGraph(prepared, []);
+  const layoutNodes = groups.length ? topLevel : prepared;
+  if (layoutNodes.length < 2) return prepared;
+
+  const center = layoutNodes.reduce((total, node) => ({ x: total.x + (node.position?.x ?? 0), y: total.y + (node.position?.y ?? 0) }), {
+    x: 0,
+    y: 0,
+  });
+  center.x /= layoutNodes.length;
+  center.y /= layoutNodes.length;
+
+  const positions = new Map(
+    layoutNodes.map((node) => {
+      const position = node.position ?? { x: 0, y: 0 };
+      return [
+        node.id,
+        {
+          x: Math.round((center.x + (position.x - center.x) * factor) / 25) * 25,
+          y: Math.round((center.y + (position.y - center.y) * factor) / 25) * 25,
+        },
+      ];
+    }),
+  );
+  const groupDeltas = new Map(
+    groups.map((group) => {
+      const before = group.position ?? { x: 0, y: 0 };
+      const after = positions.get(group.id) ?? before;
+      return [group.id, { x: after.x - before.x, y: after.y - before.y }];
+    }),
+  );
+
+  return prepared.map((node) => {
+    const groupId = owner.get(node.id);
+    if (!groupId) return { ...node, position: positions.get(node.id) ?? node.position };
+    const delta = groupDeltas.get(groupId) ?? { x: 0, y: 0 };
+    const position = node.position ?? { x: 0, y: 0 };
+    return { ...node, position: { x: position.x + delta.x, y: position.y + delta.y } };
+  });
+}
