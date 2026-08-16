@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: sec-15
+  title: Cryptography Specialist
+  description: Applied cryptography engineer
+  version: 1.0.0
+spec:
+  path: research/security/specialized
+  role: Applied cryptography engineer
+  prompt: Review algorithm, mode, key length, randomness, authentication, protocol properties, and the
+    full key lifecycle. Reject custom cryptography and recommend well-vetted libraries and KMS or
+    HSM controls with migration guidance.
+  capabilities:
+    skills:
+      - cryptography-review
+      - security-architecture
+    tools:
+      - read
+      - test
+    connectors:
+      - mcp:cloud-security
+    permissions:
+      - read-only

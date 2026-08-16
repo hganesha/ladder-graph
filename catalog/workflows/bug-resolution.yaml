@@ -1,0 +1,204 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: bug-resolution-regression-gate
+  title: Bug diagnosis + regression gate
+  description: Investigate the failure and its blast radius independently, then gate a minimal repair plan.
+  version: 1.0.0
+spec:
+  objective: Produce a reproducible diagnosis and a regression-safe fix plan.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: brief
+      kind: input
+      name: Failure report
+      summary: Observed behavior, expected behavior, environment, and available evidence.
+      position:
+        x: 100
+        y: 220
+    - id: perspective-a
+      kind: agent
+      name: Root-cause investigator
+      summary: Trace the smallest causal chain that explains the failure.
+      role: Senior debugging engineer
+      prompt: Reproduce the failure, isolate the responsible boundary, and distinguish root cause from
+        downstream symptoms.
+      capabilities:
+        skills:
+          - debugging
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - evidence
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 90
+    - id: perspective-b
+      kind: agent
+      name: Regression analyst
+      summary: Map affected behavior and high-risk neighboring paths.
+      role: Independent test engineer
+      prompt: Derive regression cases from the contract and identify adjacent behavior that a plausible
+        fix could break.
+      capabilities:
+        skills:
+          - test-design
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - risks
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 350
+    - id: join
+      kind: join
+      name: Perspective barrier
+      summary: Wait for both independent perspectives.
+      config:
+        join: all
+      position:
+        x: 660
+        y: 220
+    - id: synthesis
+      kind: agent
+      name: Repair planner
+      summary: Turn diagnosis and regression risks into a minimal fix.
+      role: Software maintenance lead
+      prompt: Propose the smallest repair that addresses the root cause. Include regression coverage,
+        rollout checks, and residual risk.
+      capabilities:
+        skills:
+          - implementation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - recommendation
+          - actions
+          - openQuestions
+        properties:
+          recommendation:
+            type: string
+          actions:
+            type: array
+            items:
+              type: string
+          openQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 150
+    - id: evaluation
+      kind: evaluate
+      name: Fix readiness gate
+      summary: Check the recommendation against its evidence and contract.
+      role: Release quality evaluator
+      prompt: Pass only when the diagnosis is reproducible, the fix targets the root cause, and regression
+        coverage protects the affected contract.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+      position:
+        x: 900
+        y: 330
+    - id: output
+      kind: output
+      name: Verified repair plan
+      summary: Root cause, scoped fix, regression cases, and release checks.
+      position:
+        x: 1180
+        y: 220
+  edges:
+    - id: e1
+      from: brief
+      to: perspective-a
+      kind: data
+      contract: Brief
+    - id: e2
+      from: brief
+      to: perspective-b
+      kind: data
+      contract: Brief
+    - id: e3
+      from: perspective-a
+      to: join
+      kind: data
+      contract: EvidenceSet
+    - id: e4
+      from: perspective-b
+      to: join
+      kind: data
+      contract: RiskSet
+    - id: e5
+      from: join
+      to: synthesis
+      kind: dependency
+    - id: e6
+      from: synthesis
+      to: evaluation
+      kind: data
+      contract: Recommendation
+    - id: e7
+      from: evaluation
+      to: output
+      kind: control
+      condition: passed == true

@@ -2,11 +2,12 @@
 
 ## Boundaries
 
-Ladder Graph has three deliberately narrow layers:
+Ladder Graph has four deliberately narrow layers:
 
 1. The React studio owns interaction, YAML CST patching, layout, browser files, copy/download, and local persistence.
 2. A dedicated Web Worker owns the asynchronous compiler protocol and keeps parsing/compilation off the UI thread.
-3. The Rust WebAssembly core owns LGIR semantics, diagnostics, hashing, normalization, migration, and deterministic target generation.
+3. The pure Rust `lgir-core` owns LGIR semantics, diagnostics, hashing, normalization, migration, and deterministic target generation. A thin `lgir-wasm` facade exposes it to the browser worker.
+4. The optional native Rust MCP companion owns read-only catalog discovery and an explicitly published local snapshot. It never reads browser storage directly.
 
 If WebAssembly cannot initialize, the worker uses the TypeScript parity compiler so projects remain recoverable. Production builds include and prefer the Rust module.
 
@@ -38,6 +39,12 @@ Python and TypeScript output is generated from the same normalized data. It cont
 Project metadata, active YAML, last-valid YAML, targets, template indexes, and revision indexes live in IndexedDB. Revision bodies prefer OPFS and fall back to IndexedDB. Autosave keeps valid and invalid revisions distinct and prunes to the most recent 30 revisions per project.
 
 The application requests persistent browser storage only after an explicit user action. It exposes quota and persistence state and never describes browser storage as a backup.
+
+## MCP companion
+
+Built-in workflows and agent templates are canonical files under `catalog/`. A generated TypeScript index lets the PWA use those same assets, while the native binary embeds them at build time.
+
+The PWA generates an anonymous installation UUID and pairs with the loopback companion using a short-lived one-time code. Publishing sends a complete valid user catalog; the companion verifies it through `lgir-core` and atomically replaces its local snapshot. Desktop MCP clients use stdio and can read the snapshot even when the browser sync service is stopped. There is no human user identity, cloud account, bidirectional editing, or workflow execution.
 
 ## Deployment
 

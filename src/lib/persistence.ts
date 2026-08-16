@@ -10,8 +10,9 @@ interface RevisionRecord {
   body?: string;
 }
 
-interface UserTemplateRecord {
+export interface UserTemplateRecord {
   id: string;
+  kind?: "workflow" | "agent-template";
   path: string;
   title: string;
   yaml: string;
@@ -19,10 +20,16 @@ interface UserTemplateRecord {
   updatedAt: number;
 }
 
+interface SettingRecord {
+  key: string;
+  value: string;
+}
+
 class LadderDatabase extends Dexie {
   projects!: EntityTable<ProjectRecord, "id">;
   revisions!: EntityTable<RevisionRecord, "id">;
   templates!: EntityTable<UserTemplateRecord, "id">;
+  settings!: EntityTable<SettingRecord, "key">;
 
   constructor() {
     super("ladder-graph");
@@ -30,6 +37,12 @@ class LadderDatabase extends Dexie {
       projects: "id, name, updatedAt",
       revisions: "id, projectId, createdAt",
       templates: "id, path, title, updatedAt",
+    });
+    this.version(2).stores({
+      projects: "id, name, updatedAt",
+      revisions: "id, projectId, createdAt",
+      templates: "id, path, title, updatedAt",
+      settings: "key",
     });
   }
 }
@@ -98,6 +111,26 @@ export async function saveProject(
 
 export async function listProjects() {
   return db.projects.orderBy("updatedAt").reverse().toArray();
+}
+
+export async function listUserTemplates() {
+  return db.templates.orderBy("updatedAt").reverse().toArray();
+}
+
+export async function saveUserTemplate(template: UserTemplateRecord) {
+  await db.templates.put(template);
+}
+
+export async function getSetting(key: string) {
+  return (await db.settings.get(key))?.value;
+}
+
+export async function setSetting(key: string, value: string) {
+  await db.settings.put({ key, value });
+}
+
+export async function deleteSetting(key: string) {
+  await db.settings.delete(key);
 }
 
 export async function deleteProject(id: string) {

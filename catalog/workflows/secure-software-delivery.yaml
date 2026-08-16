@@ -1,0 +1,457 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: secure-software-delivery
+  title: Secure software delivery
+  description: Move from ambiguous request to release evidence through independent architecture,
+    security, quality, performance, and accessibility gates.
+  version: 1.0.0
+spec:
+  objective: Deliver a scoped software change with measurable acceptance criteria and independent
+    release evidence.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - implementation
+      - release
+  nodes:
+    - id: brief
+      kind: input
+      name: Raw feature request
+      summary: User intent, constraints, environment, and known risk.
+      position:
+        x: 80
+        y: 260
+    - id: requirements
+      kind: agent
+      name: Requirements contract
+      summary: Resolve ambiguity before architecture or implementation.
+      role: Senior requirements analyst
+      prompt: Extract assumptions and blocking questions, then produce prioritized user stories,
+        Given/When/Then acceptance criteria, explicit non-goals, and unresolved decisions. Do not
+        prescribe implementation.
+      capabilities:
+        skills:
+          - requirements-analysis
+          - product-management
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:linear
+          - mcp:notion
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - stories
+          - acceptanceCriteria
+          - nonGoals
+          - openQuestions
+        properties:
+          stories:
+            type: array
+            items:
+              type: string
+          acceptanceCriteria:
+            type: array
+            items:
+              type: string
+          nonGoals:
+            type: array
+            items:
+              type: string
+          openQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 340
+        y: 260
+    - id: architecture
+      kind: agent
+      name: Architecture and stack review
+      summary: Define boundaries and vet material dependencies.
+      role: Principal systems architect and stack curator
+      prompt: Create an ADR with boundaries, interfaces, data flow, deployment and failure modes. Evaluate
+        material dependencies for security, license, maintenance, size, and deprecation risk; name
+        safer alternatives where warranted.
+      capabilities:
+        skills:
+          - software-architecture
+          - adr-authoring
+          - dependency-governance
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:github
+          - mcp:security-scanner
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - adr
+          - interfaces
+          - dependencies
+          - risks
+        properties:
+          adr:
+            type: string
+          interfaces:
+            type: array
+            items:
+              type: string
+          dependencies:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 630
+        y: 100
+    - id: threat-model
+      kind: agent
+      name: Pre-build threat model
+      summary: Model trust, abuse, privacy, and supply-chain risk before code.
+      role: Application security engineer
+      prompt: Map actors, assets, entry points, trust boundaries, abuse paths, personal data, dependency
+        risk, and preventive and detective controls. Rank threats by severity and define
+        verification evidence.
+      capabilities:
+        skills:
+          - application-security
+          - threat-modeling
+          - privacy-review
+        tools:
+          - read
+        connectors:
+          - mcp:security-scanner
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - threats
+          - controls
+          - verification
+        properties:
+          threats:
+            type: array
+            items:
+              type: string
+          controls:
+            type: array
+            items:
+              type: string
+          verification:
+            type: array
+            items:
+              type: string
+      position:
+        x: 630
+        y: 410
+    - id: plan-join
+      kind: join
+      name: Plan barrier
+      summary: Wait for architecture and security evidence.
+      config:
+        join: all
+      position:
+        x: 910
+        y: 260
+    - id: build-approval
+      kind: approval
+      name: Approve implementation
+      summary: Confirm scope, tradeoffs, and security controls before edits.
+      position:
+        x: 1140
+        y: 260
+    - id: implementation
+      kind: agent
+      name: Test-first implementation
+      summary: Build the approved vertical slice in reviewable increments.
+      role: Senior feature developer
+      prompt: Implement only the approved slice with failing tests first, small diffs, explicit states and
+        resilient integrations. Preserve repository conventions and report deviations instead of
+        silently widening scope.
+      capabilities:
+        skills:
+          - implementation
+          - test-design
+          - integration-engineering
+        tools:
+          - read
+          - edit
+          - test
+        connectors:
+          - mcp:github
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+        required:
+          - changes
+          - tests
+          - evidence
+          - risks
+        properties:
+          changes:
+            type: array
+            items:
+              type: string
+          tests:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1380
+        y: 260
+    - id: quality
+      kind: evaluate
+      name: Behavior and regression gate
+      summary: Verify the contract independently with meaningful tests.
+      role: Independent SDET and code reviewer
+      prompt: Evaluate functional, integration, boundary, concurrency, and regression behavior against the
+        acceptance criteria. Inspect the diff for correctness and maintainability; pass only with
+        reproducible evidence.
+      capabilities:
+        skills:
+          - test-design
+          - code-review
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:github
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+          - evidence
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 1650
+        y: 40
+    - id: security
+      kind: evaluate
+      name: Security and supply-chain gate
+      summary: Validate the threat model and exploitable findings.
+      role: Independent security auditor
+      prompt: Review authentication, authorization, validation, secrets, dependencies, build integrity,
+        and the modeled abuse paths. Block unresolved high-severity risk and distinguish exploitable
+        findings from scanner noise.
+      capabilities:
+        skills:
+          - secure-code-review
+          - supply-chain-security
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:github
+          - mcp:security-scanner
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+          - findings
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+          findings:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 1650
+        y: 220
+    - id: experience
+      kind: evaluate
+      name: Performance and accessibility gate
+      summary: Protect user-facing budgets and inclusive behavior.
+      role: Performance engineer and accessibility inspector
+      prompt: Measure relevant performance budgets and audit keyboard, focus, semantics, contrast, zoom,
+        reduced motion, responsive states, and assistive-technology behavior. Pass only when
+        material barriers and regressions are resolved.
+      capabilities:
+        skills:
+          - performance-engineering
+          - accessibility
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:browser
+          - mcp:sentry
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+          - evidence
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 1650
+        y: 400
+    - id: evidence-join
+      kind: join
+      name: Release evidence barrier
+      summary: Require every independent gate to finish.
+      config:
+        join: all
+      position:
+        x: 1920
+        y: 220
+    - id: release-approval
+      kind: approval
+      name: Approve release
+      summary: Accept residual risk and confirm rollback readiness.
+      position:
+        x: 2160
+        y: 220
+    - id: output
+      kind: output
+      name: Release-ready change
+      summary: Return the change, test evidence, security findings, budgets, and residual risk.
+      position:
+        x: 2400
+        y: 220
+  edges:
+    - id: e1
+      from: brief
+      to: requirements
+      kind: data
+      contract: FeatureRequest
+    - id: e2
+      from: requirements
+      to: architecture
+      kind: data
+      contract: RequirementsContract
+    - id: e3
+      from: requirements
+      to: threat-model
+      kind: data
+      contract: RequirementsContract
+    - id: e4
+      from: architecture
+      to: plan-join
+      kind: data
+      contract: ArchitectureDecision
+    - id: e5
+      from: threat-model
+      to: plan-join
+      kind: data
+      contract: ThreatModel
+    - id: e6
+      from: plan-join
+      to: build-approval
+      kind: dependency
+    - id: e7
+      from: build-approval
+      to: implementation
+      kind: control
+      condition: approved == true
+    - id: e8
+      from: implementation
+      to: quality
+      kind: data
+      contract: ImplementationEvidence
+    - id: e9
+      from: implementation
+      to: security
+      kind: data
+      contract: ImplementationEvidence
+    - id: e10
+      from: implementation
+      to: experience
+      kind: data
+      contract: ImplementationEvidence
+    - id: e11
+      from: quality
+      to: evidence-join
+      kind: data
+      contract: QualityEvidence
+    - id: e12
+      from: security
+      to: evidence-join
+      kind: data
+      contract: SecurityEvidence
+    - id: e13
+      from: experience
+      to: evidence-join
+      kind: data
+      contract: ExperienceEvidence
+    - id: e14
+      from: evidence-join
+      to: release-approval
+      kind: dependency
+    - id: e15
+      from: release-approval
+      to: output
+      kind: control
+      condition: approved == true

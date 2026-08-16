@@ -178,6 +178,18 @@ export interface TemplateDefinition {
   yaml: string;
 }
 
+export interface RoleTemplate {
+  id: string;
+  path: string;
+  name: string;
+  role: string;
+  prompt: string;
+  skills: string[];
+  tools: string[];
+  connectors?: string[];
+  permissions?: string[];
+}
+
 export interface ProjectRecord {
   id: string;
   name: string;

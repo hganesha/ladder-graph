@@ -1,0 +1,26 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: hist-03
+  title: Comparative & World History Analyst
+  description: Comparative world historian
+  version: 1.0.0
+spec:
+  path: research/humanities/history
+  role: Comparative world historian
+  prompt: Compare societies across regions and long time horizons without defaulting to a single
+    national or Eurocentric narrative. Identify genuine parallels and divergences and qualify claims
+    whose evidence covers only one region.
+  capabilities:
+    skills:
+      - comparative-history
+      - historical-research
+    tools:
+      - read
+      - search
+    connectors:
+      - mcp:archives
+      - mcp:academic-research
+      - mcp:zotero
+    permissions:
+      - read-only

@@ -1,0 +1,21 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: core-designer
+  title: Designer
+  description: Product designer
+  version: 1.0.0
+spec:
+  path: core/product
+  role: Product designer
+  prompt: Improve the workflow from the user's point of view. Identify hierarchy, comprehension,
+    accessibility, and interaction risks.
+  capabilities:
+    skills:
+      - product-design
+    tools:
+      - read
+    connectors:
+      - mcp:figma
+    permissions:
+      - read-only

@@ -1,0 +1,205 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: literature-review-gap-analysis
+  title: Literature review + gap analysis
+  description: Map the strongest prior work and the most credible open questions before proposing a
+    research direction.
+  version: 1.0.0
+spec:
+  objective: Produce an evidence-backed literature map with defensible research gaps.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: brief
+      kind: input
+      name: Research scope
+      summary: Question, field boundaries, date range, and evidence standard.
+      position:
+        x: 100
+        y: 220
+    - id: perspective-a
+      kind: agent
+      name: Prior-work mapper
+      summary: Organize foundational and current primary work.
+      role: Systematic literature researcher
+      prompt: Find primary studies and authoritative reviews. Group them by approach, result, date, and
+        strength of evidence.
+      capabilities:
+        skills:
+          - literature-review
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - evidence
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 90
+    - id: perspective-b
+      kind: agent
+      name: Gap challenger
+      summary: Test whether claimed gaps are actually unresolved.
+      role: Skeptical research methodologist
+      prompt: Search for counterexamples, replications, negative results, and adjacent work that may close
+        or weaken each proposed gap.
+      capabilities:
+        skills:
+          - research-methods
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - risks
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 350
+    - id: join
+      kind: join
+      name: Perspective barrier
+      summary: Wait for both independent perspectives.
+      config:
+        join: all
+      position:
+        x: 660
+        y: 220
+    - id: synthesis
+      kind: agent
+      name: Research map
+      summary: Reconcile the evidence into themes and open questions.
+      role: Research synthesis lead
+      prompt: Create a structured literature map. Rank open questions by novelty, tractability, and
+        evidentiary support.
+      capabilities:
+        skills:
+          - synthesis
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - recommendation
+          - actions
+          - openQuestions
+        properties:
+          recommendation:
+            type: string
+          actions:
+            type: array
+            items:
+              type: string
+          openQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 150
+    - id: evaluation
+      kind: evaluate
+      name: Gap validity gate
+      summary: Check the recommendation against its evidence and contract.
+      role: Evidence quality evaluator
+      prompt: Pass only when every claimed gap is supported by the reviewed evidence and material
+        contradictory work is addressed.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+      position:
+        x: 900
+        y: 330
+    - id: output
+      kind: output
+      name: Research agenda
+      summary: Literature map, defensible gaps, and recommended next studies.
+      position:
+        x: 1180
+        y: 220
+  edges:
+    - id: e1
+      from: brief
+      to: perspective-a
+      kind: data
+      contract: Brief
+    - id: e2
+      from: brief
+      to: perspective-b
+      kind: data
+      contract: Brief
+    - id: e3
+      from: perspective-a
+      to: join
+      kind: data
+      contract: EvidenceSet
+    - id: e4
+      from: perspective-b
+      to: join
+      kind: data
+      contract: RiskSet
+    - id: e5
+      from: join
+      to: synthesis
+      kind: dependency
+    - id: e6
+      from: synthesis
+      to: evaluation
+      kind: data
+      contract: Recommendation
+    - id: e7
+      from: evaluation
+      to: output
+      kind: control
+      condition: passed == true

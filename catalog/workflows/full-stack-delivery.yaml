@@ -1,0 +1,588 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: full-stack-app-delivery
+  title: Full-stack app delivery
+  description: Design, architect, evaluate, build, verify, approve, and deploy a production full-stack
+    application.
+  version: 1.0.0
+spec:
+  objective: Deliver a production-ready full-stack application through explicit design, architecture,
+    quality, security, and release gates.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - implementation
+      - deployment
+  nodes:
+    - id: brief
+      kind: input
+      name: App brief
+      summary: User outcome, scope, constraints, platform, data, and release expectations.
+      position:
+        x: 100
+        y: 280
+    - id: product-design
+      kind: agent
+      name: Product and UX design
+      summary: Define the journey, screens, states, accessibility, and acceptance criteria.
+      role: Senior product designer
+      prompt: Turn the app brief into a coherent experience. Define target users, primary journeys,
+        information architecture, screen and component states, responsive behavior, accessibility
+        requirements, and observable acceptance criteria. Preserve explicit non-goals and unresolved
+        questions.
+      capabilities:
+        skills:
+          - product-design
+          - accessibility
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - journeys
+          - screens
+          - states
+          - acceptanceCriteria
+        properties:
+          journeys:
+            type: array
+            items:
+              type: string
+          screens:
+            type: array
+            items:
+              type: string
+          states:
+            type: array
+            items:
+              type: string
+          acceptanceCriteria:
+            type: array
+            items:
+              type: string
+      position:
+        x: 370
+        y: 100
+    - id: architecture
+      kind: agent
+      name: System architecture
+      summary: Define boundaries, interfaces, data, infrastructure, and operational constraints.
+      role: Principal full-stack architect
+      prompt: Design the smallest architecture that satisfies the app brief. Define frontend and backend
+        boundaries, APIs, data model, authentication and authorization, integrations, deployment
+        topology, failure modes, observability, migrations, and key technical decisions with
+        tradeoffs.
+      capabilities:
+        skills:
+          - software-architecture
+          - data-modeling
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - components
+          - interfaces
+          - dataModel
+          - decisions
+          - risks
+        properties:
+          components:
+            type: array
+            items:
+              type: string
+          interfaces:
+            type: array
+            items:
+              type: string
+          dataModel:
+            type: string
+          decisions:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 370
+        y: 330
+    - id: plan-join
+      kind: join
+      name: Design and architecture barrier
+      summary: Wait for the product contract and technical design.
+      config:
+        join: all
+      position:
+        x: 660
+        y: 220
+    - id: evaluation-definition
+      kind: agent
+      name: Evaluation definition
+      summary: Define measurable gates before implementation begins.
+      role: Independent quality architect
+      prompt: Define the evaluation contract before code is written. Map product acceptance criteria and
+        architecture constraints to functional, integration, accessibility, security, reliability,
+        performance, deployment, and rollback checks. Give every gate a method, evidence
+        requirement, pass threshold, and owner.
+      capabilities:
+        skills:
+          - evaluation-design
+          - test-strategy
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - gates
+          - thresholds
+          - evidence
+          - owners
+        properties:
+          gates:
+            type: array
+            items:
+              type: string
+          thresholds:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+          owners:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 110
+    - id: plan-gate
+      kind: evaluate
+      name: Design and architecture gate
+      summary: Reject ambiguous, conflicting, unsafe, or untestable plans.
+      role: Cross-functional plan reviewer
+      prompt: Evaluate the product design, architecture, and evaluation contract together. Pass only when
+        journeys and states are complete, interfaces and data ownership are explicit, security and
+        operational risks are addressed, and every material requirement has a measurable gate.
+      capabilities:
+        skills:
+          - architecture-review
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 900
+        y: 330
+    - id: build-approval
+      kind: approval
+      name: Approve implementation
+      summary: Confirm scope, tradeoffs, budget, and delivery plan before code changes.
+      position:
+        x: 900
+        y: 540
+    - id: frontend-build
+      kind: agent
+      name: Frontend implementation
+      summary: Build the responsive, accessible client and its integration states.
+      role: Senior frontend engineer
+      prompt: Implement the approved frontend within the defined architecture. Build the complete primary
+        journey, responsive and accessible states, typed API integration, loading and error
+        behavior, and focused component tests. Preserve existing design-system and repository
+        conventions.
+      capabilities:
+        skills:
+          - frontend-development
+          - accessibility
+        tools:
+          - read
+          - edit
+          - test
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+        required:
+          - changes
+          - tests
+          - evidence
+          - risks
+        properties:
+          changes:
+            type: array
+            items:
+              type: string
+          tests:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1190
+        y: 130
+    - id: backend-build
+      kind: agent
+      name: Backend implementation
+      summary: Build APIs, data, authorization, migrations, and operational behavior.
+      role: Senior backend engineer
+      prompt: Implement the approved backend within the defined contracts. Build APIs, persistence,
+        validation, authentication and authorization, migrations, failure handling, observability,
+        and focused unit and integration tests. Do not widen scope without recording the decision.
+      capabilities:
+        skills:
+          - backend-development
+          - database-engineering
+        tools:
+          - read
+          - edit
+          - test
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+        required:
+          - changes
+          - tests
+          - evidence
+          - risks
+        properties:
+          changes:
+            type: array
+            items:
+              type: string
+          tests:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1190
+        y: 430
+    - id: build-join
+      kind: join
+      name: Integrated build barrier
+      summary: Wait for frontend and backend implementation evidence.
+      config:
+        join: all
+      position:
+        x: 1480
+        y: 280
+    - id: quality-gate
+      kind: evaluate
+      name: Functional quality gate
+      summary: Evaluate the integrated app against the predefined product and engineering gates.
+      role: Independent full-stack test lead
+      prompt: Run the predefined functional, integration, accessibility, reliability, performance, and
+        regression evaluations against the integrated application. Pass only with reproducible
+        evidence for every required threshold; distinguish failures, skipped checks, and residual
+        risk.
+      capabilities:
+        skills:
+          - full-stack-testing
+          - evaluation
+        tools:
+          - read
+          - test
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+          - evidence
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 1730
+        y: 130
+    - id: security-gate
+      kind: evaluate
+      name: Security and privacy gate
+      summary: Review trust boundaries, data handling, authorization, dependencies, and deployment exposure.
+      role: Independent application security reviewer
+      prompt: Evaluate the integrated application against the predefined security and privacy gates.
+        Review authentication, authorization, input handling, secrets, sensitive data, dependencies,
+        abuse paths, logging, and deployment configuration. Block release for unresolved
+        high-severity findings.
+      capabilities:
+        skills:
+          - application-security
+          - privacy-review
+        tools:
+          - read
+          - test
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+          - findings
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+          findings:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 1730
+        y: 430
+    - id: release-gate
+      kind: evaluate
+      name: Release readiness gate
+      summary: Reconcile all evidence, known risk, rollout, observability, and rollback readiness.
+      role: Release readiness evaluator
+      prompt: Review quality and security evidence together with migration, observability, rollout, and
+        rollback plans. Pass only when every mandatory gate passed, known risks are accepted by an
+        owner, and deployment and recovery steps are executable and reversible.
+      capabilities:
+        skills:
+          - release-engineering
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+          - releaseChecklist
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+          releaseChecklist:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 1
+      position:
+        x: 1990
+        y: 280
+    - id: deploy-approval
+      kind: approval
+      name: Approve production deployment
+      summary: Require explicit human approval after every release gate passes.
+      position:
+        x: 2240
+        y: 280
+    - id: deploy
+      kind: agent
+      name: Deploy and verify
+      summary: Deploy through the approved release path and verify production health.
+      role: Senior release engineer
+      prompt: Deploy using the repository-approved release path only after explicit approval. Apply
+        migrations safely, verify configuration and secrets without exposing them, run smoke checks,
+        inspect health and observability signals, record the release identifier, and roll back
+        immediately if a stop condition is met.
+      capabilities:
+        skills:
+          - deployment
+          - observability
+        tools:
+          - read
+          - deploy
+          - monitor
+        permissions:
+          - external-write
+      outputSchema:
+        type: object
+        required:
+          - releaseId
+          - environment
+          - checks
+          - status
+          - rollbackStatus
+        properties:
+          releaseId:
+            type: string
+          environment:
+            type: string
+          checks:
+            type: array
+            items:
+              type: string
+          status:
+            type: string
+          rollbackStatus:
+            type: string
+      position:
+        x: 2490
+        y: 280
+    - id: release-output
+      kind: output
+      name: Released application
+      summary: Return the deployed release, evidence, known risks, and operational handoff.
+      position:
+        x: 2750
+        y: 280
+  edges:
+    - id: e1
+      from: brief
+      to: product-design
+      kind: data
+      contract: AppBrief
+    - id: e2
+      from: brief
+      to: architecture
+      kind: data
+      contract: AppBrief
+    - id: e3
+      from: product-design
+      to: plan-join
+      kind: data
+      contract: ProductDesign
+    - id: e4
+      from: architecture
+      to: plan-join
+      kind: data
+      contract: SystemArchitecture
+    - id: e5
+      from: plan-join
+      to: evaluation-definition
+      kind: dependency
+    - id: e6
+      from: plan-join
+      to: plan-gate
+      kind: dependency
+    - id: e7
+      from: evaluation-definition
+      to: plan-gate
+      kind: data
+      contract: EvaluationContract
+    - id: e8
+      from: plan-gate
+      to: build-approval
+      kind: control
+      condition: passed == true
+    - id: e9
+      from: build-approval
+      to: frontend-build
+      kind: control
+      condition: approved == true
+    - id: e10
+      from: build-approval
+      to: backend-build
+      kind: control
+      condition: approved == true
+    - id: e11
+      from: frontend-build
+      to: build-join
+      kind: data
+      contract: FrontendBuild
+    - id: e12
+      from: backend-build
+      to: build-join
+      kind: data
+      contract: BackendBuild
+    - id: e13
+      from: build-join
+      to: quality-gate
+      kind: dependency
+    - id: e14
+      from: build-join
+      to: security-gate
+      kind: dependency
+    - id: e15
+      from: quality-gate
+      to: release-gate
+      kind: data
+      contract: QualityEvidence
+    - id: e16
+      from: security-gate
+      to: release-gate
+      kind: data
+      contract: SecurityEvidence
+    - id: e17
+      from: release-gate
+      to: deploy-approval
+      kind: control
+      condition: passed == true
+    - id: e18
+      from: deploy-approval
+      to: deploy
+      kind: control
+      condition: approved == true
+    - id: e19
+      from: deploy
+      to: release-output
+      kind: data
+      contract: DeploymentEvidence

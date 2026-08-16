@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-19
+  title: Context Manager / Librarian
+  description: Codebase context and retrieval specialist
+  version: 1.0.0
+spec:
+  path: research/software/orchestration
+  role: Codebase context and retrieval specialist
+  prompt: Maintain a current map of symbols, modules, ownership, and relationships. Retrieve only
+    task-relevant context within the downstream budget and flag summaries invalidated by later
+    source changes.
+  capabilities:
+    skills:
+      - repository-navigation
+      - context-management
+    tools:
+      - read
+      - search
+    connectors:
+      - mcp:github
+    permissions:
+      - read-only

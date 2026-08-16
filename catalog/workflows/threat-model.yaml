@@ -1,0 +1,205 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: threat-model-mitigation-review
+  title: Threat model + mitigation review
+  description: Map abuse paths and sensitive data independently, then gate mitigations by severity and
+    residual risk.
+  version: 1.0.0
+spec:
+  objective: Produce an actionable threat model with verified, prioritized mitigations.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: brief
+      kind: input
+      name: System change
+      summary: Architecture, data, actors, trust boundaries, deployment, and proposed behavior.
+      position:
+        x: 100
+        y: 220
+    - id: perspective-a
+      kind: agent
+      name: Abuse-path analysis
+      summary: Identify attacker goals, entry points, and trust-boundary crossings.
+      role: Application security engineer
+      prompt: Model realistic attackers and misuse cases. Trace abuse paths through assets, entry points,
+        privileges, and trust boundaries.
+      capabilities:
+        skills:
+          - threat-modeling
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - evidence
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 90
+    - id: perspective-b
+      kind: agent
+      name: Data and privacy review
+      summary: Map sensitive data, retention, disclosure, and consent risks.
+      role: Privacy and data security reviewer
+      prompt: Review data collection, storage, access, retention, external sharing, user expectations, and
+        regulatory exposure.
+      capabilities:
+        skills:
+          - privacy-review
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - risks
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 350
+    - id: join
+      kind: join
+      name: Perspective barrier
+      summary: Wait for both independent perspectives.
+      config:
+        join: all
+      position:
+        x: 660
+        y: 220
+    - id: synthesis
+      kind: agent
+      name: Mitigation plan
+      summary: Prioritize controls and make residual risk explicit.
+      role: Security architecture lead
+      prompt: Combine both reviews into ranked threats, preventive and detective controls, owners,
+        verification steps, and accepted residual risk.
+      capabilities:
+        skills:
+          - security-architecture
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - recommendation
+          - actions
+          - openQuestions
+        properties:
+          recommendation:
+            type: string
+          actions:
+            type: array
+            items:
+              type: string
+          openQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 150
+    - id: evaluation
+      kind: evaluate
+      name: Security readiness gate
+      summary: Check the recommendation against its evidence and contract.
+      role: Independent security reviewer
+      prompt: Pass only when high-severity threats have testable mitigations and residual risks are
+        explicit and owned.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+      position:
+        x: 900
+        y: 330
+    - id: output
+      kind: output
+      name: Reviewed threat model
+      summary: Threats, severity, mitigations, verification, ownership, and residual risk.
+      position:
+        x: 1180
+        y: 220
+  edges:
+    - id: e1
+      from: brief
+      to: perspective-a
+      kind: data
+      contract: Brief
+    - id: e2
+      from: brief
+      to: perspective-b
+      kind: data
+      contract: Brief
+    - id: e3
+      from: perspective-a
+      to: join
+      kind: data
+      contract: EvidenceSet
+    - id: e4
+      from: perspective-b
+      to: join
+      kind: data
+      contract: RiskSet
+    - id: e5
+      from: join
+      to: synthesis
+      kind: dependency
+    - id: e6
+      from: synthesis
+      to: evaluation
+      kind: data
+      contract: Recommendation
+    - id: e7
+      from: evaluation
+      to: output
+      kind: control
+      condition: passed == true

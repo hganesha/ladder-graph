@@ -1,0 +1,208 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: reference-image-transformation
+  title: Reference image → new image
+  description: Transform a supplied image under explicit preservation, rights, cost, and safety constraints.
+  version: 1.0.0
+spec:
+  objective: Create a reviewed derivative image while preserving approved invariants and recording provenance.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - provider-cost
+      - publication
+  nodes:
+    - id: reference-image
+      kind: input
+      name: Reference image
+      summary: Host-provided image, transformation instructions, preservation constraints, and rights
+        context.
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: image/*
+            description: A host-provided data URL, local file reference, uploaded-asset identifier, or
+              authorized HTTPS URL. Ladder Graph does not upload or fetch the asset.
+          instructions:
+            type: string
+            description: What the workflow should extract, analyze, transform, or create.
+          sourceRights:
+            type: string
+            description: User-supplied rights, consent, or provenance context when relevant.
+        x-ladder-input-mode: image
+      position:
+        x: 80
+        y: 220
+    - id: request-design
+      kind: agent
+      name: Transformation request
+      summary: Translate the request into explicit edits, invariants, model parameters, and a cost ceiling.
+      role: Reference-guided image workflow designer
+      prompt: Inspect the reference and separate requested changes from invariants that must remain.
+        Confirm rights and likeness constraints, define dimensions and format, choose a verified
+        image-editing profile, estimate cost, and preserve the host reference rather than embedding
+        image bytes in the workflow.
+      capabilities:
+        skills:
+          - image-understanding
+          - image-editing
+          - multimodal-model-selection
+        tools:
+          - read-media
+          - search
+        connectors:
+          - api:openrouter/google/gemini-2.5-flash-image
+        permissions:
+          - network-read
+      outputSchema:
+        type: object
+        required:
+          - prompt
+          - invariants
+          - model
+          - parameters
+          - costCeiling
+        properties:
+          prompt:
+            type: string
+          invariants:
+            type: array
+            items:
+              type: string
+          model:
+            type: string
+          parameters:
+            type: object
+          costCeiling:
+            type: number
+      position:
+        x: 360
+        y: 220
+    - id: approval
+      kind: approval
+      name: Approve transformation
+      summary: Confirm reference transfer, intended changes, invariants, rights, and provider cost.
+      position:
+        x: 650
+        y: 220
+    - id: transform
+      kind: agent
+      name: Generate derivative image
+      summary: Apply only the approved changes and retain generation provenance.
+      role: Reference-guided image generation specialist
+      prompt: Use the approved reference and request to create the derivative. Apply only declared
+        changes, preserve every approved invariant, and return the asset reference, model,
+        parameters, usage, cost, and prompt provenance.
+      capabilities:
+        skills:
+          - image-generation
+          - image-editing
+        tools:
+          - read-media
+          - generate-media
+        connectors:
+          - api:openrouter/google/gemini-2.5-flash-image
+        permissions:
+          - external-write
+      outputSchema:
+        type: object
+        required:
+          - asset
+          - provenance
+          - usage
+        properties:
+          asset:
+            type: string
+          provenance:
+            type: object
+          usage:
+            type: object
+      position:
+        x: 920
+        y: 220
+    - id: review
+      kind: evaluate
+      name: Reference fidelity and safety gate
+      summary: Compare the result with the approved edits, invariants, safety, and rights constraints.
+      role: Independent image transformation reviewer
+      prompt: Compare source and derivative images. Pass only when requested edits are present, invariants
+        remain intact, provenance is complete, and no unresolved privacy, likeness, rights, or
+        safety issue remains.
+      capabilities:
+        skills:
+          - image-understanding
+          - media-safety-review
+          - evaluation
+        tools:
+          - read-media
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - changesVerified
+          - invariantsPreserved
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          changesVerified:
+            type: boolean
+          invariantsPreserved:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 1210
+        y: 220
+    - id: output
+      kind: output
+      name: Reviewed derivative package
+      summary: Return the source and derivative references, transformation provenance, usage, cost, and
+        review evidence.
+      position:
+        x: 1510
+        y: 220
+  edges:
+    - id: e1
+      from: reference-image
+      to: request-design
+      kind: data
+      contract: ReferenceImageInput
+    - id: e2
+      from: request-design
+      to: approval
+      kind: data
+      contract: ImageTransformationRequest
+    - id: e3
+      from: approval
+      to: transform
+      kind: control
+      condition: approved == true
+    - id: e4
+      from: transform
+      to: review
+      kind: data
+      contract: DerivativeImage
+    - id: e5
+      from: review
+      to: output
+      kind: control
+      condition: passed == true
