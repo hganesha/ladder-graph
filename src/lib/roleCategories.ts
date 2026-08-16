@@ -35,6 +35,13 @@ export const ROLE_CATEGORIES: RoleCategory[] = [
     searchTerms: ["cybersecurity", "infosec"],
   },
   {
+    id: "multimodal",
+    label: "Multimodal",
+    description: "Image, video, speech, transcription, and cross-media direction.",
+    pathPrefix: "research/multimodal/",
+    searchTerms: ["image", "video", "audio", "media", "speech"],
+  },
+  {
     id: "architecture-design",
     label: "Architecture & design",
     description: "Building design, engineering, interiors, performance, and delivery.",

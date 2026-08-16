@@ -45,5 +45,13 @@
       "quoteStyle": "double",
       "trailingCommas": "all"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["ladder-graph-help.html"],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
 }

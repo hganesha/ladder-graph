@@ -1,6 +1,7 @@
 import { parseDocument } from "yaml";
 import { create } from "zustand";
 import { compiler } from "../compiler/client";
+import { createAgentStarterSource } from "../lib/agentStarter";
 import { autoLayout, groupMemberPosition } from "../lib/layout";
 import { defaultNode, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { requestPersistentStorage, saveProject } from "../lib/persistence";
@@ -35,6 +36,7 @@ interface StudioState {
   future: string[];
   setView: (view: ViewMode) => void;
   openTemplate: (id: string) => Promise<void>;
+  openAgentTemplate: (id: string) => Promise<void>;
   openBlank: () => Promise<void>;
   openProject: (project: ProjectRecord) => Promise<void>;
   setSource: (source: string, recordHistory?: boolean) => Promise<void>;
@@ -147,6 +149,24 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       source,
       lastValidSource: source,
       selectedNodeId: null,
+      selectedEdgeId: null,
+      outputOpen: false,
+      compileResult: null,
+      past: [],
+      future: [],
+    });
+    await analyzeAndPersist(set, get, source);
+  },
+  openAgentTemplate: async (id) => {
+    const template = ROLE_TEMPLATES.find((candidate) => candidate.id === id);
+    if (!template) return;
+    const source = createAgentStarterSource(template);
+    set({
+      view: "studio",
+      projectId: null,
+      source,
+      lastValidSource: source,
+      selectedNodeId: "agent-1",
       selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,

@@ -3,6 +3,7 @@ import {
   Atom,
   Beaker,
   BookOpen,
+  Bot,
   Boxes,
   Building2,
   Calculator,
@@ -16,9 +17,12 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  Workflow,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { listProjects } from "../lib/persistence";
+import { roleSubcategory } from "../lib/roleCategories";
+import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../lib/templates";
 import { useStudioStore } from "../store/useStudioStore";
 import type { ProjectRecord } from "../types";
@@ -216,23 +220,28 @@ const WORKFLOW_AREAS = [
   },
 ] as const;
 
+type LibraryTab = "workflows" | "agents";
+
 export function Welcome({ onBlank }: { onBlank: () => void }) {
   const openTemplate = useStudioStore((state) => state.openTemplate);
+  const openAgentTemplate = useStudioStore((state) => state.openAgentTemplate);
   const openProject = useStudioStore((state) => state.openProject);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeArea, setActiveArea] = useState<(typeof WORKFLOW_AREAS)[number]["name"]>("Core patterns");
   const [helpOpen, setHelpOpen] = useState(false);
-  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [activeLibraryTab, setActiveLibraryTab] = useState<LibraryTab>("workflows");
+  const areaRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
   const selectedTemplates = WORKFLOW_TEMPLATES.filter((template) => template.area === selectedArea.name);
+  const selectedAgents = roleTemplatesForSubject(selectedArea.name);
   const SelectedAreaIcon = selectedArea.icon;
 
-  const focusAreaTab = (index: number) => {
+  const focusArea = (index: number) => {
     const nextArea = WORKFLOW_AREAS[index];
     if (!nextArea) return;
     setActiveArea(nextArea.name);
-    tabRefs.current[index]?.focus();
+    areaRefs.current[index]?.focus();
   };
 
   useEffect(() => {
@@ -263,61 +272,90 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
           <div>
             <h1 id="gallery-title">Starter workflows</h1>
             <p>
-              {WORKFLOW_TEMPLATES.length} workflows across {WORKFLOW_AREAS.length} areas. Choose one and adapt its roles and contracts in
-              the studio.
+              Choose a subject area, then start from one of {WORKFLOW_TEMPLATES.length} workflows or {ROLE_TEMPLATES.length} agent
+              templates.
             </p>
           </div>
           <button className="quiet-button new-workflow-button" onClick={onBlank}>
             New workflow <ArrowRight size={15} />
           </button>
         </div>
-        <div className="workflow-tabs" role="tablist" aria-label="Starter workflow categories">
+        <div className="subject-area-label">
+          <span className="eyebrow">1 · Choose a subject area</span>
+        </div>
+        <fieldset className="workflow-tabs subject-area-selector">
+          <legend className="sr-only">Subject areas</legend>
           {WORKFLOW_AREAS.map((area, index) => {
             const AreaIcon = area.icon;
             const selected = area.name === activeArea;
             return (
               <button
-                aria-controls="workflow-category-panel"
-                aria-selected={selected}
+                aria-pressed={selected}
                 className={selected ? "active" : undefined}
-                id={`workflow-tab-${index}`}
+                id={`subject-area-${index}`}
                 key={area.name}
                 onClick={() => setActiveArea(area.name)}
                 onKeyDown={(event) => {
                   if (event.key === "ArrowRight") {
                     event.preventDefault();
-                    focusAreaTab((index + 1) % WORKFLOW_AREAS.length);
+                    focusArea((index + 1) % WORKFLOW_AREAS.length);
                   } else if (event.key === "ArrowLeft") {
                     event.preventDefault();
-                    focusAreaTab((index - 1 + WORKFLOW_AREAS.length) % WORKFLOW_AREAS.length);
+                    focusArea((index - 1 + WORKFLOW_AREAS.length) % WORKFLOW_AREAS.length);
                   } else if (event.key === "Home") {
                     event.preventDefault();
-                    focusAreaTab(0);
+                    focusArea(0);
                   } else if (event.key === "End") {
                     event.preventDefault();
-                    focusAreaTab(WORKFLOW_AREAS.length - 1);
+                    focusArea(WORKFLOW_AREAS.length - 1);
                   }
                 }}
                 ref={(element) => {
-                  tabRefs.current[index] = element;
+                  areaRefs.current[index] = element;
                 }}
-                role="tab"
-                tabIndex={selected ? 0 : -1}
                 type="button"
               >
                 <AreaIcon size={15} aria-hidden="true" />
                 <span>{area.name}</span>
-                <small aria-hidden="true">{WORKFLOW_TEMPLATES.filter((template) => template.area === area.name).length}</small>
+                <small aria-hidden="true">
+                  {WORKFLOW_TEMPLATES.filter((template) => template.area === area.name).length + roleTemplatesForSubject(area.name).length}
+                </small>
               </button>
             );
           })}
+        </fieldset>
+        <div className="library-tab-heading">
+          <span className="eyebrow">2 · Choose a starting point</span>
+          <div className="library-tabs" role="tablist" aria-label="Starting point type">
+            <button
+              aria-label="Workflows"
+              aria-controls="library-panel"
+              aria-selected={activeLibraryTab === "workflows"}
+              className={activeLibraryTab === "workflows" ? "active" : undefined}
+              id="library-tab-workflows"
+              onClick={() => setActiveLibraryTab("workflows")}
+              role="tab"
+              tabIndex={activeLibraryTab === "workflows" ? 0 : -1}
+              type="button"
+            >
+              <Workflow size={15} /> Workflows <small>{selectedTemplates.length}</small>
+            </button>
+            <button
+              aria-label="Agents"
+              aria-controls="library-panel"
+              aria-selected={activeLibraryTab === "agents"}
+              className={activeLibraryTab === "agents" ? "active" : undefined}
+              id="library-tab-agents"
+              onClick={() => setActiveLibraryTab("agents")}
+              role="tab"
+              tabIndex={activeLibraryTab === "agents" ? 0 : -1}
+              type="button"
+            >
+              <Bot size={15} /> Agents <small>{selectedAgents.length}</small>
+            </button>
+          </div>
         </div>
-        <section
-          aria-labelledby={`workflow-tab-${WORKFLOW_AREAS.indexOf(selectedArea)}`}
-          className="workflow-tab-panel"
-          id="workflow-category-panel"
-          role="tabpanel"
-        >
+        <section aria-labelledby={`library-tab-${activeLibraryTab}`} className="workflow-tab-panel" id="library-panel" role="tabpanel">
           <div className="workflow-group-heading">
             <span aria-hidden="true">
               <SelectedAreaIcon size={17} />
@@ -327,35 +365,67 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
               <p>{selectedArea.description}</p>
             </div>
           </div>
-          <div className="template-grid tabbed-template-grid">
-            {selectedTemplates.map((template) => (
-              <button
-                aria-label={`Open ${template.title} in studio`}
-                className="template-card"
-                key={template.id}
-                onClick={() => void openTemplate(template.id)}
-                style={{ "--accent": template.accent } as React.CSSProperties}
-              >
-                <div className="topology-art" aria-hidden="true">
-                  <SelectedAreaIcon />
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <div className="template-meta">
-                  <span>{template.eyebrow}</span>
-                  <span>{template.topology}</span>
-                </div>
-                <h3>{template.title}</h3>
-                <p>{template.description}</p>
-                <strong>
-                  Open in studio <ArrowRight size={14} />
-                </strong>
-              </button>
-            ))}
-          </div>
+          {activeLibraryTab === "workflows" ? (
+            <div className="template-grid tabbed-template-grid">
+              {selectedTemplates.map((template) => (
+                <button
+                  aria-label={`Open ${template.title} in studio`}
+                  className="template-card"
+                  key={template.id}
+                  onClick={() => void openTemplate(template.id)}
+                  style={{ "--accent": template.accent } as React.CSSProperties}
+                >
+                  <div className="topology-art" aria-hidden="true">
+                    <SelectedAreaIcon />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="template-meta">
+                    <span>{template.eyebrow}</span>
+                    <span>{template.topology}</span>
+                  </div>
+                  <h3>{template.title}</h3>
+                  <p>{template.description}</p>
+                  <strong>
+                    Open in studio <ArrowRight size={14} />
+                  </strong>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="template-grid tabbed-template-grid agent-template-grid">
+              {selectedAgents.map((agent) => (
+                <button
+                  aria-label={`Start workflow with ${agent.name}`}
+                  className="template-card agent-template-card"
+                  key={agent.id}
+                  onClick={() => void openAgentTemplate(agent.id)}
+                  style={{ "--accent": "#e86b5d" } as React.CSSProperties}
+                >
+                  <div className="agent-card-icon" aria-hidden="true">
+                    <Bot />
+                  </div>
+                  <div className="template-meta">
+                    <span>{roleSubcategory(agent)}</span>
+                    <span>{agent.skills.length} skills</span>
+                  </div>
+                  <h3>{agent.name}</h3>
+                  <p>{agent.role}</p>
+                  <div className="agent-skill-list" aria-hidden="true">
+                    {agent.skills.slice(0, 3).map((skill) => (
+                      <span key={skill}>{skill}</span>
+                    ))}
+                  </div>
+                  <strong>
+                    Create workflow <ArrowRight size={14} />
+                  </strong>
+                </button>
+              ))}
+            </div>
+          )}
 
-          {projects.length > 0 && (
+          {activeLibraryTab === "workflows" && projects.length > 0 && (
             <section className="recent-section" aria-labelledby="recent-title">
               <div className="eyebrow">Saved in this browser</div>
               <h2 id="recent-title">Recent projects</h2>
