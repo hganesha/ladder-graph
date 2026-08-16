@@ -671,6 +671,38 @@ button:disabled {
   font-size: 8px;
   letter-spacing: 0.04em;
 }
+.workflow-metadata-fields {
+  display: grid;
+  gap: 1px;
+}
+.workflow-metadata-fields input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  padding: 1px 2px;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  text-overflow: ellipsis;
+}
+.workflow-metadata-fields input:first-child {
+  font-size: 13px;
+  font-weight: 560;
+}
+.workflow-metadata-fields input:last-child {
+  color: #68767f;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+.workflow-metadata-fields input:hover {
+  border-bottom-color: var(--border-strong);
+}
+.workflow-metadata-fields input:focus {
+  border-bottom-color: var(--cyan);
+}
 .icon-button,
 .mode-switch button {
   display: grid;

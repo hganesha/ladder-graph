@@ -52,6 +52,7 @@ interface StudioState {
   toggleDiagnostics: (value?: boolean) => void;
   togglePalette: () => void;
   toggleInspector: () => void;
+  patchWorkflowMetadata: (patch: Partial<Workflow["metadata"]>) => Promise<void>;
   patchNode: (id: string, patch: Partial<LgirNode>) => Promise<void>;
   patchEdge: (id: string, patch: Partial<LgirEdge>) => Promise<void>;
   deleteElements: (nodeIds: string[], edgeIds: string[]) => Promise<void>;
@@ -88,7 +89,8 @@ function patchYaml(source: string, path: (string | number)[], value: unknown) {
 }
 
 function projectName(source: string) {
-  return parseWorkflow(source)?.metadata?.name ?? "untitled-workflow";
+  const metadata = parseWorkflow(source)?.metadata;
+  return metadata?.title?.trim() || metadata?.name || "untitled-workflow";
 }
 
 async function analyzeAndPersist(set: (value: Partial<StudioState>) => void, get: () => StudioState, source: string) {
@@ -242,6 +244,15 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   toggleDiagnostics: (value) => set((state) => ({ diagnosticsOpen: value ?? !state.diagnosticsOpen })),
   togglePalette: () => set((state) => ({ paletteOpen: !state.paletteOpen })),
   toggleInspector: () => set((state) => ({ inspectorOpen: !state.inspectorOpen })),
+  patchWorkflowMetadata: async (patch) => {
+    const workflow = parseWorkflow(get().source);
+    if (!workflow) return;
+    let source = get().source;
+    Object.entries(patch).forEach(([key, value]) => {
+      source = patchYaml(source, ["metadata", key], value);
+    });
+    await get().setSource(source);
+  },
   patchNode: async (id, patch) => {
     const workflow = parseWorkflow(get().source);
     const index = workflow?.spec.nodes.findIndex((node) => node.id === id) ?? -1;
