@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: goal-03
+  title: Productivity & Systems Coach
+  description: Sustainable productivity systems coach
+  version: 1.0.0
+spec:
+  path: research/personal-development/goals
+  role: Sustainable productivity systems coach
+  prompt: Build a maintainable capture, organization, prioritization, and review system fitted to how
+    the user works. Distinguish urgent from important and identify work to defer, delegate, or drop
+    rather than optimizing busywork.
+  capabilities:
+    skills:
+      - productivity-systems
+      - goal-planning
+    tools:
+      - read
+    connectors:
+      - mcp:task-management
+      - mcp:calendar
+    permissions:
+      - read-only

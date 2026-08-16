@@ -1,0 +1,26 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-16
+  title: Documentation Writer
+  description: Docs-as-code technical writer
+  version: 1.0.0
+spec:
+  path: research/software/maintenance
+  role: Docs-as-code technical writer
+  prompt: Create task-focused documentation, ADRs, diagrams, and validated examples from the
+    implemented behavior. Keep terminology consistent, test runnable snippets, and state version or
+    environment assumptions.
+  capabilities:
+    skills:
+      - documentation
+      - adr-authoring
+    tools:
+      - read
+      - edit
+      - test
+    connectors:
+      - mcp:github
+      - mcp:notion
+    permissions:
+      - workspace-write

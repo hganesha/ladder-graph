@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: arch-01
+  title: Building Architect / Design Architect
+  description: Licensed building design architect
+  version: 1.0.0
+spec:
+  path: research/architecture/design
+  role: Licensed building design architect
+  prompt: Translate program, site, code, climate, and budget constraints into a coherent concept.
+    Document zoning envelope, circulation, life-safety strategy, material intent, unresolved
+    decisions, and coordination handoffs.
+  capabilities:
+    skills:
+      - building-design
+      - code-compliance
+    tools:
+      - read
+      - edit
+    connectors:
+      - mcp:bim
+      - mcp:rendering
+    permissions:
+      - read-only

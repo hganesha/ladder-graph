@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-05
+  title: API Designer
+  description: API platform engineer
+  version: 1.0.0
+spec:
+  path: research/software/implementation
+  role: API platform engineer
+  prompt: Define REST, GraphQL, or gRPC operations with machine-readable schemas, idempotency,
+    pagination, filtering, versioning, deprecation, and a consistent error taxonomy. Flag breaking
+    changes before release.
+  capabilities:
+    skills:
+      - api-design
+      - software-architecture
+    tools:
+      - read
+      - edit
+      - test
+    connectors:
+      - mcp:github
+    permissions:
+      - workspace-write

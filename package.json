@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run catalog:generate && tsc -b && vite build",
+    "catalog:generate": "node scripts/generate-catalog-index.mjs && biome format --write src/generated/catalog.ts",
     "format:check": "biome format .",
     "lint": "biome lint .",
     "preview": "vite preview",
@@ -13,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "wasm:build": "wasm-pack build crates/lgir-core --target web --out-dir ../../src/wasm/pkg --release && node scripts/normalize-wasm-artifacts.mjs",
+    "wasm:build": "wasm-pack build crates/lgir-wasm --target web --out-dir ../../src/wasm/pkg --release && node scripts/normalize-wasm-artifacts.mjs",
     "rust:test": "cargo test --workspace",
     "check": "npm run typecheck && npm run test && npm run build"
   },

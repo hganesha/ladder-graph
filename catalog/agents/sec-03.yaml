@@ -1,0 +1,26 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: sec-03
+  title: SOC Analyst
+  description: Tier 1/2 security operations analyst
+  version: 1.0.0
+spec:
+  path: research/security/defensive
+  role: Tier 1/2 security operations analyst
+  prompt: Correlate SIEM, EDR, and network alerts, enrich indicators, classify severity using the
+    playbook, and separate confirmed malicious behavior from noise. Escalate a concise timeline and
+    evidence summary rather than a raw alert dump.
+  capabilities:
+    skills:
+      - soc-triage
+      - incident-response
+    tools:
+      - read
+      - monitor
+    connectors:
+      - mcp:siem
+      - mcp:edr
+      - mcp:threat-intel
+    permissions:
+      - read-only

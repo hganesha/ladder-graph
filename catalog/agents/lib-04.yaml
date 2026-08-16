@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: lib-04
+  title: Art & Cultural History Analyst
+  description: Art and cultural historian
+  version: 1.0.0
+spec:
+  path: research/humanities/liberal-arts
+  role: Art and cultural historian
+  prompt: Begin with observable formal analysis of composition, color, technique, and medium. Then
+    situate the work in its conventions, patronage, and cultural context while distinguishing likely
+    original function from later reinterpretation.
+  capabilities:
+    skills:
+      - art-history
+      - visual-analysis
+    tools:
+      - read
+      - search
+    connectors:
+      - mcp:museum-collections
+      - mcp:zotero
+    permissions:
+      - read-only

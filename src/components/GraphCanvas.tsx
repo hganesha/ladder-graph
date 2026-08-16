@@ -9,6 +9,7 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
+import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import "@xyflow/react/dist/style.css";
 import { groupDimensions } from "../lib/layout";
@@ -123,6 +124,7 @@ export function GraphCanvas() {
   const selectedNodeId = useStudioStore((state) => state.selectedNodeId);
   const selectedEdgeId = useStudioStore((state) => state.selectedEdgeId);
   const connect = useStudioStore((state) => state.connect);
+  const deleteElements = useStudioStore((state) => state.deleteElements);
   const updatePositions = useStudioStore((state) => state.updatePositions);
   const sourceNodes = useMemo(() => toFlowNodes(workflow?.spec.nodes ?? []), [workflow]);
   const sourceEdges = useMemo(() => toFlowEdges(workflow?.spec.edges ?? [], workflow?.spec.nodes ?? []), [workflow]);
@@ -130,6 +132,8 @@ export function GraphCanvas() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(sourceEdges);
   const fitAddedNodes = useRef<(() => void) | null>(null);
   const previousNodeCount = useRef(sourceNodes.length);
+  const selectedNode = workflow?.spec.nodes.find((node) => node.id === selectedNodeId);
+  const selectedEdge = workflow?.spec.edges.find((edge) => edge.id === selectedEdgeId);
 
   useEffect(() => setNodes(sourceNodes), [sourceNodes, setNodes]);
   useEffect(() => setEdges(sourceEdges), [sourceEdges, setEdges]);
@@ -174,6 +178,12 @@ export function GraphCanvas() {
         onNodeClick={(_, node) => selectNode(node.id)}
         onEdgeClick={(_, edge) => selectEdge(edge.id)}
         onEdgeDoubleClick={(_, edge) => selectEdge(edge.id)}
+        onDelete={({ nodes: deletedNodes, edges: deletedEdges }) =>
+          void deleteElements(
+            deletedNodes.map((node) => node.id),
+            deletedEdges.map((edge) => edge.id),
+          )
+        }
         onPaneClick={() => selectNode(null)}
         onInit={(instance) => {
           fitAddedNodes.current = () => {
@@ -215,7 +225,7 @@ export function GraphCanvas() {
         }}
         minZoom={0.25}
         maxZoom={1.7}
-        deleteKeyCode={null}
+        deleteKeyCode={["Backspace", "Delete"]}
         proOptions={{ hideAttribution: true }}
       >
         <Background color="var(--graph-grid)" gap={25} size={1} />
@@ -228,8 +238,21 @@ export function GraphCanvas() {
           zoomable
         />
       </ReactFlow>
+      {(selectedNode || selectedEdge) && (
+        <button
+          type="button"
+          className="canvas-delete-action"
+          aria-label={`Delete selected ${selectedNode ? "node" : "edge"}`}
+          title={`Delete ${selectedNode?.name ?? "selected edge"}`}
+          onClick={() => void deleteElements(selectedNode ? [selectedNode.id] : [], selectedEdge ? [selectedEdge.id] : [])}
+        >
+          <Trash2 size={14} />
+          <span>Delete {selectedNode ? "node" : "edge"}</span>
+          <kbd>⌫</kbd>
+        </button>
+      )}
       <div className="canvas-hint">
-        <span className="desktop-canvas-hint">drag nodes · click edges to inspect · connect handles · ⌘↵ compile</span>
+        <span className="desktop-canvas-hint">drag nodes · click edges to inspect · select + delete · connect handles · ⌘↵ compile</span>
         <span className="mobile-canvas-hint">drag to pan · pinch to zoom</span>
       </div>
     </section>

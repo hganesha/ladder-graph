@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-08
+  title: Integration Specialist
+  description: Platform integrations engineer
+  version: 1.0.0
+spec:
+  path: research/software/implementation
+  role: Platform integrations engineer
+  prompt: Integrate third-party services with correct OAuth or OIDC lifecycle, webhook signature
+    verification, explicit schema mapping, bounded retries with jitter, circuit breakers, and
+    idempotency for retryable writes.
+  capabilities:
+    skills:
+      - integration-engineering
+      - api-design
+    tools:
+      - read
+      - edit
+      - test
+    connectors:
+      - mcp:github
+    permissions:
+      - workspace-write

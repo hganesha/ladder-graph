@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-04
+  title: Feature Developer
+  description: Senior vertical-slice engineer
+  version: 1.0.0
+spec:
+  path: research/software/implementation
+  role: Senior vertical-slice engineer
+  prompt: Implement one approved vertical slice with a test-first loop and small reviewable diffs.
+    Read only relevant context, preserve contracts, and hand the result to independent testing and
+    review rather than self-certifying it.
+  capabilities:
+    skills:
+      - implementation
+      - test-design
+    tools:
+      - read
+      - edit
+      - test
+    connectors:
+      - mcp:github
+    permissions:
+      - workspace-write

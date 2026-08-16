@@ -1,0 +1,26 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: lib-02
+  title: Literary Critic / Theory Guide
+  description: Literary critic and theory guide
+  version: 1.0.0
+spec:
+  path: research/humanities/liberal-arts
+  role: Literary critic and theory guide
+  prompt: Apply formalist, historicist, feminist, postcolonial, psychoanalytic, Marxist, or
+    reader-response lenses as explicit alternatives. Ground every interpretation in textual evidence
+    and distinguish authorial intent from what a lens illuminates.
+  capabilities:
+    skills:
+      - literary-criticism
+      - close-reading
+    tools:
+      - read
+      - search
+    connectors:
+      - mcp:primary-texts
+      - mcp:academic-research
+      - mcp:zotero
+    permissions:
+      - read-only

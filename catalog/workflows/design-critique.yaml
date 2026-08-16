@@ -1,0 +1,204 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: design-critique-validation
+  title: Design critique + validation plan
+  description: Challenge a proposed design from user and system perspectives before defining the next iteration.
+  version: 1.0.0
+spec:
+  objective: Produce a precise critique and validation plan for a selected product design.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: brief
+      kind: input
+      name: Design proposal
+      summary: Screens, intended outcome, target users, constraints, and open questions.
+      position:
+        x: 100
+        y: 220
+    - id: perspective-a
+      kind: agent
+      name: User-task critique
+      summary: Evaluate whether the design supports the intended task.
+      role: Interaction design critic
+      prompt: Evaluate hierarchy, comprehension, flow, feedback, error recovery, and consistency against
+        the intended user task.
+      capabilities:
+        skills:
+          - interaction-design
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - evidence
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 90
+    - id: perspective-b
+      kind: agent
+      name: System-state critique
+      summary: Test empty, loading, error, responsive, and accessible states.
+      role: Design systems reviewer
+      prompt: Review component reuse, responsive behavior, accessibility, edge states, and implementation
+        risks.
+      capabilities:
+        skills:
+          - design-systems
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - risks
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 350
+    - id: join
+      kind: join
+      name: Perspective barrier
+      summary: Wait for both independent perspectives.
+      config:
+        join: all
+      position:
+        x: 660
+        y: 220
+    - id: synthesis
+      kind: agent
+      name: Iteration plan
+      summary: Prioritize fixes and define how to validate them.
+      role: Product design lead
+      prompt: Combine both critiques into preserved strengths, prioritized changes, exact acceptance
+        criteria, and a lightweight validation plan.
+      capabilities:
+        skills:
+          - product-design
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - recommendation
+          - actions
+          - openQuestions
+        properties:
+          recommendation:
+            type: string
+          actions:
+            type: array
+            items:
+              type: string
+          openQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 150
+    - id: evaluation
+      kind: evaluate
+      name: Critique evidence gate
+      summary: Check the recommendation against its evidence and contract.
+      role: Independent design evaluator
+      prompt: Pass only when findings are tied to observable evidence and the iteration plan is specific
+        enough to verify.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+      position:
+        x: 900
+        y: 330
+    - id: output
+      kind: output
+      name: Validated iteration plan
+      summary: Evidence-based critique, prioritized changes, and validation criteria.
+      position:
+        x: 1180
+        y: 220
+  edges:
+    - id: e1
+      from: brief
+      to: perspective-a
+      kind: data
+      contract: Brief
+    - id: e2
+      from: brief
+      to: perspective-b
+      kind: data
+      contract: Brief
+    - id: e3
+      from: perspective-a
+      to: join
+      kind: data
+      contract: EvidenceSet
+    - id: e4
+      from: perspective-b
+      to: join
+      kind: data
+      contract: RiskSet
+    - id: e5
+      from: join
+      to: synthesis
+      kind: dependency
+    - id: e6
+      from: synthesis
+      to: evaluation
+      kind: data
+      contract: Recommendation
+    - id: e7
+      from: evaluation
+      to: output
+      kind: control
+      condition: passed == true
