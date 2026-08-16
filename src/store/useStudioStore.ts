@@ -5,6 +5,7 @@ import { autoLayout, groupMemberPosition } from "../lib/layout";
 import { defaultNode, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { requestPersistentStorage, saveProject } from "../lib/persistence";
 import { BLANK_WORKFLOW, WORKFLOW_TEMPLATES } from "../lib/templates";
+import { deleteWorkflowElements } from "../lib/workflowEditing";
 import type { AnalysisResult, CompileResult, Diagnostic, LgirEdge, LgirNode, NodeKind, ProjectRecord, Target, Workflow } from "../types";
 
 type ViewMode = "gallery" | "studio";
@@ -50,6 +51,7 @@ interface StudioState {
   toggleInspector: () => void;
   patchNode: (id: string, patch: Partial<LgirNode>) => Promise<void>;
   patchEdge: (id: string, patch: Partial<LgirEdge>) => Promise<void>;
+  deleteElements: (nodeIds: string[], edgeIds: string[]) => Promise<void>;
   addNode: (kind: NodeKind) => Promise<void>;
   addRole: (name: string) => Promise<void>;
   addMacro: (macro: "parallel" | "pipeline" | "reduce" | "verify") => Promise<void>;
@@ -249,6 +251,15 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       else document.setIn(path, value);
     });
     await get().setSource(document.toString({ indent: 2, lineWidth: 100 }));
+  },
+  deleteElements: async (nodeIds, edgeIds) => {
+    const workflow = parseWorkflow(get().source);
+    if (!workflow || (!nodeIds.length && !edgeIds.length)) return;
+    const next = deleteWorkflowElements(workflow, nodeIds, edgeIds);
+    let source = patchYaml(get().source, ["spec", "nodes"], next.spec.nodes);
+    source = patchYaml(source, ["spec", "edges"], next.spec.edges);
+    set({ selectedNodeId: null, selectedEdgeId: null });
+    await get().setSource(source);
   },
   addNode: async (kind) => {
     const workflow = parseWorkflow(get().source);
