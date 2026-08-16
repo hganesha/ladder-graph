@@ -26,6 +26,7 @@ describe("welcome gallery", () => {
     useStudioStore.setState({ openTemplate, openAgentTemplate });
     render(<Welcome onBlank={() => undefined} />);
     expect(screen.getByRole("heading", { name: "Starter workflows" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open MCP companion" })).toBeInTheDocument();
     expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows`, { exact: false })).toBeInTheDocument();
     expect(within(screen.getByRole("group", { name: "Subject areas" })).getAllByRole("button")).toHaveLength(43);
     expect(screen.getByRole("button", { name: "Core patterns" })).toHaveAttribute("aria-pressed", "true");
