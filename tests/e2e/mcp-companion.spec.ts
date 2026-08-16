@@ -7,8 +7,7 @@ test("local MCP companion is available from the visible MCP control", async ({ p
       errors.push(message.text());
   });
   await page.goto("/");
-  await page.getByRole("button", { name: /New workflow/ }).click();
-  await page.getByRole("button", { name: "Set up MCP companion" }).first().click();
+  await page.getByRole("button", { name: "Open MCP companion" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Local storage" });
   await expect(dialog).toBeVisible();

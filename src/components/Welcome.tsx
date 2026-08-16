@@ -5,10 +5,11 @@ import {
   BookOpen,
   Boxes,
   Building2,
+  Cable,
+  Calculator,
   Code2,
   Feather,
   Images,
-  Calculator,
   Megaphone,
   Music2,
   PenTool,
@@ -22,6 +23,7 @@ import { WORKFLOW_TEMPLATES } from "../lib/templates";
 import { useStudioStore } from "../store/useStudioStore";
 import type { ProjectRecord } from "../types";
 import { Brand } from "./Brand";
+import { StorageDialog } from "./StorageDialog";
 import { ThemeToggle } from "./ThemeToggle";
 
 const WORKFLOW_AREAS = [
@@ -79,6 +81,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
   const openProject = useStudioStore((state) => state.openProject);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeArea, setActiveArea] = useState<(typeof WORKFLOW_AREAS)[number]["name"]>("Core patterns");
+  const [mcpOpen, setMcpOpen] = useState(false);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
@@ -106,7 +109,13 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
     <main className="welcome-shell">
       <header className="welcome-header">
         <Brand />
-        <ThemeToggle />
+        <div className="welcome-global-actions">
+          <button className="quiet-button" onClick={() => setMcpOpen(true)} type="button" aria-label="Open MCP companion">
+            <Cable size={16} />
+            <span>MCP</span>
+          </button>
+          <ThemeToggle />
+        </div>
       </header>
 
       <section className="gallery-section workflow-library" aria-labelledby="gallery-title">
@@ -230,6 +239,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
         <span>Open source · offline-first · no account · never runs agents</span>
         <span>LGIR v1alpha1</span>
       </footer>
+      {mcpOpen && <StorageDialog onClose={() => setMcpOpen(false)} />}
     </main>
   );
 }

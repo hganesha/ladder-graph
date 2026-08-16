@@ -147,6 +147,11 @@ button:disabled {
   justify-content: space-between;
   min-height: 46px;
 }
+.welcome-global-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .brand {
   display: inline-flex;
   align-items: center;
