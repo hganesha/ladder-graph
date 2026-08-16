@@ -42,6 +42,15 @@ describe("welcome gallery", () => {
     expect(screen.getByText(/never runs agents/i)).toBeInTheDocument();
   });
 
+  it("opens the intro and help from the gallery", async () => {
+    render(<Welcome onBlank={() => undefined} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Intro & help" }));
+    expect(await screen.findByRole("dialog", { name: "Build your first workflow" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close help" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("exposes the new multimodal and architecture workflow areas", () => {
     render(<Welcome onBlank={() => undefined} />);
 

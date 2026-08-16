@@ -3,6 +3,7 @@ import { useStudioStore } from "../store/useStudioStore";
 import { Diagnostics } from "./Diagnostics";
 import { GraphCanvas } from "./GraphCanvas";
 import { Inspector } from "./Inspector";
+import { LazyHelpDialog } from "./LazyHelpDialog";
 import { OutputPanel } from "./OutputPanel";
 import { Palette } from "./Palette";
 import { SourceEditor } from "./SourceEditor";
@@ -12,6 +13,7 @@ import { StudioHeader } from "./StudioHeader";
 export function Studio() {
   const state = useStudioStore();
   const [storageOpen, setStorageOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   useEffect(() => {
     if (!state.analysis) void useStudioStore.getState().setSource(state.source, false);
   }, [state.analysis, state.source]);
@@ -38,7 +40,7 @@ export function Studio() {
     <main
       className={`studio-shell ${state.paletteOpen ? "palette-visible" : ""} ${state.inspectorOpen ? "inspector-visible" : ""} ${state.outputOpen ? "output-visible" : ""}`}
     >
-      <StudioHeader onStorage={() => setStorageOpen(true)} />
+      <StudioHeader onHelp={() => setHelpOpen(true)} onStorage={() => setStorageOpen(true)} />
       <div className="studio-workspace">
         {state.paletteOpen && <Palette />}
         <section className={`center-workspace mode-${state.centerMode}`}>
@@ -72,6 +74,7 @@ export function Studio() {
       {state.diagnosticsOpen && <Diagnostics />}
       {state.outputOpen && <OutputPanel />}
       {storageOpen && <StorageDialog onClose={() => setStorageOpen(false)} />}
+      {helpOpen ? <LazyHelpDialog onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );
 }
