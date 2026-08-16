@@ -84,6 +84,8 @@ Agent, evaluator, and tool nodes declare four separate capability sets: `skills`
 
 Every selected skill or connector resolves to a `customizations` record containing a pre-built base `template` and editable `instructions`. Custom identifiers start from a safe generic skill or connector contract and can be rebased onto another available template. The complete template selection and customization is stored in LGIR, so generated artifacts are reproducible and do not depend on hidden studio state.
 
+Agent, evaluator, teacher, and tool nodes may declare an optional host-resolved `workingDirectory`. An empty value inherits the workflow host's default folder. Ladder Graph preserves this path in LGIR and compiled instructions but does not enumerate, open, validate, or grant access to the directory.
+
 Catalog entries are authoring suggestions, not an inventory of installed capabilities. Ladder Graph does not connect to a harness, inspect user configuration, install skills, grant permissions, import runtime packages, or invoke connectors. Compiled Markdown names every required skill and connector and embeds custom instructions. Generated code exposes the same declarations as inert data for an explicitly supplied host application. OpenRouter profiles are research snapshots: model slugs, endpoints, supported parameters, asynchronous behavior, availability, and pricing must be verified before use, and credentials must never be stored in LGIR.
 
 ### Structured loops

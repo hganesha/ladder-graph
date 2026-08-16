@@ -17,7 +17,15 @@ describe("agent template palette", () => {
 
     expect(ROLE_TEMPLATES).toHaveLength(93);
     expect(screen.getByText("93 agents")).toBeInTheDocument();
+    const macros = screen.getByLabelText("Visual macros");
+    const primitives = screen.getByLabelText("Primitives");
+    const agents = screen.getByLabelText("Agent templates");
+    expect(macros).toHaveAttribute("open");
+    expect(primitives).not.toHaveAttribute("open");
+    expect(agents).not.toHaveAttribute("open");
+    expect(primitives.compareDocumentPosition(agents) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByLabelText("Core agent templates (8)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Core agent templates (8)")).not.toHaveAttribute("open");
     expect(screen.getByLabelText("SWE agent templates (20)")).toBeInTheDocument();
     expect(screen.getByLabelText("Security agent templates (20)")).toBeInTheDocument();
     expect(screen.getByLabelText("Architecture & design agent templates (20)")).toBeInTheDocument();
@@ -40,7 +48,9 @@ describe("agent template palette", () => {
     expect(screen.getByText("DFIR Specialist")).toBeInTheDocument();
     expect(screen.queryByText("Requirements Analyst")).not.toBeInTheDocument();
     expect(screen.getByText("Agent templates · 1")).toBeInTheDocument();
+    expect(screen.getByLabelText("Agent templates")).toHaveAttribute("open");
     expect(screen.getByLabelText("Security agent templates (1)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Security agent templates (1)")).toHaveAttribute("open");
   });
 
   it("groups every role once and supports category-level search", () => {

@@ -36,6 +36,7 @@ export interface NodeConfig {
   aggregation?: "collect" | "merge" | "concat" | "vote" | "";
   teacherModel?: string;
   feedbackMode?: "critique" | "score" | "rubric" | "";
+  workingDirectory?: string;
   body?: string[];
   exitCondition?: string;
   maxIterations?: number;

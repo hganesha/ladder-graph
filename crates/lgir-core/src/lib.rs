@@ -127,6 +127,8 @@ pub struct NodeConfig {
     #[serde(default)]
     pub feedback_mode: String,
     #[serde(default)]
+    pub working_directory: String,
+    #[serde(default)]
     pub body: Vec<String>,
     #[serde(default)]
     pub exit_condition: String,
@@ -537,6 +539,9 @@ fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
         deps.iter().map(|edge| format!("`{}` via {} edge{}", edge.from, edge.kind, if edge.contract.is_empty() { "".into() } else { format!(" carrying `{}`", edge.contract) })).collect::<Vec<_>>().join("; ")
     };
     let mut output = format!("\n### {ordinal}. {} (`{}`)\n\n- **Kind:** `{}`\n- **Depends on:** {}\n- **Purpose:** {}\n", if node.name.is_empty() { &node.id } else { &node.name }, node.id, node.kind, dep_text, if node.summary.is_empty() { "No summary provided." } else { &node.summary });
+    if !node.config.working_directory.trim().is_empty() {
+        output.push_str(&format!("- **Working directory:** `{}`\n", node.config.working_directory.trim()));
+    }
     match node.kind.as_str() {
         "agent" | "evaluate" | "teacher" => {
             output.push_str(&format!("- **Role:** {}\n- **Required skills:** {}\n- **Required connectors:** {}\n- **Required tools:** {}\n- **Permissions:** {}\n\n**Task instructions**\n\n{}\n", if node.role.is_empty() { "Focused workflow specialist" } else { &node.role }, list_or_none(&node.capabilities.skills), list_or_none(&node.capabilities.connectors), list_or_none(&node.capabilities.tools), list_or_none(&node.capabilities.permissions), node.prompt));
@@ -777,6 +782,7 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
         if workflow.spec.nodes.iter().any(|n| n.kind == "group") { instructional.push("bounded group orchestration".into()); }
         if workflow.spec.nodes.iter().any(|n| n.kind == "aggregator") { instructional.push("multi-output aggregation".into()); }
         if workflow.spec.nodes.iter().any(|n| n.kind == "teacher") { instructional.push("teacher-model feedback".into()); }
+        if workflow.spec.nodes.iter().any(|n| !n.config.working_directory.trim().is_empty()) { instructional.push("per-node working directories".into()); }
         if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
         return CapabilityReport {
             target: target.into(),
@@ -793,6 +799,7 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
     if workflow.spec.nodes.iter().any(|n| n.kind == "group") { instructional.push("bounded group orchestration".into()); }
     if workflow.spec.nodes.iter().any(|n| n.kind == "aggregator") { instructional.push("multi-output aggregation".into()); }
     if workflow.spec.nodes.iter().any(|n| n.kind == "teacher") { instructional.push("teacher-model feedback".into()); }
+    if workflow.spec.nodes.iter().any(|n| !n.config.working_directory.trim().is_empty()) { instructional.push("per-node working directories".into()); }
     if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
     if target == "codex" { native.push("Agent Skills frontmatter".into()); }
     if target == "claude" { native.push("Claude Code skill frontmatter".into()); }
@@ -942,6 +949,7 @@ spec:
       config:
         teacherModel: host:teacher
         feedbackMode: critique
+        workingDirectory: packages/reviewer
     - id: output
       kind: output
       name: Feedback
@@ -957,6 +965,8 @@ spec:
         let output = compile(source, "codex");
         assert!(output.contains("ordered array of { source, value } entries"));
         assert!(output.contains("teacher model reference `host:teacher` in `critique` mode"));
+        assert!(output.contains("**Working directory:** `packages/reviewer`"));
+        assert!(output.contains("per-node working directories"));
         assert!(output.contains("multi-output aggregation"));
         assert!(output.contains("teacher-model feedback"));
     }

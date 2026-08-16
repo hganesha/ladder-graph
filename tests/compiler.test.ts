@@ -22,7 +22,7 @@ describe("LGIR fallback compiler", () => {
           name: "Teacher feedback",
           role: "Teacher",
           prompt: "Identify strengths and specific improvements.",
-          config: { teacherModel: "host:teacher", feedbackMode: "critique" },
+          config: { teacherModel: "host:teacher", feedbackMode: "critique", workingDirectory: "packages/reviewer" },
         },
         { id: "output", kind: "output", name: "Output" },
       ],
@@ -63,7 +63,10 @@ describe("LGIR fallback compiler", () => {
     expect(analysis.stats.agents).toBe(3);
     expect(compiled.content).toContain("ordered array of { source, value } entries");
     expect(compiled.content).toContain("teacher model reference `host:teacher` in `critique` mode");
-    expect(compiled.capabilityReport.instructional).toEqual(expect.arrayContaining(["multi-output aggregation", "teacher-model feedback"]));
+    expect(compiled.content).toContain("**Working directory:** `packages/reviewer`");
+    expect(compiled.capabilityReport.instructional).toEqual(
+      expect.arrayContaining(["multi-output aggregation", "teacher-model feedback", "per-node working directories"]),
+    );
   });
 
   it("rejects invalid aggregator and teacher-model configuration", async () => {
