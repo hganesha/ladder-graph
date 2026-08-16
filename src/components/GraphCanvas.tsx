@@ -119,7 +119,9 @@ export function GraphCanvas() {
   const workflow = useStudioStore((state) => state.analysis?.normalized);
   const validYaml = Boolean(workflow);
   const selectNode = useStudioStore((state) => state.selectNode);
+  const selectEdge = useStudioStore((state) => state.selectEdge);
   const selectedNodeId = useStudioStore((state) => state.selectedNodeId);
+  const selectedEdgeId = useStudioStore((state) => state.selectedEdgeId);
   const connect = useStudioStore((state) => state.connect);
   const updatePositions = useStudioStore((state) => state.updatePositions);
   const sourceNodes = useMemo(() => toFlowNodes(workflow?.spec.nodes ?? []), [workflow]);
@@ -155,12 +157,23 @@ export function GraphCanvas() {
       )}
       <ReactFlow
         nodes={nodes.map((node) => ({ ...node, selected: node.id === selectedNodeId }))}
-        edges={edges}
+        edges={edges.map((edge) =>
+          edge.id === selectedEdgeId
+            ? {
+                ...edge,
+                selected: true,
+                style: { ...edge.style, stroke: "var(--cyan)", strokeWidth: 2.4 },
+                labelStyle: { ...edge.labelStyle, fill: "var(--text)", fontWeight: 600 },
+              }
+            : { ...edge, selected: false },
+        )}
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={(_, node) => selectNode(node.id)}
+        onEdgeClick={(_, edge) => selectEdge(edge.id)}
+        onEdgeDoubleClick={(_, edge) => selectEdge(edge.id)}
         onPaneClick={() => selectNode(null)}
         onInit={(instance) => {
           fitAddedNodes.current = () => {
@@ -216,7 +229,7 @@ export function GraphCanvas() {
         />
       </ReactFlow>
       <div className="canvas-hint">
-        <span className="desktop-canvas-hint">drag nodes · connect handles · ⌘↵ compile</span>
+        <span className="desktop-canvas-hint">drag nodes · click edges to inspect · connect handles · ⌘↵ compile</span>
         <span className="mobile-canvas-hint">drag to pan · pinch to zoom</span>
       </div>
     </section>

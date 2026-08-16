@@ -20,6 +20,7 @@ interface StudioState {
   compileResult: CompileResult | null;
   target: Target;
   selectedNodeId: string | null;
+  selectedEdgeId: string | null;
   centerMode: CenterMode;
   inspectorTab: InspectorTab;
   outputOpen: boolean;
@@ -40,6 +41,7 @@ interface StudioState {
   compile: () => Promise<void>;
   format: () => Promise<void>;
   selectNode: (id: string | null) => void;
+  selectEdge: (id: string | null) => void;
   setCenterMode: (mode: CenterMode) => void;
   setInspectorTab: (tab: InspectorTab) => void;
   toggleOutput: (value?: boolean) => void;
@@ -47,6 +49,7 @@ interface StudioState {
   togglePalette: () => void;
   toggleInspector: () => void;
   patchNode: (id: string, patch: Partial<LgirNode>) => Promise<void>;
+  patchEdge: (id: string, patch: Partial<LgirEdge>) => Promise<void>;
   addNode: (kind: NodeKind) => Promise<void>;
   addRole: (name: string) => Promise<void>;
   addMacro: (macro: "parallel" | "pipeline" | "reduce" | "verify") => Promise<void>;
@@ -116,6 +119,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   compileResult: null,
   target: "codex",
   selectedNodeId: null,
+  selectedEdgeId: null,
   centerMode: "canvas",
   inspectorTab: "basics",
   outputOpen: false,
@@ -141,6 +145,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       source,
       lastValidSource: source,
       selectedNodeId: null,
+      selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
       past: [],
@@ -155,6 +160,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       source: BLANK_WORKFLOW,
       lastValidSource: BLANK_WORKFLOW,
       selectedNodeId: null,
+      selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
       past: [],
@@ -170,6 +176,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       lastValidSource: project.lastValidYaml,
       target: project.target,
       selectedNodeId: null,
+      selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
       past: [],
@@ -200,7 +207,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const result = await compiler.format(get().source);
     if (result.ok) await get().setSource(result.content);
   },
-  selectNode: (selectedNodeId) => set({ selectedNodeId, inspectorOpen: true }),
+  selectNode: (selectedNodeId) => set({ selectedNodeId, selectedEdgeId: null, inspectorOpen: true }),
+  selectEdge: (selectedEdgeId) => set({ selectedEdgeId, selectedNodeId: null, inspectorOpen: true }),
   setCenterMode: (centerMode) => set({ centerMode }),
   setInspectorTab: (inspectorTab) => set({ inspectorTab }),
   toggleOutput: (value) => set((state) => ({ outputOpen: value ?? !state.outputOpen })),
@@ -229,6 +237,19 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     }
     await get().setSource(source);
   },
+  patchEdge: async (id, patch) => {
+    const workflow = parseWorkflow(get().source);
+    const index = workflow?.spec.edges.findIndex((edge) => edge.id === id) ?? -1;
+    if (!workflow || index < 0) return;
+    const document = parseDocument(get().source, { keepSourceTokens: true });
+    if (document.errors.length) return;
+    Object.entries(patch).forEach(([key, value]) => {
+      const path = ["spec", "edges", index, key];
+      if (value === undefined) document.deleteIn(path);
+      else document.setIn(path, value);
+    });
+    await get().setSource(document.toString({ indent: 2, lineWidth: 100 }));
+  },
   addNode: async (kind) => {
     const workflow = parseWorkflow(get().source);
     if (!workflow) return;
@@ -251,7 +272,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       );
     }
     const source = patchYaml(get().source, ["spec", "nodes"], nodes);
-    set({ selectedNodeId: node.id });
+    set({ selectedNodeId: node.id, selectedEdgeId: null });
     await get().setSource(source);
   },
   addRole: async (name) => {
@@ -270,7 +291,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       customizations: {},
     };
     const source = patchYaml(get().source, ["spec", "nodes"], [...workflow.spec.nodes, node]);
-    set({ selectedNodeId: node.id });
+    set({ selectedNodeId: node.id, selectedEdgeId: null });
     await get().setSource(source);
   },
   addMacro: async (macro) => {
@@ -317,6 +338,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     if (!workflow) return;
     const item: LgirEdge = { ...edge, id: `edge-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` };
     const source = patchYaml(get().source, ["spec", "edges"], [...workflow.spec.edges, item]);
+    set({ selectedEdgeId: item.id, selectedNodeId: null, inspectorOpen: true });
     await get().setSource(source);
   },
   updatePositions: async (positions) => {
