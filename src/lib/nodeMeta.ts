@@ -1,4 +1,5 @@
 import type { NodeKind } from "../types";
+import { inputContractSchema } from "./inputContracts";
 
 export { ROLE_TEMPLATES } from "./roleTemplates";
 
@@ -59,6 +60,7 @@ export function defaultNode(kind: NodeKind, index: number): import("../types").L
           }
         : { type: "object" };
   }
+  if (kind === "input") base.inputSchema = inputContractSchema("text");
   if (kind === "transform") base.config = { operation: "select", expression: "$.result" };
   if (kind === "condition")
     base.config = {

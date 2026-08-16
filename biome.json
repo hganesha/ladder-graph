@@ -1,7 +1,21 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.8/schema.json",
   "files": {
-    "includes": ["**", "!node_modules", "!dist", "!target", "!coverage", "!artifacts", "!test-results", "!.vercel", "!src/wasm/pkg"]
+    "includes": [
+      "**",
+      "!node_modules",
+      "!dist",
+      "!target",
+      "!coverage",
+      "!artifacts",
+      "!test-results",
+      "!.vercel",
+      "!src/wasm/pkg",
+      "!visual-sde-graph-builder",
+      "!agent_templates.json",
+      "!security_architecture_agent_templates.json",
+      "!openrouter_multimodal_connectors.json"
+    ]
   },
   "formatter": {
     "enabled": true,

@@ -32,7 +32,7 @@ export function Palette() {
     <aside className="palette panel" aria-label="Node and template palette">
       <div className="panel-title">
         <span>Library</span>
-        <small>click to add</small>
+        <small>{ROLE_TEMPLATES.length} agents</small>
       </div>
       <label className="search-field">
         <Search size={14} />
@@ -74,6 +74,22 @@ export function Palette() {
       </details>
       <details open>
         <summary>
+          Agent templates · {roles.length} <ChevronDown size={13} />
+        </summary>
+        <div className="role-tree">
+          {roles.map((role) => (
+            <button key={role.name} onClick={() => void addRole(role.name)}>
+              <Boxes size={13} />
+              <span>
+                <small>{role.path}</small>
+                <strong>{role.name}</strong>
+              </span>
+            </button>
+          ))}
+        </div>
+      </details>
+      <details open>
+        <summary>
           Primitives <ChevronDown size={13} />
         </summary>
         <div className="palette-list">
@@ -89,22 +105,6 @@ export function Palette() {
               </button>
             );
           })}
-        </div>
-      </details>
-      <details open>
-        <summary>
-          Agent templates <ChevronDown size={13} />
-        </summary>
-        <div className="role-tree">
-          {roles.map((role) => (
-            <button key={role.name} onClick={() => void addRole(role.name)}>
-              <Boxes size={13} />
-              <span>
-                <small>{role.path}</small>
-                <strong>{role.name}</strong>
-              </span>
-            </button>
-          ))}
         </div>
       </details>
       <div className="palette-foot">

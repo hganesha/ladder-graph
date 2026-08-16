@@ -1,5 +1,6 @@
 import { stringify } from "yaml";
 import type { TemplateDefinition, Workflow } from "../types";
+import { inputContractSchema } from "./inputContracts";
 
 const common = {
   apiVersion: "ladder.dev/v1alpha1" as const,
@@ -1129,6 +1130,7 @@ const multimodalProduction: Workflow = {
         kind: "input",
         name: "Creative brief",
         summary: "Audience, modality, content, style, constraints, references, rights, and budget.",
+        inputSchema: inputContractSchema("mixed"),
         position: { x: 80, y: 260 },
       },
       {
@@ -1311,6 +1313,215 @@ const multimodalProduction: Workflow = {
       { id: "e10", from: "asset-join", to: "review", kind: "data", contract: "MediaAsset" },
       { id: "e11", from: "review", to: "publish-approval", kind: "control", condition: "passed == true" },
       { id: "e12", from: "publish-approval", to: "output", kind: "control", condition: "approved == true" },
+    ],
+  },
+};
+
+const imageTextExtraction: Workflow = {
+  ...common,
+  metadata: {
+    name: "image-text-extraction",
+    title: "Image → structured text",
+    description: "Extract text and layout from a supplied image, preserve uncertainty, and independently verify the result.",
+    version: "1.0.0",
+  },
+  spec: {
+    objective: "Produce accurate, reading-order-aware text and layout data from a user-supplied image.",
+    policies: { maxConcurrency: 2, onFailure: "stop", requireApprovalFor: [] },
+    nodes: [
+      {
+        id: "source-image",
+        kind: "input",
+        name: "Source image",
+        summary: "Host-provided image reference, extraction instructions, language hints, and rights context.",
+        inputSchema: inputContractSchema("image"),
+        position: { x: 100, y: 200 },
+      },
+      {
+        id: "extract",
+        kind: "agent",
+        name: "Extract text and layout",
+        summary: "Read visible text without inventing obscured or illegible content.",
+        role: "OCR and document-vision specialist",
+        prompt:
+          "Inspect the supplied image, preserve natural reading order, extract visible text, and record regions, tables, handwriting, language, and per-segment confidence. Mark illegible content explicitly; never reconstruct text from expectation alone.",
+        capabilities: {
+          skills: ["image-understanding", "optical-character-recognition"],
+          tools: ["read-media"],
+          connectors: [],
+          permissions: ["read-only"],
+        },
+        outputSchema: {
+          type: "object",
+          required: ["text", "segments", "language", "uncertainties"],
+          properties: {
+            text: { type: "string" },
+            segments: { type: "array", items: { type: "object" } },
+            language: { type: "string" },
+            uncertainties: { type: "array", items: { type: "string" } },
+          },
+        },
+        position: { x: 400, y: 200 },
+      },
+      {
+        id: "verify",
+        kind: "evaluate",
+        name: "Extraction fidelity gate",
+        summary: "Check reading order, omissions, confidence, and unsupported reconstruction.",
+        role: "Independent document extraction reviewer",
+        prompt:
+          "Compare the extraction to the supplied image region by region. Pass only when visible text, layout, and reading order are preserved, uncertain characters are marked, and no unsupported text was invented.",
+        capabilities: {
+          skills: ["image-understanding", "evaluation"],
+          tools: ["read-media", "read"],
+          connectors: [],
+          permissions: ["read-only"],
+        },
+        outputSchema: {
+          type: "object",
+          required: ["score", "passed", "issues"],
+          properties: {
+            score: { type: "number" },
+            passed: { type: "boolean" },
+            issues: { type: "array", items: { type: "string" } },
+          },
+        },
+        config: { threshold: 0.95 },
+        position: { x: 700, y: 200 },
+      },
+      {
+        id: "output",
+        kind: "output",
+        name: "Verified text package",
+        summary: "Return plain text, structured segments, layout metadata, confidence, and unresolved regions.",
+        position: { x: 1000, y: 200 },
+      },
+    ],
+    edges: [
+      { id: "e1", from: "source-image", to: "extract", kind: "data", contract: "ImageInput" },
+      { id: "e2", from: "extract", to: "verify", kind: "data", contract: "ExtractionResult" },
+      { id: "e3", from: "verify", to: "output", kind: "control", condition: "passed == true" },
+    ],
+  },
+};
+
+const referenceImageTransformation: Workflow = {
+  ...common,
+  metadata: {
+    name: "reference-image-transformation",
+    title: "Reference image → new image",
+    description: "Transform a supplied image under explicit preservation, rights, cost, and safety constraints.",
+    version: "1.0.0",
+  },
+  spec: {
+    objective: "Create a reviewed derivative image while preserving approved invariants and recording provenance.",
+    policies: { maxConcurrency: 2, onFailure: "preserve-completed", requireApprovalFor: ["provider-cost", "publication"] },
+    nodes: [
+      {
+        id: "reference-image",
+        kind: "input",
+        name: "Reference image",
+        summary: "Host-provided image, transformation instructions, preservation constraints, and rights context.",
+        inputSchema: inputContractSchema("image"),
+        position: { x: 80, y: 220 },
+      },
+      {
+        id: "request-design",
+        kind: "agent",
+        name: "Transformation request",
+        summary: "Translate the request into explicit edits, invariants, model parameters, and a cost ceiling.",
+        role: "Reference-guided image workflow designer",
+        prompt:
+          "Inspect the reference and separate requested changes from invariants that must remain. Confirm rights and likeness constraints, define dimensions and format, choose a verified image-editing profile, estimate cost, and preserve the host reference rather than embedding image bytes in the workflow.",
+        capabilities: {
+          skills: ["image-understanding", "image-editing", "multimodal-model-selection"],
+          tools: ["read-media", "search"],
+          connectors: ["api:openrouter/google/gemini-2.5-flash-image"],
+          permissions: ["network-read"],
+        },
+        outputSchema: {
+          type: "object",
+          required: ["prompt", "invariants", "model", "parameters", "costCeiling"],
+          properties: {
+            prompt: { type: "string" },
+            invariants: { type: "array", items: { type: "string" } },
+            model: { type: "string" },
+            parameters: { type: "object" },
+            costCeiling: { type: "number" },
+          },
+        },
+        position: { x: 360, y: 220 },
+      },
+      {
+        id: "approval",
+        kind: "approval",
+        name: "Approve transformation",
+        summary: "Confirm reference transfer, intended changes, invariants, rights, and provider cost.",
+        position: { x: 650, y: 220 },
+      },
+      {
+        id: "transform",
+        kind: "agent",
+        name: "Generate derivative image",
+        summary: "Apply only the approved changes and retain generation provenance.",
+        role: "Reference-guided image generation specialist",
+        prompt:
+          "Use the approved reference and request to create the derivative. Apply only declared changes, preserve every approved invariant, and return the asset reference, model, parameters, usage, cost, and prompt provenance.",
+        capabilities: {
+          skills: ["image-generation", "image-editing"],
+          tools: ["read-media", "generate-media"],
+          connectors: ["api:openrouter/google/gemini-2.5-flash-image"],
+          permissions: ["external-write"],
+        },
+        outputSchema: {
+          type: "object",
+          required: ["asset", "provenance", "usage"],
+          properties: { asset: { type: "string" }, provenance: { type: "object" }, usage: { type: "object" } },
+        },
+        position: { x: 920, y: 220 },
+      },
+      {
+        id: "review",
+        kind: "evaluate",
+        name: "Reference fidelity and safety gate",
+        summary: "Compare the result with the approved edits, invariants, safety, and rights constraints.",
+        role: "Independent image transformation reviewer",
+        prompt:
+          "Compare source and derivative images. Pass only when requested edits are present, invariants remain intact, provenance is complete, and no unresolved privacy, likeness, rights, or safety issue remains.",
+        capabilities: {
+          skills: ["image-understanding", "media-safety-review", "evaluation"],
+          tools: ["read-media", "read"],
+          connectors: [],
+          permissions: ["read-only"],
+        },
+        outputSchema: {
+          type: "object",
+          required: ["score", "passed", "changesVerified", "invariantsPreserved", "reasons"],
+          properties: {
+            score: { type: "number" },
+            passed: { type: "boolean" },
+            changesVerified: { type: "boolean" },
+            invariantsPreserved: { type: "boolean" },
+            reasons: { type: "array", items: { type: "string" } },
+          },
+        },
+        config: { threshold: 0.9 },
+        position: { x: 1210, y: 220 },
+      },
+      {
+        id: "output",
+        kind: "output",
+        name: "Reviewed derivative package",
+        summary: "Return the source and derivative references, transformation provenance, usage, cost, and review evidence.",
+        position: { x: 1510, y: 220 },
+      },
+    ],
+    edges: [
+      { id: "e1", from: "reference-image", to: "request-design", kind: "data", contract: "ReferenceImageInput" },
+      { id: "e2", from: "request-design", to: "approval", kind: "data", contract: "ImageTransformationRequest" },
+      { id: "e3", from: "approval", to: "transform", kind: "control", condition: "approved == true" },
+      { id: "e4", from: "transform", to: "review", kind: "data", contract: "DerivativeImage" },
+      { id: "e5", from: "review", to: "output", kind: "control", condition: "passed == true" },
     ],
   },
 };
@@ -2084,6 +2295,129 @@ const threatModel = parallelReview({
   outputSummary: "Threats, severity, mitigations, verification, ownership, and residual risk.",
 });
 
+const humanitiesInquiry = parallelReview({
+  name: "humanities-inquiry-seminar",
+  title: "Humanities inquiry + seminar",
+  description: "Read primary material closely, establish its historical frame, then test the interpretation through Socratic synthesis.",
+  objective: "Produce a text-grounded, historically responsible interpretation and an open-ended seminar guide.",
+  inputName: "Inquiry packet",
+  inputSummary: "Shared question, primary texts, historical scope, audience, and citation standard.",
+  first: {
+    name: "Close reading",
+    summary: "Find the passages and formal choices that bear on the question.",
+    role: "Great Books close-reading tutor",
+    prompt:
+      "Build the interpretation from specific passages, language, and structure. Preserve competing readings and identify textual evidence that complicates the initial thesis.",
+    skill: "close-reading",
+  },
+  second: {
+    name: "Historical context",
+    summary: "Test provenance, period context, and later framing.",
+    role: "Historical research analyst",
+    prompt:
+      "Distinguish primary and secondary evidence, evaluate provenance and bias, guard against anachronism, and mark claims the historical record cannot settle.",
+    skill: "historical-research",
+  },
+  synthesis: {
+    name: "Socratic synthesis",
+    summary: "Reconcile evidence into a defensible interpretation and discussion arc.",
+    role: "Interdisciplinary seminar facilitator",
+    prompt:
+      "Synthesize without flattening disagreement. State the strongest interpretation, its limits, and a sequence of genuinely open questions grounded in the supplied texts.",
+    skill: "seminar-facilitation",
+  },
+  evaluation: {
+    name: "Humanities evidence gate",
+    role: "Historiography and argument critic",
+    prompt:
+      "Pass only when interpretive claims cite textual evidence, historical claims distinguish source types, counter-readings are represented charitably, and uncertainty is explicit.",
+  },
+  outputName: "Inquiry and seminar guide",
+  outputSummary: "Interpretive thesis, textual evidence, historical context, counter-readings, citations, and discussion questions.",
+});
+
+const writingStudio = parallelReview({
+  name: "manuscript-development-studio",
+  title: "Manuscript development + editorial gate",
+  description: "Review structure and reader experience independently before producing a voice-preserving revision plan.",
+  objective: "Produce a staged editorial plan that fixes the manuscript's largest problems before line polish.",
+  inputName: "Manuscript brief",
+  inputSummary: "Draft, genre, intended reader, writer's goals, constraints, and requested editorial depth.",
+  first: {
+    name: "Structural edit",
+    summary: "Assess thesis or arc, organization, pacing, and point of view.",
+    role: "Developmental editor",
+    prompt:
+      "Diagnose manuscript-level problems and propose concrete restructuring options. Defer sentence polish until the argument or narrative shape is sound.",
+    skill: "developmental-editing",
+  },
+  second: {
+    name: "Reader and voice review",
+    summary: "Test clarity, audience fit, voice consistency, and disclosure boundaries.",
+    role: "Voice-preserving writing coach",
+    prompt:
+      "Identify where the draft loses its intended reader or departs from its established voice. Preserve intentional style and distinguish reader-facing craft from private processing.",
+    skill: "voice-preservation",
+  },
+  synthesis: {
+    name: "Editorial letter",
+    summary: "Prioritize revisions and supply representative examples.",
+    role: "Senior manuscript editor",
+    prompt:
+      "Write an actionable editorial letter with preserved strengths, priority order, structural moves, representative examples, and a separate later line-edit pass.",
+    skill: "developmental-editing",
+  },
+  evaluation: {
+    name: "Editorial integrity gate",
+    role: "Independent editorial reviewer",
+    prompt:
+      "Pass only when recommendations serve the writer's stated goal, trace to manuscript evidence, preserve voice, and separate structural revision from line editing.",
+  },
+  outputName: "Staged revision plan",
+  outputSummary: "Editorial letter, structural map, priority revisions, examples, and later line-edit checklist.",
+});
+
+const valuesToAction = parallelReview({
+  name: "values-to-action-system",
+  title: "Values → sustainable action system",
+  description: "Align direction and behavior design independently, then build a small maintainable system with a review cadence.",
+  objective: "Turn a personally meaningful direction into a realistic, revisable action system.",
+  inputName: "Life or work objective",
+  inputSummary: "Current situation, desired change, stated values, commitments, constraints, and available support.",
+  first: {
+    name: "Values and direction",
+    summary: "Test whether the objective reflects the user's own values and circumstances.",
+    role: "Values-based goal strategist",
+    prompt:
+      "Clarify the underlying value, competing commitments, and evidence that the objective is genuinely the user's own. Define a concrete outcome without replacing their judgment.",
+    skill: "values-based-goals",
+  },
+  second: {
+    name: "Behavior and friction",
+    summary: "Design cues, small actions, environment, and recovery from misses.",
+    role: "Habit formation and behavior-change coach",
+    prompt:
+      "Choose a repeatable minimum action, cue, immediate satisfaction signal, environmental changes, and a restart rule. Diagnose constraints rather than relying on willpower.",
+    skill: "behavior-change",
+  },
+  synthesis: {
+    name: "Sustainable system",
+    summary: "Combine direction, actions, scheduling, and review into one lightweight plan.",
+    role: "Productivity systems coach",
+    prompt:
+      "Create a minimal system of milestones, next actions, time or context cues, a weekly review, and explicit defer, delegate, or drop decisions.",
+    skill: "productivity-systems",
+  },
+  evaluation: {
+    name: "Alignment and safety gate",
+    role: "Reflective practice reviewer",
+    prompt:
+      "Pass only when the plan reflects the user's stated values, fits real constraints, avoids clinical claims, defines a small next action, and includes a humane review and adjustment rule.",
+  },
+  outputName: "Values-aligned action plan",
+  outputSummary: "Direction, milestones, habit design, environment changes, review cadence, and adjustment rules.",
+});
+
 export const WORKFLOW_TEMPLATES: TemplateDefinition[] = [
   {
     id: "refinement",
@@ -2251,6 +2585,28 @@ export const WORKFLOW_TEMPLATES: TemplateDefinition[] = [
     yaml: toYaml(multimodalProduction),
   },
   {
+    id: "image-text-extraction",
+    path: "research/multimodal/understanding",
+    area: "Multimodal",
+    title: "Image → structured text",
+    eyebrow: "OCR + vision",
+    description: "Accept a host-provided image, extract text and layout with confidence, and gate the result against the source.",
+    topology: "Vision pipeline + fidelity gate",
+    accent: "#a990f5",
+    yaml: toYaml(imageTextExtraction),
+  },
+  {
+    id: "reference-image-transformation",
+    path: "research/multimodal/image-editing",
+    area: "Multimodal",
+    title: "Reference image → new image",
+    eyebrow: "Image-to-image",
+    description: "Accept a reference image, approve edits and invariants, generate a derivative, and review fidelity and safety.",
+    topology: "Approval + transformation gate",
+    accent: "#a990f5",
+    yaml: toYaml(referenceImageTransformation),
+  },
+  {
     id: "coordinated-building-design",
     path: "research/architecture/design",
     area: "Architecture & design",
@@ -2261,6 +2617,39 @@ export const WORKFLOW_TEMPLATES: TemplateDefinition[] = [
     accent: "#de9f54",
     yaml: toYaml(coordinatedBuildingDesign),
   },
+  {
+    id: "humanities-inquiry",
+    path: "research/humanities/inquiry",
+    area: "Humanities",
+    title: "Humanities inquiry + seminar",
+    eyebrow: "Text + context",
+    description: "Read primary material closely, establish its historical frame, and gate a Socratic seminar guide against evidence.",
+    topology: "Dual inquiry + evidence gate",
+    accent: "#8e79c6",
+    yaml: toYaml(humanitiesInquiry),
+  },
+  {
+    id: "writing-studio",
+    path: "research/writing/editorial",
+    area: "Writing",
+    title: "Manuscript development + editorial gate",
+    eyebrow: "Voice-preserving edit",
+    description: "Separate structural and reader reviews before creating a staged revision plan that preserves the writer's voice.",
+    topology: "Dual review + editorial gate",
+    accent: "#ce728d",
+    yaml: toYaml(writingStudio),
+  },
+  {
+    id: "values-to-action",
+    path: "research/personal-development/goals",
+    area: "Personal development",
+    title: "Values → sustainable action system",
+    eyebrow: "Direction to practice",
+    description: "Reconcile values and behavior design into a small, realistic action system with humane review and adjustment.",
+    topology: "Alignment join + safety gate",
+    accent: "#68a56f",
+    yaml: toYaml(valuesToAction),
+  },
 ];
 
 export const BLANK_WORKFLOW = toYaml({
@@ -2270,7 +2659,14 @@ export const BLANK_WORKFLOW = toYaml({
     objective: "Describe the outcome this workflow must produce.",
     policies: { maxConcurrency: 4, onFailure: "stop", requireApprovalFor: [] },
     nodes: [
-      { id: "input-1", kind: "input", name: "User brief", summary: "Workflow objective and constraints.", position: { x: 180, y: 180 } },
+      {
+        id: "input-1",
+        kind: "input",
+        name: "User brief",
+        summary: "Workflow objective and constraints.",
+        inputSchema: inputContractSchema("text"),
+        position: { x: 180, y: 180 },
+      },
       { id: "output-1", kind: "output", name: "Final result", summary: "Return the completed deliverable.", position: { x: 720, y: 180 } },
     ],
     edges: [{ id: "edge-1", from: "input-1", to: "output-1", kind: "dependency" }],

@@ -53,7 +53,7 @@ The welcome screen groups outcome-led starter workflows by area, including these
 - Parallel implementation and risk review → join.
 - Evidence research → synthesis → evaluation.
 
-The expanded library also includes secure software delivery, security incident response, multimodal asset production, and coordinated building design. These templates add explicit cost, authorization, professional-review, containment, publication, and release approvals where the underlying work can affect external systems, people, or budgets.
+The expanded library also includes secure software delivery, security incident response, multimodal asset production, image-to-text extraction, reference-image transformation, and coordinated building design. Input nodes can declare text, image, audio, video, document, or bounded mixed-media JSON Schema contracts. Media stays a host-provided reference—Ladder Graph records the contract and compiles instructions but never uploads, fetches, or executes against the asset. These templates add explicit cost, authorization, professional-review, containment, publication, and release approvals where the underlying work can affect external systems, people, or budgets.
 
 The studio retains the reference concept’s dark technical language: compact navigation, grid canvas, colored graph cards, minimap, palette, inspector, and bottom compiler drawer. All visible branding is Ladder Graph and all copy describes compilation rather than execution.
 

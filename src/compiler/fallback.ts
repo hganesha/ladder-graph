@@ -1,4 +1,5 @@
 import { parseDocument, stringify } from "yaml";
+import { inputContractModality } from "../lib/inputContracts";
 import type { AnalysisResult, CapabilityReport, CompileResult, Diagnostic, FormatResult, LgirNode, Target, Workflow } from "../types";
 
 const VERSION = "0.1.0-web";
@@ -331,14 +332,19 @@ function renderNode(workflow: Workflow, node: LgirNode, index: number): string {
     body += `\nAccept the group input, run ${(node.config?.members ?? []).map((id) => `\`${id}\``).join(", ")} in \`${node.config?.execution}\` mode, then \`${node.config?.exit}\` every member output before releasing any group output. The group is complete only after all members finish.\n`;
   else if (node.kind === "tool")
     body += `\nThis node documents required tools (${list(node.capabilities?.tools)}) and connectors (${list(node.capabilities?.connectors)}). Use only capabilities already available and permitted.\n`;
-  else if (node.kind === "input") body += "\nCapture the user's objective and constraints without adding assumptions that change scope.\n";
-  else if (node.kind === "output")
+  else if (node.kind === "input") {
+    body +=
+      "\nCapture only inputs that satisfy the declared contract. Treat media values as host-provided references; do not assume the compiler uploaded, fetched, or authorized an asset.\n";
+    if (node.inputSchema) body += `\n**Expected input contract**\n\n\`\`\`json\n${JSON.stringify(node.inputSchema, null, 2)}\n\`\`\`\n`;
+  } else if (node.kind === "output")
     body += "\nReturn the final deliverable, unresolved risks, and a concise account of validation performed.\n";
   return body;
 }
 
 function capabilities(workflow: Workflow, target: Target): CapabilityReport {
   const instructional = ["typed data contracts"];
+  if (workflow.spec.nodes.some((node) => node.kind === "input" && ![null, "text"].includes(inputContractModality(node.inputSchema))))
+    instructional.push("multimodal input contracts");
   if (workflow.spec.nodes.some((node) => node.kind === "loop")) instructional.push("bounded loops");
   if (workflow.spec.nodes.some((node) => node.kind === "approval")) instructional.push("human approval gates");
   if (workflow.spec.nodes.some((node) => node.kind === "group")) instructional.push("bounded group orchestration");

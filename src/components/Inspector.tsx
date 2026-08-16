@@ -1,6 +1,7 @@
 import { Braces, Cable, Check, FileInput, Plug, Plus, Search, Settings2, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { type CapabilityOption, recommendedCapabilities, TARGET_CAPABILITY_CATALOGS } from "../lib/capabilityCatalog";
+import { inputContractModality, inputContractSchema, INPUT_CONTRACT_PRESETS, type InputModality } from "../lib/inputContracts";
 import { useStudioStore } from "../store/useStudioStore";
 import type { CapabilityCustomization, LgirNode } from "../types";
 
@@ -100,6 +101,17 @@ export function Inspector() {
     setDraft({ ...draft, capabilities });
     commit({ capabilities });
   };
+  const applyInputContract = (modality: InputModality) => {
+    const inputSchema = inputContractSchema(modality);
+    setDraft({ ...draft, inputSchema });
+    commit({ inputSchema });
+  };
+  const switchToCustomInputContract = () => {
+    const inputSchema = { ...(draft.inputSchema ?? { type: "object" }) };
+    delete inputSchema["x-ladder-input-mode"];
+    setDraft({ ...draft, inputSchema });
+    commit({ inputSchema });
+  };
 
   return (
     <aside className="inspector panel" aria-label={`Inspector for ${draft.name}`}>
@@ -165,6 +177,27 @@ export function Inspector() {
         )}
         {tab === "contracts" && (
           <>
+            {draft.kind === "input" && (
+              <Field label="Input type">
+                <select
+                  value={inputContractModality(draft.inputSchema) ?? "custom"}
+                  onChange={(event) => {
+                    if (event.target.value === "custom") switchToCustomInputContract();
+                    else applyInputContract(event.target.value as InputModality);
+                  }}
+                >
+                  <option value="custom">Custom JSON schema</option>
+                  {INPUT_CONTRACT_PRESETS.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+                <small className="field-help">
+                  Select a media contract for the host runtime. Ladder Graph records accepted references but never uploads or fetches media.
+                </small>
+              </Field>
+            )}
             <JsonField label="Input schema" value={draft.inputSchema} onCommit={(value) => commit({ inputSchema: value })} />
             <JsonField label="Output schema" value={draft.outputSchema} onCommit={(value) => commit({ outputSchema: value })} />
             <p className="field-help">JSON Schema is descriptive in target prompts and validated structurally by Ladder Graph.</p>
