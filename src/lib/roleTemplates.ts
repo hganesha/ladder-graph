@@ -1,3 +1,5 @@
+import { MATH_MUSIC_PHYSICS_ROLES } from "./mathMusicPhysicsTemplates";
+
 export interface RoleTemplate {
   id: string;
   path: string;
@@ -985,11 +987,13 @@ const humanitiesRoles: RoleTemplate[] = [
   ),
 ];
 
-export const ROLE_TEMPLATES: RoleTemplate[] = [...coreRoles, ...softwareRoles, ...securityRoles, ...architectureRoles, ...humanitiesRoles];
+const researchRoles = [...softwareRoles, ...securityRoles, ...architectureRoles, ...humanitiesRoles, ...MATH_MUSIC_PHYSICS_ROLES];
+
+export const ROLE_TEMPLATES: RoleTemplate[] = [...coreRoles, ...researchRoles];
 
 export const RESEARCH_ROLE_SKILLS = Array.from(
   new Map(
-    [...softwareRoles, ...securityRoles, ...architectureRoles, ...humanitiesRoles].flatMap((template) =>
+    researchRoles.flatMap((template) =>
       template.skills.map((id) => [
         id,
         {

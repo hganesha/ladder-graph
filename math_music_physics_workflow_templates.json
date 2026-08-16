@@ -1,0 +1,1870 @@
+{
+  "metadata": {
+    "title": "Mathematics, Music & Physics Workflow Template Library (Node/Edge DAG Model)",
+    "description": "8 example workflow DAGs (3 mathematics, 3 music, 2 physics) built from agent nodes (referencing agent_template_id in math_music_physics_agent_templates.json) and primitive nodes (input, decision, condition, evaluate, approval, join, loop). Every primitive type is exercised multiple times across the set. See node_type_schema below for the config contract each node type follows, including how bounded iteration is expressed without introducing a literal cycle in the top-level 'edges' array (which remains a true DAG).",
+    "total_workflows": 8,
+    "companion_agent_library": "math_music_physics_agent_templates.json",
+    "node_types": [
+      "agent",
+      "input",
+      "decision",
+      "condition",
+      "evaluate",
+      "approval",
+      "join",
+      "loop"
+    ]
+  },
+  "node_type_schema": {
+    "agent": {
+      "description": "Invokes an agent template (from the companion agent-templates file) on the current workflow state.",
+      "config_fields": {
+        "agent_template_id": "id referencing a record in the agent-template library",
+        "input_keys": "list of workflow-state keys passed to the agent as input",
+        "output_key": "workflow-state key the agent's result is written to",
+        "instruction_override": "optional — narrows/customizes the agent's standing prompt for this specific node"
+      }
+    },
+    "input": {
+      "description": "Entry point of a workflow (or sub-flow). Captures and validates the initial payload before any processing begins.",
+      "config_fields": {
+        "expected_fields": "list of required field names in the incoming payload",
+        "source": "who/what provides the input, e.g. 'user' | 'api' | 'upstream_system'"
+      },
+      "graph_rule": "has no incoming edges within its workflow"
+    },
+    "decision": {
+      "description": "Multi-way branch (3+ possible outcomes) driven by a categorical value, typically an upstream agent's classification output.",
+      "config_fields": {
+        "basis": "the workflow-state field the branch decision reads (e.g. 'formulated_model.problem_class')",
+        "branches": "list of {when: <value>, to: <node id>} pairs",
+        "default_to": "node id to route to if no branch value matches"
+      },
+      "graph_rule": "emits one outgoing edge per branch, each edge's 'on' field equal to that branch's 'when' value"
+    },
+    "condition": {
+      "description": "Simple boolean gate evaluated against workflow state.",
+      "config_fields": {
+        "expression": "human-readable boolean expression over workflow-state fields",
+        "true_to": "node id to route to when the expression evaluates true",
+        "false_to": "node id to route to when the expression evaluates false"
+      },
+      "graph_rule": "emits exactly two outgoing edges, labeled on='true' and on='false'"
+    },
+    "evaluate": {
+      "description": "Scores or grades an artifact against a rubric/metric and writes a quantitative or structured verdict to workflow state. Does not itself branch — a downstream 'condition' node reads its output to decide what happens next.",
+      "config_fields": {
+        "method": "'agent' (an LLM/agent judges) or 'programmatic' (a deterministic metric/formula)",
+        "metric": "name of what's being scored (e.g. 'feasibility_and_optimality_gap', 'chi_square_reduced')",
+        "output_key": "workflow-state key the score/verdict is written to"
+      }
+    },
+    "approval": {
+      "description": "Human-in-the-loop gate. Execution pauses until a designated approver responds or the SLA elapses.",
+      "config_fields": {
+        "approver_role": "the human role expected to respond (not a specific person)",
+        "on_approve": "node id to route to on approval",
+        "on_reject": "node id to route to on rejection (commonly a loop node, to route feedback back into revision)",
+        "on_timeout": "behavior if no response arrives, e.g. 'escalate' | 'auto_reject' | 'escalate_reminder'"
+      }
+    },
+    "join": {
+      "description": "Merge/reconvergence point for multiple upstream branches — either true concurrent parallel branches, or mutually-exclusive branches from an upstream decision/condition node reconverging into one downstream path.",
+      "config_fields": {
+        "inputs": "list of upstream node ids this join waits on",
+        "strategy": "'wait_all' (true parallel fan-in — every input must complete) or 'wait_any' (reconvergence of mutually-exclusive branches — proceed as soon as one input completes)"
+      }
+    },
+    "loop": {
+      "description": "Bounded iteration over a sub-sequence of already-defined nodes ('the body'), re-executed until an exit condition is met or max_iterations is reached. IMPORTANT: to keep the top-level 'edges' list a true DAG (acyclic), a loop node does NOT introduce a literal back-edge in the edges array. Instead, iteration is expressed purely as node configuration: 'body' lists the node ids (in execution order) that get re-run each pass, and 'loop_back_to' names the body node where the next pass resumes. Every real outgoing edge a loop node has in the edges array is labeled on='loop_exit' (there can be more than one if the loop's exit fans out into parallel next-steps), pointing to whatever comes after the loop finishes, whether it exited by meeting exit_condition or by hitting max_iterations.",
+      "config_fields": {
+        "body": "ordered list of node ids that make up the loop's repeated sub-sequence",
+        "loop_back_to": "node id (must be in body) where a new iteration resumes",
+        "exit_condition": "human-readable condition checked after each pass through body",
+        "max_iterations": "hard cap on passes, guaranteeing termination even if exit_condition is never met"
+      },
+      "graph_rule": "1+ outgoing edges in the edges array, every one labeled on='loop_exit' (more than one only when the loop's exit fans out to parallel next-steps); body-node ids must all exist in this workflow's nodes list"
+    }
+  },
+  "workflows": [
+    {
+      "id": "wf-math-01",
+      "domain": "Mathematics",
+      "name": "Optimization Problem Solving Pipeline",
+      "description": "Takes a natural-language decision problem through formal modeling, routes it to\n    the right solution method by problem class, evaluates solution quality, iterates on\n    the model if the solution is infeasible or suboptimal, and gates final release\n    behind analyst sign-off.",
+      "trigger": "user submits a decision problem in natural language (objective + constraints)",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Problem Intake",
+          "config": {
+            "expected_fields": [
+              "objective_function",
+              "constraints",
+              "decision_variables",
+              "variable_domain_hints"
+            ],
+            "source": "user"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Formulate Optimization Model",
+          "config": {
+            "agent_template_id": "math-opt-01",
+            "input_keys": [
+              "objective_function",
+              "constraints",
+              "decision_variables"
+            ],
+            "output_key": "formulated_model"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "decision",
+          "label": "Route by Problem Class",
+          "config": {
+            "basis": "formulated_model.problem_class",
+            "branches": [
+              {
+                "when": "linear",
+                "to": "n4a"
+              },
+              {
+                "when": "convex_nonlinear",
+                "to": "n4b"
+              },
+              {
+                "when": "combinatorial_mip",
+                "to": "n4c"
+              }
+            ],
+            "default_to": "n4b"
+          }
+        },
+        {
+          "id": "n4a",
+          "type": "agent",
+          "label": "Solve as Linear Program",
+          "config": {
+            "agent_template_id": "math-opt-02",
+            "input_keys": [
+              "formulated_model"
+            ],
+            "output_key": "candidate_solution"
+          }
+        },
+        {
+          "id": "n4b",
+          "type": "agent",
+          "label": "Solve as Convex/Nonlinear Program",
+          "config": {
+            "agent_template_id": "math-opt-02",
+            "input_keys": [
+              "formulated_model"
+            ],
+            "output_key": "candidate_solution"
+          }
+        },
+        {
+          "id": "n4c",
+          "type": "agent",
+          "label": "Solve as Combinatorial/MIP",
+          "config": {
+            "agent_template_id": "math-opt-02",
+            "input_keys": [
+              "formulated_model"
+            ],
+            "output_key": "candidate_solution"
+          }
+        },
+        {
+          "id": "n5",
+          "type": "join",
+          "label": "Reconverge After Solve",
+          "config": {
+            "inputs": [
+              "n4a",
+              "n4b",
+              "n4c"
+            ],
+            "strategy": "wait_any"
+          }
+        },
+        {
+          "id": "n6",
+          "type": "evaluate",
+          "label": "Score Solution Quality",
+          "config": {
+            "method": "programmatic",
+            "metric": "feasibility_and_optimality_gap",
+            "output_key": "solution_score"
+          }
+        },
+        {
+          "id": "n7",
+          "type": "condition",
+          "label": "Meets Acceptance Criteria",
+          "config": {
+            "expression": "solution_score.feasible AND solution_score.optimality_gap < 0.01",
+            "true_to": "n9",
+            "false_to": "n_loop"
+          }
+        },
+        {
+          "id": "n_loop",
+          "type": "loop",
+          "label": "Refine Model Until Converged",
+          "config": {
+            "body": [
+              "n2",
+              "n3",
+              "n4a",
+              "n4b",
+              "n4c",
+              "n5",
+              "n6",
+              "n7"
+            ],
+            "loop_back_to": "n2",
+            "exit_condition": "solution_score meets acceptance criteria",
+            "max_iterations": 5
+          }
+        },
+        {
+          "id": "n9",
+          "type": "approval",
+          "label": "Analyst Sign-off on Final Solution",
+          "config": {
+            "approver_role": "requesting analyst / decision owner",
+            "on_approve": "n10",
+            "on_reject": "n_loop",
+            "on_timeout": "escalate"
+          }
+        },
+        {
+          "id": "n10",
+          "type": "agent",
+          "label": "Generate Solution Report & Sensitivity Plot",
+          "config": {
+            "agent_template_id": "math-gen-02",
+            "input_keys": [
+              "candidate_solution",
+              "solution_score"
+            ],
+            "output_key": "final_report"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n2",
+          "to": "n3"
+        },
+        {
+          "from": "n3",
+          "to": "n4a",
+          "on": "linear"
+        },
+        {
+          "from": "n3",
+          "to": "n4b",
+          "on": "convex_nonlinear"
+        },
+        {
+          "from": "n3",
+          "to": "n4c",
+          "on": "combinatorial_mip"
+        },
+        {
+          "from": "n4a",
+          "to": "n5"
+        },
+        {
+          "from": "n4b",
+          "to": "n5"
+        },
+        {
+          "from": "n4c",
+          "to": "n5"
+        },
+        {
+          "from": "n5",
+          "to": "n6"
+        },
+        {
+          "from": "n6",
+          "to": "n7"
+        },
+        {
+          "from": "n7",
+          "to": "n9",
+          "on": "true"
+        },
+        {
+          "from": "n7",
+          "to": "n_loop",
+          "on": "false"
+        },
+        {
+          "from": "n_loop",
+          "to": "n9",
+          "on": "loop_exit"
+        },
+        {
+          "from": "n9",
+          "to": "n10",
+          "on": "approved"
+        },
+        {
+          "from": "n9",
+          "to": "n_loop",
+          "on": "rejected"
+        }
+      ]
+    },
+    {
+      "id": "wf-math-02",
+      "domain": "Mathematics",
+      "name": "Trigonometric Identity Verification & Tutoring Loop",
+      "description": "Verifies a student-submitted trig identity claim, builds an explanation\n    appropriate to whichever outcome (proved or disproved), and loops a tutoring\n    explanation with comprehension checks until the student demonstrates mastery or a\n    max-attempt cap is reached.",
+      "trigger": "student submits a claimed trigonometric identity to check and learn from",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Identity Claim Intake",
+          "config": {
+            "expected_fields": [
+              "identity_expression",
+              "student_level"
+            ],
+            "source": "user"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Attempt Symbolic Verification",
+          "config": {
+            "agent_template_id": "math-trig-02",
+            "input_keys": [
+              "identity_expression"
+            ],
+            "output_key": "verification_result"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "condition",
+          "label": "Identity Holds",
+          "config": {
+            "expression": "verification_result.holds == true",
+            "true_to": "n4",
+            "false_to": "n5"
+          }
+        },
+        {
+          "id": "n4",
+          "type": "agent",
+          "label": "Generate Formal Proof Steps",
+          "config": {
+            "agent_template_id": "math-trig-02",
+            "input_keys": [
+              "verification_result"
+            ],
+            "output_key": "explanation_material"
+          }
+        },
+        {
+          "id": "n5",
+          "type": "agent",
+          "label": "Identify Counterexample & Explain Failure",
+          "config": {
+            "agent_template_id": "math-trig-01",
+            "input_keys": [
+              "verification_result"
+            ],
+            "output_key": "explanation_material"
+          }
+        },
+        {
+          "id": "n6",
+          "type": "join",
+          "label": "Reconverge Explanation Paths",
+          "config": {
+            "inputs": [
+              "n4",
+              "n5"
+            ],
+            "strategy": "wait_any"
+          }
+        },
+        {
+          "id": "n7",
+          "type": "agent",
+          "label": "Generate Tutoring Explanation for Student Level",
+          "config": {
+            "agent_template_id": "math-trig-01",
+            "input_keys": [
+              "explanation_material",
+              "student_level"
+            ],
+            "output_key": "tutoring_content"
+          }
+        },
+        {
+          "id": "n8",
+          "type": "evaluate",
+          "label": "Comprehension Check",
+          "config": {
+            "method": "agent",
+            "metric": "follow_up_question_score",
+            "output_key": "comprehension_score"
+          }
+        },
+        {
+          "id": "n9",
+          "type": "condition",
+          "label": "Mastery Achieved",
+          "config": {
+            "expression": "comprehension_score >= 0.8",
+            "true_to": "n10",
+            "false_to": "n_loop2"
+          }
+        },
+        {
+          "id": "n_loop2",
+          "type": "loop",
+          "label": "Reteach Until Mastery",
+          "config": {
+            "body": [
+              "n7",
+              "n8",
+              "n9"
+            ],
+            "loop_back_to": "n7",
+            "exit_condition": "comprehension_score >= 0.8",
+            "max_iterations": 3
+          }
+        },
+        {
+          "id": "n10",
+          "type": "agent",
+          "label": "Summarize & Generate Practice Set",
+          "config": {
+            "agent_template_id": "math-trig-01",
+            "input_keys": [
+              "tutoring_content",
+              "comprehension_score"
+            ],
+            "output_key": "final_output"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n2",
+          "to": "n3"
+        },
+        {
+          "from": "n3",
+          "to": "n4",
+          "on": "true"
+        },
+        {
+          "from": "n3",
+          "to": "n5",
+          "on": "false"
+        },
+        {
+          "from": "n4",
+          "to": "n6"
+        },
+        {
+          "from": "n5",
+          "to": "n6"
+        },
+        {
+          "from": "n6",
+          "to": "n7"
+        },
+        {
+          "from": "n7",
+          "to": "n8"
+        },
+        {
+          "from": "n8",
+          "to": "n9"
+        },
+        {
+          "from": "n9",
+          "to": "n10",
+          "on": "true"
+        },
+        {
+          "from": "n9",
+          "to": "n_loop2",
+          "on": "false"
+        },
+        {
+          "from": "n_loop2",
+          "to": "n10",
+          "on": "loop_exit"
+        }
+      ]
+    },
+    {
+      "id": "wf-math-03",
+      "domain": "Mathematics",
+      "name": "Advanced Algebra Proof & Peer-Review Workflow",
+      "description": "Constructs a proof for a submitted theorem, runs an independent step-by-step\n    verification, loops revision-and-reverification until every step is valid (or a cap\n    is hit), then gates publication behind a human mathematician's sign-off.",
+      "trigger": "user submits a theorem statement (with an optional draft proof sketch)",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Theorem & Proof Sketch Intake",
+          "config": {
+            "expected_fields": [
+              "theorem_statement",
+              "proof_sketch_optional"
+            ],
+            "source": "user"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Construct/Complete Proof",
+          "config": {
+            "agent_template_id": "math-alg-01",
+            "input_keys": [
+              "theorem_statement",
+              "proof_sketch_optional"
+            ],
+            "output_key": "draft_proof"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "agent",
+          "label": "Verify Proof Step-by-Step",
+          "config": {
+            "agent_template_id": "math-gen-01",
+            "input_keys": [
+              "draft_proof"
+            ],
+            "output_key": "verification_report"
+          }
+        },
+        {
+          "id": "n4",
+          "type": "evaluate",
+          "label": "Rigor Score",
+          "config": {
+            "method": "programmatic",
+            "metric": "fraction_of_steps_justified",
+            "output_key": "rigor_score"
+          }
+        },
+        {
+          "id": "n5",
+          "type": "condition",
+          "label": "All Steps Valid",
+          "config": {
+            "expression": "verification_report.all_valid == true",
+            "true_to": "n6",
+            "false_to": "n_loop3"
+          }
+        },
+        {
+          "id": "n7",
+          "type": "agent",
+          "label": "Revise Proof Using Verifier Feedback",
+          "config": {
+            "agent_template_id": "math-alg-01",
+            "input_keys": [
+              "draft_proof",
+              "verification_report"
+            ],
+            "output_key": "draft_proof"
+          }
+        },
+        {
+          "id": "n_loop3",
+          "type": "loop",
+          "label": "Revise Until Valid",
+          "config": {
+            "body": [
+              "n3",
+              "n4",
+              "n5",
+              "n7"
+            ],
+            "loop_back_to": "n3",
+            "exit_condition": "verification_report.all_valid == true",
+            "max_iterations": 6
+          }
+        },
+        {
+          "id": "n6",
+          "type": "approval",
+          "label": "Mathematician Sign-off Before Publication",
+          "config": {
+            "approver_role": "reviewing mathematician",
+            "on_approve": "n8",
+            "on_reject": "n_loop3",
+            "on_timeout": "escalate"
+          }
+        },
+        {
+          "id": "n8",
+          "type": "agent",
+          "label": "Final Formatted Write-up (LaTeX)",
+          "config": {
+            "agent_template_id": "math-gen-01",
+            "input_keys": [
+              "draft_proof",
+              "verification_report"
+            ],
+            "output_key": "final_proof_document"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n2",
+          "to": "n3"
+        },
+        {
+          "from": "n3",
+          "to": "n4"
+        },
+        {
+          "from": "n4",
+          "to": "n5"
+        },
+        {
+          "from": "n5",
+          "to": "n6",
+          "on": "true"
+        },
+        {
+          "from": "n5",
+          "to": "n_loop3",
+          "on": "false"
+        },
+        {
+          "from": "n_loop3",
+          "to": "n6",
+          "on": "loop_exit"
+        },
+        {
+          "from": "n6",
+          "to": "n8",
+          "on": "approved"
+        },
+        {
+          "from": "n6",
+          "to": "n_loop3",
+          "on": "rejected"
+        }
+      ]
+    },
+    {
+      "id": "wf-music-01",
+      "domain": "Music",
+      "name": "Audio-to-Analysis Pipeline",
+      "description": "Transcribes an uploaded audio/MIDI file to notes, branches rhythm analysis by\n    detected content type, runs harmony analysis in parallel, merges everything into a\n    structural analysis, and routes low-confidence transcriptions to a human\n    musicologist before compiling the final report.",
+      "trigger": "user uploads an audio file or MIDI file for analysis",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Audio/MIDI Intake",
+          "config": {
+            "expected_fields": [
+              "audio_file_or_midi",
+              "desired_analysis_depth"
+            ],
+            "source": "user"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Transcribe Notes & Pitch",
+          "config": {
+            "agent_template_id": "music-an-01",
+            "input_keys": [
+              "audio_file_or_midi"
+            ],
+            "output_key": "transcription"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "decision",
+          "label": "Route by Detected Content Type",
+          "config": {
+            "basis": "transcription.content_type",
+            "branches": [
+              {
+                "when": "monophonic_solo",
+                "to": "n4a"
+              },
+              {
+                "when": "polyphonic_ensemble",
+                "to": "n4b"
+              },
+              {
+                "when": "vocal_with_lyrics",
+                "to": "n4c"
+              }
+            ],
+            "default_to": "n4b"
+          }
+        },
+        {
+          "id": "n4a",
+          "type": "agent",
+          "label": "Analyze Rhythm & Meter (Solo)",
+          "config": {
+            "agent_template_id": "music-an-03",
+            "input_keys": [
+              "transcription"
+            ],
+            "output_key": "rhythm_analysis"
+          }
+        },
+        {
+          "id": "n4b",
+          "type": "agent",
+          "label": "Analyze Rhythm & Meter (Ensemble)",
+          "config": {
+            "agent_template_id": "music-an-03",
+            "input_keys": [
+              "transcription"
+            ],
+            "output_key": "rhythm_analysis"
+          }
+        },
+        {
+          "id": "n4c",
+          "type": "agent",
+          "label": "Analyze Rhythm & Meter (Vocal)",
+          "config": {
+            "agent_template_id": "music-an-03",
+            "input_keys": [
+              "transcription"
+            ],
+            "output_key": "rhythm_analysis"
+          }
+        },
+        {
+          "id": "n5",
+          "type": "join",
+          "label": "Reconverge Rhythm Analysis Paths",
+          "config": {
+            "inputs": [
+              "n4a",
+              "n4b",
+              "n4c"
+            ],
+            "strategy": "wait_any"
+          }
+        },
+        {
+          "id": "n6",
+          "type": "agent",
+          "label": "Analyze Chords & Harmony",
+          "config": {
+            "agent_template_id": "music-an-02",
+            "input_keys": [
+              "transcription"
+            ],
+            "output_key": "harmony_analysis"
+          }
+        },
+        {
+          "id": "n7",
+          "type": "join",
+          "label": "Merge Rhythm + Harmony Analysis",
+          "config": {
+            "inputs": [
+              "n5",
+              "n6"
+            ],
+            "strategy": "wait_all"
+          }
+        },
+        {
+          "id": "n8",
+          "type": "agent",
+          "label": "Analyze Structure & Form",
+          "config": {
+            "agent_template_id": "music-an-04",
+            "input_keys": [
+              "rhythm_analysis",
+              "harmony_analysis"
+            ],
+            "output_key": "structure_analysis"
+          }
+        },
+        {
+          "id": "n9",
+          "type": "evaluate",
+          "label": "Confidence Check on Transcription",
+          "config": {
+            "method": "programmatic",
+            "metric": "pitch_detection_confidence",
+            "output_key": "confidence_score"
+          }
+        },
+        {
+          "id": "n10",
+          "type": "condition",
+          "label": "Confidence Acceptable",
+          "config": {
+            "expression": "confidence_score >= 0.85",
+            "true_to": "n11",
+            "false_to": "n12"
+          }
+        },
+        {
+          "id": "n11",
+          "type": "agent",
+          "label": "Compile Analysis Report",
+          "config": {
+            "agent_template_id": "music-an-04",
+            "input_keys": [
+              "transcription",
+              "rhythm_analysis",
+              "harmony_analysis",
+              "structure_analysis"
+            ],
+            "output_key": "analysis_report"
+          }
+        },
+        {
+          "id": "n12",
+          "type": "approval",
+          "label": "Human Musicologist Review/Correction",
+          "config": {
+            "approver_role": "staff musicologist",
+            "on_approve": "n11",
+            "on_reject": "n2",
+            "on_timeout": "escalate"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n2",
+          "to": "n3"
+        },
+        {
+          "from": "n2",
+          "to": "n6"
+        },
+        {
+          "from": "n3",
+          "to": "n4a",
+          "on": "monophonic_solo"
+        },
+        {
+          "from": "n3",
+          "to": "n4b",
+          "on": "polyphonic_ensemble"
+        },
+        {
+          "from": "n3",
+          "to": "n4c",
+          "on": "vocal_with_lyrics"
+        },
+        {
+          "from": "n4a",
+          "to": "n5"
+        },
+        {
+          "from": "n4b",
+          "to": "n5"
+        },
+        {
+          "from": "n4c",
+          "to": "n5"
+        },
+        {
+          "from": "n5",
+          "to": "n7"
+        },
+        {
+          "from": "n6",
+          "to": "n7"
+        },
+        {
+          "from": "n7",
+          "to": "n8"
+        },
+        {
+          "from": "n8",
+          "to": "n9"
+        },
+        {
+          "from": "n9",
+          "to": "n10"
+        },
+        {
+          "from": "n10",
+          "to": "n11",
+          "on": "true"
+        },
+        {
+          "from": "n10",
+          "to": "n12",
+          "on": "false"
+        },
+        {
+          "from": "n12",
+          "to": "n11",
+          "on": "approved"
+        },
+        {
+          "from": "n12",
+          "to": "n2",
+          "on": "rejected"
+        }
+      ]
+    },
+    {
+      "id": "wf-music-02",
+      "domain": "Music",
+      "name": "Personalized Recommendation Pipeline",
+      "description": "Builds a listener preference profile and seed-track feature analysis in parallel,\n    generates and curates candidate recommendations, loops regeneration until a\n    relevance/diversity bar is met, and gates editorial-playlist placement behind a\n    human curator's approval.",
+      "trigger": "user or upstream system supplies listening history and/or seed tracks",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Listening History / Seed Tracks Intake",
+          "config": {
+            "expected_fields": [
+              "user_id",
+              "listening_history",
+              "seed_tracks_optional",
+              "request_context"
+            ],
+            "source": "user_or_api"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Build Preference Profile",
+          "config": {
+            "agent_template_id": "music-rec-01",
+            "input_keys": [
+              "user_id",
+              "listening_history"
+            ],
+            "output_key": "preference_profile"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "agent",
+          "label": "Extract Harmonic/Style Features of Seed Tracks",
+          "config": {
+            "agent_template_id": "music-an-02",
+            "input_keys": [
+              "seed_tracks_optional"
+            ],
+            "output_key": "seed_features"
+          }
+        },
+        {
+          "id": "n4",
+          "type": "join",
+          "label": "Merge Profile + Seed Features",
+          "config": {
+            "inputs": [
+              "n2",
+              "n3"
+            ],
+            "strategy": "wait_all"
+          }
+        },
+        {
+          "id": "n5",
+          "type": "agent",
+          "label": "Generate Candidate Recommendations",
+          "config": {
+            "agent_template_id": "music-rec-02",
+            "input_keys": [
+              "preference_profile",
+              "seed_features"
+            ],
+            "output_key": "candidates"
+          }
+        },
+        {
+          "id": "n6",
+          "type": "agent",
+          "label": "Apply Discovery/Diversity Curation",
+          "config": {
+            "agent_template_id": "music-rec-03",
+            "input_keys": [
+              "candidates"
+            ],
+            "output_key": "curated_list"
+          }
+        },
+        {
+          "id": "n7",
+          "type": "evaluate",
+          "label": "Score Relevance & Diversity",
+          "config": {
+            "method": "programmatic",
+            "metric": "relevance_and_diversity_index",
+            "output_key": "rec_score"
+          }
+        },
+        {
+          "id": "n8",
+          "type": "condition",
+          "label": "Meets Quality Bar",
+          "config": {
+            "expression": "rec_score.relevance >= 0.7 AND rec_score.diversity >= 0.3",
+            "true_to": "n9",
+            "false_to": "n_loop4"
+          }
+        },
+        {
+          "id": "n_loop4",
+          "type": "loop",
+          "label": "Regenerate Until Quality Bar Met",
+          "config": {
+            "body": [
+              "n5",
+              "n6",
+              "n7",
+              "n8"
+            ],
+            "loop_back_to": "n5",
+            "exit_condition": "rec_score meets quality bar",
+            "max_iterations": 3
+          }
+        },
+        {
+          "id": "n9",
+          "type": "condition",
+          "label": "Editorial Placement Required",
+          "config": {
+            "expression": "request_context == 'editorial_playlist'",
+            "true_to": "n10",
+            "false_to": "n11"
+          }
+        },
+        {
+          "id": "n10",
+          "type": "approval",
+          "label": "Human Curator Approval for Editorial Playlist",
+          "config": {
+            "approver_role": "music editorial curator",
+            "on_approve": "n11",
+            "on_reject": "n_loop4",
+            "on_timeout": "escalate"
+          }
+        },
+        {
+          "id": "n11",
+          "type": "agent",
+          "label": "Deliver Final Playlist",
+          "config": {
+            "agent_template_id": "music-rec-02",
+            "input_keys": [
+              "curated_list"
+            ],
+            "output_key": "final_playlist"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n1",
+          "to": "n3"
+        },
+        {
+          "from": "n2",
+          "to": "n4"
+        },
+        {
+          "from": "n3",
+          "to": "n4"
+        },
+        {
+          "from": "n4",
+          "to": "n5"
+        },
+        {
+          "from": "n5",
+          "to": "n6"
+        },
+        {
+          "from": "n6",
+          "to": "n7"
+        },
+        {
+          "from": "n7",
+          "to": "n8"
+        },
+        {
+          "from": "n8",
+          "to": "n9",
+          "on": "true"
+        },
+        {
+          "from": "n8",
+          "to": "n_loop4",
+          "on": "false"
+        },
+        {
+          "from": "n_loop4",
+          "to": "n9",
+          "on": "loop_exit"
+        },
+        {
+          "from": "n9",
+          "to": "n10",
+          "on": "true"
+        },
+        {
+          "from": "n9",
+          "to": "n11",
+          "on": "false"
+        },
+        {
+          "from": "n10",
+          "to": "n11",
+          "on": "approved"
+        },
+        {
+          "from": "n10",
+          "to": "n_loop4",
+          "on": "rejected"
+        }
+      ]
+    },
+    {
+      "id": "wf-music-03",
+      "domain": "Music",
+      "name": "Collaborative Co-Composition Workflow",
+      "description": "Generates a melodic/harmonic sketch and loops it through composer approval, then\n    fans out into parallel lyric-writing and arrangement, joins the results, checks\n    structural consistency, and loops revision until the piece is coherent.",
+      "trigger": "user (composer) submits a creative brief: genre, mood, tempo, optional existing motif",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Creative Brief Intake",
+          "config": {
+            "expected_fields": [
+              "genre",
+              "mood",
+              "tempo_hint",
+              "existing_motif_optional"
+            ],
+            "source": "user"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Generate Melodic/Harmonic Sketch",
+          "config": {
+            "agent_template_id": "music-cc-01",
+            "input_keys": [
+              "genre",
+              "mood",
+              "tempo_hint",
+              "existing_motif_optional"
+            ],
+            "output_key": "sketch"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "approval",
+          "label": "Composer Reviews Sketch",
+          "config": {
+            "approver_role": "lead composer / user",
+            "on_approve": "n5",
+            "on_reject": "n_loop5",
+            "on_timeout": "escalate_reminder"
+          }
+        },
+        {
+          "id": "n_loop5",
+          "type": "loop",
+          "label": "Revise Sketch Until Approved",
+          "config": {
+            "body": [
+              "n2",
+              "n3"
+            ],
+            "loop_back_to": "n2",
+            "exit_condition": "sketch approved by composer",
+            "max_iterations": 4
+          }
+        },
+        {
+          "id": "n5",
+          "type": "agent",
+          "label": "Draft Lyrics Matched to Melody",
+          "config": {
+            "agent_template_id": "music-cc-02",
+            "input_keys": [
+              "sketch",
+              "mood"
+            ],
+            "output_key": "lyrics_draft"
+          }
+        },
+        {
+          "id": "n6",
+          "type": "agent",
+          "label": "Draft Arrangement/Orchestration",
+          "config": {
+            "agent_template_id": "music-cc-03",
+            "input_keys": [
+              "sketch",
+              "genre"
+            ],
+            "output_key": "arrangement_draft"
+          }
+        },
+        {
+          "id": "n7",
+          "type": "join",
+          "label": "Merge Lyrics + Arrangement",
+          "config": {
+            "inputs": [
+              "n5",
+              "n6"
+            ],
+            "strategy": "wait_all"
+          }
+        },
+        {
+          "id": "n8",
+          "type": "agent",
+          "label": "Structural Consistency Check",
+          "config": {
+            "agent_template_id": "music-an-04",
+            "input_keys": [
+              "sketch",
+              "lyrics_draft",
+              "arrangement_draft"
+            ],
+            "output_key": "consistency_report"
+          }
+        },
+        {
+          "id": "n9",
+          "type": "evaluate",
+          "label": "Consistency Score",
+          "config": {
+            "method": "agent",
+            "metric": "form_and_motif_consistency",
+            "output_key": "consistency_score"
+          }
+        },
+        {
+          "id": "n10",
+          "type": "condition",
+          "label": "Consistency Acceptable",
+          "config": {
+            "expression": "consistency_score >= 0.75",
+            "true_to": "n11",
+            "false_to": "n_loop6"
+          }
+        },
+        {
+          "id": "n_loop6",
+          "type": "loop",
+          "label": "Revise Lyrics/Arrangement Until Consistent",
+          "config": {
+            "body": [
+              "n5",
+              "n6",
+              "n7",
+              "n8",
+              "n9",
+              "n10"
+            ],
+            "loop_back_to": "n5",
+            "exit_condition": "consistency_score >= 0.75",
+            "max_iterations": 3
+          }
+        },
+        {
+          "id": "n11",
+          "type": "agent",
+          "label": "Assemble Final Composition Package",
+          "config": {
+            "agent_template_id": "music-cc-03",
+            "input_keys": [
+              "sketch",
+              "lyrics_draft",
+              "arrangement_draft"
+            ],
+            "output_key": "final_composition"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n2",
+          "to": "n3"
+        },
+        {
+          "from": "n3",
+          "to": "n5",
+          "on": "approved"
+        },
+        {
+          "from": "n3",
+          "to": "n6",
+          "on": "approved"
+        },
+        {
+          "from": "n3",
+          "to": "n_loop5",
+          "on": "rejected"
+        },
+        {
+          "from": "n_loop5",
+          "to": "n5",
+          "on": "loop_exit"
+        },
+        {
+          "from": "n_loop5",
+          "to": "n6",
+          "on": "loop_exit"
+        },
+        {
+          "from": "n5",
+          "to": "n7"
+        },
+        {
+          "from": "n6",
+          "to": "n7"
+        },
+        {
+          "from": "n7",
+          "to": "n8"
+        },
+        {
+          "from": "n8",
+          "to": "n9"
+        },
+        {
+          "from": "n9",
+          "to": "n10"
+        },
+        {
+          "from": "n10",
+          "to": "n11",
+          "on": "true"
+        },
+        {
+          "from": "n10",
+          "to": "n_loop6",
+          "on": "false"
+        },
+        {
+          "from": "n_loop6",
+          "to": "n11",
+          "on": "loop_exit"
+        }
+      ]
+    },
+    {
+      "id": "wf-phys-01",
+      "domain": "Physics",
+      "name": "Physics Problem Solving & Verification Pipeline",
+      "description": "Classifies an incoming physics problem by domain, routes it to the matching\n    specialist solver, runs a dimensional/units and numerical sanity check on the\n    result, and loops re-solving with error feedback until the answer passes sanity\n    checks or a cap is hit.",
+      "trigger": "user submits a physics problem statement with known quantities and a target unknown",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Problem Statement Intake",
+          "config": {
+            "expected_fields": [
+              "problem_text",
+              "known_quantities",
+              "target_quantity"
+            ],
+            "source": "user"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Classify Problem Domain & Extract Givens",
+          "config": {
+            "agent_template_id": "phys-08",
+            "input_keys": [
+              "problem_text",
+              "known_quantities",
+              "target_quantity"
+            ],
+            "output_key": "problem_classification"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "decision",
+          "label": "Route by Physics Domain",
+          "config": {
+            "basis": "problem_classification.domain",
+            "branches": [
+              {
+                "when": "classical_mechanics",
+                "to": "n4a"
+              },
+              {
+                "when": "electromagnetism",
+                "to": "n4b"
+              },
+              {
+                "when": "thermodynamics",
+                "to": "n4c"
+              },
+              {
+                "when": "quantum_mechanics",
+                "to": "n4d"
+              }
+            ],
+            "default_to": "n4a"
+          }
+        },
+        {
+          "id": "n4a",
+          "type": "agent",
+          "label": "Solve — Classical Mechanics",
+          "config": {
+            "agent_template_id": "phys-01",
+            "input_keys": [
+              "problem_classification"
+            ],
+            "output_key": "candidate_solution"
+          }
+        },
+        {
+          "id": "n4b",
+          "type": "agent",
+          "label": "Solve — Electromagnetism",
+          "config": {
+            "agent_template_id": "phys-02",
+            "input_keys": [
+              "problem_classification"
+            ],
+            "output_key": "candidate_solution"
+          }
+        },
+        {
+          "id": "n4c",
+          "type": "agent",
+          "label": "Solve — Thermodynamics",
+          "config": {
+            "agent_template_id": "phys-03",
+            "input_keys": [
+              "problem_classification"
+            ],
+            "output_key": "candidate_solution"
+          }
+        },
+        {
+          "id": "n4d",
+          "type": "agent",
+          "label": "Solve — Quantum Mechanics",
+          "config": {
+            "agent_template_id": "phys-04",
+            "input_keys": [
+              "problem_classification"
+            ],
+            "output_key": "candidate_solution"
+          }
+        },
+        {
+          "id": "n5",
+          "type": "join",
+          "label": "Reconverge After Domain-Specific Solve",
+          "config": {
+            "inputs": [
+              "n4a",
+              "n4b",
+              "n4c",
+              "n4d"
+            ],
+            "strategy": "wait_any"
+          }
+        },
+        {
+          "id": "n6",
+          "type": "agent",
+          "label": "Dimensional & Units Consistency Check",
+          "config": {
+            "agent_template_id": "phys-06",
+            "input_keys": [
+              "candidate_solution"
+            ],
+            "output_key": "units_check_report"
+          }
+        },
+        {
+          "id": "n7",
+          "type": "evaluate",
+          "label": "Numerical Sanity Check",
+          "config": {
+            "method": "programmatic",
+            "metric": "order_of_magnitude_and_limiting_case_check",
+            "output_key": "sanity_score"
+          }
+        },
+        {
+          "id": "n8",
+          "type": "condition",
+          "label": "Passes Sanity Checks",
+          "config": {
+            "expression": "units_check_report.consistent AND sanity_score.pass",
+            "true_to": "n9",
+            "false_to": "n_loop7"
+          }
+        },
+        {
+          "id": "n_loop7",
+          "type": "loop",
+          "label": "Re-solve With Error Feedback",
+          "config": {
+            "body": [
+              "n3",
+              "n4a",
+              "n4b",
+              "n4c",
+              "n4d",
+              "n5",
+              "n6",
+              "n7",
+              "n8"
+            ],
+            "loop_back_to": "n3",
+            "exit_condition": "passes sanity checks",
+            "max_iterations": 3
+          }
+        },
+        {
+          "id": "n9",
+          "type": "agent",
+          "label": "Generate Final Solution Write-up",
+          "config": {
+            "agent_template_id": "phys-08",
+            "input_keys": [
+              "candidate_solution",
+              "units_check_report",
+              "sanity_score"
+            ],
+            "output_key": "final_writeup"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n2",
+          "to": "n3"
+        },
+        {
+          "from": "n3",
+          "to": "n4a",
+          "on": "classical_mechanics"
+        },
+        {
+          "from": "n3",
+          "to": "n4b",
+          "on": "electromagnetism"
+        },
+        {
+          "from": "n3",
+          "to": "n4c",
+          "on": "thermodynamics"
+        },
+        {
+          "from": "n3",
+          "to": "n4d",
+          "on": "quantum_mechanics"
+        },
+        {
+          "from": "n4a",
+          "to": "n5"
+        },
+        {
+          "from": "n4b",
+          "to": "n5"
+        },
+        {
+          "from": "n4c",
+          "to": "n5"
+        },
+        {
+          "from": "n4d",
+          "to": "n5"
+        },
+        {
+          "from": "n5",
+          "to": "n6"
+        },
+        {
+          "from": "n6",
+          "to": "n7"
+        },
+        {
+          "from": "n7",
+          "to": "n8"
+        },
+        {
+          "from": "n8",
+          "to": "n9",
+          "on": "true"
+        },
+        {
+          "from": "n8",
+          "to": "n_loop7",
+          "on": "false"
+        },
+        {
+          "from": "n_loop7",
+          "to": "n9",
+          "on": "loop_exit"
+        }
+      ]
+    },
+    {
+      "id": "wf-phys-02",
+      "domain": "Physics",
+      "name": "Experimental Data Analysis & Simulation Validation Workflow",
+      "description": "Fits raw experimental data and runs a theoretical simulation in parallel, joins\n    them for a goodness-of-fit comparison, loops model-parameter revision until the fit\n    is acceptable, and gates the final conclusions behind PI/advisor sign-off before the\n    lab report is generated.",
+      "trigger": "user submits raw measurement data with uncertainties plus a theoretical model description",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "input",
+          "label": "Data & Model Intake",
+          "config": {
+            "expected_fields": [
+              "raw_measurements",
+              "measurement_uncertainties",
+              "theoretical_model_description"
+            ],
+            "source": "user"
+          }
+        },
+        {
+          "id": "n2",
+          "type": "agent",
+          "label": "Clean & Fit Experimental Data",
+          "config": {
+            "agent_template_id": "phys-07",
+            "input_keys": [
+              "raw_measurements",
+              "measurement_uncertainties"
+            ],
+            "output_key": "empirical_fit"
+          }
+        },
+        {
+          "id": "n3",
+          "type": "agent",
+          "label": "Run Theoretical Simulation / Model Prediction",
+          "config": {
+            "agent_template_id": "phys-05",
+            "input_keys": [
+              "theoretical_model_description"
+            ],
+            "output_key": "simulated_prediction"
+          }
+        },
+        {
+          "id": "n4",
+          "type": "join",
+          "label": "Merge Empirical Fit + Simulated Prediction",
+          "config": {
+            "inputs": [
+              "n2",
+              "n3"
+            ],
+            "strategy": "wait_all"
+          }
+        },
+        {
+          "id": "n5",
+          "type": "evaluate",
+          "label": "Compare Data vs Model (Goodness-of-Fit)",
+          "config": {
+            "method": "programmatic",
+            "metric": "chi_square_reduced",
+            "output_key": "fit_score"
+          }
+        },
+        {
+          "id": "n6",
+          "type": "condition",
+          "label": "Good Fit",
+          "config": {
+            "expression": "0.8 <= fit_score.reduced_chi_square <= 1.2",
+            "true_to": "n7",
+            "false_to": "n_loop8"
+          }
+        },
+        {
+          "id": "n8",
+          "type": "agent",
+          "label": "Revise Model Parameters",
+          "config": {
+            "agent_template_id": "phys-05",
+            "input_keys": [
+              "simulated_prediction",
+              "fit_score"
+            ],
+            "output_key": "simulated_prediction"
+          }
+        },
+        {
+          "id": "n_loop8",
+          "type": "loop",
+          "label": "Revise Model Until Good Fit",
+          "config": {
+            "body": [
+              "n3",
+              "n4",
+              "n5",
+              "n6",
+              "n8"
+            ],
+            "loop_back_to": "n3",
+            "exit_condition": "good fit achieved",
+            "max_iterations": 5
+          }
+        },
+        {
+          "id": "n7",
+          "type": "approval",
+          "label": "PI/Advisor Sign-off on Conclusions",
+          "config": {
+            "approver_role": "principal investigator / advisor",
+            "on_approve": "n10",
+            "on_reject": "n_loop8",
+            "on_timeout": "escalate"
+          }
+        },
+        {
+          "id": "n10",
+          "type": "agent",
+          "label": "Generate Lab Report with Figures",
+          "config": {
+            "agent_template_id": "phys-07",
+            "input_keys": [
+              "empirical_fit",
+              "simulated_prediction",
+              "fit_score"
+            ],
+            "output_key": "final_report"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2"
+        },
+        {
+          "from": "n1",
+          "to": "n3"
+        },
+        {
+          "from": "n2",
+          "to": "n4"
+        },
+        {
+          "from": "n3",
+          "to": "n4"
+        },
+        {
+          "from": "n4",
+          "to": "n5"
+        },
+        {
+          "from": "n5",
+          "to": "n6"
+        },
+        {
+          "from": "n6",
+          "to": "n7",
+          "on": "true"
+        },
+        {
+          "from": "n6",
+          "to": "n_loop8",
+          "on": "false"
+        },
+        {
+          "from": "n_loop8",
+          "to": "n7",
+          "on": "loop_exit"
+        },
+        {
+          "from": "n7",
+          "to": "n10",
+          "on": "approved"
+        },
+        {
+          "from": "n7",
+          "to": "n_loop8",
+          "on": "rejected"
+        }
+      ]
+    }
+  ]
+}

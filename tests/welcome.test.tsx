@@ -24,8 +24,8 @@ describe("welcome gallery", () => {
     useStudioStore.setState({ openTemplate });
     render(<Welcome onBlank={() => undefined} />);
     expect(screen.getByRole("heading", { name: "Starter workflows" })).toBeInTheDocument();
-    expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows across 12 areas`, { exact: false })).toBeInTheDocument();
-    expect(screen.getAllByRole("tab")).toHaveLength(12);
+    expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows across 15 areas`, { exact: false })).toBeInTheDocument();
+    expect(screen.getAllByRole("tab")).toHaveLength(15);
     expect(screen.getByRole("tab", { name: "Core patterns" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(1);
     fireEvent.click(screen.getByRole("tab", { name: "Software engineering" }));
@@ -65,6 +65,22 @@ describe("welcome gallery", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Personal development" }));
     expect(screen.getByRole("button", { name: /open values → sustainable action system in studio/i })).toBeInTheDocument();
+  });
+
+  it("exposes mathematics, music, and physics workflows", () => {
+    render(<Welcome onBlank={() => undefined} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Mathematics" }));
+    expect(screen.getByRole("button", { name: /open optimization problem solving pipeline in studio/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(3);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Music" }));
+    expect(screen.getByRole("button", { name: /open audio-to-analysis pipeline in studio/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(3);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Physics" }));
+    expect(screen.getByRole("button", { name: /open physics problem solving & verification pipeline in studio/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(2);
   });
 
   it("switches themes and remembers the choice", () => {
