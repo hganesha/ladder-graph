@@ -1277,6 +1277,33 @@ button:disabled {
 }
 
 /* Inspector */
+.react-flow__edge:not(.group-internal-edge) {
+  cursor: pointer;
+}
+.edge-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 10px;
+}
+.edge-summary strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 550;
+}
+.edge-summary strong:last-child {
+  text-align: right;
+}
+.edge-summary span {
+  color: var(--cyan);
+  font-family: "IBM Plex Mono", monospace;
+}
 .empty-inspector > div:nth-child(2) {
   padding: 26px 18px 13px;
   color: #738089;

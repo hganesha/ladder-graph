@@ -1,9 +1,9 @@
 import { Braces, Cable, Check, FileInput, Plug, Plus, Search, Settings2, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { type CapabilityOption, recommendedCapabilities, TARGET_CAPABILITY_CATALOGS } from "../lib/capabilityCatalog";
-import { inputContractModality, inputContractSchema, INPUT_CONTRACT_PRESETS, type InputModality } from "../lib/inputContracts";
+import { INPUT_CONTRACT_PRESETS, type InputModality, inputContractModality, inputContractSchema } from "../lib/inputContracts";
 import { useStudioStore } from "../store/useStudioStore";
-import type { CapabilityCustomization, LgirNode } from "../types";
+import type { CapabilityCustomization, EdgeKind, LgirEdge, LgirNode } from "../types";
 
 type FormNode = LgirNode & {
   capabilities: {
@@ -34,14 +34,20 @@ function normalized(node: LgirNode): FormNode {
 
 export function Inspector() {
   const selectedId = useStudioStore((state) => state.selectedNodeId);
+  const selectedEdgeId = useStudioStore((state) => state.selectedEdgeId);
   const workflow = useStudioStore((state) => state.analysis?.normalized);
   const patchNode = useStudioStore((state) => state.patchNode);
   const tab = useStudioStore((state) => state.inspectorTab);
   const setTab = useStudioStore((state) => state.setInspectorTab);
   const target = useStudioStore((state) => state.target);
   const selected = useMemo(() => workflow?.spec.nodes.find((node) => node.id === selectedId), [workflow, selectedId]);
+  const selectedEdge = useMemo(() => workflow?.spec.edges.find((edge) => edge.id === selectedEdgeId), [workflow, selectedEdgeId]);
   const [draft, setDraft] = useState<FormNode | null>(selected ? normalized(selected) : null);
   useEffect(() => setDraft(selected ? normalized(selected) : null), [selected]);
+
+  if (selectedEdge) {
+    return <EdgeInspector edge={selectedEdge} nodes={workflow?.spec.nodes ?? []} />;
+  }
 
   if (!draft) {
     return (
@@ -53,7 +59,7 @@ export function Inspector() {
         <div>
           <FileInput size={22} />
           <h2>Workflow overview</h2>
-          <p>Select a node to edit its instructions and contracts.</p>
+          <p>Select a node or edge to edit its workflow contract.</p>
         </div>
         <WorkflowOverview />
       </aside>
@@ -295,6 +301,104 @@ export function Inspector() {
           </>
         )}
         {tab === "advanced" && <Advanced node={draft} setNode={setDraft} commit={commit} />}
+      </div>
+    </aside>
+  );
+}
+
+function EdgeInspector({ edge, nodes }: { edge: LgirEdge; nodes: LgirNode[] }) {
+  const patchEdge = useStudioStore((state) => state.patchEdge);
+  const [draft, setDraft] = useState(edge);
+  useEffect(() => setDraft(edge), [edge]);
+
+  const text = draft.kind === "control" ? (draft.condition ?? "") : (draft.contract ?? "");
+  const setKind = (kind: EdgeKind) => {
+    const currentText = draft.kind === "control" ? draft.condition : draft.contract;
+    const next: LgirEdge =
+      kind === "control"
+        ? { ...draft, kind, condition: currentText, contract: undefined }
+        : { ...draft, kind, contract: currentText, condition: undefined };
+    setDraft(next);
+    void patchEdge(draft.id, { kind, contract: next.contract, condition: next.condition });
+  };
+  const setText = (value: string) => {
+    setDraft(
+      draft.kind === "control" ? { ...draft, condition: value, contract: undefined } : { ...draft, contract: value, condition: undefined },
+    );
+  };
+  const commitText = () => {
+    const value = text.trim() || undefined;
+    void patchEdge(
+      draft.id,
+      draft.kind === "control" ? { condition: value, contract: undefined } : { contract: value, condition: undefined },
+    );
+  };
+  const endpointLabel = (id: string) => nodes.find((node) => node.id === id)?.name ?? id;
+
+  return (
+    <aside className="inspector panel" aria-label={`Inspector for edge ${draft.id}`}>
+      <div className="panel-title">
+        <span>Edge contract</span>
+        <small>{draft.kind}</small>
+      </div>
+      <div className="edge-summary">
+        <strong>{endpointLabel(draft.from)}</strong>
+        <span aria-hidden="true">→</span>
+        <strong>{endpointLabel(draft.to)}</strong>
+      </div>
+      <div className="inspector-body">
+        <Field label="From node">
+          <select
+            value={draft.from}
+            onChange={(event) => {
+              const from = event.target.value;
+              setDraft({ ...draft, from });
+              void patchEdge(draft.id, { from });
+            }}
+          >
+            {nodes.map((node) => (
+              <option key={node.id} value={node.id}>
+                {node.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="To node">
+          <select
+            value={draft.to}
+            onChange={(event) => {
+              const to = event.target.value;
+              setDraft({ ...draft, to });
+              void patchEdge(draft.id, { to });
+            }}
+          >
+            {nodes.map((node) => (
+              <option key={node.id} value={node.id}>
+                {node.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Edge type">
+          <select value={draft.kind} onChange={(event) => setKind(event.target.value as EdgeKind)}>
+            <option value="dependency">Dependency</option>
+            <option value="data">Data</option>
+            <option value="control">Control</option>
+          </select>
+        </Field>
+        <Field label={draft.kind === "control" ? "Condition text" : "Contract text"}>
+          <input
+            aria-label={draft.kind === "control" ? "Condition text" : "Contract text"}
+            value={text}
+            placeholder={draft.kind === "control" ? "approved == true" : "ResultContract"}
+            onChange={(event) => setText(event.target.value)}
+            onBlur={commitText}
+          />
+          <small className="field-help">This text appears directly on the edge in the canvas.</small>
+        </Field>
+        <Field label="Stable edge ID">
+          <input value={draft.id} readOnly />
+        </Field>
       </div>
     </aside>
   );

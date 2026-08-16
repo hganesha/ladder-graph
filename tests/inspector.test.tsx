@@ -25,7 +25,7 @@ describe("input contract inspector", () => {
       nodeOrder: workflow.spec.nodes.map((node) => node.id),
       stats: { nodes: workflow.spec.nodes.length, edges: workflow.spec.edges.length, agents: 2, loops: 0, maxParallelism: 1 },
     };
-    useStudioStore.setState({ analysis, selectedNodeId: input.id, inspectorTab: "contracts", patchNode });
+    useStudioStore.setState({ analysis, selectedNodeId: input.id, selectedEdgeId: null, inspectorTab: "contracts", patchNode });
 
     render(<Inspector />);
 
@@ -53,7 +53,7 @@ describe("input contract inspector", () => {
       nodeOrder: workflow.spec.nodes.map((node) => node.id),
       stats: { nodes: workflow.spec.nodes.length, edges: workflow.spec.edges.length, agents: 3, loops: 1, maxParallelism: 1 },
     };
-    useStudioStore.setState({ analysis, selectedNodeId: teacher.id, inspectorTab: "basics", patchNode });
+    useStudioStore.setState({ analysis, selectedNodeId: teacher.id, selectedEdgeId: null, inspectorTab: "basics", patchNode });
 
     render(<Inspector />);
 
@@ -94,10 +94,58 @@ describe("input contract inspector", () => {
       nodeOrder: workflow.spec.nodes.map((node) => node.id),
       stats: { nodes: workflow.spec.nodes.length, edges: workflow.spec.edges.length, agents: 2, loops: 1, maxParallelism: 1 },
     };
-    useStudioStore.setState({ analysis, selectedNodeId: transform.id, inspectorTab: "basics", patchNode: vi.fn(async () => undefined) });
+    useStudioStore.setState({
+      analysis,
+      selectedNodeId: transform.id,
+      selectedEdgeId: null,
+      inspectorTab: "basics",
+      patchNode: vi.fn(async () => undefined),
+    });
 
     render(<Inspector />);
 
     expect(screen.queryByLabelText("Working folder")).not.toBeInTheDocument();
+  });
+});
+
+describe("edge inspector", () => {
+  afterEach(cleanup);
+
+  it("edits edge endpoints, type, and displayed text", () => {
+    const workflow = parse(WORKFLOW_TEMPLATES[0].yaml) as Workflow;
+    const edge = workflow.spec.edges.find((candidate) => candidate.contract);
+    if (!edge) throw new Error("A labeled template edge is required.");
+    const patchEdge = vi.fn(async () => undefined);
+    const analysis: AnalysisResult = {
+      ok: true,
+      sourceHash: "test",
+      diagnostics: [],
+      normalized: workflow,
+      nodeOrder: workflow.spec.nodes.map((node) => node.id),
+      stats: { nodes: workflow.spec.nodes.length, edges: workflow.spec.edges.length, agents: 2, loops: 1, maxParallelism: 1 },
+    };
+    useStudioStore.setState({ analysis, selectedNodeId: null, selectedEdgeId: edge.id, patchEdge });
+
+    render(<Inspector />);
+
+    expect(screen.getByLabelText(`Inspector for edge ${edge.id}`)).toBeInTheDocument();
+    const text = screen.getByLabelText("Contract text");
+    expect(text).toHaveValue(edge.contract);
+    fireEvent.change(text, { target: { value: "EditedContract" } });
+    fireEvent.blur(text);
+    expect(patchEdge).toHaveBeenCalledWith(edge.id, { contract: "EditedContract", condition: undefined });
+
+    fireEvent.change(screen.getByLabelText("Edge type"), { target: { value: "control" } });
+    expect(patchEdge).toHaveBeenCalledWith(edge.id, {
+      kind: "control",
+      contract: undefined,
+      condition: "EditedContract",
+    });
+    expect(screen.getByLabelText("Condition text")).toHaveValue("EditedContract");
+
+    const nextTarget = workflow.spec.nodes.find((node) => node.id !== edge.to);
+    if (!nextTarget) throw new Error("A second endpoint is required.");
+    fireEvent.change(screen.getByLabelText("To node"), { target: { value: nextTarget.id } });
+    expect(patchEdge).toHaveBeenCalledWith(edge.id, { to: nextTarget.id });
   });
 });
