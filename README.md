@@ -1,4 +1,4 @@
-# Ladder Graph
+# Ladder Graph Documentation
 
 Design agent workflows visually. Validate the hard parts. Compile prompts or deterministic code.
 
