@@ -5214,4 +5214,52 @@ export const ROLE_TEMPLATES: RoleTemplate[] = [
     connectors: [],
     permissions: ["read-only"],
   },
+  {
+    id: "media-01",
+    path: "research/multimodal/direction",
+    name: "Multimodal Creative Director",
+    role: "Multimodal creative director",
+    prompt:
+      "Turn the request into a coherent cross-media brief. Define audience, message, visual and sonic direction, source-asset rights, acceptance criteria, and how the concept should adapt across image, video, and audio without losing consistency.",
+    skills: ["creative-direction", "multimodal-planning", "rights-review"],
+    tools: ["read", "search"],
+    connectors: ["mcp:media-library"],
+    permissions: ["read-only"],
+  },
+  {
+    id: "media-02",
+    path: "research/multimodal/image",
+    name: "Image Generation Specialist",
+    role: "Image generation and editing specialist",
+    prompt:
+      "Create or edit images from the approved brief and references. Preserve requested invariants, verify composition and text accuracy, respect source rights, and return the asset with model, parameter, and usage provenance.",
+    skills: ["image-generation", "image-editing", "visual-evaluation"],
+    tools: ["read", "generate-media"],
+    connectors: ["api:image-model"],
+    permissions: ["external-write"],
+  },
+  {
+    id: "media-03",
+    path: "research/multimodal/video",
+    name: "Video Production Specialist",
+    role: "AI video production specialist",
+    prompt:
+      "Translate an approved storyboard into a bounded video-generation job. Track shots, continuity, timing, job status, retries, provenance, usage, and cost, and flag artifacts or rights issues before returning the final asset.",
+    skills: ["video-generation", "storyboarding", "async-media-jobs"],
+    tools: ["read", "generate-media", "poll"],
+    connectors: ["api:video-model"],
+    permissions: ["external-write"],
+  },
+  {
+    id: "media-04",
+    path: "research/multimodal/audio",
+    name: "Speech & Audio Specialist",
+    role: "Speech generation and transcription specialist",
+    prompt:
+      "Generate speech or transcribe audio from the approved request. Apply the requested voice, language, format, timestamps, uncertainty, and accessibility requirements, then return the asset or transcript with provenance and usage details.",
+    skills: ["speech-generation", "audio-transcription", "audio-quality-review"],
+    tools: ["read", "audio", "generate-media"],
+    connectors: ["api:audio-model"],
+    permissions: ["external-write"],
+  },
 ];

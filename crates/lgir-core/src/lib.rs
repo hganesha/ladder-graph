@@ -466,7 +466,21 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         }
     }
     if input_count == 0 { diagnostics.push(diag("LG130", "warning", "/spec/nodes", "Workflow has no input node.")); }
-    if output_count == 0 { diagnostics.push(diag("LG131", "error", "/spec/nodes", "Workflow requires an output node.")); }
+    if output_count == 0 {
+        let has_terminal_agent = workflow.spec.nodes.iter().any(|node| {
+            node.kind == "agent" && !workflow.spec.edges.iter().any(|edge| edge.from == node.id)
+        });
+        diagnostics.push(diag(
+            "LG131",
+            if has_terminal_agent { "warning" } else { "error" },
+            "/spec/nodes",
+            if has_terminal_agent {
+                "Workflow uses its terminal agent as the implicit output."
+            } else {
+                "Workflow requires an output or terminal agent node."
+            },
+        ));
+    }
 
     let known: BTreeSet<String> = workflow.spec.nodes.iter().map(|node| node.id.clone()).collect();
     let mut membership: BTreeMap<String, String> = BTreeMap::new();

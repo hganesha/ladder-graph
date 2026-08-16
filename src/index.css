@@ -257,10 +257,59 @@ button:disabled {
   flex: none;
   flex-wrap: wrap;
   gap: 6px;
+  min-inline-size: 0;
   overflow-x: visible;
+  border: 0;
   margin-bottom: 16px;
   padding: 0 0 10px;
   scrollbar-width: thin;
+}
+.subject-area-label {
+  margin-bottom: 10px;
+}
+.library-tab-heading {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #1e272d;
+  padding: 14px 0 12px;
+}
+.library-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #263138;
+  border-radius: 10px;
+  padding: 3px;
+  background: #0b1013;
+}
+.library-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 12px;
+  background: transparent;
+  color: #7f8d95;
+  font-size: 12px;
+  font-weight: 600;
+}
+.library-tabs button:hover {
+  color: #e7edec;
+}
+.library-tabs button.active {
+  background: #172126;
+  color: var(--cyan);
+}
+.library-tabs button small {
+  color: inherit;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  opacity: 0.72;
 }
 .workflow-tabs button {
   display: inline-flex;
@@ -449,6 +498,46 @@ button:disabled {
   color: var(--accent);
   font-size: 12px;
   font-weight: 550;
+}
+.agent-template-card {
+  min-height: 270px;
+}
+.agent-card-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  margin-bottom: 19px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, #263038);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 10%, #0a0f12);
+  color: var(--accent);
+}
+.agent-card-icon svg {
+  width: 23px;
+  height: 23px;
+  stroke-width: 1.55;
+}
+.agent-template-card p {
+  min-height: 40px;
+}
+.agent-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 14px;
+}
+.agent-skill-list span {
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid #273239;
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: #849198;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .recent-section {
   margin-top: 32px;
@@ -2469,6 +2558,9 @@ button:disabled {
 :root[data-theme="light"] .quiet-button,
 :root[data-theme="light"] .theme-toggle,
 :root[data-theme="light"] .workflow-tabs button,
+:root[data-theme="light"] .library-tabs,
+:root[data-theme="light"] .library-tabs button.active,
+:root[data-theme="light"] .agent-card-icon,
 :root[data-theme="light"] .icon-button,
 :root[data-theme="light"] .mode-switch,
 :root[data-theme="light"] .status-button,
@@ -2484,6 +2576,7 @@ button:disabled {
   color: var(--text);
 }
 :root[data-theme="light"] .library-heading,
+:root[data-theme="light"] .library-tab-heading,
 :root[data-theme="light"] .workflow-tab-panel,
 :root[data-theme="light"] .welcome-footer,
 :root[data-theme="light"] .panel-title,
@@ -2507,6 +2600,9 @@ button:disabled {
 :root[data-theme="light"] .quiet-button,
 :root[data-theme="light"] .theme-toggle,
 :root[data-theme="light"] .workflow-tabs button,
+:root[data-theme="light"] .library-tabs,
+:root[data-theme="light"] .agent-card-icon,
+:root[data-theme="light"] .agent-skill-list span,
 :root[data-theme="light"] .icon-button,
 :root[data-theme="light"] .mode-switch,
 :root[data-theme="light"] .status-button,
@@ -2609,6 +2705,7 @@ button:disabled {
 :root[data-theme="light"] .quiet-button:hover,
 :root[data-theme="light"] .theme-toggle:hover,
 :root[data-theme="light"] .workflow-tabs button:hover,
+:root[data-theme="light"] .library-tabs button:hover,
 :root[data-theme="light"] .icon-button:hover:not(:disabled),
 :root[data-theme="light"] .icon-button.active,
 :root[data-theme="light"] .mode-switch button:hover,
@@ -2638,6 +2735,17 @@ button:disabled {
   border-color: color-mix(in srgb, var(--cyan) 48%, var(--border));
   background: #e8f3f1;
   color: var(--cyan);
+}
+:root[data-theme="light"] .library-tabs button.active {
+  background: #e8f3f1;
+  color: var(--cyan);
+}
+:root[data-theme="light"] .agent-card-icon {
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 72%, #172126);
+}
+:root[data-theme="light"] .agent-skill-list span {
+  color: var(--muted);
 }
 :root[data-theme="light"] .template-card:hover {
   background: #fbfcfb;
@@ -2827,6 +2935,19 @@ button:disabled {
     padding-inline: max(16px, env(safe-area-inset-left));
     scroll-padding-inline: max(16px, env(safe-area-inset-left));
     scrollbar-width: none;
+  }
+  .library-tab-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .library-tabs {
+    width: 100%;
+  }
+  .library-tabs button {
+    flex: 1;
+    justify-content: center;
+    min-height: 40px;
   }
   .workflow-tabs::-webkit-scrollbar {
     display: none;

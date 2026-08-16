@@ -244,8 +244,19 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
     });
   if (!nodes.some((node) => node.kind === "input"))
     diagnostics.push(diagnostic("LG130", "warning", "/spec/nodes", "Workflow has no input node."));
-  if (!nodes.some((node) => node.kind === "output"))
-    diagnostics.push(diagnostic("LG131", "error", "/spec/nodes", "Workflow requires an output node."));
+  if (!nodes.some((node) => node.kind === "output")) {
+    const hasTerminalAgent = nodes.some((node) => node.kind === "agent" && !edges.some((edge) => edge.from === node.id));
+    diagnostics.push(
+      diagnostic(
+        "LG131",
+        hasTerminalAgent ? "warning" : "error",
+        "/spec/nodes",
+        hasTerminalAgent
+          ? "Workflow uses its terminal agent as the implicit output."
+          : "Workflow requires an output or terminal agent node.",
+      ),
+    );
+  }
   const edgeIds = new Set<string>();
   edges.forEach((edge, index) => {
     const path = `/spec/edges/${index}`;

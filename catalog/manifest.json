@@ -2659,6 +2659,30 @@
       "path": "research/emerging/crisis",
       "title": "Recovery & Continuity Planner",
       "file": "agents/crisis-06.yaml"
+    },
+    {
+      "id": "media-01",
+      "path": "research/multimodal/direction",
+      "title": "Multimodal Creative Director",
+      "file": "agents/media-01.yaml"
+    },
+    {
+      "id": "media-02",
+      "path": "research/multimodal/image",
+      "title": "Image Generation Specialist",
+      "file": "agents/media-02.yaml"
+    },
+    {
+      "id": "media-03",
+      "path": "research/multimodal/video",
+      "title": "Video Production Specialist",
+      "file": "agents/media-03.yaml"
+    },
+    {
+      "id": "media-04",
+      "path": "research/multimodal/audio",
+      "title": "Speech & Audio Specialist",
+      "file": "agents/media-04.yaml"
     }
   ]
 }

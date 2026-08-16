@@ -15,8 +15,8 @@ describe("agent template palette", () => {
   it("surfaces the expanded role count and researched specialists", () => {
     render(<Palette />);
 
-    expect(ROLE_TEMPLATES).toHaveLength(287);
-    expect(screen.getByText("287 agents")).toBeInTheDocument();
+    expect(ROLE_TEMPLATES).toHaveLength(291);
+    expect(screen.getByText("291 agents")).toBeInTheDocument();
     const macros = screen.getByLabelText("Visual macros");
     const primitives = screen.getByLabelText("Primitives");
     const agents = screen.getByLabelText("Agent templates");
@@ -28,6 +28,7 @@ describe("agent template palette", () => {
     expect(screen.getByLabelText("Core agent templates (8)")).not.toHaveAttribute("open");
     expect(screen.getByLabelText("SWE agent templates (26)")).toBeInTheDocument();
     expect(screen.getByLabelText("Security agent templates (20)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Multimodal agent templates (4)")).toBeInTheDocument();
     expect(screen.getByLabelText("Architecture & design agent templates (20)")).toBeInTheDocument();
     expect(screen.getByLabelText("Humanities agent templates (15)")).toBeInTheDocument();
     expect(screen.getByLabelText("Writing agent templates (5)")).toBeInTheDocument();
@@ -72,6 +73,7 @@ describe("agent template palette", () => {
       ["Core", 8],
       ["SWE", 26],
       ["Security", 20],
+      ["Multimodal", 4],
       ["Architecture & design", 20],
       ["Humanities", 15],
       ["Writing", 5],
