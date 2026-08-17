@@ -14,7 +14,7 @@ spec:
   capabilities:
     skills:
       - software-architecture
-      - adr-authoring
+      - domain-analysis
     tools:
       - read
     connectors:

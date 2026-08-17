@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-source1
       kind: agent
+      templateRef: envr-01
       name: Direct and purchased-energy extraction
       summary: 'Source extraction 1: direct and purchased-energy extraction.'
       role: Inventory analyst building greenhouse gas inventories with declared boundaries and factors.
@@ -52,11 +53,9 @@ spec:
         inventory error and the easiest to hide.
       capabilities:
         skills:
-          - emissions-inventory
-          - boundary-definition
-          - emission-factor-versioning
-          - double-counting-detection
-          - numeric-verification
+          - supply-chain-analysis
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -69,6 +68,7 @@ spec:
         type: object
     - id: n-source2
       kind: agent
+      templateRef: envr-06
       name: Value-chain category extraction
       summary: 'Source extraction 2: value-chain category extraction.'
       role: Data analyst testing environmental measurement chains for defensibility.
@@ -79,11 +79,9 @@ spec:
         should not be defended as measurement.
       capabilities:
         skills:
-          - measurement-chain-auditing
-          - detection-limit-handling
-          - gap-filling-disclosure
+          - evaluation
+          - domain-analysis
           - data-lineage-analysis
-          - numeric-verification
         tools:
           - read
           - calculate
@@ -102,6 +100,7 @@ spec:
         expression: merge the extracted emission records on entity, scope, category, and period
     - id: n-reconcile
       kind: agent
+      templateRef: envr-01
       name: Reconcile overlapping boundaries
       summary: Reconcile fields that arrived from more than one source.
       role: Inventory analyst building greenhouse gas inventories with declared boundaries and factors.
@@ -112,11 +111,9 @@ spec:
         inventory error and the easiest to hide.
       capabilities:
         skills:
-          - emissions-inventory
-          - boundary-definition
-          - emission-factor-versioning
-          - double-counting-detection
-          - numeric-verification
+          - supply-chain-analysis
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -129,6 +126,7 @@ spec:
         type: object
     - id: n-exceptions
       kind: agent
+      templateRef: envr-04
       name: State every double count and boundary gap
       summary: Everything that could not be reconciled, stated as an exception.
       role: Compliance analyst mapping permits, limits, and monitoring evidence.
@@ -138,11 +136,10 @@ spec:
         an exceedance as an exceedance regardless of how it is later averaged.
       capabilities:
         skills:
-          - permit-condition-mapping
-          - monitoring-method-verification
-          - exceedance-detection
-          - regulatory-mapping
-          - citation-verification
+          - domain-analysis
+          - observability
+          - compliance-review
+          - evaluation
         tools:
           - read
           - search

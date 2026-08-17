@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-classify
       kind: agent
+      templateRef: supply-05
       name: Score exceptions by downstream impact
       summary: Score and label every incoming item before anything is queued.
       role: Control-tower operator triaging in-flight shipment and supply exceptions.
@@ -52,11 +53,11 @@ spec:
         a deadline gets treated as background noise.
       capabilities:
         skills:
-          - exception-triage
-          - impact-scoring
-          - recovery-option-costing
-          - carrier-escalation-protocols
-          - failure-mode-analysis
+          - domain-analysis
+          - evaluation
+          - incident-response
+          - clinical-review
+          - risk-analysis
         tools:
           - read
           - search
@@ -113,6 +114,7 @@ spec:
             when: default
     - id: n-escalate
       kind: agent
+      templateRef: supply-03
       name: Costed recovery options for line-down risk
       summary: Escalation path for the top band.
       role: Logistics engineer optimizing routing, load building, and network flow under real constraints.
@@ -123,11 +125,10 @@ spec:
         to relax to get a better answer.
       capabilities:
         skills:
-          - route-optimization
-          - network-flow-modeling
-          - constraint-formalization
-          - optimality-gap-reporting
-          - failure-mode-analysis
+          - optimization
+          - simulation
+          - domain-analysis
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -139,6 +140,7 @@ spec:
         type: object
     - id: n-handle
       kind: agent
+      templateRef: supply-02
       name: Standard carrier and inventory recovery
       summary: Standard resolution path.
       role: Inventory planner setting safety stock, reorder points, and service-level policy.
@@ -149,10 +151,9 @@ spec:
         variance, not demand variance, is the binding problem.
       capabilities:
         skills:
-          - inventory-optimization
-          - safety-stock-modeling
-          - service-level-tradeoff-analysis
-          - lead-time-variance-analysis
+          - optimization
+          - simulation
+          - decision-analysis
           - statistical-analysis
         tools:
           - read

@@ -13,8 +13,7 @@ spec:
     uncertainty without executing samples on ordinary infrastructure.
   capabilities:
     skills:
-      - malware-analysis
-      - digital-forensics
+      - application-security
     tools:
       - read
       - test

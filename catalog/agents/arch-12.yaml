@@ -13,8 +13,7 @@ spec:
     performance from measured outcomes.
   capabilities:
     skills:
-      - sustainable-design
-      - building-performance
+      - design-review
     tools:
       - read
       - test

@@ -15,11 +15,11 @@ spec:
     presumed isolation is a leak with a completion date.
   capabilities:
     skills:
-      - well-integrity-analysis
-      - annulus-pressure-diagnosis
-      - abandonment-barrier-planning
-      - isolation-evidence-testing
-      - regulatory-mapping
+      - decision-analysis
+      - clinical-review
+      - risk-analysis
+      - evaluation
+      - compliance-review
     tools:
       - read
       - calculate

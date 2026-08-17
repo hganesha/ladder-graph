@@ -14,11 +14,11 @@ spec:
     up as inventory rather than output.
   capabilities:
     skills:
-      - line-balancing
-      - constraint-analysis
-      - takt-and-buffer-modeling
-      - changeover-optimization
-      - failure-mode-analysis
+      - domain-analysis
+      - decision-analysis
+      - simulation
+      - optimization
+      - risk-analysis
     tools:
       - read
       - calculate

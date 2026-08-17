@@ -14,11 +14,10 @@ spec:
     on a handful of speakers are sociolinguistically and ethically fragile.
   capabilities:
     skills:
-      - variation-analysis
-      - sociolinguistic-variable-coding
-      - sample-adequacy-reporting
-      - standard-language-neutrality
+      - decision-analysis
+      - design-review
       - statistical-analysis
+      - writing-editing
     tools:
       - read
       - calculate

@@ -14,11 +14,10 @@ spec:
     rather than as a wording preference, because that is the line that draws a regulator or a competitor.
   capabilities:
     skills:
-      - brand-review
-      - claim-substantiation
-      - disclosure-compliance
-      - accessibility-review
-      - regulatory-mapping
+      - evaluation
+      - domain-analysis
+      - compliance-review
+      - accessibility
     tools:
       - read
     connectors: []

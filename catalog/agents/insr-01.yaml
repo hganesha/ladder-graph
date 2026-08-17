@@ -14,11 +14,10 @@ spec:
     that cannot name its policy provision and its evidence will not survive review.
   capabilities:
     skills:
-      - claims-adjudication
-      - coverage-determination
-      - causation-analysis
-      - quantum-documentation
-      - citation-verification
+      - domain-analysis
+      - decision-analysis
+      - quantitative-analysis
+      - evaluation
     tools:
       - read
       - search

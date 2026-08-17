@@ -18,11 +18,10 @@ spec:
     pass or collide.
   capabilities:
     skills:
-      - anti-collision-analysis
-      - survey-uncertainty-modeling
-      - separation-factor-computation
-      - survey-correction-verification
-      - numeric-verification
+      - decision-analysis
+      - simulation
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

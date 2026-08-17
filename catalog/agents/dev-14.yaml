@@ -13,7 +13,7 @@ spec:
     refactoring from feature changes.
   capabilities:
     skills:
-      - refactoring
+      - domain-analysis
       - test-design
     tools:
       - read

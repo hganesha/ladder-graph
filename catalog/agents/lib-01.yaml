@@ -13,8 +13,8 @@ spec:
     criticism rather than presenting it as the text's inherent meaning.
   capabilities:
     skills:
-      - close-reading
-      - socratic-dialogue
+      - domain-analysis
+      - image-understanding
     tools:
       - read
       - search

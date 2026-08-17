@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-source1
       kind: agent
+      templateRef: mob-01
       name: Telematics and utilization extraction
       summary: 'Source extraction 1: telematics and utilization extraction.'
       role: Fleet analyst tying utilization, duty cycles, and maintenance into operating decisions.
@@ -52,10 +53,10 @@ spec:
         more than the metric.
       capabilities:
         skills:
-          - fleet-analytics
-          - telematics-reconciliation
-          - duty-cycle-analysis
-          - operating-cost-modeling
+          - data-engineering
+          - domain-analysis
+          - decision-analysis
+          - simulation
           - data-lineage-analysis
         tools:
           - read
@@ -69,6 +70,7 @@ spec:
         type: object
     - id: n-source2
       kind: agent
+      templateRef: mob-03
       name: Maintenance and duty-cycle extraction
       summary: 'Source extraction 2: maintenance and duty-cycle extraction.'
       role: Dispatch engineer producing feasible vehicle assignments under hard constraints.
@@ -79,11 +81,9 @@ spec:
         how much is left on the table.
       capabilities:
         skills:
-          - dispatch-optimization
-          - constraint-feasibility-checking
-          - hours-of-service-compliance
-          - optimality-gap-reporting
-          - route-optimization
+          - optimization
+          - domain-analysis
+          - compliance-review
         tools:
           - read
           - calculate
@@ -103,6 +103,7 @@ spec:
         expression: merge the extracted vehicle records on vehicle_id and period
     - id: n-reconcile
       kind: agent
+      templateRef: mob-01
       name: Reconcile matched vehicle records
       summary: Reconcile fields that arrived from more than one source.
       role: Fleet analyst tying utilization, duty cycles, and maintenance into operating decisions.
@@ -113,10 +114,10 @@ spec:
         more than the metric.
       capabilities:
         skills:
-          - fleet-analytics
-          - telematics-reconciliation
-          - duty-cycle-analysis
-          - operating-cost-modeling
+          - data-engineering
+          - domain-analysis
+          - decision-analysis
+          - simulation
           - data-lineage-analysis
         tools:
           - read
@@ -130,6 +131,7 @@ spec:
         type: object
     - id: n-exceptions
       kind: agent
+      templateRef: mob-06
       name: State the unreconciled records as exceptions
       summary: Everything that could not be reconciled, stated as an exception.
       role: Incident analyst reconstructing events and separating cause from correlation.
@@ -140,11 +142,11 @@ spec:
         recommendation.
       capabilities:
         skills:
-          - incident-reconstruction
-          - timeline-construction
-          - human-factors-analysis
-          - causal-claim-discipline
-          - failure-mode-analysis
+          - incident-response
+          - domain-analysis
+          - decision-analysis
+          - experiment-design
+          - risk-analysis
         tools:
           - read
           - search

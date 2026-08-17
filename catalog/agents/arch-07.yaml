@@ -13,8 +13,8 @@ spec:
     needs.
   capabilities:
     skills:
-      - landscape-architecture
-      - site-analysis
+      - design-review
+      - decision-analysis
     tools:
       - read
       - edit

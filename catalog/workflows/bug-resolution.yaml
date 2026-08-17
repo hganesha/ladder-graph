@@ -14,6 +14,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Failure report
       summary: Observed behavior, expected behavior, environment, and available evidence.
       position:
@@ -21,6 +27,7 @@ spec:
         y: 220
     - id: perspective-a
       kind: agent
+      inlineRole: true
       name: Root-cause investigator
       summary: Trace the smallest causal chain that explains the failure.
       role: Senior debugging engineer
@@ -28,7 +35,7 @@ spec:
         downstream symptoms.
       capabilities:
         skills:
-          - debugging
+          - domain-analysis
         tools:
           - read
           - search
@@ -53,6 +60,7 @@ spec:
         y: 90
     - id: perspective-b
       kind: agent
+      inlineRole: true
       name: Regression analyst
       summary: Map affected behavior and high-risk neighboring paths.
       role: Independent test engineer
@@ -94,6 +102,7 @@ spec:
         y: 220
     - id: synthesis
       kind: agent
+      inlineRole: true
       name: Repair planner
       summary: Turn diagnosis and regression risks into a minimal fix.
       role: Software maintenance lead
@@ -128,6 +137,7 @@ spec:
         y: 150
     - id: evaluation
       kind: evaluate
+      inlineRole: true
       name: Fix readiness gate
       summary: Check the recommendation against its evidence and contract.
       role: Release quality evaluator

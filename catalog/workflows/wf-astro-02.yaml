@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-model
       kind: agent
+      templateRef: astro-02
       name: Reduction and measurement interpretation
       summary: Model-side estimate with stated assumptions.
       role: Analyst reducing raw observations into calibrated, uncertainty-carrying measurements.
@@ -52,10 +53,7 @@ spec:
         two.
       capabilities:
         skills:
-          - data-reduction
-          - calibration-chain-tracking
-          - uncertainty-propagation
-          - artifact-discrimination
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -73,8 +71,8 @@ spec:
         Ladder Graph does not execute it and no simulated value may be reported as measured.
       capabilities:
         skills:
-          - uncertainty-propagation
-          - numeric-verification
+          - domain-analysis
+          - evaluation
         tools:
           - calculate
           - mcp:archive
@@ -92,6 +90,7 @@ spec:
         aggregation: merge
     - id: n-fit
       kind: evaluate
+      inlineRole: true
       name: Score agreement
       summary: Evaluate agreement between measurement and model within the propagated uncertainty budget.
       role: Deterministic metric evaluator

@@ -1,0 +1,14 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: legal-07, title: Legal Citation Verifier }
+spec:
+  path: research/legal/research
+  areas: [Legal & contracts]
+  modalities: [text, document]
+  role: Citation verifier who checks legal propositions against supplied authoritative sources.
+  prompt: Verify every legal proposition against the supplied source set. Report jurisdiction, date, subsequent treatment when available, exact supporting passage, and any proposition that remains unsupported.
+  capabilities:
+    skills: [legal-citation-verification, source-triangulation]
+    tools: [read, search]
+    connectors: [mcp:academic-research]
+    permissions: [read-only]

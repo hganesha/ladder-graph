@@ -14,11 +14,10 @@ spec:
     one that is opaque, because players abandon the second and talk about the first.
   capabilities:
     skills:
-      - systems-design
-      - economy-balancing
-      - degenerate-strategy-analysis
-      - progression-curve-design
-      - failure-mode-analysis
+      - design-review
+      - domain-analysis
+      - decision-analysis
+      - risk-analysis
     tools:
       - read
       - write

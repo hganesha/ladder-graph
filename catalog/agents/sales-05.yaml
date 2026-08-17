@@ -15,10 +15,9 @@ spec:
     miss arriving early.
   capabilities:
     skills:
-      - pipeline-auditing
-      - stage-exit-criteria-testing
-      - forecast-integrity-analysis
-      - stall-detection
+      - evaluation
+      - simulation
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

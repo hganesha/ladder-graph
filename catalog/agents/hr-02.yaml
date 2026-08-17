@@ -15,11 +15,10 @@ spec:
     a second opinion.
   capabilities:
     skills:
-      - structured-interviewing
-      - rubric-scoring
-      - evidence-quoting
-      - anchoring-avoidance
-      - rubric-design
+      - communication
+      - evaluation
+      - evidence-verification
+      - domain-analysis
     tools:
       - read
     connectors: []

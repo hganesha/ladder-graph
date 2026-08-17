@@ -18,6 +18,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Project brief and site
       summary: Program, site, jurisdiction, climate, budget, schedule, and owner priorities.
       position:
@@ -25,6 +31,7 @@ spec:
         y: 280
     - id: program
       kind: agent
+      inlineRole: true
       name: Program and site analysis
       summary: Reconcile stakeholder needs, areas, adjacencies, zoning, and site risk.
       role: Space planner and site analyst
@@ -33,9 +40,9 @@ spec:
         jurisdiction conflicts before design.
       capabilities:
         skills:
-          - space-planning
-          - site-analysis
-          - requirements-analysis
+          - operations-planning
+          - decision-analysis
+          - product-management
         tools:
           - read
           - search
@@ -74,6 +81,7 @@ spec:
         y: 280
     - id: concept
       kind: agent
+      inlineRole: true
       name: Architectural concept
       summary: Develop a design basis from the validated program and site.
       role: Building design architect
@@ -82,8 +90,8 @@ spec:
         verification and AHJ decisions and do not represent the concept as construction-ready.
       capabilities:
         skills:
-          - building-design
-          - code-compliance
+          - design-review
+          - implementation
         tools:
           - read
           - edit
@@ -126,6 +134,7 @@ spec:
         y: 280
     - id: structure
       kind: agent
+      inlineRole: true
       name: Structural concept
       summary: Define load paths, system, grids, and high-risk interfaces.
       role: Structural engineer
@@ -134,7 +143,7 @@ spec:
         calculations and licensed review before construction use.
       capabilities:
         skills:
-          - structural-engineering
+          - domain-analysis
         tools:
           - read
           - test
@@ -164,6 +173,7 @@ spec:
         y: 20
     - id: mep
       kind: agent
+      inlineRole: true
       name: MEP and performance concept
       summary: Coordinate loads, distribution, energy, plant, and spatial needs.
       role: MEP and building-performance engineer
@@ -172,9 +182,8 @@ spec:
         calculations requiring later validation.
       capabilities:
         skills:
-          - mep-engineering
-          - building-performance
-          - sustainable-design
+          - domain-analysis
+          - design-review
         tools:
           - read
           - test
@@ -212,6 +221,7 @@ spec:
         y: 150
     - id: life-safety
       kind: agent
+      inlineRole: true
       name: Code and life-safety review
       summary: Review occupancy, egress, fire protection, and AHJ path.
       role: Building code and fire-protection reviewer
@@ -220,8 +230,8 @@ spec:
         jurisdiction. List interpretations requiring AHJ confirmation.
       capabilities:
         skills:
-          - code-compliance
-          - fire-protection
+          - implementation
+          - domain-analysis
         tools:
           - read
           - search
@@ -254,6 +264,7 @@ spec:
         y: 280
     - id: accessibility
       kind: agent
+      inlineRole: true
       name: Universal design review
       summary: Audit equivalent access and inclusive experience.
       role: Universal design consultant
@@ -262,8 +273,8 @@ spec:
         dimensions requiring field verification.
       capabilities:
         skills:
-          - universal-design
-          - code-compliance
+          - accessibility
+          - implementation
         tools:
           - read
           - test
@@ -295,6 +306,7 @@ spec:
         y: 410
     - id: cost
       kind: agent
+      inlineRole: true
       name: Concept cost plan
       summary: Tie quantities, allowances, escalation, and risk to design maturity.
       role: Construction cost estimator
@@ -303,7 +315,7 @@ spec:
         against performance and owner priorities.
       capabilities:
         skills:
-          - cost-estimation
+          - finance-analysis
         tools:
           - read
           - test
@@ -346,6 +358,7 @@ spec:
         y: 280
     - id: coordination
       kind: agent
+      inlineRole: true
       name: BIM coordination
       summary: Resolve clashes into assigned, traceable design decisions.
       role: BIM coordinator and VDC manager
@@ -354,8 +367,8 @@ spec:
         Preserve unresolved issues rather than hiding them in the model.
       capabilities:
         skills:
-          - bim-coordination
-          - delivery-coordination
+          - design-review
+          - release-engineering
         tools:
           - read
           - edit
@@ -387,6 +400,7 @@ spec:
         y: 280
     - id: design-gate
       kind: evaluate
+      inlineRole: true
       name: Concept package gate
       summary: Check coordination, evidence, cost, and professional-review boundaries.
       role: Independent multidisciplinary design reviewer
@@ -395,9 +409,9 @@ spec:
         have owners, and documents clearly state they require licensed professional and AHJ review.
       capabilities:
         skills:
-          - building-design
+          - design-review
           - evaluation
-          - code-compliance
+          - implementation
         tools:
           - read
           - test

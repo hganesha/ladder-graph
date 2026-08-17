@@ -15,11 +15,10 @@ spec:
     it.'
   capabilities:
     skills:
-      - tax-research
-      - primary-authority-citation
-      - jurisdiction-scoping
-      - position-confidence-grading
-      - regulatory-mapping
+      - research
+      - evidence-verification
+      - domain-analysis
+      - compliance-review
     tools:
       - read
       - search

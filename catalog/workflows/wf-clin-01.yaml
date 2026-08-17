@@ -1,0 +1,66 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: imaging-second-read-discordance
+  title: Imaging second read + discordance
+  description: Blindly review still images and cine video, preserve disagreement, and require clinician adjudication.
+  version: 1.0.0
+spec:
+  objective: Produce an independent imaging comparison without replacing credentialed clinical judgment.
+  policies: { maxConcurrency: 3, onFailure: stop, requireApprovalFor: [clinician-approval] }
+  nodes:
+    - id: still-study
+      kind: input
+      name: Still imaging study
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset: { type: string, contentMediaType: image/* }
+          instructions: { type: string }
+        x-ladder-input-mode: image
+    - id: cine-study
+      kind: input
+      name: Cine or motion study
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset: { type: string, contentMediaType: video/* }
+          instructions: { type: string }
+        x-ladder-input-mode: video
+    - id: reader-a
+      kind: agent
+      name: Blind second read A
+      templateRef: clin-02
+      role: Independent second reader for credentialed imaging workflows.
+      prompt: Perform an independent second read without seeing the first interpretation. Record findings, confidence, critical-result status, and limitations in the supplied rubric for clinician adjudication.
+      capabilities: { skills: [image-understanding, independent-review, clinical-safety], tools: [read], permissions: [read-sensitive] }
+      outputSchema: { type: object }
+    - id: reader-b
+      kind: agent
+      name: Blind second read B
+      templateRef: clin-02
+      role: Independent second reader for credentialed imaging workflows.
+      prompt: Perform an independent second read without seeing the first interpretation. Record findings, confidence, critical-result status, and limitations in the supplied rubric for clinician adjudication.
+      capabilities: { skills: [image-understanding, independent-review, clinical-safety], tools: [read], permissions: [read-sensitive] }
+      outputSchema: { type: object }
+    - id: vote
+      kind: aggregator
+      name: Preserve concordance and ties
+      config: { aggregation: vote }
+    - id: clinician-approval
+      kind: approval
+      name: Credentialed clinician adjudicates discordance and critical findings
+    - id: result
+      kind: output
+      name: Clinician-approved comparison
+  edges:
+    - { id: e1, from: still-study, to: reader-a, kind: data }
+    - { id: e2, from: cine-study, to: reader-a, kind: data }
+    - { id: e3, from: still-study, to: reader-b, kind: data }
+    - { id: e4, from: cine-study, to: reader-b, kind: data }
+    - { id: e5, from: reader-a, to: vote, kind: data }
+    - { id: e6, from: reader-b, to: vote, kind: data }
+    - { id: e7, from: vote, to: clinician-approval, kind: dependency }
+    - { id: e8, from: clinician-approval, to: result, kind: dependency, condition: approved }

@@ -14,11 +14,11 @@ spec:
     to hit a target, because a schedule that only works on paper fails on site.
   capabilities:
     skills:
-      - schedule-development
-      - critical-path-analysis
-      - resource-loading
-      - float-and-constraint-review
-      - failure-mode-analysis
+      - domain-analysis
+      - decision-analysis
+      - evidence-verification
+      - evaluation
+      - risk-analysis
     tools:
       - read
       - calculate

@@ -14,11 +14,8 @@ spec:
     is experienced as cheating, not as difficulty.'
   capabilities:
     skills:
-      - behavior-design
-      - utility-scoring-specification
-      - perception-model-design
-      - legibility-testing
-      - systems-design
+      - design-review
+      - evaluation
     tools:
       - read
       - write

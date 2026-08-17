@@ -16,9 +16,9 @@ spec:
   capabilities:
     skills:
       - experiment-design
-      - factorial-and-response-surface-design
-      - confounding-analysis
-      - replication-planning
+      - design-review
+      - decision-analysis
+      - operations-planning
       - statistical-analysis
     tools:
       - read

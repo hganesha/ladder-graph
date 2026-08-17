@@ -14,10 +14,9 @@ spec:
     concentrates losses is a political fact the model should not hide.
   capabilities:
     skills:
-      - policy-simulation
-      - distributional-analysis
-      - counterfactual-specification
-      - elasticity-assumption-disclosure
+      - simulation
+      - decision-analysis
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

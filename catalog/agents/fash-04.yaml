@@ -14,11 +14,10 @@ spec:
     is where most supply-chain assurance quietly fails.
   capabilities:
     skills:
-      - supplier-capability-matching
-      - audit-currency-verification
-      - capacity-assessment
-      - lead-time-modeling
-      - supplier-risk-assessment
+      - supply-chain-analysis
+      - evaluation
+      - teaching
+      - simulation
     tools:
       - read
       - search

@@ -13,8 +13,7 @@ spec:
     harsh self-criticism, and do not present the work as mental-health treatment.
   capabilities:
     skills:
-      - reflective-journaling
-      - pattern-reflection
+      - domain-analysis
     tools:
       - read
     connectors:

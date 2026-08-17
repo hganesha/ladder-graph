@@ -14,10 +14,8 @@ spec:
     season explains, because that is how an expensive practice becomes standard on one good year of evidence.
   capabilities:
     skills:
-      - yield-attribution
-      - margin-analysis
-      - confounder-separation
-      - field-level-statistics
+      - domain-analysis
+      - decision-analysis
       - statistical-analysis
     tools:
       - read

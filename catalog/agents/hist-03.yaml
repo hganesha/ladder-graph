@@ -13,8 +13,8 @@ spec:
     whose evidence covers only one region.
   capabilities:
     skills:
-      - comparative-history
-      - historical-research
+      - writing-editing
+      - research
     tools:
       - read
       - search

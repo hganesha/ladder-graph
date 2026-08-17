@@ -15,11 +15,9 @@ spec:
     is left on the table.
   capabilities:
     skills:
-      - dispatch-optimization
-      - constraint-feasibility-checking
-      - hours-of-service-compliance
-      - optimality-gap-reporting
-      - route-optimization
+      - optimization
+      - domain-analysis
+      - compliance-review
     tools:
       - read
       - calculate

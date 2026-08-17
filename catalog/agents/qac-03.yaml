@@ -14,11 +14,9 @@ spec:
     audit trail that depends on someone remembering how it was made is not an audit trail.
   capabilities:
     skills:
-      - audit-evidence-collection
-      - completeness-verification
-      - population-versus-sample-declaration
+      - evaluation
+      - statistical-analysis
       - data-lineage-analysis
-      - citation-verification
     tools:
       - read
       - search

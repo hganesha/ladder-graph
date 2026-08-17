@@ -45,6 +45,7 @@ spec:
         x-ladder-input-mode: text
     - id: n2
       kind: agent
+      templateRef: music-rec-01
       name: Build Preference Profile
       summary: Build Preference Profile
       role: Recommender-systems specialist building interpretable user taste profiles.
@@ -57,11 +58,9 @@ spec:
         produce a confident profile.
       capabilities:
         skills:
-          - streaming-service
-          - audio-feature-extraction
-          - taste-profile-vector-embedding-construction
-          - recency-weighting-logic
-          - listening-history-data-quality-checks
+          - domain-analysis
+          - audio-processing
+          - evaluation
         tools:
           - read
           - audio
@@ -74,6 +73,7 @@ spec:
         type: object
     - id: n3
       kind: agent
+      templateRef: music-an-02
       name: Extract Harmonic/Style Features of Seed Tracks
       summary: Extract Harmonic/Style Features of Seed Tracks
       role: Music theorist specializing in harmonic analysis — functional harmony, jazz chord-scale
@@ -87,11 +87,9 @@ spec:
         label where music theorists would actually disagree.
       capabilities:
         skills:
-          - chord-recognition-model
-          - key-modulation-detection
-          - roman-numeral-analysis-engine
-          - symbolic-music-toolkit
-          - harmonic-function-reference
+          - domain-analysis
+          - decision-analysis
+          - audio-processing
         tools:
           - read
           - audio
@@ -108,6 +106,7 @@ spec:
         join: all
     - id: n5
       kind: agent
+      templateRef: music-rec-02
       name: Generate Candidate Recommendations
       summary: Generate Candidate Recommendations
       role: Recommender-systems engineer generating candidate track/playlist recommendations from a
@@ -122,11 +121,10 @@ spec:
         genre) rather than padding it with weak matches presented as strong ones.
       capabilities:
         skills:
-          - content-based-similarity-engine
-          - collaborative-filtering-model
-          - streaming-service
-          - recommendation-explanation-generation
-          - candidate-pool-quality-checks
+          - writing-editing
+          - domain-analysis
+          - operations-planning
+          - evaluation
         tools:
           - read
           - audio
@@ -138,6 +136,7 @@ spec:
         type: object
     - id: n6
       kind: agent
+      templateRef: music-rec-03
       name: Apply Discovery/Diversity Curation
       summary: Apply Discovery/Diversity Curation
       role: Recommender-systems specialist focused on catalog diversity and filter-bubble mitigation.
@@ -151,11 +150,9 @@ spec:
         choice, not a hidden one.
       capabilities:
         skills:
-          - diversity-novelty-scoring-metrics
-          - genre-artist-catalog-metadata
-          - exploration-exploitation-balancing-logic
-          - catalog-coverage-analytics
-          - a-b-testable-curation-parameter-tuning
+          - evaluation
+          - domain-analysis
+          - data-engineering
         tools:
           - read
           - audio
@@ -168,6 +165,7 @@ spec:
         type: object
     - id: n7
       kind: evaluate
+      inlineRole: true
       name: Score Relevance & Diversity
       summary: Evaluate relevance and diversity index.
       role: Deterministic metric evaluator
@@ -241,6 +239,7 @@ spec:
       summary: Pause for music editorial curator; on timeout, escalate.
     - id: n11
       kind: agent
+      templateRef: music-rec-02
       name: Deliver Final Playlist
       summary: Deliver Final Playlist
       role: Recommender-systems engineer generating candidate track/playlist recommendations from a
@@ -255,11 +254,10 @@ spec:
         genre) rather than padding it with weak matches presented as strong ones.
       capabilities:
         skills:
-          - content-based-similarity-engine
-          - collaborative-filtering-model
-          - streaming-service
-          - recommendation-explanation-generation
-          - candidate-pool-quality-checks
+          - writing-editing
+          - domain-analysis
+          - operations-planning
+          - evaluation
         tools:
           - read
           - audio

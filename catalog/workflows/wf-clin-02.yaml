@@ -1,0 +1,75 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: prisma-screening-conflict-resolution
+  title: PRISMA screening + conflict resolution
+  description: Deduplicate studies, screen them independently, score agreement, and warn when bounded reconciliation is exhausted.
+  version: 1.0.0
+spec:
+  objective: Produce auditable screening decisions under a registered protocol.
+  policies: { maxConcurrency: 4, onFailure: preserve-completed, requireApprovalFor: [review-lead-approval] }
+  nodes:
+    - id: studies
+      kind: input
+      name: Search results and screening protocol
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset: { type: string, contentMediaType: application/pdf }
+          instructions: { type: string }
+        x-ladder-input-mode: document
+    - id: deduplicate
+      kind: transform
+      name: Deduplicate citations
+      config: { operation: deduplicate, expression: $.studies by doi,title,year }
+    - id: screen-a
+      kind: agent
+      name: Blind protocol screen A
+      templateRef: clin-05
+      role: Independent systematic-review screener following a registered protocol.
+      prompt: Apply the supplied inclusion and exclusion criteria independently. Return include, exclude, or uncertain with criterion-level reasons, and never resolve uncertainty by inventing missing study details.
+      capabilities: { skills: [systematic-review-screening, protocol-adherence], tools: [read, classify], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: screen-b
+      kind: agent
+      name: Blind protocol screen B
+      templateRef: clin-05
+      role: Independent systematic-review screener following a registered protocol.
+      prompt: Apply the supplied inclusion and exclusion criteria independently. Return include, exclude, or uncertain with criterion-level reasons, and never resolve uncertainty by inventing missing study details.
+      capabilities: { skills: [systematic-review-screening, protocol-adherence], tools: [read, classify], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: decisions
+      kind: aggregator
+      name: Compare screening decisions
+      config: { aggregation: vote }
+    - id: agreement
+      kind: evaluate
+      inlineRole: true
+      name: Score criterion-level agreement
+      role: Independent screening agreement evaluator
+      prompt: Score agreement by criterion, preserve unresolved records, and return passed only when the declared agreement threshold is met.
+      capabilities: { skills: [evaluation], tools: [read, calculate], permissions: [read-only] }
+      outputSchema: { type: object }
+      config: { threshold: 0.9 }
+    - id: reconcile
+      kind: loop
+      name: Bounded conflict reconciliation
+      config: { body: [screen-a, screen-b, decisions, agreement], exitCondition: agreement.passed == true, maxIterations: 2, onExhausted: warn }
+    - id: review-lead-approval
+      kind: approval
+      name: Review lead accepts counts and unresolved conflicts
+    - id: result
+      kind: output
+      name: Screening decisions and PRISMA counts
+  edges:
+    - { id: e1, from: studies, to: deduplicate, kind: data }
+    - { id: e2, from: deduplicate, to: screen-a, kind: data }
+    - { id: e3, from: deduplicate, to: screen-b, kind: data }
+    - { id: e4, from: screen-a, to: decisions, kind: data }
+    - { id: e5, from: screen-b, to: decisions, kind: data }
+    - { id: e6, from: decisions, to: agreement, kind: data }
+    - { id: e7, from: agreement, to: reconcile, kind: control, condition: failed }
+    - { id: e8, from: agreement, to: review-lead-approval, kind: control, condition: passed }
+    - { id: e9, from: reconcile, to: review-lead-approval, kind: control, condition: loop_exhausted }
+    - { id: e10, from: review-lead-approval, to: result, kind: dependency, condition: approved }

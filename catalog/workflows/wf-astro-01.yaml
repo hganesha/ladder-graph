@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-classify
       kind: agent
+      templateRef: astro-01
       name: Score requests by priority and feasibility
       summary: Score and label every incoming item before anything is queued.
       role: Scheduler allocating telescope time against visibility, conditions, and science priority.
@@ -52,11 +53,10 @@ spec:
         night that a feasible one would have used.
       capabilities:
         skills:
-          - observation-scheduling
-          - visibility-window-computation
-          - constraint-feasibility-checking
-          - priority-ranking
-          - numeric-verification
+          - optimization
+          - domain-analysis
+          - decision-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -113,6 +113,7 @@ spec:
             when: default
     - id: n-escalate
       kind: agent
+      templateRef: astro-04
       name: Time-critical override assessment
       summary: Escalation path for the top band.
       role: Operations analyst managing spacecraft health, contacts, and conjunction risk.
@@ -123,11 +124,11 @@ spec:
         closes before the uncertainty does.
       capabilities:
         skills:
-          - spacecraft-telemetry-analysis
-          - contact-scheduling
-          - conjunction-risk-assessment
+          - observability
+          - optimization
+          - teaching
           - anomaly-detection
-          - failure-mode-analysis
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -139,6 +140,7 @@ spec:
         type: object
     - id: n-handle
       kind: agent
+      templateRef: astro-05
       name: Standard queue placement and setup
       summary: Standard resolution path.
       role: Specialist maintaining and validating the calibration chain of an instrument.
@@ -149,11 +151,10 @@ spec:
         the comparability of an archive.
       capabilities:
         skills:
-          - calibration-management
-          - traceability-tracking
-          - drift-analysis
-          - archive-comparability-protection
-          - numeric-verification
+          - domain-analysis
+          - data-quality-analysis
+          - research
+          - evaluation
         tools:
           - read
           - calculate

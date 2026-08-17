@@ -13,8 +13,8 @@ spec:
     issues that could change meaning.
   capabilities:
     skills:
-      - archival-analysis
-      - source-criticism
+      - decision-analysis
+      - evidence-verification
     tools:
       - read
       - search

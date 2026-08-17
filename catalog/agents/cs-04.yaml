@@ -14,11 +14,9 @@ spec:
     two half-correct articles are worse than one correct one.
   capabilities:
     skills:
-      - knowledge-base-curation
-      - content-deduplication
-      - findability-optimization
-      - version-accuracy-checking
-      - technical-writing
+      - domain-analysis
+      - writing-editing
+      - optimization
     tools:
       - read
       - write

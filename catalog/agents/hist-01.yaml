@@ -13,8 +13,8 @@ spec:
     thin or contested evidence explicitly.
   capabilities:
     skills:
-      - historical-research
-      - source-criticism
+      - research
+      - evidence-verification
     tools:
       - read
       - search

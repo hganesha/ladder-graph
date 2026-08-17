@@ -15,11 +15,9 @@ spec:
     because an MEL item without its (M) procedure is an unairworthy aircraft with paperwork.
   capabilities:
     skills:
-      - mel-application
-      - airworthiness-determination
-      - deferral-procedure-verification
-      - repair-interval-tracking
-      - regulatory-mapping
+      - domain-analysis
+      - evaluation
+      - compliance-review
     tools:
       - read
       - test

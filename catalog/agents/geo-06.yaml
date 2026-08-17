@@ -14,11 +14,11 @@ spec:
     when trajectories remain unique, because it is the path, not the point, that identifies a person.
   capabilities:
     skills:
-      - re-identification-risk-assessment
-      - spatial-aggregation-design
-      - trajectory-uniqueness-analysis
+      - teaching
+      - design-review
+      - decision-analysis
       - de-identification
-      - regulatory-mapping
+      - compliance-review
     tools:
       - read
     connectors: []

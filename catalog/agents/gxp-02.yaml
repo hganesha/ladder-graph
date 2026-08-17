@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-02
+  title: Protocol Deviation Analyst
+spec:
+  path: research/life-sciences/clinical-ops
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: Protocol Deviation Analyst operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Classify protocol deviations against approved rules, assess participant and data impact, and preserve
+    required escalation.
+  capabilities:
+    skills:
+      - clinical-review
+      - compliance-review
+      - risk-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

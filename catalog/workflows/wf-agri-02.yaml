@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-source1
       kind: agent
+      templateRef: agri-04
       name: Upstream lot and receiving extraction
       summary: 'Source extraction 1: upstream lot and receiving extraction.'
       role: Traceability analyst reconstructing lot genealogy across the supply chain.
@@ -51,11 +52,10 @@ spec:
         that cannot answer within a recall window is a record-keeping system, not a traceability system.
       capabilities:
         skills:
-          - lot-genealogy-reconstruction
-          - chain-of-custody-verification
-          - recall-scope-determination
+          - domain-analysis
+          - evaluation
           - data-lineage-analysis
-          - regulatory-mapping
+          - compliance-review
         tools:
           - read
           - search
@@ -68,6 +68,7 @@ spec:
         type: object
     - id: n-source2
       kind: agent
+      templateRef: agri-05
       name: Production and outbound extraction
       summary: 'Source extraction 2: production and outbound extraction.'
       role: Food safety reviewer testing hazard controls and verification records.
@@ -78,11 +79,8 @@ spec:
         an uncontrolled one.
       capabilities:
         skills:
-          - hazard-analysis-review
-          - critical-limit-verification
-          - record-evidence-testing
-          - corrective-action-review
-          - regulatory-mapping
+          - evaluation
+          - compliance-review
         tools:
           - read
           - test
@@ -101,6 +99,7 @@ spec:
         expression: merge the extracted lot records on lot_id, facility, and production_date
     - id: n-reconcile
       kind: agent
+      templateRef: agri-04
       name: Reconcile the matched lot genealogy
       summary: Reconcile fields that arrived from more than one source.
       role: Traceability analyst reconstructing lot genealogy across the supply chain.
@@ -110,11 +109,10 @@ spec:
         that cannot answer within a recall window is a record-keeping system, not a traceability system.
       capabilities:
         skills:
-          - lot-genealogy-reconstruction
-          - chain-of-custody-verification
-          - recall-scope-determination
+          - domain-analysis
+          - evaluation
           - data-lineage-analysis
-          - regulatory-mapping
+          - compliance-review
         tools:
           - read
           - search
@@ -127,6 +125,7 @@ spec:
         type: object
     - id: n-exceptions
       kind: agent
+      templateRef: agri-05
       name: State every break in the chain as an exception
       summary: Everything that could not be reconciled, stated as an exception.
       role: Food safety reviewer testing hazard controls and verification records.
@@ -137,11 +136,8 @@ spec:
         an uncontrolled one.
       capabilities:
         skills:
-          - hazard-analysis-review
-          - critical-limit-verification
-          - record-evidence-testing
-          - corrective-action-review
-          - regulatory-mapping
+          - evaluation
+          - compliance-review
         tools:
           - read
           - test

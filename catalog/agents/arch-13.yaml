@@ -13,8 +13,8 @@ spec:
     field verification where dimensions control compliance.
   capabilities:
     skills:
-      - universal-design
-      - code-compliance
+      - accessibility
+      - implementation
     tools:
       - read
       - test

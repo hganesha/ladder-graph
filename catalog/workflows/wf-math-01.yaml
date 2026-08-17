@@ -45,6 +45,7 @@ spec:
         x-ladder-input-mode: text
     - id: n2
       kind: agent
+      templateRef: math-opt-01
       name: Formulate Optimization Model
       summary: Formulate Optimization Model
       role: Operations research analyst specializing in translating real-world decision problems into
@@ -58,11 +59,10 @@ spec:
         formulation produces a confidently wrong "optimal" answer to the wrong problem.
       capabilities:
         skills:
-          - natural-language-to-model-elicitation-prompts
-          - problem-class-classification-checklist
-          - constraint-objective-formalization-templating
-          - latex-math-notation-rendering
-          - optimization-modeling
+          - evidence-verification
+          - domain-analysis
+          - quantitative-analysis
+          - optimization
         tools:
           - read
           - calculate
@@ -88,6 +88,7 @@ spec:
             when: default
     - id: n4a
       kind: agent
+      templateRef: math-opt-02
       name: Solve as Linear Program
       summary: Solve as Linear Program
       role: Operations research engineer selecting and applying the right solution method
@@ -102,11 +103,10 @@ spec:
         relevant to the decision the user is actually trying to make.
       capabilities:
         skills:
-          - optimization-solver
-          - convergence-optimality-gap-reporting
-          - sensitivity-analysis-computation
-          - solution-visualization
-          - solver-selection-heuristics-by-problem-class
+          - optimization
+          - domain-analysis
+          - decision-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -117,6 +117,7 @@ spec:
         type: object
     - id: n4b
       kind: agent
+      templateRef: math-opt-02
       name: Solve as Convex/Nonlinear Program
       summary: Solve as Convex/Nonlinear Program
       role: Operations research engineer selecting and applying the right solution method
@@ -131,11 +132,10 @@ spec:
         relevant to the decision the user is actually trying to make.
       capabilities:
         skills:
-          - optimization-solver
-          - convergence-optimality-gap-reporting
-          - sensitivity-analysis-computation
-          - solution-visualization
-          - solver-selection-heuristics-by-problem-class
+          - optimization
+          - domain-analysis
+          - decision-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -146,6 +146,7 @@ spec:
         type: object
     - id: n4c
       kind: agent
+      templateRef: math-opt-02
       name: Solve as Combinatorial/MIP
       summary: Solve as Combinatorial/MIP
       role: Operations research engineer selecting and applying the right solution method
@@ -160,11 +161,10 @@ spec:
         relevant to the decision the user is actually trying to make.
       capabilities:
         skills:
-          - optimization-solver
-          - convergence-optimality-gap-reporting
-          - sensitivity-analysis-computation
-          - solution-visualization
-          - solver-selection-heuristics-by-problem-class
+          - optimization
+          - domain-analysis
+          - decision-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -181,6 +181,7 @@ spec:
         join: first
     - id: n6
       kind: evaluate
+      inlineRole: true
       name: Score Solution Quality
       summary: Evaluate feasibility and optimality gap.
       role: Deterministic metric evaluator
@@ -247,6 +248,7 @@ spec:
       summary: Pause for requesting analyst / decision owner; on timeout, escalate.
     - id: n10
       kind: agent
+      templateRef: math-gen-02
       name: Generate Solution Report & Sensitivity Plot
       summary: Generate Solution Report & Sensitivity Plot
       role: Mathematical visualization specialist producing accurate, legible plots and geometric
@@ -260,11 +262,9 @@ spec:
         than defaulting to a generic line plot for everything.
       capabilities:
         skills:
-          - graphing-plotting
-          - geometric-construction-rendering
-          - critical-point-asymptote-detection
-          - 3d-surface-contour-plotting
-          - latex-label-rendering
+          - privacy-review
+          - image-understanding
+          - domain-analysis
         tools:
           - read
           - calculate

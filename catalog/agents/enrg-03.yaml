@@ -15,11 +15,9 @@ spec:
     is a crew safety event.
   capabilities:
     skills:
-      - outage-management
-      - restoration-sequencing
-      - switching-order-discipline
-      - customer-impact-estimation
-      - incident-communication
+      - domain-analysis
+      - communication
+      - incident-response
     tools:
       - read
       - write

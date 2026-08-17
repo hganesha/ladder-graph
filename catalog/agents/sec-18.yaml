@@ -13,8 +13,8 @@ spec:
     incident-reporting workflow.
   capabilities:
     skills:
-      - security-awareness
-      - learning-design
+      - application-security
+      - teaching
     tools:
       - read
       - search

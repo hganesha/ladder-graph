@@ -17,11 +17,9 @@ spec:
     defaulting to a generic line plot for everything.
   capabilities:
     skills:
-      - graphing-plotting
-      - geometric-construction-rendering
-      - critical-point-asymptote-detection
-      - 3d-surface-contour-plotting
-      - latex-label-rendering
+      - privacy-review
+      - image-understanding
+      - domain-analysis
     tools:
       - read
       - calculate

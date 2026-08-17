@@ -19,11 +19,9 @@ spec:
     naming the misconception explicitly rather than only giving the correct answer.
   capabilities:
     skills:
-      - symbolic-numeric-solver
-      - operator-eigenvalue-computation
-      - wavefunction-visualization
-      - latex-rendering
-      - misconception-pattern-reference
+      - quantitative-analysis
+      - domain-analysis
+      - image-understanding
     tools:
       - read
       - calculate

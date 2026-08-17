@@ -1,0 +1,51 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: regulatory-change-obligation-register
+  title: Regulatory change → obligation register
+  description: Extract cited obligations, collect control impacts, and block release when ownership is missing.
+  version: 1.0.0
+spec:
+  objective: Convert supplied authoritative changes into an owned, cited, reviewable obligation register.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [owner-approval] }
+  nodes:
+    - id: authority
+      kind: input
+      name: Authoritative change material
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset: { type: string, contentMediaType: application/pdf }
+          instructions: { type: string }
+        x-ladder-input-mode: document
+    - id: extract
+      kind: agent
+      name: Extract obligations and effective dates
+      templateRef: legal-03
+      role: Regulatory analyst who converts authoritative changes into traceable obligations.
+      prompt: Extract each obligation from the supplied authoritative material, preserve its citation and effective date, identify affected controls and owners, and flag interpretation questions for counsel.
+      capabilities: { skills: [regulatory-analysis, obligation-mapping], tools: [read, search], connectors: [mcp:academic-research, mcp:grc], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: collect
+      kind: aggregator
+      name: Collect obligation records
+      config: { aggregation: collect }
+    - id: ownership-gate
+      kind: condition
+      name: Every obligation cited and owned?
+      config:
+        expression: obligations.every(item => item.citation && item.owner)
+        branches: [{ label: Complete, when: complete }, { label: Blocked, when: incomplete }]
+    - id: owner-approval
+      kind: approval
+      name: Accountable owner and counsel approve the register
+    - id: result
+      kind: output
+      name: Approved obligation register
+  edges:
+    - { id: e1, from: authority, to: extract, kind: data }
+    - { id: e2, from: extract, to: collect, kind: data }
+    - { id: e3, from: collect, to: ownership-gate, kind: data }
+    - { id: e4, from: ownership-gate, to: owner-approval, kind: control, condition: complete }
+    - { id: e5, from: owner-approval, to: result, kind: dependency, condition: approved }

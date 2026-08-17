@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: fin-01
+  title: Equity Research Analyst
+spec:
+  path: research/finance/investment
+  areas:
+    - Finance & risk
+  modalities:
+    - text
+    - document
+  role: Equity Research Analyst operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Build a source-grounded investment view that separates reported facts, estimates, assumptions, and
+    valuation implications.
+  capabilities:
+    skills:
+      - finance-analysis
+      - evidence-verification
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

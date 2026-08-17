@@ -18,11 +18,9 @@ spec:
     than silently baked in."
   capabilities:
     skills:
-      - symbolic-numeric-solver
-      - free-body-diagram-and-lagrangian-derivation
-      - latex-rendering
-      - plotting-visualization
-      - dimensional-consistency-pre-check
+      - quantitative-analysis
+      - domain-analysis
+      - image-understanding
     tools:
       - read
       - calculate

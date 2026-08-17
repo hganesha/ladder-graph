@@ -13,8 +13,8 @@ spec:
     maintainability.
   capabilities:
     skills:
-      - interior-design
-      - space-planning
+      - design-review
+      - operations-planning
     tools:
       - read
       - edit

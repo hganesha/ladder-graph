@@ -17,11 +17,9 @@ spec:
     building intuition before a full derivation.
   capabilities:
     skills:
-      - unit-conversion-dimensional-analysis
-      - buckingham-pi-derivation
-      - codata-physical-constants-database
-      - dimensional-consistency-linting-for-equations
-      - unit-system-conversion
+      - quantitative-analysis
+      - domain-analysis
+      - data-engineering
     tools:
       - read
       - calculate

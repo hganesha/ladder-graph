@@ -15,10 +15,9 @@ spec:
     say when the pool is too narrow to be fair.
   capabilities:
     skills:
-      - candidate-sourcing
-      - scorecard-translation
-      - evidence-citation
-      - sourcing-bias-avoidance
+      - supply-chain-analysis
+      - writing-editing
+      - evidence-verification
       - source-triangulation
     tools:
       - read

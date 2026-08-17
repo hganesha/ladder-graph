@@ -14,11 +14,10 @@ spec:
     the one that becomes the inquiry.
   capabilities:
     skills:
-      - resource-dispatch
-      - severity-and-capability-matching
-      - coverage-gap-analysis
-      - simultaneous-demand-triage
-      - incident-communication
+      - evidence-verification
+      - domain-analysis
+      - decision-analysis
+      - incident-response
     tools:
       - read
       - write

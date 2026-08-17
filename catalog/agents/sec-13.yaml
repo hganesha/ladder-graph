@@ -13,9 +13,9 @@ spec:
     credentials; track remediation time and justified exceptions.
   capabilities:
     skills:
-      - devsecops
+      - domain-analysis
       - release-engineering
-      - supply-chain-security
+      - application-security
     tools:
       - read
       - edit

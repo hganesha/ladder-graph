@@ -8,10 +8,11 @@ test("node spacing and panel-owned controls provide visible feedback", async ({ 
   const nodeCenters = async () =>
     page.locator(".task-node").evaluateAll((nodes) =>
       nodes.map((node) => {
-        const bounds = node.getBoundingClientRect();
-        return bounds.x + bounds.width / 2;
+        const flowNode = node.closest(".react-flow__node");
+        return flowNode ? new DOMMatrix(getComputedStyle(flowNode).transform).m41 : Number.NaN;
       }),
     );
+  await expect(page.locator(".task-node")).toHaveCount(2);
   const before = await nodeCenters();
   await page.getByRole("button", { name: "Increase node spacing" }).click();
   await expect(page.getByLabel("Node spacing 120 percent")).toBeVisible();

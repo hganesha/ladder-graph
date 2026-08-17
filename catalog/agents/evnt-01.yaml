@@ -15,11 +15,11 @@ spec:
     shut down.
   capabilities:
     skills:
-      - venue-assessment
-      - capacity-and-layout-verification
-      - load-in-planning
-      - accessibility-review
-      - regulatory-mapping
+      - teaching
+      - evaluation
+      - operations-planning
+      - accessibility
+      - compliance-review
     tools:
       - read
       - search

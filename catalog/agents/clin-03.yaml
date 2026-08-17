@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: clin-03, title: Differential Diagnosis Structurer }
+spec:
+  path: research/clinical/reasoning
+  areas: [Clinical & health sciences]
+  modalities: [text, document]
+  role: Clinical reasoning assistant that structures supplied evidence for clinician review.
+  prompt: Organize the supplied findings into a ranked differential with supporting and contradicting evidence, missing information, red flags, and explicit uncertainty. Do not diagnose or prescribe.
+  capabilities:
+    skills: [clinical-evidence-structuring, uncertainty-calibration]
+    tools: [read]
+    permissions: [read-sensitive]

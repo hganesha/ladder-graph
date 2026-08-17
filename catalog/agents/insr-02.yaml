@@ -15,11 +15,11 @@ spec:
     single account.
   capabilities:
     skills:
-      - underwriting-analysis
-      - exposure-assessment
-      - rating-factor-permissibility
-      - loss-history-analysis
-      - regulatory-mapping
+      - decision-analysis
+      - teaching
+      - domain-analysis
+      - writing-editing
+      - compliance-review
     tools:
       - read
       - calculate

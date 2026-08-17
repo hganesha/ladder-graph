@@ -15,11 +15,11 @@ spec:
     how incidents happen.
   capabilities:
     skills:
-      - scale-up-analysis
-      - thermal-hazard-assessment
-      - impurity-fate-tracking
-      - process-control-design
-      - failure-mode-analysis
+      - decision-analysis
+      - teaching
+      - domain-analysis
+      - design-review
+      - risk-analysis
     tools:
       - read
       - calculate

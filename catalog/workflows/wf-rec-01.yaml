@@ -49,6 +49,7 @@ spec:
         expression: select the comparables, income inputs, and valuation date under review
     - id: n-derive
       kind: agent
+      templateRef: rec-01
       name: Appraiser reconciliation of approaches
       summary: First derivation, from the specification.
       role: Valuation analyst reconciling comparable, income, and cost approaches.
@@ -59,11 +60,11 @@ spec:
         where the risk is.
       capabilities:
         skills:
-          - property-valuation
-          - comparable-adjustment-reasoning
-          - income-approach-modeling
-          - sensitivity-analysis
-          - numeric-verification
+          - finance-analysis
+          - domain-analysis
+          - simulation
+          - decision-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -80,8 +81,8 @@ spec:
         Ladder Graph does not execute it.
       capabilities:
         skills:
-          - property-valuation
-          - numeric-verification
+          - finance-analysis
+          - evaluation
         tools:
           - calculate
           - mcp:property-data
@@ -109,6 +110,7 @@ spec:
             when: discrepant
     - id: n-reconcile
       kind: agent
+      templateRef: rec-06
       name: Explain the valuation divergence
       summary: Explain the discrepancy before anything downstream consumes the number.
       role: Performance analyst assessing energy, envelope, and comfort outcomes against design intent.
@@ -119,10 +121,9 @@ spec:
         instead of a fix.
       capabilities:
         skills:
-          - building-performance-analysis
-          - measurement-and-verification
-          - performance-gap-attribution
-          - diagnostic-test-selection
+          - design-review
+          - evaluation
+          - domain-analysis
           - statistical-analysis
         tools:
           - read

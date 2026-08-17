@@ -49,6 +49,7 @@ spec:
         expression: select the units to produce, in teaching order
     - id: n-segment1
       kind: agent
+      templateRef: ling-03
       name: Lexical units with cited senses
       summary: 'Segment 1: lexical units with cited senses.'
       role: Specialist building corpora and dictionary entries that stay checkable.
@@ -58,10 +59,9 @@ spec:
         small to support a claim about either.
       capabilities:
         skills:
-          - corpus-construction
-          - lexicographic-entry-writing
-          - sense-citation-linking
-          - sampling-documentation
+          - domain-analysis
+          - privacy-review
+          - evidence-verification
           - statistical-analysis
         tools:
           - read
@@ -74,6 +74,7 @@ spec:
         type: object
     - id: n-segment2
       kind: agent
+      templateRef: ling-02
       name: Grammatical units from attested paradigms
       summary: 'Segment 2: grammatical units from attested paradigms.'
       role: Analyst building phonological and morphological descriptions from attested data.
@@ -83,11 +84,9 @@ spec:
         languages, because the second is how a described language quietly becomes a copy of its neighbour.
       capabilities:
         skills:
-          - phonological-analysis
-          - morphological-analysis
-          - attestation-tracking
-          - paradigm-gap-marking
-          - citation-verification
+          - decision-analysis
+          - evaluation
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -98,6 +97,7 @@ spec:
         type: object
     - id: n-segment3
       kind: agent
+      templateRef: ling-05
       name: Usage and register units
       summary: 'Segment 3: usage and register units.'
       role: Analyst describing variation without treating one variety as the standard.
@@ -107,11 +107,10 @@ spec:
         based on a handful of speakers are sociolinguistically and ethically fragile.
       capabilities:
         skills:
-          - variation-analysis
-          - sociolinguistic-variable-coding
-          - sample-adequacy-reporting
-          - standard-language-neutrality
+          - decision-analysis
+          - design-review
           - statistical-analysis
+          - writing-editing
         tools:
           - read
           - calculate
@@ -128,6 +127,7 @@ spec:
         aggregation: concat
     - id: n-critique
       kind: teacher
+      inlineRole: true
       name: Teacher critique of the assembled draft
       summary: Critique feedback from a host-resolved teacher model.
       role: Host-resolved teacher model
@@ -150,6 +150,7 @@ spec:
         feedbackMode: critique
     - id: n-quality
       kind: evaluate
+      inlineRole: true
       name: Score the assembled result
       summary: Evaluate teaching sequence coherence, attestation behind every example, and register fit.
       role: Deterministic metric evaluator
@@ -196,6 +197,7 @@ spec:
             when: 'false'
     - id: n-revise
       kind: agent
+      templateRef: ling-06
       name: Repair the weakest units
       summary: Apply the teacher critique to the weakest segments.
       role: Planner designing community-led revitalization programs with realistic goals.
@@ -206,11 +208,11 @@ spec:
         up to conclude it failed.
       capabilities:
         skills:
-          - revitalization-planning
-          - speaker-demographic-analysis
-          - domain-of-use-mapping
-          - outcome-measure-design
-          - rubric-design
+          - operations-planning
+          - privacy-review
+          - domain-analysis
+          - design-review
+          - evaluation
         tools:
           - read
           - write

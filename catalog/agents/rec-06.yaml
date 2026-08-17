@@ -15,10 +15,9 @@ spec:
     of a fix.
   capabilities:
     skills:
-      - building-performance-analysis
-      - measurement-and-verification
-      - performance-gap-attribution
-      - diagnostic-test-selection
+      - design-review
+      - evaluation
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

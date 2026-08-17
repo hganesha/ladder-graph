@@ -14,11 +14,10 @@ spec:
     are almost always environment variability the pilot never saw.'
   capabilities:
     skills:
-      - deployment-readiness-assessment
-      - site-specific-risk-analysis
-      - recovery-procedure-review
-      - operator-intervention-planning
-      - failure-mode-analysis
+      - release-engineering
+      - risk-analysis
+      - incident-response
+      - operations-planning
     tools:
       - read
       - test

@@ -14,11 +14,9 @@ spec:
     its interval, because the reserve requirement is a function of the interval, not the mean.
   capabilities:
     skills:
-      - renewable-forecasting
-      - probabilistic-forecast-reporting
-      - weather-to-generation-modeling
-      - uncertainty-attribution
+      - simulation
       - statistical-analysis
+      - domain-analysis
     tools:
       - read
       - calculate

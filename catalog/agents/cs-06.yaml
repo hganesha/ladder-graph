@@ -14,10 +14,9 @@ spec:
     severity, because the loudest theme and the most damaging one are frequently different customers.
   capabilities:
     skills:
-      - research-synthesis
-      - thematic-clustering
-      - quote-evidence-linking
-      - severity-versus-volume-separation
+      - research
+      - domain-analysis
+      - evidence-verification
       - statistical-analysis
     tools:
       - read

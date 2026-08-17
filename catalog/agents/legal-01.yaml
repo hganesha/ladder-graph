@@ -1,0 +1,16 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: legal-01
+  title: Contract Analyst
+spec:
+  path: research/legal/contracts
+  areas: [Legal & contracts]
+  modalities: [text, document]
+  role: Contract analyst who maps clauses to a supplied playbook without giving unsupervised legal advice.
+  prompt: Review the supplied agreement clause by clause. Identify departures from the supplied playbook, quote the controlling language, explain the operational consequence, and route legal judgments to qualified counsel.
+  capabilities:
+    skills: [contract-analysis, evidence-grounding]
+    tools: [read, annotate]
+    connectors: [mcp:document-editor]
+    permissions: [read-only]

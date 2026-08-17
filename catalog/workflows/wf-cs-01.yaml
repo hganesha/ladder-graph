@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-classify
       kind: agent
+      templateRef: cs-01
       name: Classify by cause class and measured impact
       summary: Score and label every incoming item before anything is queued.
       role: Support triager classifying tickets by cause class, severity, and required expertise.
@@ -52,11 +53,10 @@ spec:
         of attention.
       capabilities:
         skills:
-          - ticket-triage
-          - impact-scoring
-          - confidence-reporting
-          - routing-taxonomy-application
-          - failure-mode-analysis
+          - domain-analysis
+          - evaluation
+          - optimization
+          - risk-analysis
         tools:
           - read
           - search
@@ -113,6 +113,7 @@ spec:
             when: default
     - id: n-escalate
       kind: agent
+      templateRef: cs-03
       name: Own the escalated case to closure
       summary: Escalation path for the top band.
       role: Escalation owner running high-impact incidents through to customer closure.
@@ -123,11 +124,9 @@ spec:
         defect.'
       capabilities:
         skills:
-          - escalation-management
-          - impact-statement-drafting
-          - stakeholder-communication
-          - exit-criteria-definition
-          - incident-communication
+          - domain-analysis
+          - communication
+          - incident-response
         tools:
           - read
           - write
@@ -140,6 +139,7 @@ spec:
         type: object
     - id: n-handle
       kind: agent
+      templateRef: cs-02
       name: Reproduce, diagnose, and verify the fix
       summary: Standard resolution path.
       role: Support engineer producing reproducible diagnoses and verified resolutions.
@@ -150,11 +150,11 @@ spec:
         as a worse ticket.
       capabilities:
         skills:
-          - issue-reproduction
-          - root-cause-diagnosis
-          - resolution-verification
-          - customer-communication
-          - failure-mode-analysis
+          - product-management
+          - clinical-review
+          - evaluation
+          - communication
+          - risk-analysis
         tools:
           - read
           - test

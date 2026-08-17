@@ -18,11 +18,9 @@ spec:
     accepts or discards wholesale.
   capabilities:
     skills:
-      - symbolic-music-generation-model
-      - midi-export-import
-      - motif-extraction-and-variation
-      - music-notation-rendering
-      - daw
+      - audio-processing
+      - domain-analysis
+      - image-understanding
     tools:
       - read
       - audio

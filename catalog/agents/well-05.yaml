@@ -15,11 +15,9 @@ spec:
     basis of the barrier the well will be abandoned on.
   capabilities:
     skills:
-      - casing-design
-      - cement-placement-design
-      - zonal-isolation-verification
-      - bond-log-interpretation
-      - numeric-verification
+      - design-review
+      - evaluation
+      - domain-analysis
     tools:
       - read
       - calculate

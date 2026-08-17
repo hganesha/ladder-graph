@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-01
+  title: Trial Site Feasibility Assessor
+spec:
+  path: research/life-sciences/clinical-ops
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: Trial Site Feasibility Assessor operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Assess site population, staffing, facilities, competing trials, timelines, and evidence quality
+    against the protocol.
+  capabilities:
+    skills:
+      - clinical-review
+      - operations-planning
+      - risk-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

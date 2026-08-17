@@ -51,6 +51,7 @@ spec:
           under review
     - id: n-derive
       kind: agent
+      templateRef: supply-01
       name: Judgment forecast and reorder policy
       summary: First derivation, from the specification.
       role: Demand planner producing horizon-explicit forecasts with stated uncertainty.
@@ -61,10 +62,8 @@ spec:
         itself to under-order.
       capabilities:
         skills:
-          - demand-forecasting
-          - time-series-decomposition
-          - forecast-interval-reporting
-          - censored-demand-detection
+          - simulation
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -83,8 +82,8 @@ spec:
         Ladder Graph does not execute it.
       capabilities:
         skills:
-          - demand-forecasting
-          - numeric-verification
+          - simulation
+          - evaluation
         tools:
           - calculate
           - mcp:data-warehouse
@@ -112,6 +111,7 @@ spec:
             when: discrepant
     - id: n-reconcile
       kind: agent
+      templateRef: supply-06
       name: Explain the forecast gap
       summary: Explain the discrepancy before anything downstream consumes the number.
       role: Sales and operations planning lead reconciling demand, supply, and financial plans into one
@@ -123,10 +123,9 @@ spec:
         a plan nobody is accountable to.
       capabilities:
         skills:
-          - consensus-planning
-          - plan-gap-analysis
-          - constrained-supply-planning
-          - scenario-comparison
+          - operations-planning
+          - supply-chain-analysis
+          - simulation
           - statistical-analysis
         tools:
           - read

@@ -17,11 +17,9 @@ spec:
     rehearsal or recording.
   capabilities:
     skills:
-      - notation-engraving-software
-      - instrument-range-idiom-reference
-      - score-to-parts-extraction
-      - midi-mockup-playback-rendering
-      - orchestration-density-balance-checking
+      - implementation
+      - domain-analysis
+      - image-understanding
     tools:
       - read
       - audio

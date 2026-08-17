@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: edu-03
+  title: Rubric Calibrator
+spec:
+  path: research/education/assessment
+  areas:
+    - Education & assessment
+  modalities:
+    - text
+    - document
+  role: Rubric Calibrator operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Calibrate rubric language and examples so independent graders apply the same standard.
+  capabilities:
+    skills:
+      - teaching
+      - evaluation
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

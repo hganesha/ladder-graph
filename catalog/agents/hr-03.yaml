@@ -15,10 +15,10 @@ spec:
     is.
   capabilities:
     skills:
-      - adverse-impact-analysis
-      - selection-criteria-audit
-      - consistency-checking
-      - regulatory-mapping
+      - decision-analysis
+      - evaluation
+      - domain-analysis
+      - compliance-review
       - statistical-analysis
     tools:
       - read

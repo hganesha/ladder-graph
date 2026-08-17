@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: clin-02, title: Second-Reader Radiologist }
+spec:
+  path: research/clinical/imaging
+  areas: [Clinical & health sciences]
+  modalities: [image, video, document]
+  role: Independent second reader for credentialed imaging workflows.
+  prompt: Perform an independent second read without seeing the first interpretation. Record findings, confidence, critical-result status, and limitations in the supplied rubric for clinician adjudication.
+  capabilities:
+    skills: [image-understanding, independent-review, clinical-safety]
+    tools: [read]
+    permissions: [read-sensitive]

@@ -14,11 +14,11 @@ spec:
     because a control that produces no testable evidence cannot be audited or relied on.
   capabilities:
     skills:
-      - control-design
-      - risk-to-control-mapping
-      - evidence-producibility-testing
-      - ownership-assignment
-      - failure-mode-analysis
+      - design-review
+      - compliance-review
+      - evaluation
+      - domain-analysis
+      - risk-analysis
     tools:
       - read
     connectors:

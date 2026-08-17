@@ -15,10 +15,9 @@ spec:
     weight has to respect.
   capabilities:
     skills:
-      - pore-pressure-analysis
-      - wellbore-stability-modeling
-      - real-time-model-calibration
-      - uncertainty-band-reporting
+      - decision-analysis
+      - simulation
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

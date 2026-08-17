@@ -12,7 +12,6 @@ spec:
     and report changed files and residual risks.
   capabilities:
     skills:
-      - repository-navigation
       - implementation
     tools:
       - read

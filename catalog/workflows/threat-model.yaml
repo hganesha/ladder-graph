@@ -15,6 +15,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: System change
       summary: Architecture, data, actors, trust boundaries, deployment, and proposed behavior.
       position:
@@ -22,6 +28,7 @@ spec:
         y: 220
     - id: perspective-a
       kind: agent
+      inlineRole: true
       name: Abuse-path analysis
       summary: Identify attacker goals, entry points, and trust-boundary crossings.
       role: Application security engineer
@@ -29,7 +36,7 @@ spec:
         privileges, and trust boundaries.
       capabilities:
         skills:
-          - threat-modeling
+          - application-security
         tools:
           - read
           - search
@@ -54,6 +61,7 @@ spec:
         y: 90
     - id: perspective-b
       kind: agent
+      inlineRole: true
       name: Data and privacy review
       summary: Map sensitive data, retention, disclosure, and consent risks.
       role: Privacy and data security reviewer
@@ -95,6 +103,7 @@ spec:
         y: 220
     - id: synthesis
       kind: agent
+      inlineRole: true
       name: Mitigation plan
       summary: Prioritize controls and make residual risk explicit.
       role: Security architecture lead
@@ -102,7 +111,7 @@ spec:
         verification steps, and accepted residual risk.
       capabilities:
         skills:
-          - security-architecture
+          - application-security
         tools:
           - read
         permissions:
@@ -129,6 +138,7 @@ spec:
         y: 150
     - id: evaluation
       kind: evaluate
+      inlineRole: true
       name: Security readiness gate
       summary: Check the recommendation against its evidence and contract.
       role: Independent security reviewer

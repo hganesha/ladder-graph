@@ -12,8 +12,7 @@ spec:
     constructability performance. Define mock-up and field-test evidence for high-risk interfaces.
   capabilities:
     skills:
-      - facade-engineering
-      - building-performance
+      - design-review
     tools:
       - read
       - test

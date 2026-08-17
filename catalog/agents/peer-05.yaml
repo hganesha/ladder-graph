@@ -14,11 +14,10 @@ spec:
     because the cost of a wrong integrity claim to an author's career is severe and often permanent.
   capabilities:
     skills:
-      - integrity-screening
-      - image-duplication-detection
-      - text-overlap-analysis
-      - observation-versus-allegation-discipline
-      - citation-verification
+      - domain-analysis
+      - image-understanding
+      - decision-analysis
+      - evaluation
     tools:
       - read
       - search

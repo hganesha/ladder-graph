@@ -40,6 +40,7 @@ spec:
         y: 200
     - id: extract
       kind: agent
+      inlineRole: true
       name: Extract text and layout
       summary: Read visible text without inventing obscured or illegible content.
       role: OCR and document-vision specialist
@@ -49,7 +50,7 @@ spec:
       capabilities:
         skills:
           - image-understanding
-          - optical-character-recognition
+          - domain-analysis
         tools:
           - read-media
         connectors: []
@@ -80,6 +81,7 @@ spec:
         y: 200
     - id: verify
       kind: evaluate
+      inlineRole: true
       name: Extraction fidelity gate
       summary: Check reading order, omissions, confidence, and unsupported reconstruction.
       role: Independent document extraction reviewer

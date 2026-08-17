@@ -13,8 +13,8 @@ spec:
     source changes.
   capabilities:
     skills:
-      - repository-navigation
-      - context-management
+      - implementation
+      - domain-analysis
     tools:
       - read
       - search

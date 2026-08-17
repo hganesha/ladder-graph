@@ -19,11 +19,9 @@ spec:
     especially sensitive to which idealization is in play.
   capabilities:
     skills:
-      - symbolic-numeric-solver
-      - vector-calculus-computation
-      - field-visualization
-      - circuit-analysis-solver
-      - latex-rendering
+      - quantitative-analysis
+      - image-understanding
+      - optimization
     tools:
       - read
       - calculate

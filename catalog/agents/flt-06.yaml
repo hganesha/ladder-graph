@@ -15,11 +15,11 @@ spec:
     than resolving it as a scheduling detail.
   capabilities:
     skills:
-      - crew-legality-checking
-      - duty-and-rest-limit-application
-      - fatigue-risk-assessment
-      - qualification-currency-verification
-      - regulatory-mapping
+      - contract-analysis
+      - domain-analysis
+      - teaching
+      - evaluation
+      - compliance-review
     tools:
       - read
       - calculate

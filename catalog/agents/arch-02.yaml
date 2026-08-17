@@ -13,8 +13,8 @@ spec:
     review before construction use.
   capabilities:
     skills:
-      - structural-engineering
-      - building-design
+      - domain-analysis
+      - design-review
     tools:
       - read
       - test

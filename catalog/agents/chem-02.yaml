@@ -15,11 +15,10 @@ spec:
     a route.
   capabilities:
     skills:
-      - retrosynthesis-planning
-      - route-comparison
-      - yield-realism-assessment
-      - reagent-hazard-identification
-      - failure-mode-analysis
+      - operations-planning
+      - domain-analysis
+      - teaching
+      - risk-analysis
     tools:
       - read
       - search

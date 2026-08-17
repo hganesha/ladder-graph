@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-phase1
       kind: agent
+      templateRef: mfg-04
       name: Failure mode and effects analysis
       summary: 'Phase 1: failure mode and effects analysis.'
       role: Risk facilitator running failure mode and effects analysis to actionable controls.
@@ -52,11 +53,10 @@ spec:
         by being rare.
       capabilities:
         skills:
-          - failure-mode-analysis
-          - severity-occurrence-detection-scoring
-          - control-mapping
-          - capa-planning
-          - rubric-design
+          - risk-analysis
+          - evaluation
+          - compliance-review
+          - operations-planning
         tools:
           - read
         connectors:
@@ -67,6 +67,7 @@ spec:
         type: object
     - id: n-phase2
       kind: agent
+      templateRef: mfg-02
       name: Process capability study
       summary: 'Phase 2: process capability study.'
       role: Quality engineer running SPC, capability studies, and defect investigations.
@@ -76,11 +77,9 @@ spec:
         if it were signal — because over-adjustment is the most common way a stable process is made unstable.
       capabilities:
         skills:
-          - statistical-process-control
-          - capability-analysis
-          - special-cause-detection
-          - defect-investigation
           - statistical-analysis
+          - decision-analysis
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -93,6 +92,7 @@ spec:
         type: object
     - id: n-phase3
       kind: agent
+      templateRef: mfg-06
       name: Supplier and incoming quality qualification
       summary: 'Phase 3: supplier and incoming quality qualification.'
       role: Supplier quality engineer qualifying parts, processes, and corrective actions at the source.
@@ -103,11 +103,7 @@ spec:
         open problem with a signature on it.
       capabilities:
         skills:
-          - supplier-quality-assessment
-          - first-article-review
-          - capability-verification
-          - capa-effectiveness-testing
-          - numeric-verification
+          - evaluation
         tools:
           - read
           - test
@@ -137,6 +133,7 @@ spec:
         their disposition are decided here.
     - id: n-check
       kind: evaluate
+      inlineRole: true
       name: Check the staged result
       summary: Evaluate capability against target, open deviations, and unclosed high-severity failure
         modes.
@@ -184,6 +181,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: mfg-05
       name: Close the qualification gaps
       summary: Smallest corrective pass before re-gating.
       role: Validation engineer qualifying equipment, process, and performance against protocol.
@@ -194,11 +192,10 @@ spec:
         a formality.
       capabilities:
         skills:
-          - process-validation
-          - protocol-execution
-          - deviation-handling
-          - acceptance-criteria-discipline
-          - numeric-verification
+          - evaluation
+          - clinical-review
+          - domain-analysis
+          - product-management
         tools:
           - read
           - test

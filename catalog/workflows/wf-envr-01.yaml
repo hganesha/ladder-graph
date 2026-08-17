@@ -49,6 +49,7 @@ spec:
         expression: select the activity data, factor versions, and boundary for the reporting period
     - id: n-derive
       kind: agent
+      templateRef: envr-01
       name: Analyst inventory build
       summary: First derivation, from the specification.
       role: Inventory analyst building greenhouse gas inventories with declared boundaries and factors.
@@ -59,11 +60,9 @@ spec:
         inventory error and the easiest to hide.
       capabilities:
         skills:
-          - emissions-inventory
-          - boundary-definition
-          - emission-factor-versioning
-          - double-counting-detection
-          - numeric-verification
+          - supply-chain-analysis
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -81,8 +80,8 @@ spec:
         Ladder Graph does not execute it.
       capabilities:
         skills:
-          - emissions-inventory
-          - numeric-verification
+          - supply-chain-analysis
+          - evaluation
         tools:
           - calculate
           - mcp:ghg-inventory
@@ -110,6 +109,7 @@ spec:
             when: discrepant
     - id: n-reconcile
       kind: agent
+      templateRef: envr-06
       name: Explain the inventory divergence
       summary: Explain the discrepancy before anything downstream consumes the number.
       role: Data analyst testing environmental measurement chains for defensibility.
@@ -120,11 +120,9 @@ spec:
         should not be defended as measurement.
       capabilities:
         skills:
-          - measurement-chain-auditing
-          - detection-limit-handling
-          - gap-filling-disclosure
+          - evaluation
+          - domain-analysis
           - data-lineage-analysis
-          - numeric-verification
         tools:
           - read
           - calculate

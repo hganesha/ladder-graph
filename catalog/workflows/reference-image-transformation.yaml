@@ -42,6 +42,7 @@ spec:
         y: 220
     - id: request-design
       kind: agent
+      inlineRole: true
       name: Transformation request
       summary: Translate the request into explicit edits, invariants, model parameters, and a cost ceiling.
       role: Reference-guided image workflow designer
@@ -52,8 +53,7 @@ spec:
       capabilities:
         skills:
           - image-understanding
-          - image-editing
-          - multimodal-model-selection
+          - domain-analysis
         tools:
           - read-media
           - search
@@ -94,6 +94,7 @@ spec:
         y: 220
     - id: transform
       kind: agent
+      inlineRole: true
       name: Generate derivative image
       summary: Apply only the approved changes and retain generation provenance.
       role: Reference-guided image generation specialist
@@ -102,8 +103,7 @@ spec:
         parameters, usage, cost, and prompt provenance.
       capabilities:
         skills:
-          - image-generation
-          - image-editing
+          - image-understanding
         tools:
           - read-media
           - generate-media
@@ -129,6 +129,7 @@ spec:
         y: 220
     - id: review
       kind: evaluate
+      inlineRole: true
       name: Reference fidelity and safety gate
       summary: Compare the result with the approved edits, invariants, safety, and rights constraints.
       role: Independent image transformation reviewer
@@ -138,7 +139,6 @@ spec:
       capabilities:
         skills:
           - image-understanding
-          - media-safety-review
           - evaluation
         tools:
           - read-media

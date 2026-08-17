@@ -14,7 +14,7 @@ spec:
   capabilities:
     skills:
       - privacy-review
-      - data-governance
+      - compliance-review
     tools:
       - read
       - search

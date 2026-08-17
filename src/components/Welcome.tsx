@@ -24,18 +24,19 @@ import {
   Workflow,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
 import { listProjects } from "../lib/persistence";
 import { roleSubcategory } from "../lib/roleCategories";
 import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../lib/templates";
 import { useStudioStore } from "../store/useStudioStore";
-import type { ProjectRecord } from "../types";
+import type { InputModality, ProjectRecord } from "../types";
 import { Brand } from "./Brand";
 import { LazyHelpDialog } from "./LazyHelpDialog";
 import { StorageDialog } from "./StorageDialog";
 import { ThemeToggle } from "./ThemeToggle";
 
-const WORKFLOW_AREAS = [
+const DESCRIBED_WORKFLOW_AREAS = [
   { name: "Core patterns", description: "Reusable orchestration shapes for critique and bounded refinement.", icon: Sparkles },
   { name: "Research", description: "Evidence collection, literature synthesis, and research quality gates.", icon: Beaker },
   { name: "Software engineering", description: "Implementation, debugging, testing, architecture, and release risk.", icon: Code2 },
@@ -235,14 +236,28 @@ const WORKFLOW_AREAS = [
   },
 ] as const;
 
+const describedAreaNames = new Set<string>(DESCRIBED_WORKFLOW_AREAS.map((area) => area.name));
+const WORKFLOW_AREAS = [
+  ...DESCRIBED_WORKFLOW_AREAS,
+  ...[...new Set(WORKFLOW_TEMPLATES.map((template) => template.area))]
+    .filter((name) => !describedAreaNames.has(name))
+    .map((name) => ({
+      name,
+      description: `Specialist ${name.toLowerCase()} workflows and reusable agent templates.`,
+      icon: Workflow,
+    })),
+];
+
 type LibraryTab = "workflows" | "agents";
+type ModalityFilter = "all" | InputModality;
 
 export function Welcome({ onBlank }: { onBlank: () => void }) {
   const openTemplate = useStudioStore((state) => state.openTemplate);
   const openAgentTemplate = useStudioStore((state) => state.openAgentTemplate);
   const openProject = useStudioStore((state) => state.openProject);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
-  const [activeArea, setActiveArea] = useState<(typeof WORKFLOW_AREAS)[number]["name"]>("Core patterns");
+  const [activeArea, setActiveArea] = useState("Core patterns");
+  const [modality, setModality] = useState<ModalityFilter>("all");
   const [helpOpen, setHelpOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
   const [activeLibraryTab, setActiveLibraryTab] = useState<LibraryTab>("workflows");
@@ -250,8 +265,12 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
   const areaRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
-  const selectedTemplates = WORKFLOW_TEMPLATES.filter((template) => template.area === selectedArea.name);
-  const selectedAgents = roleTemplatesForSubject(selectedArea.name);
+  const selectedTemplates = WORKFLOW_TEMPLATES.filter(
+    (template) => template.area === selectedArea.name && (modality === "all" || template.modalities.includes(modality)),
+  );
+  const selectedAgents = roleTemplatesForSubject(selectedArea.name).filter(
+    (agent) => modality === "all" || agent.modalities.includes(modality),
+  );
   const SelectedAreaIcon = selectedArea.icon;
 
   const focusArea = (index: number) => {
@@ -280,7 +299,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
             <Cable size={16} aria-hidden="true" />
             <span>MCP</span>
           </button>
-          <button className="quiet-button welcome-help-button" onClick={() => setHelpOpen(true)} type="button">
+          <button aria-label="Intro & help" className="quiet-button welcome-help-button" onClick={() => setHelpOpen(true)} type="button">
             <CircleHelp size={16} aria-hidden="true" />
             <span>Intro &amp; help</span>
           </button>
@@ -388,6 +407,17 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
             </button>
           </div>
         </div>
+        <label className="modality-filter">
+          <span>Filter by modality</span>
+          <select value={modality} onChange={(event) => setModality(event.target.value as ModalityFilter)}>
+            <option value="all">All modalities</option>
+            {INPUT_CONTRACT_PRESETS.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <section aria-labelledby={`library-tab-${activeLibraryTab}`} className="workflow-tab-panel" id="library-panel" role="tabpanel">
           <div className="workflow-group-heading">
             <span aria-hidden="true">
@@ -425,6 +455,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
                   </strong>
                 </button>
               ))}
+              {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
             </div>
           ) : (
             <div className="template-grid tabbed-template-grid agent-template-grid">
@@ -455,6 +486,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
                   </strong>
                 </button>
               ))}
+              {selectedAgents.length === 0 && <p className="library-empty">No agents match this modality.</p>}
             </div>
           )}
 

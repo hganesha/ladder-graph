@@ -14,11 +14,10 @@ spec:
     cannot absorb it, because a rejected delivery costs more than a late one.
   capabilities:
     skills:
-      - delivery-qc
-      - specification-testing
-      - caption-and-accessibility-review
-      - timecode-fault-reporting
-      - accessibility-review
+      - release-engineering
+      - evaluation
+      - accessibility
+      - implementation
     tools:
       - read
       - test

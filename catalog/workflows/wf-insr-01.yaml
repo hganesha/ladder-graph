@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-read1
       kind: agent
+      templateRef: insr-01
       name: First independent determination
       summary: Independent read 1; produced without sight of the other reads.
       role: Adjuster establishing coverage, causation, and quantum from the evidence on file.
@@ -51,11 +52,10 @@ spec:
         because a denial that cannot name its policy provision and its evidence will not survive review.
       capabilities:
         skills:
-          - claims-adjudication
-          - coverage-determination
-          - causation-analysis
-          - quantum-documentation
-          - citation-verification
+          - domain-analysis
+          - decision-analysis
+          - quantitative-analysis
+          - evaluation
         tools:
           - read
           - search
@@ -78,6 +78,7 @@ spec:
           confidence: {}
     - id: n-read2
       kind: agent
+      templateRef: insr-05
       name: Wording and coverage determination
       summary: Independent read 2; produced without sight of the other reads.
       role: Wording specialist testing what a policy actually covers.
@@ -87,10 +88,9 @@ spec:
         is a priced exposure whether or not anyone has priced it.'
       capabilities:
         skills:
-          - policy-wording-analysis
-          - exclusion-and-condition-mapping
-          - ambiguity-identification
-          - endorsement-interaction
+          - compliance-review
+          - domain-analysis
+          - design-review
           - contract-analysis
         tools:
           - read
@@ -112,6 +112,7 @@ spec:
           confidence: {}
     - id: n-read3
       kind: agent
+      templateRef: insr-04
       name: Indicator review without prejudgment
       summary: Independent read 3; produced without sight of the other reads.
       role: Fraud analyst investigating indicators without prejudging the claimant.
@@ -122,10 +123,10 @@ spec:
         against the insurer.
       capabilities:
         skills:
-          - fraud-indicator-analysis
-          - document-anomaly-detection
-          - network-relationship-analysis
-          - evidence-standards
+          - application-security
+          - data-quality-analysis
+          - decision-analysis
+          - evidence-verification
           - de-identification
         tools:
           - read
@@ -167,6 +168,7 @@ spec:
             when: discordant
     - id: n-adjudicate
       kind: agent
+      templateRef: insr-03
       name: Resolve the discordant determination
       summary: Resolve the discordance on the record; the disagreement itself is evidence.
       role: Actuary testing reserves, pricing adequacy, and model assumptions.
@@ -176,10 +178,8 @@ spec:
         an acceptable answer, because selective range reporting is how deficiencies compound quietly.
       capabilities:
         skills:
-          - actuarial-review
-          - reserve-adequacy-testing
-          - assumption-sensitivity-analysis
-          - model-validation
+          - evaluation
+          - decision-analysis
           - statistical-analysis
         tools:
           - read

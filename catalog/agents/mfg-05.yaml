@@ -15,11 +15,10 @@ spec:
     formality.
   capabilities:
     skills:
-      - process-validation
-      - protocol-execution
-      - deviation-handling
-      - acceptance-criteria-discipline
-      - numeric-verification
+      - evaluation
+      - clinical-review
+      - domain-analysis
+      - product-management
     tools:
       - read
       - test

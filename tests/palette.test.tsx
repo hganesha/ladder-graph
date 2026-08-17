@@ -15,8 +15,8 @@ describe("agent template palette", () => {
   it("surfaces the expanded role count and researched specialists", () => {
     render(<Palette />);
 
-    expect(ROLE_TEMPLATES).toHaveLength(307);
-    expect(screen.getByText("307 agents")).toBeInTheDocument();
+    expect(ROLE_TEMPLATES).toHaveLength(359);
+    expect(screen.getByText("359 agents")).toBeInTheDocument();
     const macros = screen.getByLabelText("Visual macros");
     const primitives = screen.getByLabelText("Primitives");
     const agents = screen.getByLabelText("Agent templates");
@@ -68,6 +68,14 @@ describe("agent template palette", () => {
     expect(screen.getByLabelText("Security agent templates (1)")).toHaveAttribute("open");
   });
 
+  it("filters agent templates by modality", () => {
+    render(<Palette />);
+
+    fireEvent.change(screen.getByLabelText("Agent modality"), { target: { value: "video" } });
+    expect(screen.getByText(/Agent templates ·/)).not.toHaveTextContent(`Agent templates · ${ROLE_TEMPLATES.length}`);
+    expect(screen.getByText("Second-Reader Radiologist")).toBeInTheDocument();
+  });
+
   it("groups every role once and supports category-level search", () => {
     const groups = groupRoleTemplates(ROLE_TEMPLATES);
 
@@ -91,6 +99,14 @@ describe("agent template palette", () => {
       ["Creative & social", 30],
       ["Professional services", 18],
       ["Emerging", 18],
+      ["Legal & contracts", 7],
+      ["Clinical & health sciences", 8],
+      ["Data & analytics engineering", 6],
+      ["Education & assessment", 6],
+      ["Finance & risk", 7],
+      ["Journalism & verification", 4],
+      ["Public sector procurement & grants", 6],
+      ["Life sciences & GxP operations", 8],
     ]);
     expect(groups.flatMap((group) => group.roles)).toHaveLength(ROLE_TEMPLATES.length);
     expect(groupRoleTemplates(ROLE_TEMPLATES, "SWE").map(({ label, roles }) => [label, roles.length])).toEqual([["SWE", 26]]);

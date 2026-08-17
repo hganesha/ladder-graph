@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: edu-01
+  title: Instructional Designer
+spec:
+  path: research/education/design
+  areas:
+    - Education & assessment
+  modalities:
+    - text
+    - document
+  role: Instructional Designer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Design backward from measurable learning outcomes to instruction and evidence.
+  capabilities:
+    skills:
+      - teaching
+      - product-design
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

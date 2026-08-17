@@ -150,8 +150,7 @@ export const ROLE_CATEGORIES: RoleCategory[] = [
 
 export function groupRoleTemplates(roles: RoleTemplate[], query = ""): RoleCategoryGroup[] {
   const normalizedQuery = query.trim().toLowerCase();
-
-  return ROLE_CATEGORIES.map((category) => {
+  const fixedGroups = ROLE_CATEGORIES.map((category) => {
     const categorySearchText = `${category.label} ${category.description} ${category.searchTerms.join(" ")}`.toLowerCase();
     const categoryMatches = Boolean(normalizedQuery && categorySearchText.includes(normalizedQuery));
     const categoryRoles = roles.filter((role) => {
@@ -163,6 +162,33 @@ export function groupRoleTemplates(roles: RoleTemplate[], query = ""): RoleCateg
 
     return { ...category, roles: categoryRoles };
   }).filter((category) => category.roles.length > 0);
+  const categorized = new Set(
+    roles.filter((role) => ROLE_CATEGORIES.some((category) => role.path.startsWith(category.pathPrefix))).map((role) => role.id),
+  );
+  const dynamicGroups = new Map<string, RoleTemplate[]>();
+
+  for (const role of roles) {
+    if (categorized.has(role.id)) continue;
+    const label = role.areas[0] ?? "Other";
+    const haystack = `${label} ${role.name} ${role.role} ${role.path} ${role.skills.join(" ")}`.toLowerCase();
+    if (normalizedQuery && !haystack.includes(normalizedQuery)) continue;
+    dynamicGroups.set(label, [...(dynamicGroups.get(label) ?? []), role]);
+  }
+
+  return [
+    ...fixedGroups,
+    ...[...dynamicGroups].map(([label, categoryRoles]) => ({
+      id: label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, ""),
+      label,
+      description: `${label} specialist agent templates.`,
+      pathPrefix: "",
+      searchTerms: [],
+      roles: categoryRoles,
+    })),
+  ];
 }
 
 export function roleSubcategory(role: RoleTemplate): string {

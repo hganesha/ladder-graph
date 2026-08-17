@@ -19,11 +19,10 @@ spec:
     produces a confidently wrong "optimal" answer to the wrong problem.
   capabilities:
     skills:
-      - natural-language-to-model-elicitation-prompts
-      - problem-class-classification-checklist
-      - constraint-objective-formalization-templating
-      - latex-math-notation-rendering
-      - optimization-modeling
+      - evidence-verification
+      - domain-analysis
+      - quantitative-analysis
+      - optimization
     tools:
       - read
       - calculate

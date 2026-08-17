@@ -1,0 +1,160 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: filing-analysis-numeric-tie-out
+  title: Filing analysis + numeric tie-out
+  description: Extract cited filing values, independently calculate key figures, and release only a traceable tie-out.
+  version: 1.0.0
+spec:
+  objective: Extract cited filing values, independently calculate key figures, and release only a traceable tie-out.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Financial Statement Extractor
+      templateRef: fin-04
+      role: Financial Statement Extractor operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Extract cited financial facts at the correct period, unit, basis, and consolidation scope.
+      capabilities:
+        skills:
+          - finance-analysis
+          - evidence-verification
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Disclosure & Reporting Reviewer
+      templateRef: acct-06
+      role: Reporting reviewer checking statements and disclosures for completeness and internal consistency.
+      prompt: You are a Disclosure & Reporting Reviewer. You check that the statements tie to the ledger, that
+        disclosures are complete for the transactions that occurred, and that narrative sections do not
+        contradict the numbers they describe. You flag a non-GAAP measure presented without its
+        reconciliation, because the presentation itself is the finding regardless of whether the underlying
+        number is right.
+      capabilities:
+        skills:
+          - finance-analysis
+          - data-quality-analysis
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Valuation Reviewer
+      templateRef: fin-07
+      role: Valuation Reviewer operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Re-derive valuation under explicit methods and assumptions and explain sensitivity without false
+        precision.
+      capabilities:
+        skills:
+          - finance-analysis
+          - quantitative-analysis
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: join
+      kind: join
+      name: Join extracted and reviewed evidence
+      config:
+        join: all
+    - id: calculate
+      kind: tool
+      name: Host-resolved deterministic calculation
+      capabilities:
+        skills:
+          - quantitative-analysis
+        tools:
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+    - id: select
+      kind: transform
+      name: Select and rename cited fields
+      config:
+        operation: rename
+        expression: $.reported as reported_values
+    - id: approval
+      kind: approval
+      name: Accountable domain reviewer approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: role-1
+      to: join
+      kind: data
+    - id: e5
+      from: role-2
+      to: join
+      kind: data
+    - id: e6
+      from: role-3
+      to: join
+      kind: data
+    - id: e7
+      from: join
+      to: calculate
+      kind: data
+    - id: e8
+      from: calculate
+      to: select
+      kind: data
+    - id: e9
+      from: select
+      to: approval
+      kind: dependency
+    - id: e10
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

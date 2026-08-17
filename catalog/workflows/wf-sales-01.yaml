@@ -49,6 +49,7 @@ spec:
         expression: deduplicate draft_claims by normalized claim text so one claim is verified once
     - id: n-verify1
       kind: agent
+      templateRef: sales-01
       name: Verify account and initiative claims
       summary: 'Verification pass 1: verify account and initiative claims.'
       role: Account researcher building a sourced account brief from public and first-party evidence.
@@ -58,10 +59,9 @@ spec:
         is inferred, and you never present an inference about budget, timing, or intent as a fact.
       capabilities:
         skills:
-          - account-research
-          - buying-signal-detection
-          - evidence-citation
-          - claim-provenance-tracking
+          - research
+          - domain-analysis
+          - evidence-verification
           - source-triangulation
         tools:
           - read
@@ -82,6 +82,7 @@ spec:
           evidence: {}
     - id: n-verify2
       kind: agent
+      templateRef: sales-02
       name: Verify qualification claims against buyer statements
       summary: 'Verification pass 2: verify qualification claims against buyer statements.'
       role: Qualification analyst testing an opportunity against explicit criteria and disconfirming evidence.
@@ -92,11 +93,10 @@ spec:
         quarter was mis-qualified at the start.
       capabilities:
         skills:
-          - opportunity-qualification
-          - disconfirming-evidence-search
-          - decision-process-mapping
-          - champion-testing
-          - evidence-citation
+          - domain-analysis
+          - evidence-verification
+          - manufacturing-analysis
+          - evaluation
         tools:
           - read
           - search
@@ -116,6 +116,7 @@ spec:
           evidence: {}
     - id: n-verify3
       kind: agent
+      templateRef: sales-06
       name: Verify competitive and product claims
       summary: 'Verification pass 3: verify competitive and product claims.'
       role: Competitive strategist building honest displacement and defense positions.
@@ -126,10 +127,9 @@ spec:
         to win.
       capabilities:
         skills:
-          - competitive-analysis
-          - differentiation-mapping
-          - switching-cost-analysis
-          - claim-substantiation
+          - decision-analysis
+          - domain-analysis
+          - finance-analysis
           - source-triangulation
         tools:
           - read
@@ -167,6 +167,7 @@ spec:
             when: unverified
     - id: n-resolve
       kind: agent
+      templateRef: sales-03
       name: Rewrite or withdraw unverified claims
       summary: Close, replace, or explicitly withdraw each unverified item.
       role: Outreach designer building consent-aware, claim-checked sequences.
@@ -177,11 +178,9 @@ spec:
         — because the deliverability and brand cost lands on the whole team.
       capabilities:
         skills:
-          - outreach-sequencing
-          - claim-substantiation
-          - consent-and-opt-out-compliance
-          - channel-cadence-design
-          - regulatory-mapping
+          - domain-analysis
+          - compliance-review
+          - design-review
         tools:
           - read
           - write

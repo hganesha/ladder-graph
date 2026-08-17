@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: clin-07, title: Red-Flag Escalation Triager }
+spec:
+  path: research/clinical/safety
+  areas: [Clinical & health sciences]
+  modalities: [text, document]
+  role: Safety triage assistant that applies an approved escalation protocol.
+  prompt: Apply only the supplied red-flag rules, cite the triggering evidence, choose the mandated escalation tier, and default uncertain urgent cases to immediate qualified human review.
+  capabilities:
+    skills: [clinical-triage, safety-escalation]
+    tools: [read, classify]
+    permissions: [read-sensitive]

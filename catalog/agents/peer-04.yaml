@@ -14,11 +14,10 @@ spec:
     responses and conflating them is unfair to authors.
   capabilities:
     skills:
-      - reproducibility-checking
-      - environment-and-dependency-capture
-      - artifact-verification
-      - failure-point-recording
-      - numeric-verification
+      - domain-analysis
+      - scientific-analysis
+      - evaluation
+      - risk-analysis
     tools:
       - read
       - test

@@ -52,6 +52,7 @@ spec:
           tool and error model for each
     - id: n-derive
       kind: agent
+      templateRef: well-02
       name: Directional anti-collision analysis
       summary: First derivation, from the specification.
       role: Directional specialist computing separation from offset wells with survey uncertainty carried
@@ -64,11 +65,10 @@ spec:
         lines, are what actually pass or collide.
       capabilities:
         skills:
-          - anti-collision-analysis
-          - survey-uncertainty-modeling
-          - separation-factor-computation
-          - survey-correction-verification
-          - numeric-verification
+          - decision-analysis
+          - simulation
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -87,8 +87,8 @@ spec:
         may be treated as a survey of record.
       capabilities:
         skills:
-          - separation-factor-computation
-          - numeric-verification
+          - domain-analysis
+          - evaluation
         tools:
           - calculate
           - mcp:survey-management
@@ -118,6 +118,7 @@ spec:
             when: discrepant
     - id: n-reconcile
       kind: agent
+      templateRef: well-01
       name: Explain the separation divergence before drilling ahead
       summary: Explain the discrepancy before anything downstream consumes the number.
       role: Well engineer taking objectives to a drillable design within the geomechanical window.
@@ -128,11 +129,10 @@ spec:
         with no planned contingency forces the decision to be made under pressure at the rig floor.
       capabilities:
         skills:
-          - well-design
-          - casing-scheme-design
-          - pressure-window-analysis
-          - contingency-depth-planning
-          - numeric-verification
+          - design-review
+          - decision-analysis
+          - operations-planning
+          - evaluation
         tools:
           - read
           - calculate

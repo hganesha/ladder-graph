@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-classify
       kind: agent
+      templateRef: insr-04
       name: Score alerts on evidenced indicators
       summary: Score and label every incoming item before anything is queued.
       role: Fraud analyst investigating indicators without prejudging the claimant.
@@ -52,10 +53,10 @@ spec:
         against the insurer.
       capabilities:
         skills:
-          - fraud-indicator-analysis
-          - document-anomaly-detection
-          - network-relationship-analysis
-          - evidence-standards
+          - application-security
+          - data-quality-analysis
+          - decision-analysis
+          - evidence-verification
           - de-identification
         tools:
           - read
@@ -115,6 +116,7 @@ spec:
             when: default
     - id: n-escalate
       kind: agent
+      templateRef: insr-04
       name: Full investigation of the strongest alerts
       summary: Escalation path for the top band.
       role: Fraud analyst investigating indicators without prejudging the claimant.
@@ -125,10 +127,10 @@ spec:
         against the insurer.
       capabilities:
         skills:
-          - fraud-indicator-analysis
-          - document-anomaly-detection
-          - network-relationship-analysis
-          - evidence-standards
+          - application-security
+          - data-quality-analysis
+          - decision-analysis
+          - evidence-verification
           - de-identification
         tools:
           - read
@@ -142,6 +144,7 @@ spec:
         type: object
     - id: n-handle
       kind: agent
+      templateRef: insr-01
       name: Standard adjustment with documented findings
       summary: Standard resolution path.
       role: Adjuster establishing coverage, causation, and quantum from the evidence on file.
@@ -151,11 +154,10 @@ spec:
         because a denial that cannot name its policy provision and its evidence will not survive review.
       capabilities:
         skills:
-          - claims-adjudication
-          - coverage-determination
-          - causation-analysis
-          - quantum-documentation
-          - citation-verification
+          - domain-analysis
+          - decision-analysis
+          - quantitative-analysis
+          - evaluation
         tools:
           - read
           - search

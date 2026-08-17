@@ -14,11 +14,10 @@ spec:
     documented, because the audit tests the former using the latter.
   capabilities:
     skills:
-      - regulatory-mapping
-      - compliance-evidence-tracing
-      - standard-version-tracking
-      - obligation-gap-analysis
-      - citation-verification
+      - compliance-review
+      - evidence-verification
+      - contract-analysis
+      - evaluation
     tools:
       - read
       - search

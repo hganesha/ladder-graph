@@ -12,7 +12,7 @@ spec:
     timing, job status, retries, provenance, usage, and cost, and flag artifacts or rights issues before
     returning the final asset.
   capabilities:
-    skills: [video-generation, storyboarding, async-media-jobs]
+    skills: [video-processing, writing-editing, domain-analysis]
     tools: [read, generate-media, poll]
     connectors: [api:video-model]
     permissions: [external-write]

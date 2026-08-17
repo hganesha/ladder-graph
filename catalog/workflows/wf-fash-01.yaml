@@ -49,6 +49,7 @@ spec:
         expression: select the line items and the attributes each reviewer takes a position on
     - id: n-position1
       kind: agent
+      templateRef: fash-01
       name: Trend position with evidence
       summary: 'Independent position 1: trend position with evidence.'
       role: Trend analyst separating durable signal from momentary noise.
@@ -58,10 +59,10 @@ spec:
         because acting on the second commits real inventory to a bubble.
       capabilities:
         skills:
-          - trend-analysis
-          - signal-provenance-tracking
-          - adoption-stage-assessment
-          - platform-artifact-discrimination
+          - decision-analysis
+          - evidence-verification
+          - teaching
+          - domain-analysis
           - source-triangulation
         tools:
           - read
@@ -74,6 +75,7 @@ spec:
         type: object
     - id: n-position2
       kind: agent
+      templateRef: fash-02
       name: Materials and sustainability position
       summary: 'Independent position 2: materials and sustainability position.'
       role: Materials specialist assessing fibre, finish, and end-of-life impact with evidence.
@@ -84,11 +86,10 @@ spec:
         made on fiction.
       capabilities:
         skills:
-          - materials-assessment
-          - life-cycle-analysis
-          - claim-substantiation
-          - system-boundary-declaration
-          - regulatory-mapping
+          - teaching
+          - decision-analysis
+          - domain-analysis
+          - compliance-review
         tools:
           - read
           - search
@@ -100,6 +101,7 @@ spec:
         type: object
     - id: n-position3
       kind: agent
+      templateRef: fash-05
       name: Commercial and markdown-risk position
       summary: 'Independent position 3: commercial and markdown-risk position.'
       role: Planner building assortment, buy, and markdown plans against real demand.
@@ -109,10 +111,10 @@ spec:
         markdown that clears an over-buy is the largest controllable margin loss in the business.
       capabilities:
         skills:
-          - assortment-planning
-          - buy-quantity-modeling
-          - markdown-risk-analysis
-          - size-curve-analysis
+          - operations-planning
+          - quantitative-analysis
+          - risk-analysis
+          - decision-analysis
           - statistical-analysis
         tools:
           - read
@@ -144,6 +146,7 @@ spec:
             when: collisions
     - id: n-resolve
       kind: agent
+      templateRef: fash-04
       name: Resolve conflicts into one line direction
       summary: Work each collision to a recommended position with a stated fallback.
       role: Sourcing analyst matching product requirements to capable, verified suppliers.
@@ -153,11 +156,10 @@ spec:
         age is where most supply-chain assurance quietly fails.
       capabilities:
         skills:
-          - supplier-capability-matching
-          - audit-currency-verification
-          - capacity-assessment
-          - lead-time-modeling
-          - supplier-risk-assessment
+          - supply-chain-analysis
+          - evaluation
+          - teaching
+          - simulation
         tools:
           - read
           - search

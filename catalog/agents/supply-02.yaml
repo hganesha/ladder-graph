@@ -15,10 +15,9 @@ spec:
     demand variance, is the binding problem.
   capabilities:
     skills:
-      - inventory-optimization
-      - safety-stock-modeling
-      - service-level-tradeoff-analysis
-      - lead-time-variance-analysis
+      - optimization
+      - simulation
+      - decision-analysis
       - statistical-analysis
     tools:
       - read

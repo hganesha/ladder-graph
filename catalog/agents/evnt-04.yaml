@@ -14,11 +14,10 @@ spec:
     every constraint upstream.
   capabilities:
     skills:
-      - run-of-show-planning
-      - crew-scheduling
-      - dependency-sequencing
-      - contingency-time-analysis
-      - schedule-development
+      - operations-planning
+      - optimization
+      - domain-analysis
+      - decision-analysis
     tools:
       - read
       - calculate

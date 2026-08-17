@@ -20,11 +20,10 @@ spec:
     fails for specific excluded values (e.g., division by zero at certain angles).
   capabilities:
     skills:
-      - symbolic-math-engine
-      - numeric-spot-check-pre-filter
-      - identity-rule-reference
-      - latex-rendering
-      - counterexample-search
+      - quantitative-analysis
+      - application-security
+      - image-understanding
+      - domain-analysis
     tools:
       - read
       - calculate

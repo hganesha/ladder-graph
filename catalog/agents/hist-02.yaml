@@ -13,8 +13,8 @@ spec:
     supports.
   capabilities:
     skills:
-      - narrative-history
-      - source-criticism
+      - writing-editing
+      - evidence-verification
     tools:
       - read
       - search

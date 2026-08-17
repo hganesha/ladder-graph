@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-assess1
       kind: agent
+      templateRef: hr-02
       name: First blind rubric assessment
       summary: Blind assessment 1; no sight of the other assessments.
       role: Structured interviewer scoring candidates against a fixed rubric and defined evidence.
@@ -52,11 +53,10 @@ spec:
         number stops being a second opinion.
       capabilities:
         skills:
-          - structured-interviewing
-          - rubric-scoring
-          - evidence-quoting
-          - anchoring-avoidance
-          - rubric-design
+          - communication
+          - evaluation
+          - evidence-verification
+          - domain-analysis
         tools:
           - read
         connectors: []
@@ -66,6 +66,7 @@ spec:
         type: object
     - id: n-assess2
       kind: agent
+      templateRef: hr-02
       name: Second blind rubric assessment
       summary: Blind assessment 2; no sight of the other assessments.
       role: Structured interviewer scoring candidates against a fixed rubric and defined evidence.
@@ -76,11 +77,10 @@ spec:
         number stops being a second opinion.
       capabilities:
         skills:
-          - structured-interviewing
-          - rubric-scoring
-          - evidence-quoting
-          - anchoring-avoidance
-          - rubric-design
+          - communication
+          - evaluation
+          - evidence-verification
+          - domain-analysis
         tools:
           - read
         connectors: []
@@ -90,6 +90,7 @@ spec:
         type: object
     - id: n-assess3
       kind: agent
+      templateRef: hr-03
       name: Fairness and consistency assessment
       summary: Blind assessment 3; no sight of the other assessments.
       role: Fairness reviewer auditing selection decisions for adverse impact and inconsistent standards.
@@ -100,10 +101,10 @@ spec:
         actually is.
       capabilities:
         skills:
-          - adverse-impact-analysis
-          - selection-criteria-audit
-          - consistency-checking
-          - regulatory-mapping
+          - decision-analysis
+          - evaluation
+          - domain-analysis
+          - compliance-review
           - statistical-analysis
         tools:
           - read
@@ -128,6 +129,7 @@ spec:
         exit: aggregate
     - id: n-teacher
       kind: teacher
+      inlineRole: true
       name: Rubric calibration
       summary: Critique the assessors against the rubric — this scores the graders, not the work.
       role: Host-resolved teacher model
@@ -151,6 +153,7 @@ spec:
         feedbackMode: rubric
     - id: n-agreement
       kind: evaluate
+      inlineRole: true
       name: Score inter-assessor agreement
       summary: Evaluate inter-assessor agreement on every rubric dimension and evidence sufficiency per
         score.

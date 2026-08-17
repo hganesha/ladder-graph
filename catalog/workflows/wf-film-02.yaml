@@ -49,6 +49,7 @@ spec:
         expression: select the sequences to assemble, in reel order
     - id: n-segment1
       kind: agent
+      templateRef: film-02
       name: Picture segments and structure
       summary: 'Segment 1: picture segments and structure.'
       role: Editor working structure, pacing, and clarity in the cut.
@@ -58,11 +59,10 @@ spec:
         because trimming a scene that is structurally necessary makes the cut faster and worse.
       capabilities:
         skills:
-          - editorial-analysis
-          - structure-and-pacing-assessment
-          - information-flow-checking
-          - coverage-gap-analysis
-          - storytelling
+          - writing-editing
+          - teaching
+          - domain-analysis
+          - decision-analysis
         tools:
           - read
         connectors:
@@ -73,6 +73,7 @@ spec:
         type: object
     - id: n-segment2
       kind: agent
+      templateRef: film-05
       name: Sound design and dialogue pass
       summary: 'Segment 2: sound design and dialogue pass.'
       role: Sound lead building design, dialogue clarity, and compliant mixes.
@@ -82,11 +83,11 @@ spec:
         a phone speaker, because that is where most of the audience will meet it.
       capabilities:
         skills:
-          - sound-design
-          - dialogue-intelligibility-protection
-          - loudness-compliance
-          - playback-target-testing
-          - post-pipeline-design
+          - audio-processing
+          - domain-analysis
+          - compliance-review
+          - evaluation
+          - data-engineering
         tools:
           - read
         connectors: []
@@ -96,6 +97,7 @@ spec:
         type: object
     - id: n-segment3
       kind: agent
+      templateRef: film-04
       name: Look and finishing pass
       summary: 'Segment 3: look and finishing pass.'
       role: Colourist working look, consistency, and deliverable compliance.
@@ -105,11 +107,11 @@ spec:
         than shipping it and waiting for QC to catch it.
       capabilities:
         skills:
-          - colour-grading
-          - shot-continuity-management
-          - delivery-spec-compliance
-          - display-target-checking
-          - post-pipeline-design
+          - video-processing
+          - design-review
+          - release-engineering
+          - domain-analysis
+          - data-engineering
         tools:
           - read
         connectors: []
@@ -125,6 +127,7 @@ spec:
         aggregation: concat
     - id: n-critique
       kind: teacher
+      inlineRole: true
       name: Teacher critique of the assembled draft
       summary: Critique feedback from a host-resolved teacher model.
       role: Host-resolved teacher model
@@ -147,6 +150,7 @@ spec:
         feedbackMode: critique
     - id: n-quality
       kind: evaluate
+      inlineRole: true
       name: Score the assembled result
       summary: Evaluate narrative clarity, technical consistency across segments, and runtime against
         target.
@@ -194,6 +198,7 @@ spec:
             when: 'false'
     - id: n-revise
       kind: agent
+      templateRef: film-01
       name: Address the notes on the weakest segments
       summary: Apply the teacher critique to the weakest segments.
       role: Post supervisor designing conform, review, and delivery pipelines that hold up under change.
@@ -204,11 +209,10 @@ spec:
         into a negotiation.
       capabilities:
         skills:
-          - post-pipeline-design
-          - conform-and-versioning
-          - colour-pipeline-specification
-          - delivery-spec-compliance
-          - failure-mode-analysis
+          - data-engineering
+          - domain-analysis
+          - release-engineering
+          - risk-analysis
         tools:
           - read
           - write

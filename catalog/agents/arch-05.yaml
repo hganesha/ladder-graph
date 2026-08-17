@@ -13,8 +13,8 @@ spec:
     approval for life-safety decisions.
   capabilities:
     skills:
-      - fire-protection
-      - code-compliance
+      - domain-analysis
+      - implementation
     tools:
       - read
       - test

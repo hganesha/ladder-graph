@@ -5,7 +5,7 @@
       "id": "refinement",
       "path": "core/refinement",
       "area": "Core patterns",
-      "title": "Draft \u2192 critique \u2192 revise",
+      "title": "Draft → critique → revise",
       "eyebrow": "Bounded refinement",
       "description": "Create a complete draft, challenge it independently, and revise without an open-ended loop.",
       "topology": "Chain + structured loop",
@@ -27,7 +27,7 @@
       "id": "full-stack-delivery",
       "path": "core/software",
       "area": "Software engineering",
-      "title": "Full-stack app \u2192 production",
+      "title": "Full-stack app → production",
       "eyebrow": "End-to-end delivery",
       "description": "Design and architect the app, define evaluation gates, build in parallel, verify, approve, and deploy.",
       "topology": "Phased pipeline + gates",
@@ -170,7 +170,7 @@
       "id": "image-text-extraction",
       "path": "research/multimodal/understanding",
       "area": "Multimodal",
-      "title": "Image \u2192 structured text",
+      "title": "Image → structured text",
       "eyebrow": "OCR + vision",
       "description": "Accept a host-provided image, extract text and layout with confidence, and gate the result against the source.",
       "topology": "Vision pipeline + fidelity gate",
@@ -181,7 +181,7 @@
       "id": "reference-image-transformation",
       "path": "research/multimodal/image-editing",
       "area": "Multimodal",
-      "title": "Reference image \u2192 new image",
+      "title": "Reference image → new image",
       "eyebrow": "Image-to-image",
       "description": "Accept a reference image, approve edits and invariants, generate a derivative, and review fidelity and safety.",
       "topology": "Approval + transformation gate",
@@ -225,7 +225,7 @@
       "id": "values-to-action",
       "path": "research/personal-development/goals",
       "area": "Personal development",
-      "title": "Values \u2192 sustainable action system",
+      "title": "Values → sustainable action system",
       "eyebrow": "Direction to practice",
       "description": "Reconcile values and behavior design into a small, realistic action system with humane review and adjustment.",
       "topology": "Alignment join + safety gate",
@@ -326,7 +326,7 @@
       "area": "Supply chain & logistics",
       "title": "Demand forecast + independent tie-out",
       "eyebrow": "Numeric discipline",
-      "description": "Derive the demand plan twice \u2014 once by judgment, once by a declared statistical engine \u2014 and gate the planning number on the two agreeing.",
+      "description": "Derive the demand plan twice — once by judgment, once by a declared statistical engine — and gate the planning number on the two agreeing.",
       "topology": "Dual derivation + tie-out",
       "accent": "#5aa9e6",
       "file": "workflows/wf-supply-01.yaml"
@@ -348,7 +348,7 @@
       "area": "HR & talent operations",
       "title": "Blind screening panel + rubric calibration",
       "eyebrow": "Calibrated judgment",
-      "description": "Score every candidate blind against the same rubric, then let a teacher model critique the assessors \u2014 not the candidates \u2014 until the panel is calibrated.",
+      "description": "Score every candidate blind against the same rubric, then let a teacher model critique the assessors — not the candidates — until the panel is calibrated.",
       "topology": "Blind panel + teacher loop",
       "accent": "#5aa9e6",
       "file": "workflows/wf-hr-01.yaml"
@@ -357,7 +357,7 @@
       "id": "wf-hr-02",
       "path": "research/operations/talent/wf-hr-02",
       "area": "HR & talent operations",
-      "title": "Role opening \u2192 ramped hire",
+      "title": "Role opening → ramped hire",
       "eyebrow": "Staged program",
       "description": "Run capacity justification, sourcing, and onboarding design as one ordered pipeline, focusing the ramp-plan phase where the real design work happens.",
       "topology": "Sequential group + subgraph",
@@ -390,7 +390,7 @@
       "id": "wf-cs-01",
       "path": "research/operations/support/wf-cs-01",
       "area": "Customer success & support",
-      "title": "Ticket triage \u2192 resolution or escalation",
+      "title": "Ticket triage → resolution or escalation",
       "eyebrow": "Scored queue",
       "description": "Classify inbound tickets, filter and rank them by measured impact, cut a queue that fits the shift, and route the top band to a named escalation owner.",
       "topology": "Scored queue + routing",
@@ -414,7 +414,7 @@
       "area": "Marketing & growth",
       "title": "Experiment readout + statistical tie-out",
       "eyebrow": "Numeric discipline",
-      "description": "Read out an A/B test twice \u2014 analyst judgment against a declared statistics engine \u2014 and gate the claimed lift on the two agreeing.",
+      "description": "Read out an A/B test twice — analyst judgment against a declared statistics engine — and gate the claimed lift on the two agreeing.",
       "topology": "Dual derivation + tie-out",
       "accent": "#5aa9e6",
       "file": "workflows/wf-mkt-01.yaml"
@@ -480,7 +480,7 @@
       "area": "Energy & utilities",
       "title": "Renewable forecast + reserve tie-out",
       "eyebrow": "Numeric discipline",
-      "description": "Derive the generation outlook twice \u2014 forecaster judgment against a declared numerical weather-to-power run \u2014 and gate the reserve decision on the two agreeing.",
+      "description": "Derive the generation outlook twice — forecaster judgment against a declared numerical weather-to-power run — and gate the reserve decision on the two agreeing.",
       "topology": "Dual derivation + tie-out",
       "accent": "#e8a05a",
       "file": "workflows/wf-enrg-01.yaml"
@@ -524,7 +524,7 @@
       "area": "Real estate & construction",
       "title": "Valuation + independent re-derivation",
       "eyebrow": "Numeric discipline",
-      "description": "Derive the value twice \u2014 appraiser reasoning against a declared valuation model run \u2014 and gate the reported value on the two agreeing within tolerance.",
+      "description": "Derive the value twice — appraiser reasoning against a declared valuation model run — and gate the reported value on the two agreeing within tolerance.",
       "topology": "Dual derivation + tie-out",
       "accent": "#e8a05a",
       "file": "workflows/wf-rec-01.yaml"
@@ -544,7 +544,7 @@
       "id": "wf-agri-01",
       "path": "research/industry/agriculture/wf-agri-01",
       "area": "Agriculture & food systems",
-      "title": "Field signal \u2192 prescription with scored review",
+      "title": "Field signal → prescription with scored review",
       "eyebrow": "Normalize + scored gate",
       "description": "Normalize mixed field data onto one canonical vocabulary, build the prescription, and gate machine release on a scored teacher review.",
       "topology": "Normalize + scored gate",
@@ -568,7 +568,7 @@
       "area": "Chemistry & materials science",
       "title": "Property prediction + computational run",
       "eyebrow": "Model vs simulation",
-      "description": "Set a chemist's structure\u2013property reasoning against a declared computational run, merge the two, and loop on assumptions until they agree.",
+      "description": "Set a chemist's structure–property reasoning against a declared computational run, merge the two, and loop on assumptions until they agree.",
       "topology": "Tool run + bounded loop",
       "accent": "#5ec9a8",
       "file": "workflows/wf-chem-01.yaml"
@@ -577,7 +577,7 @@
       "id": "wf-chem-02",
       "path": "research/applied-science/chemistry/wf-chem-02",
       "area": "Chemistry & materials science",
-      "title": "Synthesis route \u2192 reviewed protocol",
+      "title": "Synthesis route → reviewed protocol",
       "eyebrow": "Staged qualification",
       "description": "Run route planning, characterization strategy, and experimental design in order, then focus the scale and hazard review phase before any protocol is approved.",
       "topology": "Sequential group + subgraph",
@@ -612,7 +612,7 @@
       "area": "Environmental & climate science",
       "title": "Emissions inventory + independent tie-out",
       "eyebrow": "Numeric discipline",
-      "description": "Derive the inventory twice \u2014 analyst build against a declared calculation engine \u2014 and gate the reported total on the two agreeing.",
+      "description": "Derive the inventory twice — analyst build against a declared calculation engine — and gate the reported total on the two agreeing.",
       "topology": "Dual derivation + tie-out",
       "accent": "#5ec9a8",
       "file": "workflows/wf-envr-01.yaml"
@@ -698,7 +698,7 @@
       "id": "wf-film-01",
       "path": "research/creative/film/wf-film-01",
       "area": "Film, video & post-production",
-      "title": "Cut \u2192 delivery pipeline",
+      "title": "Cut → delivery pipeline",
       "eyebrow": "Staged pipeline",
       "description": "Run editorial, VFX scoping, and colour as one ordered sequence, then focus the finishing and QC phase where delivery compliance is actually decided.",
       "topology": "Sequential group + subgraph",
@@ -819,7 +819,7 @@
       "id": "wf-evnt-02",
       "path": "research/professional/events/wf-evnt-02",
       "area": "Event planning & hospitality",
-      "title": "Brief \u2192 run of show",
+      "title": "Brief → run of show",
       "eyebrow": "Staged pipeline",
       "description": "Run experience design, production scheduling, and budget control in order, then focus the safety and contingency phase where stop authority is actually decided.",
       "topology": "Sequential group + subgraph",
@@ -841,7 +841,7 @@
       "id": "wf-qac-02",
       "path": "research/professional/compliance/wf-qac-02",
       "area": "Quality assurance & compliance",
-      "title": "Regulatory change \u2192 verified obligations",
+      "title": "Regulatory change → verified obligations",
       "eyebrow": "Verification fan-out",
       "description": "Deduplicate extracted obligations, verify each against the source text, an existing control, and evidence that the control operates, and block sign-off while any is open.",
       "topology": "Verification fan-out + collect",
@@ -852,7 +852,7 @@
       "id": "wf-sre-01",
       "path": "research/software/reliability/wf-sre-01",
       "area": "DevOps & site reliability",
-      "title": "Alert triage \u2192 incident response",
+      "title": "Alert triage → incident response",
       "eyebrow": "Scored queue",
       "description": "Score alerts by user-visible impact, drop the ones no action follows from, and route the severe band to incident command with an explicit authorization gate.",
       "topology": "Scored queue + routing",
@@ -918,7 +918,7 @@
       "id": "wf-crisis-01",
       "path": "research/emerging/crisis/wf-crisis-01",
       "area": "Crisis & emergency management",
-      "title": "Incident intake \u2192 dispatch with coverage gate",
+      "title": "Incident intake → dispatch with coverage gate",
       "eyebrow": "Scored queue",
       "description": "Score simultaneous incidents by severity and capability required, cut the queue to available units, and route the top band through an explicit coverage decision.",
       "topology": "Scored queue + routing",
@@ -1023,6 +1023,347 @@
       "topology": "Go / hold / no-go + contingency",
       "accent": "#c9762f",
       "file": "workflows/wf-well-04.yaml"
+    },
+    {
+      "id": "wf-legal-01",
+      "path": "research/legal/contracts/wf-legal-01",
+      "area": "Legal & contracts",
+      "title": "Contract review + redline negotiation",
+      "eyebrow": "Playbook collision review",
+      "description": "Review an agreement against a supplied playbook, merge clause positions, and require counsel approval.",
+      "topology": "Parallel review + merge",
+      "accent": "#b88aef",
+      "file": "workflows/wf-legal-01.yaml"
+    },
+    {
+      "id": "wf-legal-02",
+      "path": "research/legal/discovery/wf-legal-02",
+      "area": "Legal & contracts",
+      "title": "Discovery triage + privilege log",
+      "eyebrow": "Partial completion",
+      "description": "Triage records and privilege-review completed branches while preserving failed-source envelopes.",
+      "topology": "Parallel review + allSettled",
+      "accent": "#b88aef",
+      "file": "workflows/wf-legal-02.yaml"
+    },
+    {
+      "id": "wf-legal-03",
+      "path": "research/legal/regulatory/wf-legal-03",
+      "area": "Legal & contracts",
+      "title": "Regulatory change → obligation register",
+      "eyebrow": "Cited obligations",
+      "description": "Extract cited obligations, collect control impacts, and block release when ownership is missing.",
+      "topology": "Collect + blocking gate",
+      "accent": "#b88aef",
+      "file": "workflows/wf-legal-03.yaml"
+    },
+    {
+      "id": "wf-clin-01",
+      "path": "research/clinical/imaging/wf-clin-01",
+      "area": "Clinical & health sciences",
+      "title": "Imaging second read + discordance",
+      "eyebrow": "Image + video contract",
+      "description": "Blindly review still images and cine video, preserve disagreement, and require clinician adjudication.",
+      "topology": "Blind dual read + vote",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-01.yaml"
+    },
+    {
+      "id": "wf-clin-02",
+      "path": "research/clinical/evidence/wf-clin-02",
+      "area": "Clinical & health sciences",
+      "title": "PRISMA screening + conflict resolution",
+      "eyebrow": "Protocol screening",
+      "description": "Deduplicate studies, screen independently, score agreement, and warn when bounded reconciliation is exhausted.",
+      "topology": "Deduplicate + vote + loop",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-02.yaml"
+    },
+    {
+      "id": "wf-clin-03",
+      "path": "research/clinical/reasoning/wf-clin-03",
+      "area": "Clinical & health sciences",
+      "title": "Differential + red-flag escalation",
+      "eyebrow": "Safety escalation",
+      "description": "Structure supplied evidence, rank bounded alternatives, and route urgent red flags to qualified review.",
+      "topology": "Rank + escalation branch",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-03.yaml"
+    },
+    {
+      "id": "wf-data-01",
+      "path": "research/data/governance/wf-data-01",
+      "area": "Data & analytics engineering",
+      "title": "Metric definition + re-derivation",
+      "eyebrow": "Semantic tie-out",
+      "description": "Define a governed metric, re-derive it through an explicit tool requirement, and reconcile results.",
+      "topology": "Definition + tool tie-out",
+      "accent": "#5e9fdf",
+      "file": "workflows/wf-data-01.yaml"
+    },
+    {
+      "id": "wf-data-02",
+      "path": "research/data/platform/wf-data-02",
+      "area": "Data & analytics engineering",
+      "title": "Pipeline change impact + staged migration",
+      "eyebrow": "Degraded migration",
+      "description": "Trace impact branches, preserve failed checks, and continue in a declared degraded mode when checks are exhausted.",
+      "topology": "allSettled + continue loop",
+      "accent": "#5e9fdf",
+      "file": "workflows/wf-data-02.yaml"
+    },
+    {
+      "id": "wf-edu-01",
+      "path": "education-assessment/wf-edu-01",
+      "area": "Education & assessment",
+      "title": "Backward-designed curriculum unit",
+      "eyebrow": "Expansion roadmap",
+      "description": "Design a standards-aligned unit through a serialized phase and reusable review subgraph.",
+      "topology": "Program composition",
+      "accent": "#d6a84f",
+      "file": "workflows/wf-edu-01.yaml"
+    },
+    {
+      "id": "wf-edu-02",
+      "path": "education-assessment/wf-edu-02",
+      "area": "Education & assessment",
+      "title": "Item bank generation + bias review",
+      "eyebrow": "Expansion roadmap",
+      "description": "Generate assessment items in parallel and score them against alignment, accessibility, and bias criteria.",
+      "topology": "Governed specialist workflow",
+      "accent": "#d6a84f",
+      "file": "workflows/wf-edu-02.yaml"
+    },
+    {
+      "id": "wf-fin-01",
+      "path": "finance-risk/wf-fin-01",
+      "area": "Finance & risk",
+      "title": "Investment memo + red-team panel",
+      "eyebrow": "Expansion roadmap",
+      "description": "Preserve bull, bear, and base positions and route unsupported consensus to accountable review.",
+      "topology": "Governed specialist workflow",
+      "accent": "#5ca989",
+      "file": "workflows/wf-fin-01.yaml"
+    },
+    {
+      "id": "wf-fin-02",
+      "path": "finance-risk/wf-fin-02",
+      "area": "Finance & risk",
+      "title": "Filing analysis + numeric tie-out",
+      "eyebrow": "Expansion roadmap",
+      "description": "Extract cited filing values, independently calculate key figures, and release only a traceable tie-out.",
+      "topology": "Governed specialist workflow",
+      "accent": "#5ca989",
+      "file": "workflows/wf-fin-02.yaml"
+    },
+    {
+      "id": "wf-fin-03",
+      "path": "finance-risk/wf-fin-03",
+      "area": "Finance & risk",
+      "title": "Model risk validation",
+      "eyebrow": "Expansion roadmap",
+      "description": "Merge independent model, credit, and governance findings before a teacher-model critique.",
+      "topology": "Governed specialist workflow",
+      "accent": "#5ca989",
+      "file": "workflows/wf-fin-03.yaml"
+    },
+    {
+      "id": "wf-jour-01",
+      "path": "journalism-verification/wf-jour-01",
+      "area": "Journalism & verification",
+      "title": "Claim triangulation + standards gate",
+      "eyebrow": "Expansion roadmap",
+      "description": "Triangulate independent source classes and preserve disputed claims before publication approval.",
+      "topology": "Governed specialist workflow",
+      "accent": "#8e79c6",
+      "file": "workflows/wf-jour-01.yaml"
+    },
+    {
+      "id": "wf-jour-02",
+      "path": "journalism-verification/wf-jour-02",
+      "area": "Journalism & verification",
+      "title": "Investigation → publication → corrections",
+      "eyebrow": "Expansion roadmap",
+      "description": "Publish through an ethics gate and continue transparently when bounded correction follow-up is exhausted.",
+      "topology": "Governed specialist workflow",
+      "accent": "#8e79c6",
+      "file": "workflows/wf-jour-02.yaml"
+    },
+    {
+      "id": "wf-pub-01",
+      "path": "public-sector-procurement-grants/wf-pub-01",
+      "area": "Public sector procurement & grants",
+      "title": "RFP compliance matrix + submission gate",
+      "eyebrow": "Expansion roadmap",
+      "description": "Split cited requirements, prepare responses in parallel, collect evidence, and gate submission.",
+      "topology": "Governed specialist workflow",
+      "accent": "#668fd1",
+      "file": "workflows/wf-pub-01.yaml"
+    },
+    {
+      "id": "wf-pub-02",
+      "path": "public-sector-procurement-grants/wf-pub-02",
+      "area": "Public sector procurement & grants",
+      "title": "Grant proposal assembly",
+      "eyebrow": "Expansion roadmap",
+      "description": "Assemble an evidence-backed grant application and score it against the supplied rubric.",
+      "topology": "Governed specialist workflow",
+      "accent": "#668fd1",
+      "file": "workflows/wf-pub-02.yaml"
+    },
+    {
+      "id": "wf-gxp-01",
+      "path": "life-sciences-gxp-operations/wf-gxp-01",
+      "area": "Life sciences & GxP operations",
+      "title": "GMP batch release + barrier verification",
+      "eyebrow": "Expansion roadmap",
+      "description": "Require every batch, validation, quality, and manufacturing barrier before two-person release.",
+      "topology": "Governed specialist workflow",
+      "accent": "#4db5a8",
+      "file": "workflows/wf-gxp-01.yaml"
+    },
+    {
+      "id": "wf-gxp-02",
+      "path": "life-sciences-gxp-operations/wf-gxp-02",
+      "area": "Life sciences & GxP operations",
+      "title": "Pharmacovigilance signal triage",
+      "eyebrow": "Expansion roadmap",
+      "description": "Prioritize safety cases, preserve uncertainty, and trigger accountable reporting clocks.",
+      "topology": "Governed specialist workflow",
+      "accent": "#4db5a8",
+      "file": "workflows/wf-gxp-02.yaml"
+    },
+    {
+      "id": "wf-cross-01",
+      "path": "software-engineering/wf-cross-01",
+      "area": "Software engineering",
+      "title": "Regulated software delivery, end to end",
+      "eyebrow": "Cross-area composite",
+      "description": "Compose discovery, architecture, delivery, validation, security, and deployment as a 25-node regulated program.",
+      "topology": "Program composition",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-01.yaml"
+    },
+    {
+      "id": "wf-cross-02",
+      "path": "architecture-design/wf-cross-02",
+      "area": "Architecture & design",
+      "title": "Design → construction handoff with clash resolution",
+      "eyebrow": "Cross-area composite",
+      "description": "Reconcile architecture, engineering, coordination, constructability, and cost evidence while surfacing model collisions.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-02.yaml"
+    },
+    {
+      "id": "wf-cross-03",
+      "path": "security/wf-cross-03",
+      "area": "Security",
+      "title": "Incident → customer notice → regulatory filing",
+      "eyebrow": "Cross-area composite",
+      "description": "Coordinate incident facts, customer communication, compliance obligations, and notification deadlines in one authority chain.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-03.yaml"
+    },
+    {
+      "id": "wf-cross-04",
+      "path": "product-management/wf-cross-04",
+      "area": "Product management",
+      "title": "Launch readiness barrier check",
+      "eyebrow": "Cross-area composite",
+      "description": "Require engineering, reliability, marketing, quality, and security evidence before launch authorization.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-04.yaml"
+    },
+    {
+      "id": "wf-cross-05",
+      "path": "supply-chain-logistics/wf-cross-05",
+      "area": "Supply chain & logistics",
+      "title": "Supplier ESG & emissions due diligence",
+      "eyebrow": "Cross-area composite",
+      "description": "Reconcile supplier, environmental, fashion, and quality evidence without hiding source conflicts.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-05.yaml"
+    },
+    {
+      "id": "wf-cross-06",
+      "path": "agriculture-food-systems/wf-cross-06",
+      "area": "Agriculture & food systems",
+      "title": "Product recall decision & public notice",
+      "eyebrow": "Cross-area composite",
+      "description": "Combine food safety, traceability, crisis communication, customer, and quality evidence for a recall decision.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-06.yaml"
+    },
+    {
+      "id": "wf-cross-07",
+      "path": "airline-flight-operations/wf-cross-07",
+      "area": "Airline flight operations",
+      "title": "Disruption day recovery",
+      "eyebrow": "Cross-area composite",
+      "description": "Proceed with completed flight, crew, customer, crisis, and mobility recovery branches while listing failures.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-07.yaml"
+    },
+    {
+      "id": "wf-cross-08",
+      "path": "oil-gas-drilling-well-operations/wf-cross-08",
+      "area": "Oil & gas drilling & well operations",
+      "title": "Well plan independent design review",
+      "eyebrow": "Cross-area composite",
+      "description": "Blindly reconcile planning, geomechanics, barriers, integrity, and methods evidence before drill-ahead authority.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-08.yaml"
+    },
+    {
+      "id": "wf-cross-09",
+      "path": "clinical-health-sciences/wf-cross-09",
+      "area": "Clinical & health sciences",
+      "title": "Clinical note → coding → billing audit",
+      "eyebrow": "Cross-area composite",
+      "description": "Reconcile clinical documentation, coding evidence, accounting controls, and billing records under qualified review.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-09.yaml"
+    },
+    {
+      "id": "wf-cross-10",
+      "path": "writing/wf-cross-10",
+      "area": "Writing",
+      "title": "Long-form nonfiction: research → argument → fact-check → line edit",
+      "eyebrow": "Cross-area composite",
+      "description": "Assemble historical research, argument, verification, drafting, and editing into one claim-gated manuscript workflow.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-10.yaml"
+    },
+    {
+      "id": "wf-cross-11",
+      "path": "personal-development/wf-cross-11",
+      "area": "Personal development",
+      "title": "Career transition plan",
+      "eyebrow": "Cross-area composite",
+      "description": "Combine values, goals, behavior design, talent evidence, and labor-market constraints into a reviewed transition plan.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-11.yaml"
+    },
+    {
+      "id": "wf-cross-12",
+      "path": "manufacturing-industrial-operations/wf-cross-12",
+      "area": "Manufacturing & industrial operations",
+      "title": "Inspection video + defect adjudication",
+      "eyebrow": "Cross-area composite",
+      "description": "Blindly review inspection video, manufacturing evidence, quality criteria, and damage analogues before defect disposition.",
+      "topology": "Governed specialist workflow",
+      "accent": "#df8c68",
+      "file": "workflows/wf-cross-12.yaml"
     }
   ],
   "agents": [
@@ -2867,6 +3208,318 @@
       "path": "research/wells/drilling",
       "title": "Drilling HSE & Permit Coordinator",
       "file": "agents/well-08.yaml"
+    },
+    {
+      "id": "legal-01",
+      "path": "research/legal/contracts",
+      "title": "Contract Analyst",
+      "file": "agents/legal-01.yaml"
+    },
+    {
+      "id": "legal-02",
+      "path": "research/legal/contracts",
+      "title": "Counter-Position Negotiator",
+      "file": "agents/legal-02.yaml"
+    },
+    {
+      "id": "legal-03",
+      "path": "research/legal/regulatory",
+      "title": "Regulatory Obligations Analyst",
+      "file": "agents/legal-03.yaml"
+    },
+    {
+      "id": "legal-04",
+      "path": "research/legal/discovery",
+      "title": "Privilege Reviewer",
+      "file": "agents/legal-04.yaml"
+    },
+    {
+      "id": "legal-05",
+      "path": "research/legal/discovery",
+      "title": "Litigation Discovery Triager",
+      "file": "agents/legal-05.yaml"
+    },
+    {
+      "id": "legal-06",
+      "path": "research/legal/licensing",
+      "title": "IP & Licensing Reviewer",
+      "file": "agents/legal-06.yaml"
+    },
+    {
+      "id": "legal-07",
+      "path": "research/legal/research",
+      "title": "Legal Citation Verifier",
+      "file": "agents/legal-07.yaml"
+    },
+    {
+      "id": "clin-01",
+      "path": "research/clinical/imaging",
+      "title": "Imaging Interpretation Specialist",
+      "file": "agents/clin-01.yaml"
+    },
+    {
+      "id": "clin-02",
+      "path": "research/clinical/imaging",
+      "title": "Second-Reader Radiologist",
+      "file": "agents/clin-02.yaml"
+    },
+    {
+      "id": "clin-03",
+      "path": "research/clinical/reasoning",
+      "title": "Differential Diagnosis Structurer",
+      "file": "agents/clin-03.yaml"
+    },
+    {
+      "id": "clin-04",
+      "path": "research/clinical/evidence",
+      "title": "Clinical Evidence Appraiser",
+      "file": "agents/clin-04.yaml"
+    },
+    {
+      "id": "clin-05",
+      "path": "research/clinical/evidence",
+      "title": "Systematic Review Screener",
+      "file": "agents/clin-05.yaml"
+    },
+    {
+      "id": "clin-06",
+      "path": "research/clinical/documentation",
+      "title": "Clinical Documentation & Coding Auditor",
+      "file": "agents/clin-06.yaml"
+    },
+    {
+      "id": "clin-07",
+      "path": "research/clinical/safety",
+      "title": "Red-Flag Escalation Triager",
+      "file": "agents/clin-07.yaml"
+    },
+    {
+      "id": "clin-08",
+      "path": "research/clinical/privacy",
+      "title": "PHI De-identification Officer",
+      "file": "agents/clin-08.yaml"
+    },
+    {
+      "id": "data-01",
+      "path": "research/data/analytics-engineering",
+      "title": "Analytics Engineer",
+      "file": "agents/data-01.yaml"
+    },
+    {
+      "id": "data-02",
+      "path": "research/data/governance",
+      "title": "Metric Steward",
+      "file": "agents/data-02.yaml"
+    },
+    {
+      "id": "data-03",
+      "path": "research/data/quality",
+      "title": "Data Quality Analyst",
+      "file": "agents/data-03.yaml"
+    },
+    {
+      "id": "data-04",
+      "path": "research/data/platform",
+      "title": "Pipeline Lineage Analyst",
+      "file": "agents/data-04.yaml"
+    },
+    {
+      "id": "data-05",
+      "path": "research/data/governance",
+      "title": "Semantic Layer Reviewer",
+      "file": "agents/data-05.yaml"
+    },
+    {
+      "id": "data-06",
+      "path": "research/data/experimentation",
+      "title": "Experiment Platform Engineer",
+      "file": "agents/data-06.yaml"
+    },
+    {
+      "id": "edu-01",
+      "path": "research/education/design",
+      "title": "Instructional Designer",
+      "file": "agents/edu-01.yaml"
+    },
+    {
+      "id": "edu-02",
+      "path": "research/education/assessment",
+      "title": "Assessment Item Writer",
+      "file": "agents/edu-02.yaml"
+    },
+    {
+      "id": "edu-03",
+      "path": "research/education/assessment",
+      "title": "Rubric Calibrator",
+      "file": "agents/edu-03.yaml"
+    },
+    {
+      "id": "edu-04",
+      "path": "research/education/curriculum",
+      "title": "Curriculum Alignment Reviewer",
+      "file": "agents/edu-04.yaml"
+    },
+    {
+      "id": "edu-05",
+      "path": "research/education/access",
+      "title": "Reading-Level Adapter",
+      "file": "agents/edu-05.yaml"
+    },
+    {
+      "id": "edu-06",
+      "path": "research/education/assessment",
+      "title": "Assessment Bias Reviewer",
+      "file": "agents/edu-06.yaml"
+    },
+    {
+      "id": "fin-01",
+      "path": "research/finance/investment",
+      "title": "Equity Research Analyst",
+      "file": "agents/fin-01.yaml"
+    },
+    {
+      "id": "fin-02",
+      "path": "research/finance/investment",
+      "title": "Bull-Case Advocate",
+      "file": "agents/fin-02.yaml"
+    },
+    {
+      "id": "fin-03",
+      "path": "research/finance/investment",
+      "title": "Bear-Case Advocate",
+      "file": "agents/fin-03.yaml"
+    },
+    {
+      "id": "fin-04",
+      "path": "research/finance/filings",
+      "title": "Financial Statement Extractor",
+      "file": "agents/fin-04.yaml"
+    },
+    {
+      "id": "fin-05",
+      "path": "research/finance/model-risk",
+      "title": "Model Risk Validator",
+      "file": "agents/fin-05.yaml"
+    },
+    {
+      "id": "fin-06",
+      "path": "research/finance/credit",
+      "title": "Credit Risk Analyst",
+      "file": "agents/fin-06.yaml"
+    },
+    {
+      "id": "fin-07",
+      "path": "research/finance/valuation",
+      "title": "Valuation Reviewer",
+      "file": "agents/fin-07.yaml"
+    },
+    {
+      "id": "jour-01",
+      "path": "research/journalism/verification",
+      "title": "Fact-Checker",
+      "file": "agents/jour-01.yaml"
+    },
+    {
+      "id": "jour-02",
+      "path": "research/journalism/verification",
+      "title": "Source Triangulator",
+      "file": "agents/jour-02.yaml"
+    },
+    {
+      "id": "jour-03",
+      "path": "research/journalism/standards",
+      "title": "Standards & Ethics Editor",
+      "file": "agents/jour-03.yaml"
+    },
+    {
+      "id": "jour-04",
+      "path": "research/journalism/corrections",
+      "title": "Corrections Officer",
+      "file": "agents/jour-04.yaml"
+    },
+    {
+      "id": "pub-01",
+      "path": "research/public-sector/procurement",
+      "title": "Solicitation Requirements Analyst",
+      "file": "agents/pub-01.yaml"
+    },
+    {
+      "id": "pub-02",
+      "path": "research/public-sector/procurement",
+      "title": "Compliance Matrix Builder",
+      "file": "agents/pub-02.yaml"
+    },
+    {
+      "id": "pub-03",
+      "path": "research/public-sector/evidence",
+      "title": "Past-Performance Evidence Curator",
+      "file": "agents/pub-03.yaml"
+    },
+    {
+      "id": "pub-04",
+      "path": "research/public-sector/cost",
+      "title": "Cost Realism Analyst",
+      "file": "agents/pub-04.yaml"
+    },
+    {
+      "id": "pub-05",
+      "path": "research/public-sector/grants",
+      "title": "Grant Program Officer",
+      "file": "agents/pub-05.yaml"
+    },
+    {
+      "id": "pub-06",
+      "path": "research/public-sector/policy",
+      "title": "Public Comment Analyst",
+      "file": "agents/pub-06.yaml"
+    },
+    {
+      "id": "gxp-01",
+      "path": "research/life-sciences/clinical-ops",
+      "title": "Trial Site Feasibility Assessor",
+      "file": "agents/gxp-01.yaml"
+    },
+    {
+      "id": "gxp-02",
+      "path": "research/life-sciences/clinical-ops",
+      "title": "Protocol Deviation Analyst",
+      "file": "agents/gxp-02.yaml"
+    },
+    {
+      "id": "gxp-03",
+      "path": "research/life-sciences/safety",
+      "title": "Pharmacovigilance Signal Analyst",
+      "file": "agents/gxp-03.yaml"
+    },
+    {
+      "id": "gxp-04",
+      "path": "research/life-sciences/manufacturing",
+      "title": "GMP Batch Record Reviewer",
+      "file": "agents/gxp-04.yaml"
+    },
+    {
+      "id": "gxp-05",
+      "path": "research/life-sciences/quality",
+      "title": "Stability Study Analyst",
+      "file": "agents/gxp-05.yaml"
+    },
+    {
+      "id": "gxp-06",
+      "path": "research/life-sciences/regulatory",
+      "title": "Regulatory Submission Coordinator",
+      "file": "agents/gxp-06.yaml"
+    },
+    {
+      "id": "gxp-07",
+      "path": "research/life-sciences/validation",
+      "title": "Validation Protocol Author",
+      "file": "agents/gxp-07.yaml"
+    },
+    {
+      "id": "gxp-08",
+      "path": "research/life-sciences/suppliers",
+      "title": "Supplier Qualification Auditor (GxP)",
+      "file": "agents/gxp-08.yaml"
     }
   ]
 }

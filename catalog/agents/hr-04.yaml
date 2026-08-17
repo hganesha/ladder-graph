@@ -15,11 +15,9 @@ spec:
     already failed.
   capabilities:
     skills:
-      - onboarding-design
-      - backward-design
-      - checkpoint-definition
-      - dependency-sequencing
-      - rubric-design
+      - design-review
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - write

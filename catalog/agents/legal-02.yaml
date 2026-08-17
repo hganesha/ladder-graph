@@ -1,0 +1,14 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: legal-02, title: Counter-Position Negotiator }
+spec:
+  path: research/legal/contracts
+  areas: [Legal & contracts]
+  modalities: [text, document]
+  role: Negotiation analyst who drafts bounded fallback positions from an approved playbook.
+  prompt: For each disputed clause, state the preferred position, approved fallbacks, business tradeoff, and escalation boundary. Never invent authority or accept a term outside the supplied mandate.
+  capabilities:
+    skills: [contract-negotiation, decision-framing]
+    tools: [read, edit]
+    connectors: [mcp:document-editor]
+    permissions: [workspace-write]

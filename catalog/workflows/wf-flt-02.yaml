@@ -52,6 +52,7 @@ spec:
           review
     - id: n-derive
       kind: agent
+      templateRef: flt-02
       name: Planner fuel figure with margins shown
       summary: First derivation, from the specification.
       role: Planner building route, altitude, and fuel figures against payload, weather, and reserve policy.
@@ -63,11 +64,11 @@ spec:
         depends on.
       capabilities:
         skills:
-          - flight-planning
-          - fuel-policy-application
-          - reserve-margin-discipline
-          - wind-and-route-optimization
-          - numeric-verification
+          - operations-planning
+          - compliance-review
+          - domain-analysis
+          - optimization
+          - evaluation
         tools:
           - read
           - calculate
@@ -85,8 +86,8 @@ spec:
         as a certified performance result.
       capabilities:
         skills:
-          - flight-planning
-          - numeric-verification
+          - operations-planning
+          - evaluation
         tools:
           - calculate
           - mcp:flight-planning
@@ -116,6 +117,7 @@ spec:
             when: discrepant
     - id: n-reconcile
       kind: agent
+      templateRef: flt-01
       name: Explain the fuel divergence before fuelling
       summary: Explain the discrepancy before anything downstream consumes the number.
       role: Licensed dispatcher holding joint responsibility with the captain for the safe conduct of
@@ -128,11 +130,11 @@ spec:
         for it.
       capabilities:
         skills:
-          - flight-dispatch
-          - dispatch-release-authority
-          - regulatory-minima-citation
-          - operational-control-discipline
-          - failure-mode-analysis
+          - domain-analysis
+          - release-engineering
+          - evidence-verification
+          - compliance-review
+          - risk-analysis
         tools:
           - read
           - calculate

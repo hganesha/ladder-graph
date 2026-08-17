@@ -13,8 +13,8 @@ spec:
     decisions, and coordination handoffs.
   capabilities:
     skills:
-      - building-design
-      - code-compliance
+      - design-review
+      - implementation
     tools:
       - read
       - edit

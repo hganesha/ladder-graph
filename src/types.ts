@@ -78,6 +78,8 @@ export interface LgirNode {
   id: string;
   kind: NodeKind;
   name: string;
+  templateRef?: string;
+  inlineRole?: boolean;
   summary?: string;
   role?: string;
   prompt?: string;
@@ -190,8 +192,11 @@ export interface TemplateDefinition {
   description: string;
   topology: string;
   accent: string;
+  modalities: InputModality[];
   yaml: string;
 }
+
+export type InputModality = "text" | "image" | "audio" | "video" | "document" | "mixed";
 
 export interface RoleTemplate {
   id: string;
@@ -199,6 +204,9 @@ export interface RoleTemplate {
   name: string;
   role: string;
   prompt: string;
+  areas: string[];
+  modalities: InputModality[];
+  usage: "workflow-bound" | "palette-only";
   skills: string[];
   tools: string[];
   connectors?: string[];

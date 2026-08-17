@@ -49,6 +49,7 @@ spec:
         expression: select the design elements that carry code, cost, or sequencing consequences
     - id: n-position1
       kind: agent
+      templateRef: rec-02
       name: Code and entitlement position
       summary: 'Independent position 1: code and entitlement position.'
       role: Entitlement analyst mapping a project against code, zoning, and permit process.
@@ -59,11 +60,11 @@ spec:
         a political timeline, not a processing time.
       capabilities:
         skills:
-          - code-and-zoning-mapping
-          - permit-path-analysis
-          - approval-dependency-sequencing
-          - citation-verification
-          - regulatory-mapping
+          - implementation
+          - decision-analysis
+          - domain-analysis
+          - evaluation
+          - compliance-review
         tools:
           - read
           - search
@@ -75,6 +76,7 @@ spec:
         type: object
     - id: n-position2
       kind: agent
+      templateRef: rec-03
       name: Cost position with estimate class
       summary: 'Independent position 2: cost position with estimate class.'
       role: Estimator building quantity-based cost estimates with declared basis and contingency.
@@ -84,11 +86,10 @@ spec:
         a conceptual estimate presented as a bid number is how projects acquire a budget they cannot meet.
       capabilities:
         skills:
-          - cost-estimating
-          - quantity-takeoff
-          - contingency-and-escalation-separation
-          - estimate-class-declaration
-          - numeric-verification
+          - finance-analysis
+          - quantitative-analysis
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -100,6 +101,7 @@ spec:
         type: object
     - id: n-position3
       kind: agent
+      templateRef: rec-04
       name: Schedule and sequencing position
       summary: 'Independent position 3: schedule and sequencing position.'
       role: Planner building resource-loaded schedules and testing the critical path.
@@ -109,11 +111,11 @@ spec:
         durations to hit a target, because a schedule that only works on paper fails on site.
       capabilities:
         skills:
-          - schedule-development
-          - critical-path-analysis
-          - resource-loading
-          - float-and-constraint-review
-          - failure-mode-analysis
+          - domain-analysis
+          - decision-analysis
+          - evidence-verification
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -143,6 +145,7 @@ spec:
             when: collisions
     - id: n-resolve
       kind: agent
+      templateRef: rec-05
       name: Resolve conflicts into one recommended package
       summary: Work each collision to a recommended position with a stated fallback.
       role: Reviewer testing contract, change, and claim exposure on a construction project.
@@ -153,10 +156,9 @@ spec:
       capabilities:
         skills:
           - contract-analysis
-          - change-order-review
-          - claim-entitlement-testing
-          - notice-requirement-tracking
-          - regulatory-mapping
+          - evaluation
+          - design-review
+          - compliance-review
         tools:
           - read
         connectors:

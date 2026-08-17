@@ -13,7 +13,7 @@ spec:
     changes before release.
   capabilities:
     skills:
-      - api-design
+      - design-review
       - software-architecture
     tools:
       - read

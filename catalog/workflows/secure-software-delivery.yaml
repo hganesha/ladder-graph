@@ -18,6 +18,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Raw feature request
       summary: User intent, constraints, environment, and known risk.
       position:
@@ -25,6 +31,7 @@ spec:
         y: 260
     - id: requirements
       kind: agent
+      inlineRole: true
       name: Requirements contract
       summary: Resolve ambiguity before architecture or implementation.
       role: Senior requirements analyst
@@ -33,7 +40,6 @@ spec:
         prescribe implementation.
       capabilities:
         skills:
-          - requirements-analysis
           - product-management
         tools:
           - read
@@ -72,6 +78,7 @@ spec:
         y: 260
     - id: architecture
       kind: agent
+      inlineRole: true
       name: Architecture and stack review
       summary: Define boundaries and vet material dependencies.
       role: Principal systems architect and stack curator
@@ -81,8 +88,8 @@ spec:
       capabilities:
         skills:
           - software-architecture
-          - adr-authoring
-          - dependency-governance
+          - domain-analysis
+          - compliance-review
         tools:
           - read
           - search
@@ -118,6 +125,7 @@ spec:
         y: 100
     - id: threat-model
       kind: agent
+      inlineRole: true
       name: Pre-build threat model
       summary: Model trust, abuse, privacy, and supply-chain risk before code.
       role: Application security engineer
@@ -127,7 +135,6 @@ spec:
       capabilities:
         skills:
           - application-security
-          - threat-modeling
           - privacy-review
         tools:
           - read
@@ -175,6 +182,7 @@ spec:
         y: 260
     - id: implementation
       kind: agent
+      inlineRole: true
       name: Test-first implementation
       summary: Build the approved vertical slice in reviewable increments.
       role: Senior feature developer
@@ -185,7 +193,7 @@ spec:
         skills:
           - implementation
           - test-design
-          - integration-engineering
+          - domain-analysis
         tools:
           - read
           - edit
@@ -223,6 +231,7 @@ spec:
         y: 260
     - id: quality
       kind: evaluate
+      inlineRole: true
       name: Behavior and regression gate
       summary: Verify the contract independently with meaningful tests.
       role: Independent SDET and code reviewer
@@ -232,7 +241,6 @@ spec:
       capabilities:
         skills:
           - test-design
-          - code-review
           - evaluation
         tools:
           - read
@@ -268,6 +276,7 @@ spec:
         y: 40
     - id: security
       kind: evaluate
+      inlineRole: true
       name: Security and supply-chain gate
       summary: Validate the threat model and exploitable findings.
       role: Independent security auditor
@@ -276,9 +285,8 @@ spec:
         findings from scanner noise.
       capabilities:
         skills:
-          - secure-code-review
-          - supply-chain-security
           - evaluation
+          - application-security
         tools:
           - read
           - test
@@ -314,6 +322,7 @@ spec:
         y: 220
     - id: experience
       kind: evaluate
+      inlineRole: true
       name: Performance and accessibility gate
       summary: Protect user-facing budgets and inclusive behavior.
       role: Performance engineer and accessibility inspector
@@ -322,7 +331,7 @@ spec:
         material barriers and regressions are resolved.
       capabilities:
         skills:
-          - performance-engineering
+          - domain-analysis
           - accessibility
           - evaluation
         tools:

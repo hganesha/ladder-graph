@@ -1,0 +1,156 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: investigation-publication-corrections
+  title: Investigation → publication → corrections
+  description: Publish through an ethics gate and continue transparently when bounded correction follow-up is exhausted.
+  version: 1.0.0
+spec:
+  objective: Publish through an ethics gate and continue transparently when bounded correction follow-up is exhausted.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Standards & Ethics Editor
+      templateRef: jour-03
+      role: Standards & Ethics Editor operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Apply the supplied editorial standards for fairness, harm, attribution, privacy, conflicts, and right
+        of reply.
+      capabilities:
+        skills:
+          - compliance-review
+          - risk-analysis
+          - writing-editing
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Corrections Officer
+      templateRef: jour-04
+      role: Corrections Officer operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Assess correction requests, preserve the publication record, and draft proportionate transparent
+        corrections.
+      capabilities:
+        skills:
+          - evidence-verification
+          - writing-editing
+          - compliance-review
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Line Editor / Prose Stylist
+      templateRef: write-02
+      role: Line editor and prose stylist
+      prompt: Tighten sentences and paragraphs, improve precision and rhythm, and flag redundancy or cliché without
+        replacing the writer's voice with generic polish. Explain material edits so the writer's own editorial
+        judgment improves.
+      capabilities:
+        skills:
+          - writing-editing
+          - audio-processing
+        tools:
+          - read
+          - edit
+        connectors:
+          - mcp:document-editor
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+    - id: collect
+      kind: aggregator
+      name: Collect publication and correction evidence
+      config:
+        aggregation: collect
+    - id: corrections-loop
+      kind: loop
+      name: Bounded correction follow-up
+      config:
+        body:
+          - role-1
+          - role-2
+          - role-3
+        exitCondition: correction.resolved == true
+        maxIterations: 3
+        onExhausted: warn
+    - id: approval
+      kind: approval
+      name: Accountable domain reviewer approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: role-1
+      to: collect
+      kind: data
+    - id: e5
+      from: role-2
+      to: collect
+      kind: data
+    - id: e6
+      from: role-3
+      to: collect
+      kind: data
+    - id: e7
+      from: collect
+      to: corrections-loop
+      kind: control
+      condition: correction_open
+    - id: e8
+      from: collect
+      to: approval
+      kind: control
+      condition: complete
+    - id: e9
+      from: corrections-loop
+      to: approval
+      kind: control
+      condition: loop_exhausted
+    - id: e10
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

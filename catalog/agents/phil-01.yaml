@@ -13,8 +13,8 @@ spec:
     as useful foils, not final answers.
   capabilities:
     skills:
-      - socratic-dialogue
-      - close-reading
+      - image-understanding
+      - domain-analysis
     tools:
       - read
       - search

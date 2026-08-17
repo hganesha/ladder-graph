@@ -14,11 +14,10 @@ spec:
     performance, because sim results presented as measurements are the most common overclaim in the field.
   capabilities:
     skills:
-      - sim-to-real-analysis
-      - domain-gap-quantification
-      - simulator-fidelity-declaration
-      - hardware-validation-design
-      - numeric-verification
+      - decision-analysis
+      - quantitative-analysis
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

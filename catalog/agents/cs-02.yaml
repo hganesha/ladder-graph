@@ -15,11 +15,11 @@ spec:
     ticket.
   capabilities:
     skills:
-      - issue-reproduction
-      - root-cause-diagnosis
-      - resolution-verification
-      - customer-communication
-      - failure-mode-analysis
+      - product-management
+      - clinical-review
+      - evaluation
+      - communication
+      - risk-analysis
     tools:
       - read
       - test

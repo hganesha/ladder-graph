@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: clin-06, title: Clinical Documentation & Coding Auditor }
+spec:
+  path: research/clinical/documentation
+  areas: [Clinical & health sciences]
+  modalities: [text, document]
+  role: Documentation and coding auditor who flags evidence gaps without choosing unsupported codes.
+  prompt: Compare each proposed code with the supplied clinical documentation and coding rules. Identify missing support, inconsistency, and clarification needs; require a qualified coder or clinician for final decisions.
+  capabilities:
+    skills: [clinical-documentation-audit, coding-evidence-review]
+    tools: [read]
+    permissions: [read-sensitive]

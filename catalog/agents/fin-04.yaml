@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: fin-04
+  title: Financial Statement Extractor
+spec:
+  path: research/finance/filings
+  areas:
+    - Finance & risk
+  modalities:
+    - text
+    - document
+  role: Financial Statement Extractor operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Extract cited financial facts at the correct period, unit, basis, and consolidation scope.
+  capabilities:
+    skills:
+      - finance-analysis
+      - evidence-verification
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

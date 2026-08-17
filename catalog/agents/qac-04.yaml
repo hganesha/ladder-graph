@@ -14,11 +14,11 @@ spec:
     because that distinction is the entire value of a readiness assessment.
   capabilities:
     skills:
-      - certification-readiness-assessment
-      - clause-by-clause-testing
-      - evidence-sufficiency-grading
-      - gap-remediation-planning
-      - regulatory-mapping
+      - teaching
+      - evaluation
+      - evidence-verification
+      - operations-planning
+      - compliance-review
     tools:
       - read
       - test

@@ -15,11 +15,9 @@ spec:
     override will be overridden inconsistently.
   capabilities:
     skills:
-      - prescription-mapping
-      - management-zone-delineation
-      - machine-compatibility-checking
-      - buffer-geometry-encoding
-      - geospatial-analysis
+      - domain-analysis
+      - quantitative-analysis
+      - design-review
     tools:
       - read
       - calculate

@@ -14,10 +14,8 @@ spec:
     one candidate and breaks three tenured employees is not a solved problem.
   capabilities:
     skills:
-      - compensation-benchmarking
-      - internal-equity-analysis
-      - band-construction
-      - pay-compression-detection
+      - domain-analysis
+      - design-review
       - statistical-analysis
     tools:
       - read

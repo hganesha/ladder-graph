@@ -15,11 +15,10 @@ spec:
     comparison is not change.
   capabilities:
     skills:
-      - remote-sensing-interpretation
-      - classification-accuracy-assessment
-      - change-detection-discipline
-      - atmospheric-correction-declaration
       - geospatial-analysis
+      - teaching
+      - domain-analysis
+      - design-review
     tools:
       - read
       - calculate

@@ -51,6 +51,7 @@ spec:
           measured_index, target_rate'
     - id: n-specialist
       kind: agent
+      templateRef: agri-03
       name: Build the variable-rate prescription
       summary: Specialist pass over normalized fields.
       role: Precision-agriculture planner turning zone maps into machine-ready prescriptions.
@@ -61,11 +62,9 @@ spec:
         manual override will be overridden inconsistently.
       capabilities:
         skills:
-          - prescription-mapping
-          - management-zone-delineation
-          - machine-compatibility-checking
-          - buffer-geometry-encoding
-          - geospatial-analysis
+          - domain-analysis
+          - quantitative-analysis
+          - design-review
         tools:
           - read
           - calculate
@@ -78,6 +77,7 @@ spec:
         type: object
     - id: n-score
       kind: teacher
+      inlineRole: true
       name: Scored teacher feedback
       summary: Score feedback from a host-resolved teacher model.
       role: Host-resolved teacher model
@@ -99,6 +99,7 @@ spec:
         feedbackMode: score
     - id: n-gate
       kind: evaluate
+      inlineRole: true
       name: Score the specialist result
       summary: Evaluate agronomic justification, label and buffer compliance, and machine executability.
       role: Deterministic metric evaluator
@@ -145,6 +146,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: agri-01
       name: Correct the flagged zones
       summary: Corrective pass on the scored weaknesses.
       role: Agronomist converting field, soil, and weather evidence into management decisions.
@@ -155,11 +157,9 @@ spec:
         model suggests.
       capabilities:
         skills:
-          - agronomic-recommendation
-          - soil-test-interpretation
-          - growth-stage-timing
-          - label-constraint-compliance
-          - regulatory-mapping
+          - domain-analysis
+          - evaluation
+          - compliance-review
         tools:
           - read
           - calculate

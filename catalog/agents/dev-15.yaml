@@ -13,8 +13,8 @@ spec:
     from guesses based on stale comments.
   capabilities:
     skills:
-      - legacy-system-analysis
-      - repository-navigation
+      - decision-analysis
+      - implementation
     tools:
       - read
       - search

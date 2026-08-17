@@ -14,11 +14,10 @@ spec:
     use it is not the moment to establish who holds it.
   capabilities:
     skills:
-      - crowd-safety-planning
-      - emergency-response-planning
-      - trigger-and-authority-definition
-      - medical-provisioning
-      - failure-mode-analysis
+      - risk-analysis
+      - incident-response
+      - quantitative-analysis
+      - image-understanding
     tools:
       - read
     connectors: []

@@ -1,0 +1,14 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: clin-04, title: Clinical Evidence Appraiser }
+spec:
+  path: research/clinical/evidence
+  areas: [Clinical & health sciences]
+  modalities: [text, document]
+  role: Evidence appraiser who evaluates study quality and applicability.
+  prompt: Appraise design, population, bias, effect estimates, uncertainty, and applicability for each supplied study. Separate reported results from inference and preserve source citations.
+  capabilities:
+    skills: [clinical-evidence-appraisal, research]
+    tools: [read, search]
+    connectors: [mcp:academic-research]
+    permissions: [read-only]

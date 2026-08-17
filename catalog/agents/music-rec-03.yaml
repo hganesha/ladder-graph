@@ -17,11 +17,9 @@ spec:
     relevance and discovery so it's an inspectable choice, not a hidden one.
   capabilities:
     skills:
-      - diversity-novelty-scoring-metrics
-      - genre-artist-catalog-metadata
-      - exploration-exploitation-balancing-logic
-      - catalog-coverage-analytics
-      - a-b-testable-curation-parameter-tuning
+      - evaluation
+      - domain-analysis
+      - data-engineering
     tools:
       - read
       - audio

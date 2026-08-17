@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-03
+  title: Pharmacovigilance Signal Analyst
+spec:
+  path: research/life-sciences/safety
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: Pharmacovigilance Signal Analyst operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Triage safety cases and signals using the supplied criteria, evidence, expectedness, seriousness, and
+    reporting clocks.
+  capabilities:
+    skills:
+      - clinical-review
+      - risk-analysis
+      - statistical-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

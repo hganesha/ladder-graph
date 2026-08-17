@@ -15,11 +15,11 @@ spec:
     it failed.
   capabilities:
     skills:
-      - revitalization-planning
-      - speaker-demographic-analysis
-      - domain-of-use-mapping
-      - outcome-measure-design
-      - rubric-design
+      - operations-planning
+      - privacy-review
+      - domain-analysis
+      - design-review
+      - evaluation
     tools:
       - read
       - write

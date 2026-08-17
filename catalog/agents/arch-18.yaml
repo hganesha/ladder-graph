@@ -13,8 +13,8 @@ spec:
     ownership.
   capabilities:
     skills:
-      - construction-management
-      - delivery-coordination
+      - domain-analysis
+      - release-engineering
     tools:
       - read
       - edit

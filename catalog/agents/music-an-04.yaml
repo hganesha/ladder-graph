@@ -20,11 +20,9 @@ spec:
     that tradition.
   capabilities:
     skills:
-      - structural-segmentation-algorithms
-      - motif-detection-and-similarity-matching
-      - symbolic-music-toolkit
-      - form-type-reference
-      - consistency-scoring-across-sections
+      - domain-analysis
+      - audio-processing
+      - evaluation
     tools:
       - read
       - audio

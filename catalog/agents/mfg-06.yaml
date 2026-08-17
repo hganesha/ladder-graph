@@ -15,11 +15,7 @@ spec:
     on it.
   capabilities:
     skills:
-      - supplier-quality-assessment
-      - first-article-review
-      - capability-verification
-      - capa-effectiveness-testing
-      - numeric-verification
+      - evaluation
     tools:
       - read
       - test

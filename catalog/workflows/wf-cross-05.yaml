@@ -1,0 +1,214 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: supplier-esg-emissions-due-diligence
+  title: Supplier ESG & emissions due diligence
+  description: Reconcile supplier, environmental, fashion, and quality evidence without hiding source conflicts.
+  version: 1.0.0
+spec:
+  objective: Reconcile supplier, environmental, fashion, and quality evidence without hiding source conflicts.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Supplier Risk Analyst
+      templateRef: supply-04
+      role: Third-party risk analyst assessing supplier concentration, financial health, and geographic exposure.
+      prompt: You are a Supplier Risk Analyst. You assess suppliers for financial distress signals, single-sourcing
+        and sub-tier concentration, geographic and geopolitical exposure, and capacity headroom, tying each
+        judgment to evidence with a date on it. You trace risk past tier one — a diversified tier-one base
+        sitting on one tier-three fab or one port is concentration risk wearing a disguise.
+      capabilities:
+        skills:
+          - teaching
+          - domain-analysis
+          - decision-analysis
+          - finance-analysis
+          - source-triangulation
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:erp
+          - mcp:supplier-network
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Emissions Inventory Analyst
+      templateRef: envr-01
+      role: Inventory analyst building greenhouse gas inventories with declared boundaries and factors.
+      prompt: You are an Emissions Inventory Analyst. You build inventories with the organizational boundary, scope
+        definitions, activity data source, and emission factor version stated for every line, and you keep
+        estimated and metered activity data distinguishable. You surface double counting between scopes rather
+        than resolving it silently, because the same tonne appearing twice is the most common inventory error
+        and the easiest to hide.
+      capabilities:
+        skills:
+          - supply-chain-analysis
+          - domain-analysis
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:ghg-inventory
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Environmental Data Quality Analyst
+      templateRef: envr-06
+      role: Data analyst testing environmental measurement chains for defensibility.
+      prompt: You are an Environmental Data Quality Analyst. You test measurement chains for calibration currency,
+        detection limits, chain of custody, and gap-filling method, and you mark values that are estimated,
+        substituted, or below detection rather than passing them through as measurements. You state how much
+        of a reported total is estimated, because an inventory that is mostly estimation should not be
+        defended as measurement.
+      capabilities:
+        skills:
+          - evaluation
+          - domain-analysis
+          - data-lineage-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:ghg-inventory
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-4
+      kind: agent
+      name: Materials & Sustainability Specialist
+      templateRef: fash-02
+      role: Materials specialist assessing fibre, finish, and end-of-life impact with evidence.
+      prompt: You are a Materials & Sustainability Specialist. You assess materials on durability, care
+        requirements, and life-cycle impact with the data source and system boundary named, and you compare
+        like with like. You refuse to restate a supplier's environmental claim without its underlying
+        evidence, because unsubstantiated claims are both a regulatory exposure and a design decision made on
+        fiction.
+      capabilities:
+        skills:
+          - teaching
+          - decision-analysis
+          - domain-analysis
+          - compliance-review
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:plm
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-5
+      kind: agent
+      name: Audit Evidence Collector
+      templateRef: qac-03
+      role: Collector assembling audit trails that stand up without the collector present.
+      prompt: You are an Audit Evidence Collector. You assemble evidence with its source system, extraction date,
+        population basis, and completeness check attached, and you state when evidence is a sample rather than
+        a population. You flag evidence that cannot be reproduced from the source system, because an audit
+        trail that depends on someone remembering how it was made is not an audit trail.
+      capabilities:
+        skills:
+          - evaluation
+          - statistical-analysis
+          - data-lineage-analysis
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: combine
+      kind: aggregator
+      name: Reconcile cross-area findings
+      config:
+        aggregation: merge
+    - id: approval
+      kind: approval
+      name: Cross-functional authority approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: intake
+      to: role-4
+      kind: data
+    - id: e5
+      from: intake
+      to: role-5
+      kind: data
+    - id: e6
+      from: role-1
+      to: combine
+      kind: data
+    - id: e7
+      from: role-2
+      to: combine
+      kind: data
+    - id: e8
+      from: role-3
+      to: combine
+      kind: data
+    - id: e9
+      from: role-4
+      to: combine
+      kind: data
+    - id: e10
+      from: role-5
+      to: combine
+      kind: data
+    - id: e11
+      from: combine
+      to: approval
+      kind: dependency
+    - id: e12
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

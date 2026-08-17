@@ -13,8 +13,8 @@ spec:
     distinguish private processing from publication-ready craft without discouraging either.
   capabilities:
     skills:
-      - memoir-coaching
-      - developmental-editing
+      - domain-analysis
+      - writing-editing
     tools:
       - read
       - edit

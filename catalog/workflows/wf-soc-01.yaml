@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-assess1
       kind: agent
+      templateRef: soc-02
       name: First blind coding pass
       summary: Blind assessment 1; no sight of the other assessments.
       role: Qualitative analyst applying a codebook consistently and transparently.
@@ -51,11 +52,11 @@ spec:
         reconciled-in-the-moment coding cannot produce a meaningful reliability statistic.
       capabilities:
         skills:
-          - qualitative-coding
-          - codebook-application
-          - excerpt-evidence-linking
-          - ambiguity-recording
-          - rubric-design
+          - domain-analysis
+          - implementation
+          - evidence-verification
+          - design-review
+          - evaluation
         tools:
           - read
         connectors: []
@@ -65,6 +66,7 @@ spec:
         type: object
     - id: n-assess2
       kind: agent
+      templateRef: soc-02
       name: Second blind coding pass
       summary: Blind assessment 2; no sight of the other assessments.
       role: Qualitative analyst applying a codebook consistently and transparently.
@@ -74,11 +76,11 @@ spec:
         reconciled-in-the-moment coding cannot produce a meaningful reliability statistic.
       capabilities:
         skills:
-          - qualitative-coding
-          - codebook-application
-          - excerpt-evidence-linking
-          - ambiguity-recording
-          - rubric-design
+          - domain-analysis
+          - implementation
+          - evidence-verification
+          - design-review
+          - evaluation
         tools:
           - read
         connectors: []
@@ -88,6 +90,7 @@ spec:
         type: object
     - id: n-assess3
       kind: agent
+      templateRef: soc-01
       name: Methodological review of the coding frame
       summary: Blind assessment 3; no sight of the other assessments.
       role: Methodologist designing instruments and samples that measure what they claim to.
@@ -97,10 +100,10 @@ spec:
         gap between the sampled frame and the population of interest is where most survey claims fail.
       capabilities:
         skills:
-          - survey-design
-          - question-wording-testing
-          - sampling-frame-analysis
-          - nonresponse-bias-assessment
+          - design-review
+          - evaluation
+          - decision-analysis
+          - teaching
           - statistical-analysis
         tools:
           - read
@@ -124,6 +127,7 @@ spec:
         exit: aggregate
     - id: n-teacher
       kind: teacher
+      inlineRole: true
       name: Rubric calibration
       summary: Critique the assessors against the rubric — this scores the graders, not the work.
       role: Host-resolved teacher model
@@ -146,6 +150,7 @@ spec:
         feedbackMode: rubric
     - id: n-agreement
       kind: evaluate
+      inlineRole: true
       name: Score inter-assessor agreement
       summary: Evaluate inter-coder agreement per code and excerpt evidence behind each assignment.
       role: Deterministic metric evaluator

@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-assess
       kind: agent
+      templateRef: flt-03
       name: Assess conditions against the declared criteria
       summary: Assess current conditions against the criteria declared before the decision point.
       role: Forecaster translating aviation weather products into operational limits for a specific flight.
@@ -52,10 +53,10 @@ spec:
         than extrapolating over the gap.
       capabilities:
         skills:
-          - aviation-weather-interpretation
-          - alternate-minima-assessment
-          - convective-and-icing-analysis
-          - forecast-confidence-reporting
+          - domain-analysis
+          - teaching
+          - decision-analysis
+          - simulation
           - statistical-analysis
         tools:
           - read
@@ -68,6 +69,7 @@ spec:
         type: object
     - id: n-criteria
       kind: evaluate
+      inlineRole: true
       name: Score against the declared criteria
       summary: Evaluate destination and alternate minima, performance margin, and airspace availability
         at the planned departure time.
@@ -119,6 +121,7 @@ spec:
             when: default
     - id: n-proceed
       kind: agent
+      templateRef: flt-01
       name: Execute the departure plan
       summary: Execute against the approved plan.
       role: Licensed dispatcher holding joint responsibility with the captain for the safe conduct of
@@ -131,11 +134,11 @@ spec:
         for it.
       capabilities:
         skills:
-          - flight-dispatch
-          - dispatch-release-authority
-          - regulatory-minima-citation
-          - operational-control-discipline
-          - failure-mode-analysis
+          - domain-analysis
+          - release-engineering
+          - evidence-verification
+          - compliance-review
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -161,6 +164,7 @@ spec:
         onExhausted: stop
     - id: n-contingency
       kind: agent
+      templateRef: flt-06
       name: Take the pre-planned alternative
       summary: The pre-planned alternative, chosen because it was planned before it was needed.
       role: Rostering specialist testing crew duty limits and fatigue risk for the planned operation.
@@ -171,11 +175,11 @@ spec:
         plainly rather than resolving it as a scheduling detail.
       capabilities:
         skills:
-          - crew-legality-checking
-          - duty-and-rest-limit-application
-          - fatigue-risk-assessment
-          - qualification-currency-verification
-          - regulatory-mapping
+          - contract-analysis
+          - domain-analysis
+          - teaching
+          - evaluation
+          - compliance-review
         tools:
           - read
           - calculate

@@ -19,11 +19,9 @@ spec:
     theorists would actually disagree.
   capabilities:
     skills:
-      - chord-recognition-model
-      - key-modulation-detection
-      - roman-numeral-analysis-engine
-      - symbolic-music-toolkit
-      - harmonic-function-reference
+      - domain-analysis
+      - decision-analysis
+      - audio-processing
     tools:
       - read
       - audio

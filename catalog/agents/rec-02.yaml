@@ -15,11 +15,11 @@ spec:
     not a processing time.
   capabilities:
     skills:
-      - code-and-zoning-mapping
-      - permit-path-analysis
-      - approval-dependency-sequencing
-      - citation-verification
-      - regulatory-mapping
+      - implementation
+      - decision-analysis
+      - domain-analysis
+      - evaluation
+      - compliance-review
     tools:
       - read
       - search

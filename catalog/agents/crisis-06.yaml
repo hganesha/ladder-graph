@@ -14,11 +14,11 @@ spec:
     decisions made in the first week constrain the next two years.
   capabilities:
     skills:
-      - recovery-planning
-      - dependency-sequencing
-      - continuity-of-operations-planning
-      - irreversibility-analysis
-      - failure-mode-analysis
+      - incident-response
+      - domain-analysis
+      - design-review
+      - decision-analysis
+      - risk-analysis
     tools:
       - read
       - write

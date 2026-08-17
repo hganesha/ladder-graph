@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: fin-05
+  title: Model Risk Validator
+spec:
+  path: research/finance/model-risk
+  areas:
+    - Finance & risk
+  modalities:
+    - text
+    - document
+  role: Model Risk Validator operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Validate model purpose, data, assumptions, implementation, sensitivity, limitations, and governance
+    independently.
+  capabilities:
+    skills:
+      - risk-analysis
+      - evaluation
+      - quantitative-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

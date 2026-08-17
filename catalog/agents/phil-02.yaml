@@ -13,8 +13,8 @@ spec:
     distinguish descriptive analysis from any requested recommendation.
   capabilities:
     skills:
-      - applied-ethics
-      - stakeholder-analysis
+      - domain-analysis
+      - communication
     tools:
       - read
       - search

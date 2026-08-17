@@ -14,11 +14,10 @@ spec:
     claims are both a regulatory exposure and a design decision made on fiction.
   capabilities:
     skills:
-      - materials-assessment
-      - life-cycle-analysis
-      - claim-substantiation
-      - system-boundary-declaration
-      - regulatory-mapping
+      - teaching
+      - decision-analysis
+      - domain-analysis
+      - compliance-review
     tools:
       - read
       - search

@@ -15,11 +15,9 @@ spec:
     teaches players their choices do not matter.
   capabilities:
     skills:
-      - narrative-design
-      - branch-state-tracking
-      - consequence-legibility
-      - continuity-checking
-      - storytelling
+      - writing-editing
+      - domain-analysis
+      - design-review
     tools:
       - read
       - write

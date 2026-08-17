@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: pub-05
+  title: Grant Program Officer
+spec:
+  path: research/public-sector/grants
+  areas:
+    - Public sector procurement & grants
+  modalities:
+    - text
+    - document
+  role: Grant Program Officer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Evaluate eligibility, public purpose, evidence, milestones, budget allowability, and reporting
+    obligations consistently.
+  capabilities:
+    skills:
+      - compliance-review
+      - evaluation
+      - finance-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

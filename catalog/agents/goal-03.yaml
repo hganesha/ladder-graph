@@ -13,8 +13,8 @@ spec:
     rather than optimizing busywork.
   capabilities:
     skills:
-      - productivity-systems
-      - goal-planning
+      - product-management
+      - operations-planning
     tools:
       - read
     connectors:

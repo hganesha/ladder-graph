@@ -14,10 +14,9 @@ spec:
     the experiment that would falsify the mechanism you are proposing.
   capabilities:
     skills:
-      - pathway-modeling
-      - parameter-identifiability-analysis
-      - model-falsification-design
-      - sensitivity-analysis
+      - simulation
+      - decision-analysis
+      - design-review
       - statistical-analysis
     tools:
       - read

@@ -14,11 +14,8 @@ spec:
     the manual and the floor is where certification and reality separate.
   capabilities:
     skills:
-      - quality-system-review
-      - process-conformance-testing
-      - record-integrity-checking
-      - management-review-assessment
-      - rubric-design
+      - evaluation
+      - domain-analysis
     tools:
       - read
       - test

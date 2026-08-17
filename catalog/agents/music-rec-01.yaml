@@ -17,11 +17,9 @@ spec:
     profile.
   capabilities:
     skills:
-      - streaming-service
-      - audio-feature-extraction
-      - taste-profile-vector-embedding-construction
-      - recency-weighting-logic
-      - listening-history-data-quality-checks
+      - domain-analysis
+      - audio-processing
+      - evaluation
     tools:
       - read
       - audio

@@ -13,7 +13,7 @@ spec:
     path from a clean checkout and flag works-on-my-machine risks.
   capabilities:
     skills:
-      - developer-onboarding
+      - domain-analysis
       - documentation
     tools:
       - read

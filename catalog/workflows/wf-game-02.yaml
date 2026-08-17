@@ -49,6 +49,7 @@ spec:
         expression: select the beats to produce, in play order
     - id: n-segment1
       kind: agent
+      templateRef: game-04
       name: Narrative beats and choice consequences
       summary: 'Segment 1: narrative beats and choice consequences.'
       role: Narrative designer building branching story structure that stays coherent under player choice.
@@ -58,11 +59,9 @@ spec:
         teaches players their choices do not matter.
       capabilities:
         skills:
-          - narrative-design
-          - branch-state-tracking
-          - consequence-legibility
-          - continuity-checking
-          - storytelling
+          - writing-editing
+          - domain-analysis
+          - design-review
         tools:
           - read
           - write
@@ -73,6 +72,7 @@ spec:
         type: object
     - id: n-segment2
       kind: agent
+      templateRef: game-01
       name: Encounter and systems beats
       summary: 'Segment 2: encounter and systems beats.'
       role: Systems designer building mechanics, economies, and progression that hold up under play.
@@ -82,11 +82,10 @@ spec:
         from one that is opaque, because players abandon the second and talk about the first.
       capabilities:
         skills:
-          - systems-design
-          - economy-balancing
-          - degenerate-strategy-analysis
-          - progression-curve-design
-          - failure-mode-analysis
+          - design-review
+          - domain-analysis
+          - decision-analysis
+          - risk-analysis
         tools:
           - read
           - write
@@ -97,6 +96,7 @@ spec:
         type: object
     - id: n-segment3
       kind: agent
+      templateRef: game-03
       name: Generated content beats and constraints
       summary: 'Segment 3: generated content beats and constraints.'
       role: Designer building generators with controllable variety and guaranteed playability.
@@ -106,11 +106,8 @@ spec:
         most generators produce noticeable sameness long before players stop playing.
       capabilities:
         skills:
-          - procedural-generation-design
-          - constraint-specification
-          - solvability-guarantees
-          - variety-measurement
-          - systems-design
+          - design-review
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -127,6 +124,7 @@ spec:
         aggregation: concat
     - id: n-critique
       kind: teacher
+      inlineRole: true
       name: Teacher critique of the assembled draft
       summary: Critique feedback from a host-resolved teacher model.
       role: Host-resolved teacher model
@@ -149,6 +147,7 @@ spec:
         feedbackMode: critique
     - id: n-quality
       kind: evaluate
+      inlineRole: true
       name: Score the assembled result
       summary: Evaluate state continuity across beats, pacing, and consequence legibility.
       role: Deterministic metric evaluator
@@ -195,6 +194,7 @@ spec:
             when: 'false'
     - id: n-revise
       kind: agent
+      templateRef: game-04
       name: Repair the weakest beats
       summary: Apply the teacher critique to the weakest segments.
       role: Narrative designer building branching story structure that stays coherent under player choice.
@@ -204,11 +204,9 @@ spec:
         teaches players their choices do not matter.
       capabilities:
         skills:
-          - narrative-design
-          - branch-state-tracking
-          - consequence-legibility
-          - continuity-checking
-          - storytelling
+          - writing-editing
+          - domain-analysis
+          - design-review
         tools:
           - read
           - write

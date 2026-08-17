@@ -14,10 +14,9 @@ spec:
     about either.
   capabilities:
     skills:
-      - corpus-construction
-      - lexicographic-entry-writing
-      - sense-citation-linking
-      - sampling-documentation
+      - domain-analysis
+      - privacy-review
+      - evidence-verification
       - statistical-analysis
     tools:
       - read

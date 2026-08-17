@@ -45,6 +45,7 @@ spec:
         x-ladder-input-mode: text
     - id: n2
       kind: agent
+      templateRef: music-cc-01
       name: Generate Melodic/Harmonic Sketch
       summary: Generate Melodic/Harmonic Sketch
       role: Composer and co-creation collaborator generating and extending melodic and harmonic material.
@@ -58,11 +59,9 @@ spec:
         generation the human either accepts or discards wholesale.
       capabilities:
         skills:
-          - symbolic-music-generation-model
-          - midi-export-import
-          - motif-extraction-and-variation
-          - music-notation-rendering
-          - daw
+          - audio-processing
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - audio
@@ -91,6 +90,7 @@ spec:
         onExhausted: stop
     - id: n5
       kind: agent
+      templateRef: music-cc-02
       name: Draft Lyrics Matched to Melody
       summary: Draft Lyrics Matched to Melody
       role: Co-writing lyricist matching text to existing melodic/rhythmic material and a stated thematic
@@ -104,11 +104,10 @@ spec:
         that call.
       capabilities:
         skills:
-          - syllable-stress-scansion-analysis
-          - rhyme-scheme-generation-and-checking
-          - thematic-consistency-checking-against-brief
-          - melody-to-lyric-alignment
-          - lyric-sheet-export-versioning
+          - decision-analysis
+          - scientific-analysis
+          - domain-analysis
+          - audio-processing
         tools:
           - read
           - audio
@@ -120,6 +119,7 @@ spec:
         type: object
     - id: n6
       kind: agent
+      templateRef: music-cc-03
       name: Draft Arrangement/Orchestration
       summary: Draft Arrangement/Orchestration
       role: Arranger/orchestrator adapting a composition for a target ensemble or instrumentation.
@@ -132,11 +132,9 @@ spec:
         individual parts — ready for rehearsal or recording.
       capabilities:
         skills:
-          - notation-engraving-software
-          - instrument-range-idiom-reference
-          - score-to-parts-extraction
-          - midi-mockup-playback-rendering
-          - orchestration-density-balance-checking
+          - implementation
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - audio
@@ -155,6 +153,7 @@ spec:
         join: all
     - id: n8
       kind: agent
+      templateRef: music-an-04
       name: Structural Consistency Check
       summary: Structural Consistency Check
       role: Musicologist specializing in formal analysis — song form and common-practice forms such as
@@ -169,11 +168,9 @@ spec:
         sonata-form vocabulary on a piece that isn't in that tradition.
       capabilities:
         skills:
-          - structural-segmentation-algorithms
-          - motif-detection-and-similarity-matching
-          - symbolic-music-toolkit
-          - form-type-reference
-          - consistency-scoring-across-sections
+          - domain-analysis
+          - audio-processing
+          - evaluation
         tools:
           - read
           - audio
@@ -184,6 +181,7 @@ spec:
         type: object
     - id: n9
       kind: evaluate
+      inlineRole: true
       name: Consistency Score
       summary: Evaluate form and motif consistency.
       role: Independent domain evaluator
@@ -244,6 +242,7 @@ spec:
         onExhausted: stop
     - id: n11
       kind: agent
+      templateRef: music-cc-03
       name: Assemble Final Composition Package
       summary: Assemble Final Composition Package
       role: Arranger/orchestrator adapting a composition for a target ensemble or instrumentation.
@@ -256,11 +255,9 @@ spec:
         individual parts — ready for rehearsal or recording.
       capabilities:
         skills:
-          - notation-engraving-software
-          - instrument-range-idiom-reference
-          - score-to-parts-extraction
-          - midi-mockup-playback-rendering
-          - orchestration-density-balance-checking
+          - implementation
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - audio

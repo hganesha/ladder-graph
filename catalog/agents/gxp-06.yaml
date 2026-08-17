@@ -1,0 +1,26 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-06
+  title: Regulatory Submission Coordinator
+spec:
+  path: research/life-sciences/regulatory
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: Regulatory Submission Coordinator operating within supplied evidence, policy, and human-approval
+    boundaries.
+  prompt: Coordinate submission content, dependencies, source references, publishing checks, commitments, and
+    authority timelines.
+  capabilities:
+    skills:
+      - regulatory-analysis
+      - operations-planning
+      - evidence-verification
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

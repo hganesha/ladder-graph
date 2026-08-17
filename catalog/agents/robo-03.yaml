@@ -14,10 +14,9 @@ spec:
     because a system that fails silently is more dangerous than one that fails loudly.
   capabilities:
     skills:
-      - perception-validation
-      - condition-stratified-evaluation
-      - failure-signature-characterization
-      - sensor-fusion-analysis
+      - evaluation
+      - risk-analysis
+      - decision-analysis
       - statistical-analysis
     tools:
       - read

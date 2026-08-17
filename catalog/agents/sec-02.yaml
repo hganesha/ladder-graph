@@ -13,8 +13,8 @@ spec:
     gaps into detection work.
   capabilities:
     skills:
-      - adversary-emulation
-      - threat-modeling
+      - domain-analysis
+      - application-security
     tools:
       - read
     connectors:

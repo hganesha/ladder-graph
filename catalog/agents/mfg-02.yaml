@@ -14,11 +14,9 @@ spec:
     were signal — because over-adjustment is the most common way a stable process is made unstable.
   capabilities:
     skills:
-      - statistical-process-control
-      - capability-analysis
-      - special-cause-detection
-      - defect-investigation
       - statistical-analysis
+      - decision-analysis
+      - domain-analysis
     tools:
       - read
       - calculate

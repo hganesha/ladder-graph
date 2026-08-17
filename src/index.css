@@ -361,6 +361,33 @@ button:disabled {
   font-size: 9px;
   opacity: 0.72;
 }
+.modality-filter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 0 0 12px;
+  color: #74818a;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.modality-filter select,
+.palette-modality-filter select {
+  border: 1px solid #314048;
+  border-radius: 7px;
+  padding: 6px 27px 6px 9px;
+  background: #10161a;
+  color: #d7e1e2;
+  font-size: 11px;
+}
+.library-empty {
+  grid-column: 1 / -1;
+  margin: 20px 0;
+  color: #74818a;
+  text-align: center;
+}
 .workflow-tabs button {
   display: inline-flex;
   flex: none;
@@ -1467,6 +1494,23 @@ button:disabled {
 }
 .search-field:focus-within {
   border-color: var(--cyan);
+}
+.palette-modality-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -2px 11px 11px;
+  color: #68767f;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.palette-modality-filter select {
+  min-width: 105px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 .group-context {
   display: flex;
@@ -2864,6 +2908,8 @@ button:disabled {
 :root[data-theme="light"] .status-button,
 :root[data-theme="light"] .target-select,
 :root[data-theme="light"] .search-field,
+:root[data-theme="light"] .modality-filter select,
+:root[data-theme="light"] .palette-modality-filter select,
 :root[data-theme="light"] .macro-grid button,
 :root[data-theme="light"] .form-field input,
 :root[data-theme="light"] .form-field textarea,

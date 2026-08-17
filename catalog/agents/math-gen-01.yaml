@@ -19,11 +19,10 @@ spec:
     logical merits regardless of whether they were produced by a human or another agent.
   capabilities:
     skills:
-      - formal-logic-step-checking
-      - theorem-axiom-reference-lookup
-      - case-completeness-checking
-      - latex-rendering
-      - proof-assistant-for-machine-checkable-fragments
+      - domain-analysis
+      - data-quality-analysis
+      - image-understanding
+      - quantitative-analysis
     tools:
       - read
       - calculate

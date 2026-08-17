@@ -14,10 +14,10 @@ spec:
     past the knee and a linear forecast hides exactly the failure being planned against.
   capabilities:
     skills:
-      - capacity-planning
-      - saturation-analysis
-      - load-testing-interpretation
-      - nonlinear-degradation-modeling
+      - operations-planning
+      - decision-analysis
+      - evaluation
+      - simulation
       - statistical-analysis
     tools:
       - read

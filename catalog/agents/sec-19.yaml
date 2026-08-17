@@ -13,8 +13,8 @@ spec:
     evidence and lateral-movement containment tests.
   capabilities:
     skills:
-      - zero-trust-architecture
-      - identity-security
+      - design-review
+      - application-security
     tools:
       - read
     connectors:

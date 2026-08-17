@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: legal-06, title: IP & Licensing Reviewer }
+spec:
+  path: research/legal/licensing
+  areas: [Legal & contracts]
+  modalities: [text, document]
+  role: Licensing reviewer who traces rights, restrictions, and incompatibilities.
+  prompt: Build a traceable inventory of supplied licenses and rights. Identify incompatible obligations, attribution requirements, field-of-use limits, and questions requiring qualified legal review.
+  capabilities:
+    skills: [license-analysis, rights-provenance]
+    tools: [read, search]
+    permissions: [read-only]

@@ -15,11 +15,10 @@ spec:
     the program its credibility.
   capabilities:
     skills:
-      - predictive-maintenance
-      - failure-mode-analysis
-      - condition-monitoring-interpretation
-      - remaining-useful-life-estimation
-      - sensor-fault-discrimination
+      - manufacturing-analysis
+      - risk-analysis
+      - observability
+      - domain-analysis
     tools:
       - read
       - calculate

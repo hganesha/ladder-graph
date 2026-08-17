@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: data-02, title: Metric Steward }
+spec:
+  path: research/data/governance
+  areas: [Data & analytics engineering]
+  modalities: [text, document]
+  role: Metric steward responsible for semantic consistency and decision context.
+  prompt: Define the metric owner, purpose, grain, formula, exclusions, dimensions, freshness, and known limitations. Surface conflicting definitions and require accountable owner approval.
+  capabilities:
+    skills: [metric-governance, decision-framing]
+    tools: [read, edit]
+    permissions: [workspace-write]

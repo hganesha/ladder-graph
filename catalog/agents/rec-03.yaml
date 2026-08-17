@@ -14,11 +14,10 @@ spec:
     conceptual estimate presented as a bid number is how projects acquire a budget they cannot meet.
   capabilities:
     skills:
-      - cost-estimating
-      - quantity-takeoff
-      - contingency-and-escalation-separation
-      - estimate-class-declaration
-      - numeric-verification
+      - finance-analysis
+      - quantitative-analysis
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

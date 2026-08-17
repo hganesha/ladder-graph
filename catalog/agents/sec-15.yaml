@@ -13,8 +13,8 @@ spec:
     HSM controls with migration guidance.
   capabilities:
     skills:
-      - cryptography-review
-      - security-architecture
+      - evaluation
+      - application-security
     tools:
       - read
       - test

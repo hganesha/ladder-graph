@@ -1,0 +1,66 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: pipeline-change-impact-staged-migration
+  title: Pipeline change impact + staged migration
+  description: Trace independent impact branches, preserve failed checks, and continue in a declared degraded mode when bounded migration is exhausted.
+  version: 1.0.0
+spec:
+  objective: Produce an evidence-backed staged migration with explicit unavailable branches and rollback ownership.
+  policies: { maxConcurrency: 4, onFailure: preserve-completed, requireApprovalFor: [migration-approval] }
+  nodes:
+    - id: change
+      kind: input
+      name: Proposed pipeline change
+      inputSchema:
+        type: object
+        required: [text]
+        properties: { text: { type: string } }
+        x-ladder-input-mode: text
+    - id: upstream
+      kind: agent
+      name: Trace upstream impact
+      templateRef: data-04
+      role: Lineage analyst who maps upstream and downstream change impact.
+      prompt: Trace the supplied asset through sources, transformations, schedules, owners, consumers, and controls. List unavailable branches explicitly and rank migration risk by evidence.
+      capabilities:
+        skills: [data-lineage-analysis, change-impact-analysis]
+        tools: [read, search]
+        connectors: [mcp:postgres, mcp:github]
+        permissions: [read-only]
+        customizations:
+          data-lineage-analysis:
+            template: data-lineage-analysis
+            instructions: Preserve inaccessible lineage branches as explicit failed checks rather than dropping them.
+      outputSchema: { type: object }
+    - id: downstream
+      kind: agent
+      name: Trace downstream consumers
+      templateRef: data-04
+      role: Lineage analyst who maps upstream and downstream change impact.
+      prompt: Trace the supplied asset through sources, transformations, schedules, owners, consumers, and controls. List unavailable branches explicitly and rank migration risk by evidence.
+      capabilities: { skills: [data-lineage-analysis, change-impact-analysis], tools: [read, search], connectors: [mcp:postgres, mcp:github], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: impact-fan-in
+      kind: join
+      name: Preserve successful and failed impact checks
+      config: { join: allSettled }
+    - id: migration-loop
+      kind: loop
+      name: Run bounded staged migration checks
+      config: { body: [upstream, downstream, impact-fan-in], exitCondition: migration_checks.passed == true, maxIterations: 3, onExhausted: continue }
+    - id: migration-approval
+      kind: approval
+      name: Data owner accepts full or degraded migration plan
+    - id: result
+      kind: output
+      name: Approved staged migration and unavailable-check register
+  edges:
+    - { id: e1, from: change, to: upstream, kind: data }
+    - { id: e2, from: change, to: downstream, kind: data }
+    - { id: e3, from: upstream, to: impact-fan-in, kind: data }
+    - { id: e4, from: downstream, to: impact-fan-in, kind: data }
+    - { id: e5, from: impact-fan-in, to: migration-loop, kind: dependency }
+    - { id: e6, from: migration-loop, to: migration-approval, kind: control, condition: loop_exhausted }
+    - { id: e7, from: impact-fan-in, to: migration-approval, kind: control, condition: checks_passed }
+    - { id: e8, from: migration-approval, to: result, kind: dependency, condition: approved }

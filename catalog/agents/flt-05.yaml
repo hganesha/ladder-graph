@@ -15,11 +15,10 @@ spec:
     hold as blocking rather than as a planning preference.
   capabilities:
     skills:
-      - notam-analysis
-      - airspace-requirement-mapping
-      - overflight-permit-verification
-      - capability-requirement-checking
-      - regulatory-mapping
+      - decision-analysis
+      - design-review
+      - evaluation
+      - compliance-review
     tools:
       - read
       - search

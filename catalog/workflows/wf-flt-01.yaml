@@ -46,6 +46,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-barrier1
       kind: agent
+      templateRef: flt-03
       name: Weather and alternate barrier
       summary: Barrier 1 — destination and alternate weather against the applicable minima. Verified independently
         of the other barriers.
@@ -57,10 +58,10 @@ spec:
         than extrapolating over the gap.
       capabilities:
         skills:
-          - aviation-weather-interpretation
-          - alternate-minima-assessment
-          - convective-and-icing-analysis
-          - forecast-confidence-reporting
+          - domain-analysis
+          - teaching
+          - decision-analysis
+          - simulation
           - statistical-analysis
         tools:
           - read
@@ -83,6 +84,7 @@ spec:
           limitation: {}
     - id: n-barrier2
       kind: agent
+      templateRef: flt-04
       name: Performance and loading barrier
       summary: Barrier 2 — takeoff, landing, and weight-and-balance limits for the actual conditions.
         Verified independently of the other barriers.
@@ -96,11 +98,11 @@ spec:
         clean-runway figure is how an overrun is planned.
       capabilities:
         skills:
-          - performance-calculation
-          - weight-and-balance-analysis
-          - contaminated-runway-assessment
-          - limiting-factor-identification
-          - numeric-verification
+          - quantitative-analysis
+          - decision-analysis
+          - teaching
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -122,6 +124,7 @@ spec:
           limitation: {}
     - id: n-barrier3
       kind: agent
+      templateRef: flt-05
       name: Airspace and NOTAM barrier
       summary: Barrier 3 — route availability, permits, and capability requirements. Verified independently
         of the other barriers.
@@ -133,11 +136,10 @@ spec:
         does not hold as blocking rather than as a planning preference.
       capabilities:
         skills:
-          - notam-analysis
-          - airspace-requirement-mapping
-          - overflight-permit-verification
-          - capability-requirement-checking
-          - regulatory-mapping
+          - decision-analysis
+          - design-review
+          - evaluation
+          - compliance-review
         tools:
           - read
           - search
@@ -159,6 +161,7 @@ spec:
           limitation: {}
     - id: n-barrier4
       kind: agent
+      templateRef: flt-06
       name: Crew legality and fatigue barrier
       summary: Barrier 4 — duty limits, rest, and qualification currency. Verified independently of the
         other barriers.
@@ -170,11 +173,11 @@ spec:
         plainly rather than resolving it as a scheduling detail.
       capabilities:
         skills:
-          - crew-legality-checking
-          - duty-and-rest-limit-application
-          - fatigue-risk-assessment
-          - qualification-currency-verification
-          - regulatory-mapping
+          - contract-analysis
+          - domain-analysis
+          - teaching
+          - evaluation
+          - compliance-review
         tools:
           - read
           - calculate
@@ -197,6 +200,7 @@ spec:
           limitation: {}
     - id: n-barrier5
       kind: agent
+      templateRef: flt-07
       name: Airworthiness and MEL barrier
       summary: Barrier 5 — open items, deferral procedures, and operational penalties. Verified independently
         of the other barriers.
@@ -209,11 +213,9 @@ spec:
         with paperwork.
       capabilities:
         skills:
-          - mel-application
-          - airworthiness-determination
-          - deferral-procedure-verification
-          - repair-interval-tracking
-          - regulatory-mapping
+          - domain-analysis
+          - evaluation
+          - compliance-review
         tools:
           - read
           - test
@@ -253,6 +255,7 @@ spec:
             when: hard-stop
     - id: n-rectify
       kind: agent
+      templateRef: flt-01
       name: State the failed barrier and what would restore it
       summary: 'The stop is the deliverable: name the failed barrier and what would restore it.'
       role: Licensed dispatcher holding joint responsibility with the captain for the safe conduct of
@@ -265,11 +268,11 @@ spec:
         for it.
       capabilities:
         skills:
-          - flight-dispatch
-          - dispatch-release-authority
-          - regulatory-minima-citation
-          - operational-control-discipline
-          - failure-mode-analysis
+          - domain-analysis
+          - release-engineering
+          - evidence-verification
+          - compliance-review
+          - risk-analysis
         tools:
           - read
           - calculate

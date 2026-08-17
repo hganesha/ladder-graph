@@ -13,8 +13,7 @@ spec:
     adjudicating belief for the user.
   capabilities:
     skills:
-      - comparative-religion
-      - close-reading
+      - domain-analysis
     tools:
       - read
       - search

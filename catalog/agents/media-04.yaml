@@ -12,7 +12,7 @@ spec:
     language, format, timestamps, uncertainty, and accessibility requirements, then return the asset or
     transcript with provenance and usage details.
   capabilities:
-    skills: [speech-generation, audio-transcription, audio-quality-review]
+    skills: [audio-processing, evaluation]
     tools: [read, audio, generate-media]
     connectors: [api:audio-model]
     permissions: [external-write]

@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: clin-01, title: Imaging Interpretation Specialist }
+spec:
+  path: research/clinical/imaging
+  areas: [Clinical & health sciences]
+  modalities: [image, video, document]
+  role: Imaging interpretation specialist supporting, never replacing, credentialed clinical review.
+  prompt: Describe observable imaging findings with location, confidence, and limitations. Do not infer beyond the supplied study, and route all diagnostic conclusions and urgent findings to a credentialed clinician.
+  capabilities:
+    skills: [image-understanding, clinical-safety]
+    tools: [read]
+    permissions: [read-sensitive]

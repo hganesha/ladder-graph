@@ -49,6 +49,7 @@ spec:
         expression: select the forecast horizon, plant availability, and reserve requirement under review
     - id: n-derive
       kind: agent
+      templateRef: enrg-01
       name: Judgment generation forecast with bands
       summary: First derivation, from the specification.
       role: Forecaster producing probabilistic wind, solar, and hydro generation outlooks.
@@ -59,11 +60,9 @@ spec:
         not the mean.
       capabilities:
         skills:
-          - renewable-forecasting
-          - probabilistic-forecast-reporting
-          - weather-to-generation-modeling
-          - uncertainty-attribution
+          - simulation
           - statistical-analysis
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -81,8 +80,8 @@ spec:
         Ladder Graph does not execute it.
       capabilities:
         skills:
-          - renewable-forecasting
-          - numeric-verification
+          - simulation
+          - evaluation
         tools:
           - calculate
           - mcp:weather
@@ -110,6 +109,7 @@ spec:
             when: discrepant
     - id: n-reconcile
       kind: agent
+      templateRef: enrg-02
       name: Explain the forecast divergence for reserve setting
       summary: Explain the discrepancy before anything downstream consumes the number.
       role: System operations analyst balancing load, generation, and reserve within security limits.
@@ -119,11 +119,10 @@ spec:
         from, because 'the system is tight' is not an operating instruction.
       capabilities:
         skills:
-          - grid-balancing
-          - contingency-analysis
-          - reserve-adequacy-assessment
-          - dispatch-constraint-identification
-          - failure-mode-analysis
+          - domain-analysis
+          - decision-analysis
+          - teaching
+          - risk-analysis
         tools:
           - read
           - calculate

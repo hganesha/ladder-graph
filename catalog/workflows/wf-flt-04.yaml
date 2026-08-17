@@ -52,6 +52,7 @@ spec:
           to
     - id: n-prep1
       kind: agent
+      templateRef: flt-07
       name: MEL category and repair interval determination
       summary: 'Preparation step 1: mel category and repair interval determination.'
       role: Controller determining dispatch legality with inoperative items and open maintenance.
@@ -63,11 +64,9 @@ spec:
         with paperwork.
       capabilities:
         skills:
-          - mel-application
-          - airworthiness-determination
-          - deferral-procedure-verification
-          - repair-interval-tracking
-          - regulatory-mapping
+          - domain-analysis
+          - evaluation
+          - compliance-review
         tools:
           - read
           - test
@@ -79,6 +78,7 @@ spec:
         type: object
     - id: n-prep2
       kind: agent
+      templateRef: flt-04
       name: Operational penalty and performance effect
       summary: 'Preparation step 2: operational penalty and performance effect.'
       role: Performance specialist computing takeoff, landing, and weight-and-balance limits for the actual
@@ -91,11 +91,11 @@ spec:
         clean-runway figure is how an overrun is planned.
       capabilities:
         skills:
-          - performance-calculation
-          - weight-and-balance-analysis
-          - contaminated-runway-assessment
-          - limiting-factor-identification
-          - numeric-verification
+          - quantitative-analysis
+          - decision-analysis
+          - teaching
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -107,6 +107,7 @@ spec:
         type: object
     - id: n-prep3
       kind: agent
+      templateRef: flt-01
       name: Dispatch effect on the planned sectors
       summary: 'Preparation step 3: dispatch effect on the planned sectors.'
       role: Licensed dispatcher holding joint responsibility with the captain for the safe conduct of
@@ -119,11 +120,11 @@ spec:
         for it.
       capabilities:
         skills:
-          - flight-dispatch
-          - dispatch-release-authority
-          - regulatory-minima-citation
-          - operational-control-discipline
-          - failure-mode-analysis
+          - domain-analysis
+          - release-engineering
+          - evidence-verification
+          - compliance-review
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -159,6 +160,7 @@ spec:
             when: conflict
     - id: n-deconflict
       kind: agent
+      templateRef: flt-07
       name: Resolve the interacting work before any signature
       summary: Resolve the conflicting activity before any authority signs.
       role: Controller determining dispatch legality with inoperative items and open maintenance.
@@ -170,11 +172,9 @@ spec:
         with paperwork.
       capabilities:
         skills:
-          - mel-application
-          - airworthiness-determination
-          - deferral-procedure-verification
-          - repair-interval-tracking
-          - regulatory-mapping
+          - domain-analysis
+          - evaluation
+          - compliance-review
         tools:
           - read
           - test

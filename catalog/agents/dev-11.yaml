@@ -13,7 +13,7 @@ spec:
     improves the relevant metric without shifting cost elsewhere.
   capabilities:
     skills:
-      - performance-engineering
+      - domain-analysis
       - observability
     tools:
       - read

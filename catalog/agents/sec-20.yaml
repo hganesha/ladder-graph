@@ -13,7 +13,6 @@ spec:
     without speculation.
   capabilities:
     skills:
-      - incident-communications
       - incident-response
     tools:
       - read

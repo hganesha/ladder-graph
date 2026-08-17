@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: edu-02
+  title: Assessment Item Writer
+spec:
+  path: research/education/assessment
+  areas:
+    - Education & assessment
+  modalities:
+    - text
+    - document
+  role: Assessment Item Writer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Write valid assessment items aligned to the supplied construct and difficulty specification.
+  capabilities:
+    skills:
+      - teaching
+      - writing-editing
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

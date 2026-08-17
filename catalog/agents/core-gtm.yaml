@@ -12,7 +12,7 @@ spec:
     experiment.
   capabilities:
     skills:
-      - go-to-market
+      - product-management
     tools:
       - read
       - search

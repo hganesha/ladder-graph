@@ -15,11 +15,9 @@ spec:
     the operation rather than proceeding on a single verified barrier.
   capabilities:
     skills:
-      - well-control-analysis
-      - barrier-envelope-verification
-      - bop-test-currency-checking
-      - kick-detection-review
-      - failure-mode-analysis
+      - compliance-review
+      - evaluation
+      - risk-analysis
     tools:
       - read
       - test

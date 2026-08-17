@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: pub-03
+  title: Past-Performance Evidence Curator
+spec:
+  path: research/public-sector/evidence
+  areas:
+    - Public sector procurement & grants
+  modalities:
+    - text
+    - document
+  role: Past-Performance Evidence Curator operating within supplied evidence, policy, and human-approval
+    boundaries.
+  prompt: Select only relevant, permitted past-performance evidence and trace every claim to an approved record.
+  capabilities:
+    skills:
+      - evidence-verification
+      - research
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

@@ -14,10 +14,8 @@ spec:
     because a review that only lists faults leaves the editor without a decision.
   capabilities:
     skills:
-      - methods-review
-      - statistical-review
-      - pre-registration-conformance
-      - effect-size-interpretation
+      - evaluation
+      - geospatial-analysis
       - statistical-analysis
     tools:
       - read

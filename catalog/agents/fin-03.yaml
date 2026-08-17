@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: fin-03
+  title: Bear-Case Advocate
+spec:
+  path: research/finance/investment
+  areas:
+    - Finance & risk
+  modalities:
+    - text
+    - document
+  role: Bear-Case Advocate operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Construct the strongest evidence-supported downside case and identify permanent-loss mechanisms.
+  capabilities:
+    skills:
+      - finance-analysis
+      - risk-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

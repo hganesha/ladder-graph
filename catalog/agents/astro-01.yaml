@@ -15,11 +15,10 @@ spec:
     a feasible one would have used.
   capabilities:
     skills:
-      - observation-scheduling
-      - visibility-window-computation
-      - constraint-feasibility-checking
-      - priority-ranking
-      - numeric-verification
+      - optimization
+      - domain-analysis
+      - decision-analysis
+      - evaluation
     tools:
       - read
       - calculate

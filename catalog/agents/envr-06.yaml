@@ -15,11 +15,9 @@ spec:
     as measurement.
   capabilities:
     skills:
-      - measurement-chain-auditing
-      - detection-limit-handling
-      - gap-filling-disclosure
+      - evaluation
+      - domain-analysis
       - data-lineage-analysis
-      - numeric-verification
     tools:
       - read
       - calculate

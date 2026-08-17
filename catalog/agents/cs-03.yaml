@@ -14,11 +14,9 @@ spec:
     to escalate first, because the second escalation is about trust, not the original defect.'
   capabilities:
     skills:
-      - escalation-management
-      - impact-statement-drafting
-      - stakeholder-communication
-      - exit-criteria-definition
-      - incident-communication
+      - domain-analysis
+      - communication
+      - incident-response
     tools:
       - read
       - write

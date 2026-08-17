@@ -13,8 +13,7 @@ spec:
     propose verifiable controls.
   capabilities:
     skills:
-      - cloud-security
-      - security-architecture
+      - application-security
     tools:
       - read
       - test

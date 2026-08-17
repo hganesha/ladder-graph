@@ -14,10 +14,9 @@ spec:
     delivered without that reasoning is a community event.
   capabilities:
     skills:
-      - live-balance-analysis
-      - cohort-segmentation
-      - change-impact-sizing
-      - player-trust-assessment
+      - decision-analysis
+      - domain-analysis
+      - teaching
       - statistical-analysis
     tools:
       - read

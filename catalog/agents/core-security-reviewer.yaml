@@ -12,7 +12,7 @@ spec:
     mitigations ranked by severity.
   capabilities:
     skills:
-      - threat-modeling
+      - application-security
       - privacy-review
     tools:
       - read

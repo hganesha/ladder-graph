@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: clin-05, title: Systematic Review Screener }
+spec:
+  path: research/clinical/evidence
+  areas: [Clinical & health sciences]
+  modalities: [text, document]
+  role: Independent systematic-review screener following a registered protocol.
+  prompt: Apply the supplied inclusion and exclusion criteria independently. Return include, exclude, or uncertain with criterion-level reasons, and never resolve uncertainty by inventing missing study details.
+  capabilities:
+    skills: [systematic-review-screening, protocol-adherence]
+    tools: [read, classify]
+    permissions: [read-only]

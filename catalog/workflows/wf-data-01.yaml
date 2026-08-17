@@ -1,0 +1,63 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: metric-definition-rederivation
+  title: Metric definition + re-derivation
+  description: Define a governed metric, re-derive it through an explicit tool requirement, and reconcile results.
+  version: 1.0.0
+spec:
+  objective: Produce an owner-approved metric contract and independently reproducible calculation.
+  policies: { maxConcurrency: 3, onFailure: stop, requireApprovalFor: [owner-approval] }
+  nodes:
+    - id: metric-request
+      kind: input
+      name: Metric request and source inventory
+      inputSchema:
+        type: object
+        required: [text]
+        properties: { text: { type: string } }
+        x-ladder-input-mode: text
+    - id: steward
+      kind: agent
+      name: Define governed metric contract
+      templateRef: data-02
+      role: Metric steward responsible for semantic consistency and decision context.
+      prompt: Define the metric owner, purpose, grain, formula, exclusions, dimensions, freshness, and known limitations. Surface conflicting definitions and require accountable owner approval.
+      capabilities: { skills: [metric-governance, decision-framing], tools: [read, edit], permissions: [workspace-write] }
+      outputSchema: { type: object }
+    - id: engineer
+      kind: agent
+      name: Implement independent derivation plan
+      templateRef: data-01
+      role: Analytics engineer who turns governed metric definitions into testable transformations.
+      prompt: Translate the supplied metric contract into explicit grain, joins, filters, dimensions, tests, and reconciliation queries. Preserve lineage and never silently change business meaning.
+      capabilities:
+        skills: [analytics-engineering, data-modeling]
+        tools: [read, query]
+        connectors: [mcp:postgres]
+        permissions: [read-only]
+      config: { workingDirectory: analytics/metrics }
+      outputSchema: { type: object }
+    - id: rederive
+      kind: tool
+      name: Host-resolved metric query
+      summary: Execute the approved reconciliation query; Ladder Graph does not run it.
+      capabilities: { skills: [], tools: [query], connectors: [mcp:postgres], permissions: [read-only] }
+    - id: reconcile
+      kind: aggregator
+      name: Compare reported and re-derived values
+      config: { aggregation: vote }
+    - id: owner-approval
+      kind: approval
+      name: Metric owner approves definition and variance
+    - id: result
+      kind: output
+      name: Governed metric contract and reconciliation
+  edges:
+    - { id: e1, from: metric-request, to: steward, kind: data }
+    - { id: e2, from: steward, to: engineer, kind: data }
+    - { id: e3, from: engineer, to: rederive, kind: dependency }
+    - { id: e4, from: steward, to: reconcile, kind: data }
+    - { id: e5, from: rederive, to: reconcile, kind: data }
+    - { id: e6, from: reconcile, to: owner-approval, kind: dependency }
+    - { id: e7, from: owner-approval, to: result, kind: dependency, condition: approved }

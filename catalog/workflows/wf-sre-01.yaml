@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-classify
       kind: agent
+      templateRef: sre-05
       name: Score alerts by user-visible impact
       summary: Score and label every incoming item before anything is queued.
       role: Engineer building signals that answer questions rather than filling dashboards.
@@ -51,11 +52,10 @@ spec:
         fatigue is a reliability risk with a measurable cost.
       capabilities:
         skills:
-          - observability-design
-          - sli-and-slo-definition
-          - alert-actionability-review
-          - instrumentation-planning
-          - incident-communication
+          - observability
+          - domain-analysis
+          - operations-planning
+          - incident-response
         tools:
           - read
           - write
@@ -113,6 +113,7 @@ spec:
             when: default
     - id: n-escalate
       kind: agent
+      templateRef: sre-01
       name: Declare an incident and take command
       summary: Escalation path for the top band.
       role: Incident commander running response with clear roles and honest status.
@@ -123,11 +124,10 @@ spec:
         started.
       capabilities:
         skills:
-          - incident-command
-          - severity-assessment
-          - status-communication
-          - mitigation-first-discipline
-          - incident-communication
+          - incident-response
+          - teaching
+          - communication
+          - domain-analysis
         tools:
           - read
           - write
@@ -140,6 +140,7 @@ spec:
         type: object
     - id: n-handle
       kind: agent
+      templateRef: sre-02
       name: Diagnose and mitigate within the on-call queue
       summary: Standard resolution path.
       role: Diagnostician isolating failure from telemetry under time pressure.
@@ -149,11 +150,11 @@ spec:
         rolling back the wrong change extends the outage and destroys the evidence.
       capabilities:
         skills:
-          - telemetry-diagnosis
-          - hypothesis-elimination
-          - trace-analysis
-          - change-correlation-discipline
-          - failure-mode-analysis
+          - observability
+          - experiment-design
+          - decision-analysis
+          - domain-analysis
+          - risk-analysis
         tools:
           - read
           - test

@@ -1,0 +1,14 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: legal-03, title: Regulatory Obligations Analyst }
+spec:
+  path: research/legal/regulatory
+  areas: [Legal & contracts]
+  modalities: [text, document]
+  role: Regulatory analyst who converts authoritative changes into traceable obligations.
+  prompt: Extract each obligation from the supplied authoritative material, preserve its citation and effective date, identify affected controls and owners, and flag interpretation questions for counsel.
+  capabilities:
+    skills: [regulatory-analysis, obligation-mapping]
+    tools: [read, search]
+    connectors: [mcp:academic-research, mcp:grc]
+    permissions: [read-only]

@@ -15,10 +15,9 @@ spec:
     where the model is silent.
   capabilities:
     skills:
-      - catastrophe-modeling
-      - accumulation-analysis
-      - model-limitation-disclosure
-      - uncertainty-reporting
+      - simulation
+      - decision-analysis
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

@@ -49,6 +49,7 @@ spec:
         expression: select the candidate options and the attributes each reviewer takes a position on
     - id: n-position1
       kind: agent
+      templateRef: evnt-01
       name: Logistics and capacity position
       summary: 'Independent position 1: logistics and capacity position.'
       role: Coordinator matching event requirements to venue capability and constraint.
@@ -59,11 +60,11 @@ spec:
         get shut down.
       capabilities:
         skills:
-          - venue-assessment
-          - capacity-and-layout-verification
-          - load-in-planning
-          - accessibility-review
-          - regulatory-mapping
+          - teaching
+          - evaluation
+          - operations-planning
+          - accessibility
+          - compliance-review
         tools:
           - read
           - search
@@ -75,6 +76,7 @@ spec:
         type: object
     - id: n-position2
       kind: agent
+      templateRef: evnt-02
       name: Commercial and contract position
       summary: 'Independent position 2: commercial and contract position.'
       role: Vendor manager scoping suppliers and the terms that protect the event.
@@ -84,11 +86,11 @@ spec:
         attempt and a remedy that pays out later is not a remedy.
       capabilities:
         skills:
-          - vendor-management
+          - domain-analysis
           - contract-analysis
-          - failure-remedy-planning
-          - cancellation-term-review
-          - supplier-risk-assessment
+          - risk-analysis
+          - evaluation
+          - teaching
         tools:
           - read
           - search
@@ -100,6 +102,7 @@ spec:
         type: object
     - id: n-position3
       kind: agent
+      templateRef: evnt-05
       name: Safety and crowd position
       summary: 'Independent position 3: safety and crowd position.'
       role: Safety planner covering crowd, medical, weather, and emergency response.
@@ -109,11 +112,10 @@ spec:
         the moment to use it is not the moment to establish who holds it.
       capabilities:
         skills:
-          - crowd-safety-planning
-          - emergency-response-planning
-          - trigger-and-authority-definition
-          - medical-provisioning
-          - failure-mode-analysis
+          - risk-analysis
+          - incident-response
+          - quantitative-analysis
+          - image-understanding
         tools:
           - read
         connectors: []
@@ -141,6 +143,7 @@ spec:
             when: collisions
     - id: n-resolve
       kind: agent
+      templateRef: evnt-06
       name: Resolve conflicts into one recommended selection
       summary: Work each collision to a recommended position with a stated fallback.
       role: Controller keeping the event budget honest through commitment and change.
@@ -150,11 +153,11 @@ spec:
         is the last moment a real decision exists.
       capabilities:
         skills:
-          - budget-control
-          - commitment-tracking
-          - change-costing
-          - cancellation-threshold-analysis
-          - numeric-verification
+          - compliance-review
+          - domain-analysis
+          - finance-analysis
+          - decision-analysis
+          - evaluation
         tools:
           - read
           - calculate

@@ -1,4 +1,6 @@
-export type InputModality = "text" | "image" | "audio" | "video" | "document" | "mixed";
+import type { InputModality } from "../types";
+
+export type { InputModality } from "../types";
 
 export interface InputContractPreset {
   id: InputModality;

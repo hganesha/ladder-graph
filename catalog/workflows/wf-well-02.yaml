@@ -46,6 +46,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-barrier1
       kind: agent
+      templateRef: well-03
       name: Primary barrier — fluid column
       summary: Barrier 1 — mud weight against the pore pressure and fracture gradient window. Verified
         independently of the other barriers.
@@ -57,10 +58,9 @@ spec:
         exactly the margin the mud weight has to respect.
       capabilities:
         skills:
-          - pore-pressure-analysis
-          - wellbore-stability-modeling
-          - real-time-model-calibration
-          - uncertainty-band-reporting
+          - decision-analysis
+          - simulation
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -83,6 +83,7 @@ spec:
           limitation: {}
     - id: n-barrier2
       kind: agent
+      templateRef: well-05
       name: Secondary barrier — casing and cement
       summary: Barrier 2 — zonal isolation demonstrated by evidence rather than by a completed pump job.
         Verified independently of the other barriers.
@@ -94,11 +95,9 @@ spec:
         is the entire basis of the barrier the well will be abandoned on.
       capabilities:
         skills:
-          - casing-design
-          - cement-placement-design
-          - zonal-isolation-verification
-          - bond-log-interpretation
-          - numeric-verification
+          - design-review
+          - evaluation
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -120,6 +119,7 @@ spec:
           limitation: {}
     - id: n-barrier3
       kind: agent
+      templateRef: well-04
       name: Mechanical barrier — BOP and wellhead
       summary: Barrier 3 — test currency, validity period, and maximum allowable annular surface pressure.
         Verified independently of the other barriers.
@@ -131,11 +131,9 @@ spec:
         a barrier — and you stop the operation rather than proceeding on a single verified barrier.
       capabilities:
         skills:
-          - well-control-analysis
-          - barrier-envelope-verification
-          - bop-test-currency-checking
-          - kick-detection-review
-          - failure-mode-analysis
+          - compliance-review
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - test
@@ -157,6 +155,7 @@ spec:
           limitation: {}
     - id: n-barrier4
       kind: agent
+      templateRef: well-07
       name: Integrity envelope
       summary: Barrier 4 — sustained annulus pressure and design envelope through the planned operation.
         Verified independently of the other barriers.
@@ -168,11 +167,11 @@ spec:
         placed on presumed isolation is a leak with a completion date.
       capabilities:
         skills:
-          - well-integrity-analysis
-          - annulus-pressure-diagnosis
-          - abandonment-barrier-planning
-          - isolation-evidence-testing
-          - regulatory-mapping
+          - decision-analysis
+          - clinical-review
+          - risk-analysis
+          - evaluation
+          - compliance-review
         tools:
           - read
           - calculate
@@ -212,6 +211,7 @@ spec:
             when: hard-stop
     - id: n-rectify
       kind: agent
+      templateRef: well-04
       name: State the unverified barrier and the work to restore it
       summary: 'The stop is the deliverable: name the failed barrier and what would restore it.'
       role: Well control engineer maintaining two tested barriers between the reservoir and the environment.
@@ -222,11 +222,9 @@ spec:
         a barrier — and you stop the operation rather than proceeding on a single verified barrier.
       capabilities:
         skills:
-          - well-control-analysis
-          - barrier-envelope-verification
-          - bop-test-currency-checking
-          - kick-detection-review
-          - failure-mode-analysis
+          - compliance-review
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - test

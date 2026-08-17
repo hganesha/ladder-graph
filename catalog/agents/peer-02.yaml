@@ -14,10 +14,8 @@ spec:
     a review from the only available near-conflict is worse than a delayed one.
   capabilities:
     skills:
-      - reviewer-matching
-      - expertise-mapping
-      - conflict-of-interest-screening
-      - pool-adequacy-reporting
+      - evaluation
+      - domain-analysis
       - source-triangulation
     tools:
       - read

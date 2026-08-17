@@ -16,11 +16,8 @@ spec:
     it, since forcing a false fixed grid there would corrupt downstream structural analysis.
   capabilities:
     skills:
-      - beat-tempo-tracking
-      - meter-detection-algorithms
-      - groove-swing-ratio-estimation
-      - syncopation-pattern-detection
-      - confidence-scoring-for-ambiguous-tempo-regions
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - audio

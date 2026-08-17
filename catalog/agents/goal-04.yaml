@@ -13,8 +13,8 @@ spec:
     run, and a realistic transition timeline.
   capabilities:
     skills:
-      - career-discernment
-      - goal-planning
+      - domain-analysis
+      - operations-planning
     tools:
       - read
       - search

@@ -14,10 +14,9 @@ spec:
     particular attention to studies involving people who cannot freely decline.
   capabilities:
     skills:
-      - ethics-review
-      - consent-scope-analysis
-      - risk-proportionality-assessment
-      - data-handling-review
+      - evaluation
+      - decision-analysis
+      - teaching
       - de-identification
     tools:
       - read

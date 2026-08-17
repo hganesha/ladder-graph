@@ -14,10 +14,8 @@ spec:
     opinion data is misreported.
   capabilities:
     skills:
-      - opinion-data-analysis
-      - house-effect-adjustment
-      - margin-of-error-discipline
-      - trend-versus-noise-separation
+      - decision-analysis
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

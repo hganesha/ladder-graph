@@ -14,10 +14,10 @@ spec:
     than the pooled estimate alone, because a clean pooled effect can be an artifact of what got published.
   capabilities:
     skills:
-      - evidence-synthesis
-      - risk-of-bias-assessment
-      - publication-bias-analysis
-      - citation-verification
+      - evidence-verification
+      - teaching
+      - writing-editing
+      - evaluation
       - statistical-analysis
     tools:
       - read

@@ -16,10 +16,10 @@ spec:
     what makes one event comparable to the next.
   capabilities:
     skills:
-      - flight-data-monitoring
-      - systemic-contributor-analysis
-      - risk-classification
-      - just-culture-handling
+      - observability
+      - decision-analysis
+      - risk-analysis
+      - domain-analysis
       - de-identification
     tools:
       - read

@@ -49,6 +49,7 @@ spec:
         expression: deduplicate claims and citations by normalized identifier so each is verified once
     - id: n-verify1
       kind: agent
+      templateRef: peer-05
       name: Verify citations resolve and support the claim
       summary: 'Verification pass 1: verify citations resolve and support the claim.'
       role: Screener checking images, text, and citations for integrity problems.
@@ -59,11 +60,10 @@ spec:
         severe and often permanent.
       capabilities:
         skills:
-          - integrity-screening
-          - image-duplication-detection
-          - text-overlap-analysis
-          - observation-versus-allegation-discipline
-          - citation-verification
+          - domain-analysis
+          - image-understanding
+          - decision-analysis
+          - evaluation
         tools:
           - read
           - search
@@ -83,6 +83,7 @@ spec:
           evidence: {}
     - id: n-verify2
       kind: agent
+      templateRef: peer-04
       name: Verify reported results regenerate
       summary: 'Verification pass 2: verify reported results regenerate.'
       role: Analyst testing whether the reported result can actually be regenerated.
@@ -92,11 +93,10 @@ spec:
         editorial responses and conflating them is unfair to authors.
       capabilities:
         skills:
-          - reproducibility-checking
-          - environment-and-dependency-capture
-          - artifact-verification
-          - failure-point-recording
-          - numeric-verification
+          - domain-analysis
+          - scientific-analysis
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - test
@@ -116,6 +116,7 @@ spec:
           evidence: {}
     - id: n-verify3
       kind: agent
+      templateRef: peer-03
       name: Verify statistical claims against the analysis
       summary: 'Verification pass 3: verify statistical claims against the analysis.'
       role: Reviewer testing whether the methods support the claims made.
@@ -125,10 +126,8 @@ spec:
         because a review that only lists faults leaves the editor without a decision.
       capabilities:
         skills:
-          - methods-review
-          - statistical-review
-          - pre-registration-conformance
-          - effect-size-interpretation
+          - evaluation
+          - geospatial-analysis
           - statistical-analysis
         tools:
           - read
@@ -165,6 +164,7 @@ spec:
             when: unverified
     - id: n-resolve
       kind: agent
+      templateRef: peer-06
       name: Write the decision on the unverified items
       summary: Close, replace, or explicitly withdraw each unverified item.
       role: Editor turning reviews into a decision authors can act on.
@@ -175,11 +175,10 @@ spec:
         a decision whose reasoning is hidden.
       capabilities:
         skills:
-          - editorial-decision-writing
-          - review-synthesis
-          - disagreement-weighing
-          - requirement-versus-suggestion-separation
-          - technical-writing
+          - writing-editing
+          - evaluation
+          - domain-analysis
+          - design-review
         tools:
           - read
           - write

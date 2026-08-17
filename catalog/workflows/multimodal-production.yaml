@@ -53,6 +53,7 @@ spec:
         y: 260
     - id: model-selection
       kind: agent
+      inlineRole: true
       name: Model and request design
       summary: Choose modality, profile, parameters, and delivery behavior.
       role: Multimodal integration specialist
@@ -62,9 +63,7 @@ spec:
         provenance, and fallback. Never include credentials in output.
       capabilities:
         skills:
-          - multimodal-model-selection
-          - integration-engineering
-          - async-media-jobs
+          - domain-analysis
         tools:
           - read
           - search
@@ -118,6 +117,7 @@ spec:
         y: 260
     - id: image
       kind: agent
+      inlineRole: true
       name: Generate or edit image
       summary: Create the approved image asset with bounded parameters.
       role: Image generation specialist
@@ -126,8 +126,7 @@ spec:
         metadata plus provider-reported usage and cost.
       capabilities:
         skills:
-          - image-generation
-          - image-editing
+          - image-understanding
         tools:
           - generate-media
         connectors:
@@ -155,6 +154,7 @@ spec:
         y: 40
     - id: video
       kind: agent
+      inlineRole: true
       name: Generate video
       summary: Submit and collect the approved asynchronous video job.
       role: Video generation specialist
@@ -163,8 +163,8 @@ spec:
         asset with provenance, usage, and cost.
       capabilities:
         skills:
-          - video-generation
-          - async-media-jobs
+          - video-processing
+          - domain-analysis
         tools:
           - generate-media
           - poll
@@ -193,6 +193,7 @@ spec:
         y: 240
     - id: audio
       kind: agent
+      inlineRole: true
       name: Generate or transcribe audio
       summary: Produce speech or transcription from the approved request.
       role: Audio generation and transcription specialist
@@ -201,8 +202,7 @@ spec:
         transcript with provenance, usage, and cost.
       capabilities:
         skills:
-          - speech-generation
-          - audio-transcription
+          - audio-processing
         tools:
           - generate-media
         connectors:
@@ -239,6 +239,7 @@ spec:
         y: 260
     - id: review
       kind: evaluate
+      inlineRole: true
       name: Media quality and safety gate
       summary: Check brief fidelity, safety, rights, privacy, and technical validity.
       role: Independent creative and media safety reviewer
@@ -247,7 +248,6 @@ spec:
         provenance completeness. Pass only with concrete evidence and no unresolved release blocker.
       capabilities:
         skills:
-          - media-safety-review
           - evaluation
         tools:
           - read

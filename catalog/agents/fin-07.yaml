@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: fin-07
+  title: Valuation Reviewer
+spec:
+  path: research/finance/valuation
+  areas:
+    - Finance & risk
+  modalities:
+    - text
+    - document
+  role: Valuation Reviewer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Re-derive valuation under explicit methods and assumptions and explain sensitivity without false precision.
+  capabilities:
+    skills:
+      - finance-analysis
+      - quantitative-analysis
+      - evaluation
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

@@ -16,11 +16,10 @@ spec:
     at the start.
   capabilities:
     skills:
-      - opportunity-qualification
-      - disconfirming-evidence-search
-      - decision-process-mapping
-      - champion-testing
-      - evidence-citation
+      - domain-analysis
+      - evidence-verification
+      - manufacturing-analysis
+      - evaluation
     tools:
       - read
       - search

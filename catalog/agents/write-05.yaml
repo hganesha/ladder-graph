@@ -13,8 +13,8 @@ spec:
     counterarguments, and make the conclusion synthesize what was established.
   capabilities:
     skills:
-      - academic-writing
-      - citation-integrity
+      - design-review
+      - evidence-verification
     tools:
       - read
       - edit

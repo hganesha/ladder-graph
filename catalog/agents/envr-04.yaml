@@ -14,11 +14,10 @@ spec:
     as an exceedance regardless of how it is later averaged.
   capabilities:
     skills:
-      - permit-condition-mapping
-      - monitoring-method-verification
-      - exceedance-detection
-      - regulatory-mapping
-      - citation-verification
+      - domain-analysis
+      - observability
+      - compliance-review
+      - evaluation
     tools:
       - read
       - search

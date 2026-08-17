@@ -14,11 +14,10 @@ spec:
     from measured impact and report both, because triaging on tone alone starves quiet outages of attention.
   capabilities:
     skills:
-      - ticket-triage
-      - impact-scoring
-      - confidence-reporting
-      - routing-taxonomy-application
-      - failure-mode-analysis
+      - domain-analysis
+      - evaluation
+      - optimization
+      - risk-analysis
     tools:
       - read
       - search
