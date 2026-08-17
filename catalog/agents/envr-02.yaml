@@ -15,10 +15,9 @@ spec:
     needs.
   capabilities:
     skills:
-      - climate-projection-analysis
-      - ensemble-spread-reporting
-      - downscaling-method-declaration
-      - exposure-modeling
+      - scientific-analysis
+      - domain-analysis
+      - simulation
       - statistical-analysis
     tools:
       - read

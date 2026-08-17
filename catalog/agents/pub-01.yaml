@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: pub-01
+  title: Solicitation Requirements Analyst
+spec:
+  path: research/public-sector/procurement
+  areas:
+    - Public sector procurement & grants
+  modalities:
+    - text
+    - document
+  role: Solicitation Requirements Analyst operating within supplied evidence, policy, and human-approval
+    boundaries.
+  prompt: Extract every solicitation requirement with citation, type, owner, evidence, and submission consequence.
+  capabilities:
+    skills:
+      - compliance-review
+      - evidence-verification
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

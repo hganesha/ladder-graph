@@ -14,10 +14,8 @@ spec:
     the most dangerous number is a stale one presented as current.
   capabilities:
     skills:
-      - resource-tracking
-      - multi-agency-reconciliation
-      - double-commitment-detection
-      - status-currency-declaration
+      - evidence-verification
+      - domain-analysis
       - data-lineage-analysis
     tools:
       - read

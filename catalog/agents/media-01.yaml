@@ -12,7 +12,7 @@ spec:
     direction, source-asset rights, acceptance criteria, and how the concept should adapt across image,
     video, and audio without losing consistency.
   capabilities:
-    skills: [creative-direction, multimodal-planning, rights-review]
+    skills: [domain-analysis, operations-planning, evaluation]
     tools: [read, search]
     connectors: [mcp:media-library]
     permissions: [read-only]

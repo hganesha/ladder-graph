@@ -14,7 +14,7 @@ spec:
   capabilities:
     skills:
       - documentation
-      - adr-authoring
+      - domain-analysis
     tools:
       - read
       - edit

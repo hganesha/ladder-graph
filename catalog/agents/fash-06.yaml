@@ -14,11 +14,10 @@ spec:
     requirements match another jurisdiction's, because they routinely do not.
   capabilities:
     skills:
-      - product-compliance-review
-      - labelling-requirement-mapping
-      - chemical-restriction-checking
-      - regulatory-mapping
-      - citation-verification
+      - evaluation
+      - design-review
+      - scientific-analysis
+      - compliance-review
     tools:
       - read
       - search

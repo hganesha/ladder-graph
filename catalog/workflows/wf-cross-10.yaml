@@ -1,0 +1,255 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: long-form-nonfiction-verified-production
+  title: "Long-form nonfiction: research → argument → fact-check → line edit"
+  description: Assemble historical research, argument, verification, drafting, and editing into one claim-gated
+    manuscript workflow.
+  version: 1.0.0
+spec:
+  objective: Assemble historical research, argument, verification, drafting, and editing into one claim-gated
+    manuscript workflow.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Historical Research Analyst
+      templateRef: hist-01
+      role: Historical researcher and source critic
+      prompt: Distinguish primary from secondary sources and evaluate provenance, audience, bias, and reliability
+        before treating claims as fact. Separate causal conditions from correlation and mark thin or contested
+        evidence explicitly.
+      capabilities:
+        skills:
+          - research
+          - evidence-verification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:archives
+          - mcp:academic-research
+          - mcp:zotero
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Primary Source & Archival Document Analyst
+      templateRef: hist-04
+      role: Archival document analyst
+      prompt: Establish a document's provenance, audience, purpose, and survival context, then separate direct
+        statements from inference. Flag translation, transcription, terminology, and authenticity issues that
+        could change meaning.
+      capabilities:
+        skills:
+          - decision-analysis
+          - evidence-verification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:archives
+          - mcp:zotero
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Historiography & Bias Critic
+      templateRef: hist-05
+      role: Historiography and narrative-bias critic
+      prompt: Examine a historical account as a product of its author, era, audience, interests, and interpretive
+        school. Identify framing and omission, distinguish presentism from legitimate moral evaluation, and
+        compare stronger and weaker histories without collapsing into relativism.
+      capabilities:
+        skills:
+          - domain-analysis
+          - evidence-verification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:academic-research
+          - mcp:zotero
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-4
+      kind: agent
+      name: Logic & Argumentation Coach
+      templateRef: phil-03
+      role: Formal and informal logic instructor
+      prompt: Reconstruct arguments charitably in standard form before evaluating them. Separate validity from
+        soundness, identify formal and informal fallacies precisely, symbolize structure when useful, and
+        teach the evaluation method as you work.
+      capabilities:
+        skills:
+          - decision-analysis
+          - domain-analysis
+        tools:
+          - read
+          - test
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-5
+      kind: agent
+      name: Developmental Editor
+      templateRef: write-01
+      role: Developmental manuscript editor
+      prompt: Work on structure, argument, narrative arc, pacing, point of view, and throughline before sentence
+        polish. Diagnose large-scale problems and offer concrete restructuring options while deferring line
+        edits until the shape is sound.
+      capabilities:
+        skills:
+          - writing-editing
+          - domain-analysis
+        tools:
+          - read
+          - edit
+        connectors:
+          - mcp:document-editor
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+    - id: role-6
+      kind: agent
+      name: Line Editor / Prose Stylist
+      templateRef: write-02
+      role: Line editor and prose stylist
+      prompt: Tighten sentences and paragraphs, improve precision and rhythm, and flag redundancy or cliché without
+        replacing the writer's voice with generic polish. Explain material edits so the writer's own editorial
+        judgment improves.
+      capabilities:
+        skills:
+          - writing-editing
+          - audio-processing
+        tools:
+          - read
+          - edit
+        connectors:
+          - mcp:document-editor
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+    - id: role-7
+      kind: agent
+      name: Fact-Checker
+      templateRef: jour-01
+      role: Fact-Checker operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Verify every publishable factual claim against traceable evidence and label unresolved claims.
+      capabilities:
+        skills:
+          - evidence-verification
+          - research
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: combine
+      kind: aggregator
+      name: Reconcile cross-area findings
+      config:
+        aggregation: concat
+    - id: approval
+      kind: approval
+      name: Cross-functional authority approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: intake
+      to: role-4
+      kind: data
+    - id: e5
+      from: intake
+      to: role-5
+      kind: data
+    - id: e6
+      from: intake
+      to: role-6
+      kind: data
+    - id: e7
+      from: intake
+      to: role-7
+      kind: data
+    - id: e8
+      from: role-1
+      to: combine
+      kind: data
+    - id: e9
+      from: role-2
+      to: combine
+      kind: data
+    - id: e10
+      from: role-3
+      to: combine
+      kind: data
+    - id: e11
+      from: role-4
+      to: combine
+      kind: data
+    - id: e12
+      from: role-5
+      to: combine
+      kind: data
+    - id: e13
+      from: role-6
+      to: combine
+      kind: data
+    - id: e14
+      from: role-7
+      to: combine
+      kind: data
+    - id: e15
+      from: combine
+      to: approval
+      kind: dependency
+    - id: e16
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

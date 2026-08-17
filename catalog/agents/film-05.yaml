@@ -14,11 +14,11 @@ spec:
     phone speaker, because that is where most of the audience will meet it.
   capabilities:
     skills:
-      - sound-design
-      - dialogue-intelligibility-protection
-      - loudness-compliance
-      - playback-target-testing
-      - post-pipeline-design
+      - audio-processing
+      - domain-analysis
+      - compliance-review
+      - evaluation
+      - data-engineering
     tools:
       - read
     connectors: []

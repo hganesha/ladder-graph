@@ -15,10 +15,10 @@ spec:
     seen.
   capabilities:
     skills:
-      - biostatistical-review
-      - multiplicity-correction-checking
-      - power-analysis
-      - analysis-plan-conformance
+      - evaluation
+      - domain-analysis
+      - decision-analysis
+      - operations-planning
       - statistical-analysis
     tools:
       - read

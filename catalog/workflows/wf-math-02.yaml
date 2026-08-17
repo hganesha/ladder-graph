@@ -40,6 +40,7 @@ spec:
         x-ladder-input-mode: text
     - id: n2
       kind: agent
+      templateRef: math-trig-02
       name: Attempt Symbolic Verification
       summary: Attempt Symbolic Verification
       role: Symbolic-math specialist verifying and proving trigonometric identities to
@@ -55,11 +56,10 @@ spec:
         certain angles).
       capabilities:
         skills:
-          - symbolic-math-engine
-          - numeric-spot-check-pre-filter
-          - identity-rule-reference
-          - latex-rendering
-          - counterexample-search
+          - quantitative-analysis
+          - application-security
+          - image-understanding
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -81,6 +81,7 @@ spec:
             when: "false"
     - id: n4
       kind: agent
+      templateRef: math-trig-02
       name: Generate Formal Proof Steps
       summary: Generate Formal Proof Steps
       role: Symbolic-math specialist verifying and proving trigonometric identities to
@@ -96,11 +97,10 @@ spec:
         certain angles).
       capabilities:
         skills:
-          - symbolic-math-engine
-          - numeric-spot-check-pre-filter
-          - identity-rule-reference
-          - latex-rendering
-          - counterexample-search
+          - quantitative-analysis
+          - application-security
+          - image-understanding
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -111,6 +111,7 @@ spec:
         type: object
     - id: n5
       kind: agent
+      templateRef: math-trig-01
       name: Identify Counterexample & Explain Failure
       summary: Identify Counterexample & Explain Failure
       role: Math tutor specializing in trigonometry (unit circle, identities, triangle solving) for
@@ -125,11 +126,10 @@ spec:
         student may only need the identity named.
       capabilities:
         skills:
-          - symbolic-math-engine
-          - graphing-plotting
-          - step-by-step-derivation-tracing
-          - latex-rendering
-          - unit-circle-visualization
+          - quantitative-analysis
+          - privacy-review
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -148,6 +148,7 @@ spec:
         join: first
     - id: n7
       kind: agent
+      templateRef: math-trig-01
       name: Generate Tutoring Explanation for Student Level
       summary: Generate Tutoring Explanation for Student Level
       role: Math tutor specializing in trigonometry (unit circle, identities, triangle solving) for
@@ -162,11 +163,10 @@ spec:
         student may only need the identity named.
       capabilities:
         skills:
-          - symbolic-math-engine
-          - graphing-plotting
-          - step-by-step-derivation-tracing
-          - latex-rendering
-          - unit-circle-visualization
+          - quantitative-analysis
+          - privacy-review
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -179,6 +179,7 @@ spec:
         type: object
     - id: n8
       kind: evaluate
+      inlineRole: true
       name: Comprehension Check
       summary: Evaluate follow up question score.
       role: Independent domain evaluator
@@ -236,6 +237,7 @@ spec:
         onExhausted: stop
     - id: n10
       kind: agent
+      templateRef: math-trig-01
       name: Summarize & Generate Practice Set
       summary: Summarize & Generate Practice Set
       role: Math tutor specializing in trigonometry (unit circle, identities, triangle solving) for
@@ -250,11 +252,10 @@ spec:
         student may only need the identity named.
       capabilities:
         skills:
-          - symbolic-math-engine
-          - graphing-plotting
-          - step-by-step-derivation-tracing
-          - latex-rendering
-          - unit-circle-visualization
+          - quantitative-analysis
+          - privacy-review
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - calculate

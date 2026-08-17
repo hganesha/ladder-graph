@@ -44,6 +44,7 @@ spec:
         x-ladder-input-mode: text
     - id: n2
       kind: agent
+      templateRef: phys-07
       name: Clean & Fit Experimental Data
       summary: Clean & Fit Experimental Data
       role: Experimental physicist specializing in lab-data analysis, curve fitting, and uncertainty
@@ -57,11 +58,10 @@ spec:
         the data or merely plotted alongside it without a real statistical check.
       capabilities:
         skills:
-          - curve-fitting-regression
-          - uncertainty-propagation-calculators
-          - goodness-of-fit-statistics
-          - plotting-visualization
-          - lab-notebook-data-provenance-logging
+          - statistical-analysis
+          - domain-analysis
+          - image-understanding
+          - observability
         tools:
           - read
           - calculate
@@ -72,6 +72,7 @@ spec:
         type: object
     - id: n3
       kind: agent
+      templateRef: phys-05
       name: Run Theoretical Simulation / Model Prediction
       summary: Run Theoretical Simulation / Model Prediction
       role: Computational physicist building and running numerical simulations of physical systems.
@@ -84,11 +85,10 @@ spec:
         must obey, and you report the simulation's estimated numerical error alongside its result.
       capabilities:
         skills:
-          - numerical-integration-ode-pde-solver
-          - monte-carlo-simulation
-          - finite-element-finite-difference-framework
-          - conservation-law-validation-checks
-          - simulation-visualization
+          - quantitative-analysis
+          - simulation
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -105,6 +105,7 @@ spec:
         join: all
     - id: n5
       kind: evaluate
+      inlineRole: true
       name: Compare Data vs Model (Goodness-of-Fit)
       summary: Evaluate chi square reduced.
       role: Deterministic metric evaluator
@@ -150,6 +151,7 @@ spec:
             when: "false"
     - id: n8
       kind: agent
+      templateRef: phys-05
       name: Revise Model Parameters
       summary: Revise Model Parameters
       role: Computational physicist building and running numerical simulations of physical systems.
@@ -162,11 +164,10 @@ spec:
         must obey, and you report the simulation's estimated numerical error alongside its result.
       capabilities:
         skills:
-          - numerical-integration-ode-pde-solver
-          - monte-carlo-simulation
-          - finite-element-finite-difference-framework
-          - conservation-law-validation-checks
-          - simulation-visualization
+          - quantitative-analysis
+          - simulation
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -195,6 +196,7 @@ spec:
       summary: Pause for principal investigator / advisor; on timeout, escalate.
     - id: n10
       kind: agent
+      templateRef: phys-07
       name: Generate Lab Report with Figures
       summary: Generate Lab Report with Figures
       role: Experimental physicist specializing in lab-data analysis, curve fitting, and uncertainty
@@ -208,11 +210,10 @@ spec:
         the data or merely plotted alongside it without a real statistical check.
       capabilities:
         skills:
-          - curve-fitting-regression
-          - uncertainty-propagation-calculators
-          - goodness-of-fit-statistics
-          - plotting-visualization
-          - lab-notebook-data-provenance-logging
+          - statistical-analysis
+          - domain-analysis
+          - image-understanding
+          - observability
         tools:
           - read
           - calculate

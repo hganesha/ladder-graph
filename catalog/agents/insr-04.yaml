@@ -14,10 +14,10 @@ spec:
     proxies as evidence, because a referral built on those is both wrong and actionable against the insurer.
   capabilities:
     skills:
-      - fraud-indicator-analysis
-      - document-anomaly-detection
-      - network-relationship-analysis
-      - evidence-standards
+      - application-security
+      - data-quality-analysis
+      - decision-analysis
+      - evidence-verification
       - de-identification
     tools:
       - read

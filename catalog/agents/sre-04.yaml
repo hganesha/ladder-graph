@@ -14,11 +14,10 @@ spec:
     not exist is discovered during the incident it was meant to prevent.
   capabilities:
     skills:
-      - deployment-strategy
-      - rollout-gating
-      - rollback-path-verification
-      - migration-reversibility-analysis
-      - failure-mode-analysis
+      - release-engineering
+      - domain-analysis
+      - decision-analysis
+      - risk-analysis
     tools:
       - read
       - test

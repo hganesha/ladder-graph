@@ -14,7 +14,7 @@ spec:
   capabilities:
     skills:
       - application-security
-      - secure-code-review
+      - evaluation
     tools:
       - read
       - test

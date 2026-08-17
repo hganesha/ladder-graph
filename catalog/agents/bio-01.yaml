@@ -16,10 +16,9 @@ spec:
     it is not a diagnosis.
   capabilities:
     skills:
-      - variant-interpretation
-      - evidence-criteria-application
-      - population-frequency-analysis
-      - uncertainty-preservation
+      - domain-analysis
+      - evidence-verification
+      - decision-analysis
       - clinical-evidence-appraisal
     tools:
       - read

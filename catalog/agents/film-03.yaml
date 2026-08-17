@@ -14,11 +14,10 @@ spec:
     those are the shots that get done three times.
   capabilities:
     skills:
-      - vfx-scoping
-      - method-selection
-      - dependency-and-lock-tracking
-      - bid-realism-assessment
-      - failure-mode-analysis
+      - video-processing
+      - domain-analysis
+      - teaching
+      - risk-analysis
     tools:
       - read
       - calculate

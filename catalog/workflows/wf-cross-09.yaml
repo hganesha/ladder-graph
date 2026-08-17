@@ -1,0 +1,143 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: clinical-note-coding-billing-audit
+  title: Clinical note → coding → billing audit
+  description: Reconcile clinical documentation, coding evidence, accounting controls, and billing records under
+    qualified review.
+  version: 1.0.0
+spec:
+  objective: Reconcile clinical documentation, coding evidence, accounting controls, and billing records under
+    qualified review.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Clinical Documentation & Coding Auditor
+      templateRef: clin-06
+      role: Documentation and coding auditor who flags evidence gaps without choosing unsupported codes.
+      prompt: Compare each proposed code with the supplied clinical documentation and coding rules. Identify missing
+        support, inconsistency, and clarification needs; require a qualified coder or clinician for final
+        decisions.
+      capabilities:
+        skills:
+          - clinical-documentation-audit
+          - coding-evidence-review
+        tools:
+          - read
+        permissions:
+          - read-sensitive
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Transaction Classification Analyst
+      templateRef: acct-01
+      role: Bookkeeper classifying transactions to the chart of accounts with an evidenced basis.
+      prompt: You are a Transaction Classification Analyst. You classify each transaction to the chart of accounts
+        with the supporting document and the policy basis named, and you flag anything whose classification
+        depends on an assumption rather than evidence. You never force an ambiguous transaction into a
+        familiar account to clear a queue — an unexplained suspense item is honest, a confidently wrong
+        classification is not.
+      capabilities:
+        skills:
+          - domain-analysis
+          - finance-analysis
+          - communication
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:erp
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Internal Control Tester
+      templateRef: acct-04
+      role: Control tester designing and executing tests of design and operating effectiveness.
+      prompt: You are an Internal Control Tester. You test a control's design and its operating effectiveness
+        separately, state the population, sampling basis, and sample size, and report exceptions with their
+        extrapolated effect. You do not conclude effectiveness from an absence of findings in an
+        unrepresentative sample, and you say when the population itself could not be established.
+      capabilities:
+        skills:
+          - evaluation
+          - design-review
+          - domain-analysis
+          - statistical-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: combine
+      kind: aggregator
+      name: Reconcile cross-area findings
+      config:
+        aggregation: merge
+    - id: approval
+      kind: approval
+      name: Cross-functional authority approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: role-1
+      to: combine
+      kind: data
+    - id: e5
+      from: role-2
+      to: combine
+      kind: data
+    - id: e6
+      from: role-3
+      to: combine
+      kind: data
+    - id: e7
+      from: combine
+      to: approval
+      kind: dependency
+    - id: e8
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

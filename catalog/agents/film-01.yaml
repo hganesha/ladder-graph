@@ -14,11 +14,10 @@ spec:
     the original media, because a pipeline that cannot be re-run from source turns every note into a negotiation.
   capabilities:
     skills:
-      - post-pipeline-design
-      - conform-and-versioning
-      - colour-pipeline-specification
-      - delivery-spec-compliance
-      - failure-mode-analysis
+      - data-engineering
+      - domain-analysis
+      - release-engineering
+      - risk-analysis
     tools:
       - read
       - write

@@ -49,6 +49,7 @@ spec:
         expression: deduplicate extracted obligations by normalized obligation text and citation
     - id: n-verify1
       kind: agent
+      templateRef: qac-01
       name: Verify obligation against the source text
       summary: 'Verification pass 1: verify obligation against the source text.'
       role: Monitor tracking regulatory change and translating it into obligations.
@@ -58,11 +59,11 @@ spec:
         because treating the two the same produces either wasted work or an unmitigated gap.
       capabilities:
         skills:
-          - regulatory-monitoring
-          - obligation-extraction
-          - effective-date-tracking
-          - guidance-versus-requirement-separation
-          - regulatory-mapping
+          - observability
+          - contract-analysis
+          - domain-analysis
+          - design-review
+          - compliance-review
         tools:
           - read
           - search
@@ -82,6 +83,7 @@ spec:
           evidence: {}
     - id: n-verify2
       kind: agent
+      templateRef: qac-02
       name: Verify a control exists that addresses it
       summary: 'Verification pass 2: verify a control exists that addresses it.'
       role: Analyst designing controls that actually address the risk they name.
@@ -92,11 +94,11 @@ spec:
         on.
       capabilities:
         skills:
-          - control-design
-          - risk-to-control-mapping
-          - evidence-producibility-testing
-          - ownership-assignment
-          - failure-mode-analysis
+          - design-review
+          - compliance-review
+          - evaluation
+          - domain-analysis
+          - risk-analysis
         tools:
           - read
         connectors:
@@ -115,6 +117,7 @@ spec:
           evidence: {}
     - id: n-verify3
       kind: agent
+      templateRef: qac-03
       name: Verify evidence that the control operates
       summary: 'Verification pass 3: verify evidence that the control operates.'
       role: Collector assembling audit trails that stand up without the collector present.
@@ -124,11 +127,9 @@ spec:
         because an audit trail that depends on someone remembering how it was made is not an audit trail.
       capabilities:
         skills:
-          - audit-evidence-collection
-          - completeness-verification
-          - population-versus-sample-declaration
+          - evaluation
+          - statistical-analysis
           - data-lineage-analysis
-          - citation-verification
         tools:
           - read
           - search
@@ -165,6 +166,7 @@ spec:
             when: unverified
     - id: n-resolve
       kind: agent
+      templateRef: qac-05
       name: Plan remediation for uncovered obligations
       summary: Close, replace, or explicitly withdraw each unverified item.
       role: Analyst driving nonconformances to verified, effective corrective action.
@@ -174,11 +176,10 @@ spec:
         a system that depends on people not making a possible mistake will keep producing it.
       capabilities:
         skills:
-          - nonconformance-investigation
-          - root-cause-analysis
-          - capa-effectiveness-verification
-          - systemic-cause-detection
-          - failure-mode-analysis
+          - domain-analysis
+          - decision-analysis
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - test

@@ -13,8 +13,8 @@ spec:
     writer's own editorial judgment improves.
   capabilities:
     skills:
-      - line-editing
-      - voice-preservation
+      - writing-editing
+      - audio-processing
     tools:
       - read
       - edit

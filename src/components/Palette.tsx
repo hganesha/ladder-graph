@@ -12,12 +12,15 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
 import { NODE_META, PALETTE_ORDER, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { groupRoleTemplates, roleSubcategory } from "../lib/roleCategories";
 import { useStudioStore } from "../store/useStudioStore";
+import type { InputModality } from "../types";
 
 export function Palette() {
   const [query, setQuery] = useState("");
+  const [modality, setModality] = useState<"all" | InputModality>("all");
   const addNode = useStudioStore((state) => state.addNode);
   const addRole = useStudioStore((state) => state.addRole);
   const addMacro = useStudioStore((state) => state.addMacro);
@@ -37,7 +40,14 @@ export function Palette() {
         !normalized || `${NODE_META[kind].label} ${NODE_META[kind].hint} ${NODE_META[kind].category}`.toLowerCase().includes(normalized),
     );
   }, [query]);
-  const roleGroups = useMemo(() => groupRoleTemplates(ROLE_TEMPLATES, query), [query]);
+  const roleGroups = useMemo(
+    () =>
+      groupRoleTemplates(
+        ROLE_TEMPLATES.filter((role) => modality === "all" || role.modalities.includes(modality)),
+        query,
+      ),
+    [modality, query],
+  );
   const visibleRoleCount = useMemo(() => roleGroups.reduce((count, category) => count + category.roles.length, 0), [roleGroups]);
 
   return (
@@ -55,6 +65,17 @@ export function Palette() {
         <Search size={14} />
         <span className="sr-only">Search nodes and templates</span>
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search library" />
+      </label>
+      <label className="palette-modality-filter">
+        <span>Agent modality</span>
+        <select value={modality} onChange={(event) => setModality(event.target.value as "all" | InputModality)}>
+          <option value="all">All</option>
+          {INPUT_CONTRACT_PRESETS.map((preset) => (
+            <option key={preset.id} value={preset.id}>
+              {preset.label}
+            </option>
+          ))}
+        </select>
       </label>
       {activeGroup && (
         <div className="group-context">

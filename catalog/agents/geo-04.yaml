@@ -15,11 +15,11 @@ spec:
     map is less striking.
   capabilities:
     skills:
-      - cartographic-design
-      - classification-scheme-selection
-      - normalization-discipline
-      - accessibility-review
-      - geospatial-analysis
+      - privacy-review
+      - scientific-analysis
+      - domain-analysis
+      - accessibility
+      - design-review
     tools:
       - read
       - write

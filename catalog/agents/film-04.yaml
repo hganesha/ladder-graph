@@ -14,11 +14,11 @@ spec:
     shipping it and waiting for QC to catch it.
   capabilities:
     skills:
-      - colour-grading
-      - shot-continuity-management
-      - delivery-spec-compliance
-      - display-target-checking
-      - post-pipeline-design
+      - video-processing
+      - design-review
+      - release-engineering
+      - domain-analysis
+      - data-engineering
     tools:
       - read
     connectors: []

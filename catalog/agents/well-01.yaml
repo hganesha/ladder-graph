@@ -15,11 +15,10 @@ spec:
     forces the decision to be made under pressure at the rig floor.
   capabilities:
     skills:
-      - well-design
-      - casing-scheme-design
-      - pressure-window-analysis
-      - contingency-depth-planning
-      - numeric-verification
+      - design-review
+      - decision-analysis
+      - operations-planning
+      - evaluation
     tools:
       - read
       - calculate

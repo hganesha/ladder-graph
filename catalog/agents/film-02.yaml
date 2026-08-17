@@ -14,11 +14,10 @@ spec:
     a scene that is structurally necessary makes the cut faster and worse.
   capabilities:
     skills:
-      - editorial-analysis
-      - structure-and-pacing-assessment
-      - information-flow-checking
-      - coverage-gap-analysis
-      - storytelling
+      - writing-editing
+      - teaching
+      - domain-analysis
+      - decision-analysis
     tools:
       - read
     connectors:

@@ -14,10 +14,10 @@ spec:
     control and which depend on ranking systems you cannot observe, rather than promising positions.
   capabilities:
     skills:
-      - seo-analysis
-      - search-intent-mapping
-      - technical-crawl-auditing
-      - content-gap-analysis
+      - decision-analysis
+      - domain-analysis
+      - evaluation
+      - writing-editing
       - statistical-analysis
     tools:
       - read

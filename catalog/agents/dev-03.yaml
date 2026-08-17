@@ -13,7 +13,7 @@ spec:
     lighter or better-maintained alternative for risky choices.
   capabilities:
     skills:
-      - dependency-governance
+      - compliance-review
       - application-security
     tools:
       - read

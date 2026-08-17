@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: fin-02
+  title: Bull-Case Advocate
+spec:
+  path: research/finance/investment
+  areas:
+    - Finance & risk
+  modalities:
+    - text
+    - document
+  role: Bull-Case Advocate operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Construct the strongest evidence-supported upside case and state the milestones required for it to hold.
+  capabilities:
+    skills:
+      - finance-analysis
+      - decision-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

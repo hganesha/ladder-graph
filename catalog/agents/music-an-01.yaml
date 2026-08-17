@@ -17,11 +17,9 @@ spec:
     with the result directly, rather than an ad hoc internal structure.
   capabilities:
     skills:
-      - audio-analysis
-      - polyphonic-pitch-detection-models
-      - midi-parsing-generation
-      - musicxml-export
-      - confidence-scoring-per-note-passage
+      - audio-processing
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - audio

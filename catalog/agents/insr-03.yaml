@@ -14,10 +14,8 @@ spec:
     answer, because selective range reporting is how deficiencies compound quietly.
   capabilities:
     skills:
-      - actuarial-review
-      - reserve-adequacy-testing
-      - assumption-sensitivity-analysis
-      - model-validation
+      - evaluation
+      - decision-analysis
       - statistical-analysis
     tools:
       - read

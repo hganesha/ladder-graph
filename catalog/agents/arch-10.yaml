@@ -13,8 +13,7 @@ spec:
     field-dependent dimension for verification.
   capabilities:
     skills:
-      - kitchen-bath-design
-      - interior-design
+      - design-review
     tools:
       - read
       - edit

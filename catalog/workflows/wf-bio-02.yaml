@@ -51,6 +51,7 @@ spec:
           tool_version, coverage'
     - id: n-specialist
       kind: agent
+      templateRef: bio-02
       name: Run and audit the analysis
       summary: Specialist pass over normalized fields.
       role: Computational biologist running and auditing sequence analysis pipelines.
@@ -61,10 +62,9 @@ spec:
         biological story attached.
       capabilities:
         skills:
-          - pipeline-execution-auditing
-          - quality-control-interpretation
-          - batch-effect-detection
-          - reference-and-version-declaration
+          - evaluation
+          - clinical-review
+          - domain-analysis
           - data-lineage-analysis
         tools:
           - read
@@ -77,6 +77,7 @@ spec:
         type: object
     - id: n-score
       kind: teacher
+      inlineRole: true
       name: Scored teacher feedback
       summary: Score feedback from a host-resolved teacher model.
       role: Host-resolved teacher model
@@ -98,6 +99,7 @@ spec:
         feedbackMode: score
     - id: n-gate
       kind: evaluate
+      inlineRole: true
       name: Score the specialist result
       summary: Evaluate QC sufficiency, batch confounding, and completeness of version and provenance
         declarations.
@@ -145,6 +147,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: bio-06
       name: Repair the provenance and QC gaps
       summary: Corrective pass on the scored weaknesses.
       role: Data steward enforcing provenance, consent, and de-identification on biological data.
@@ -154,11 +157,11 @@ spec:
         than a theoretical one, and you state the specific fields that create it.
       capabilities:
         skills:
-          - data-provenance-tracking
-          - consent-scope-enforcement
+          - evidence-verification
+          - domain-analysis
           - de-identification
-          - re-identification-risk-assessment
-          - regulatory-mapping
+          - teaching
+          - compliance-review
         tools:
           - read
         connectors:

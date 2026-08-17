@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-read1
       kind: agent
+      templateRef: robo-04
       name: Independent safety assessment
       summary: Independent read 1; produced without sight of the other reads.
       role: Safety engineer assessing hazards, stops, and human-robot interaction risk.
@@ -52,11 +53,10 @@ spec:
         is being proposed.
       capabilities:
         skills:
-          - robot-safety-assessment
-          - protective-stop-verification
-          - human-robot-interaction-analysis
-          - independent-safety-function-review
-          - failure-mode-analysis
+          - teaching
+          - evaluation
+          - decision-analysis
+          - risk-analysis
         tools:
           - read
           - test
@@ -77,6 +77,7 @@ spec:
           confidence: {}
     - id: n-read2
       kind: agent
+      templateRef: robo-03
       name: Independent perception assessment
       summary: Independent read 2; produced without sight of the other reads.
       role: Perception engineer building and validating detection under real conditions.
@@ -86,10 +87,9 @@ spec:
         perception stack, because a system that fails silently is more dangerous than one that fails loudly.
       capabilities:
         skills:
-          - perception-validation
-          - condition-stratified-evaluation
-          - failure-signature-characterization
-          - sensor-fusion-analysis
+          - evaluation
+          - risk-analysis
+          - decision-analysis
           - statistical-analysis
         tools:
           - read
@@ -112,6 +112,7 @@ spec:
           confidence: {}
     - id: n-read3
       kind: agent
+      templateRef: robo-06
       name: Independent readiness assessment
       summary: Independent read 3; produced without sight of the other reads.
       role: Assessor testing whether a robot system is ready for its actual operating environment.
@@ -121,11 +122,10 @@ spec:
         failures are almost always environment variability the pilot never saw.'
       capabilities:
         skills:
-          - deployment-readiness-assessment
-          - site-specific-risk-analysis
-          - recovery-procedure-review
-          - operator-intervention-planning
-          - failure-mode-analysis
+          - release-engineering
+          - risk-analysis
+          - incident-response
+          - operations-planning
         tools:
           - read
           - test
@@ -163,6 +163,7 @@ spec:
             when: discordant
     - id: n-adjudicate
       kind: agent
+      templateRef: robo-05
       name: Resolve the discordant verdict on the record
       summary: Resolve the discordance on the record; the disagreement itself is evidence.
       role: Analyst quantifying how far simulation results transfer to hardware.
@@ -173,11 +174,10 @@ spec:
         in the field.
       capabilities:
         skills:
-          - sim-to-real-analysis
-          - domain-gap-quantification
-          - simulator-fidelity-declaration
-          - hardware-validation-design
-          - numeric-verification
+          - decision-analysis
+          - quantitative-analysis
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate

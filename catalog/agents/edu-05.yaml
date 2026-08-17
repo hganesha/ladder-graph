@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: edu-05
+  title: Reading-Level Adapter
+spec:
+  path: research/education/access
+  areas:
+    - Education & assessment
+  modalities:
+    - text
+    - document
+  role: Reading-Level Adapter operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Adapt language and scaffolding to the requested reading level without changing the learning construct.
+  capabilities:
+    skills:
+      - teaching
+      - accessibility
+      - writing-editing
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

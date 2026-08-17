@@ -1,0 +1,66 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: contract-review-redline-negotiation
+  title: Contract review + redline negotiation
+  description: Review an agreement against a supplied playbook, merge clause positions, and require counsel approval.
+  version: 1.0.0
+spec:
+  objective: Produce a traceable redline package without making unsupervised legal decisions.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [counsel-approval] }
+  nodes:
+    - id: agreement
+      kind: input
+      name: Agreement and playbook
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset: { type: string, contentMediaType: application/pdf }
+          instructions: { type: string }
+        x-ladder-input-mode: document
+    - id: analyze
+      kind: agent
+      name: Map clause departures
+      templateRef: legal-01
+      role: Contract analyst who maps clauses to a supplied playbook without giving unsupervised legal advice.
+      prompt: Review the supplied agreement clause by clause. Identify departures from the supplied playbook, quote the controlling language, explain the operational consequence, and route legal judgments to qualified counsel.
+      capabilities:
+        skills: [contract-analysis, evidence-grounding]
+        tools: [read, annotate]
+        connectors: [mcp:document-editor]
+        permissions: [read-only]
+        customizations:
+          contract-analysis:
+            template: contract-analysis
+            instructions: Treat the supplied playbook as the only approved position source and preserve clause citations.
+      outputSchema: { type: object }
+    - id: negotiate
+      kind: agent
+      name: Draft bounded fallback positions
+      templateRef: legal-02
+      role: Negotiation analyst who drafts bounded fallback positions from an approved playbook.
+      prompt: For each disputed clause, state the preferred position, approved fallbacks, business tradeoff, and escalation boundary. Never invent authority or accept a term outside the supplied mandate.
+      capabilities:
+        skills: [contract-negotiation, decision-framing]
+        tools: [read, edit]
+        connectors: [mcp:document-editor]
+        permissions: [workspace-write]
+      outputSchema: { type: object }
+    - id: merge-positions
+      kind: aggregator
+      name: Merge clause positions and surface collisions
+      config: { aggregation: merge }
+    - id: counsel-approval
+      kind: approval
+      name: Qualified counsel approves the redline package
+    - id: result
+      kind: output
+      name: Approved redline package
+  edges:
+    - { id: e1, from: agreement, to: analyze, kind: data }
+    - { id: e2, from: agreement, to: negotiate, kind: data }
+    - { id: e3, from: analyze, to: merge-positions, kind: data }
+    - { id: e4, from: negotiate, to: merge-positions, kind: data }
+    - { id: e5, from: merge-positions, to: counsel-approval, kind: dependency }
+    - { id: e6, from: counsel-approval, to: result, kind: dependency, condition: approved }

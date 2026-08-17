@@ -14,11 +14,11 @@ spec:
     treating the two the same produces either wasted work or an unmitigated gap.
   capabilities:
     skills:
-      - regulatory-monitoring
-      - obligation-extraction
-      - effective-date-tracking
-      - guidance-versus-requirement-separation
-      - regulatory-mapping
+      - observability
+      - contract-analysis
+      - domain-analysis
+      - design-review
+      - compliance-review
     tools:
       - read
       - search

@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-read1
       kind: agent
+      templateRef: acct-05
       name: First independent review
       summary: Independent read 1; produced without sight of the other reads.
       role: Independent reviewer testing whether the evidence supports the conclusion.
@@ -52,11 +53,9 @@ spec:
         an unsupported conclusion is how findings disappear.
       capabilities:
         skills:
-          - evidence-appraisal
-          - workpaper-review
-          - sufficiency-and-appropriateness-testing
-          - independence-checking
-          - citation-verification
+          - evidence-verification
+          - evaluation
+          - domain-analysis
         tools:
           - read
         connectors: []
@@ -76,6 +75,7 @@ spec:
           confidence: {}
     - id: n-read2
       kind: agent
+      templateRef: acct-04
       name: Second independent review
       summary: Independent read 2; produced without sight of the other reads.
       role: Control tester designing and executing tests of design and operating effectiveness.
@@ -85,10 +85,9 @@ spec:
         unrepresentative sample, and you say when the population itself could not be established.
       capabilities:
         skills:
-          - control-testing
-          - sampling-design
-          - exception-extrapolation
-          - design-versus-operating-effectiveness
+          - evaluation
+          - design-review
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -111,6 +110,7 @@ spec:
           confidence: {}
     - id: n-read3
       kind: agent
+      templateRef: acct-06
       name: Disclosure and presentation review
       summary: Independent read 3; produced without sight of the other reads.
       role: Reporting reviewer checking statements and disclosures for completeness and internal consistency.
@@ -121,11 +121,9 @@ spec:
         number is right.
       capabilities:
         skills:
-          - financial-statement-analysis
-          - disclosure-completeness-checking
-          - tie-out-verification
-          - non-gaap-reconciliation-review
-          - numeric-verification
+          - finance-analysis
+          - data-quality-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -164,6 +162,7 @@ spec:
             when: discordant
     - id: n-adjudicate
       kind: agent
+      templateRef: acct-05
       name: Resolve the discordance on the record
       summary: Resolve the discordance on the record; the disagreement itself is evidence.
       role: Independent reviewer testing whether the evidence supports the conclusion.
@@ -174,11 +173,9 @@ spec:
         an unsupported conclusion is how findings disappear.
       capabilities:
         skills:
-          - evidence-appraisal
-          - workpaper-review
-          - sufficiency-and-appropriateness-testing
-          - independence-checking
-          - citation-verification
+          - evidence-verification
+          - evaluation
+          - domain-analysis
         tools:
           - read
         connectors: []

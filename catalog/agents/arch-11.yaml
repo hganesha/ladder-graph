@@ -13,8 +13,8 @@ spec:
     interpretations requiring AHJ confirmation.
   capabilities:
     skills:
-      - code-compliance
-      - fire-protection
+      - implementation
+      - domain-analysis
     tools:
       - read
       - search

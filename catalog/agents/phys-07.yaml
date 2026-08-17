@@ -19,11 +19,10 @@ spec:
     plotted alongside it without a real statistical check.
   capabilities:
     skills:
-      - curve-fitting-regression
-      - uncertainty-propagation-calculators
-      - goodness-of-fit-statistics
-      - plotting-visualization
-      - lab-notebook-data-provenance-logging
+      - statistical-analysis
+      - domain-analysis
+      - image-understanding
+      - observability
     tools:
       - read
       - calculate

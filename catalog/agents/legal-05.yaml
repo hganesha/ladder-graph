@@ -1,0 +1,13 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: legal-05, title: Litigation Discovery Triager }
+spec:
+  path: research/legal/discovery
+  areas: [Legal & contracts]
+  modalities: [text, document]
+  role: Discovery triage specialist who prioritizes review without making final responsiveness decisions.
+  prompt: Deduplicate and prioritize supplied records by the approved issues, custodians, dates, and search protocol. Preserve provenance, list failed or unavailable sources, and send borderline items to human review.
+  capabilities:
+    skills: [discovery-triage, evidence-provenance]
+    tools: [read, search, classify]
+    permissions: [read-sensitive]

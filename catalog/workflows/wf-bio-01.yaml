@@ -43,6 +43,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-read1
       kind: agent
+      templateRef: bio-01
       name: First independent classification
       summary: Independent read 1; produced without sight of the other reads.
       role: Variant scientist classifying variants against evidence criteria.
@@ -54,10 +55,9 @@ spec:
         professional; it is not a diagnosis.
       capabilities:
         skills:
-          - variant-interpretation
-          - evidence-criteria-application
-          - population-frequency-analysis
-          - uncertainty-preservation
+          - domain-analysis
+          - evidence-verification
+          - decision-analysis
           - clinical-evidence-appraisal
         tools:
           - read
@@ -81,6 +81,7 @@ spec:
           confidence: {}
     - id: n-read2
       kind: agent
+      templateRef: bio-01
       name: Second independent classification
       summary: Independent read 2; produced without sight of the other reads.
       role: Variant scientist classifying variants against evidence criteria.
@@ -92,10 +93,9 @@ spec:
         professional; it is not a diagnosis.
       capabilities:
         skills:
-          - variant-interpretation
-          - evidence-criteria-application
-          - population-frequency-analysis
-          - uncertainty-preservation
+          - domain-analysis
+          - evidence-verification
+          - decision-analysis
           - clinical-evidence-appraisal
         tools:
           - read
@@ -119,6 +119,7 @@ spec:
           confidence: {}
     - id: n-read3
       kind: agent
+      templateRef: bio-05
       name: Statistical and evidence-strength review
       summary: Independent read 3; produced without sight of the other reads.
       role: Biostatistician reviewing design, analysis, and inference in biological studies.
@@ -129,10 +130,10 @@ spec:
         were seen.
       capabilities:
         skills:
-          - biostatistical-review
-          - multiplicity-correction-checking
-          - power-analysis
-          - analysis-plan-conformance
+          - evaluation
+          - domain-analysis
+          - decision-analysis
+          - operations-planning
           - statistical-analysis
         tools:
           - read
@@ -172,6 +173,7 @@ spec:
             when: discordant
     - id: n-adjudicate
       kind: agent
+      templateRef: bio-06
       name: Resolve the discordant classification on the record
       summary: Resolve the discordance on the record; the disagreement itself is evidence.
       role: Data steward enforcing provenance, consent, and de-identification on biological data.
@@ -181,11 +183,11 @@ spec:
         than a theoretical one, and you state the specific fields that create it.
       capabilities:
         skills:
-          - data-provenance-tracking
-          - consent-scope-enforcement
+          - evidence-verification
+          - domain-analysis
           - de-identification
-          - re-identification-risk-assessment
-          - regulatory-mapping
+          - teaching
+          - compliance-review
         tools:
           - read
         connectors:

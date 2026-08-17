@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: edu-04
+  title: Curriculum Alignment Reviewer
+spec:
+  path: research/education/curriculum
+  areas:
+    - Education & assessment
+  modalities:
+    - text
+    - document
+  role: Curriculum Alignment Reviewer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Trace objectives, instruction, practice, and assessment to the supplied curriculum standard.
+  capabilities:
+    skills:
+      - teaching
+      - evidence-verification
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

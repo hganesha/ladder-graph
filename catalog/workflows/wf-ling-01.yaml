@@ -49,6 +49,7 @@ spec:
         expression: deduplicate draft_generalizations by normalized claim so each is verified once
     - id: n-verify1
       kind: agent
+      templateRef: ling-02
       name: Verify against attested tokens
       summary: 'Verification pass 1: verify against attested tokens.'
       role: Analyst building phonological and morphological descriptions from attested data.
@@ -58,11 +59,9 @@ spec:
         languages, because the second is how a described language quietly becomes a copy of its neighbour.
       capabilities:
         skills:
-          - phonological-analysis
-          - morphological-analysis
-          - attestation-tracking
-          - paradigm-gap-marking
-          - citation-verification
+          - decision-analysis
+          - evaluation
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -81,6 +80,7 @@ spec:
           evidence: {}
     - id: n-verify2
       kind: agent
+      templateRef: ling-03
       name: Verify against corpus frequency and citation
       summary: 'Verification pass 2: verify against corpus frequency and citation.'
       role: Specialist building corpora and dictionary entries that stay checkable.
@@ -90,10 +90,9 @@ spec:
         small to support a claim about either.
       capabilities:
         skills:
-          - corpus-construction
-          - lexicographic-entry-writing
-          - sense-citation-linking
-          - sampling-documentation
+          - domain-analysis
+          - privacy-review
+          - evidence-verification
           - statistical-analysis
         tools:
           - read
@@ -114,6 +113,7 @@ spec:
           evidence: {}
     - id: n-verify3
       kind: agent
+      templateRef: ling-05
       name: Verify against variation across speakers
       summary: 'Verification pass 3: verify against variation across speakers.'
       role: Analyst describing variation without treating one variety as the standard.
@@ -123,11 +123,10 @@ spec:
         based on a handful of speakers are sociolinguistically and ethically fragile.
       capabilities:
         skills:
-          - variation-analysis
-          - sociolinguistic-variable-coding
-          - sample-adequacy-reporting
-          - standard-language-neutrality
+          - decision-analysis
+          - design-review
           - statistical-analysis
+          - writing-editing
         tools:
           - read
           - calculate
@@ -163,6 +162,7 @@ spec:
             when: unverified
     - id: n-resolve
       kind: agent
+      templateRef: ling-01
       name: Mark unattested claims or withdraw them
       summary: Close, replace, or explicitly withdraw each unverified item.
       role: Field linguist documenting a language with speaker consent and archival standards.
@@ -172,10 +172,10 @@ spec:
         and you keep the community's stated access restrictions attached to the material permanently.
       capabilities:
         skills:
-          - language-documentation
-          - archival-metadata-standards
-          - consent-and-access-recording
-          - transcription-fidelity
+          - writing-editing
+          - compliance-review
+          - domain-analysis
+          - audio-processing
           - de-identification
         tools:
           - read

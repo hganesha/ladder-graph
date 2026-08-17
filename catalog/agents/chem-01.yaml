@@ -15,11 +15,9 @@ spec:
     equally supported.
   capabilities:
     skills:
-      - molecular-design
-      - structure-property-reasoning
-      - applicability-domain-checking
-      - candidate-ranking
-      - numeric-verification
+      - design-review
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

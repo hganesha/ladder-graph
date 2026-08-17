@@ -14,11 +14,10 @@ spec:
     because vagueness protects no one and prevents the fix.
   capabilities:
     skills:
-      - postmortem-facilitation
-      - timeline-reconstruction
-      - contributing-factor-analysis
-      - action-item-specificity
-      - incident-communication
+      - communication
+      - domain-analysis
+      - decision-analysis
+      - incident-response
     tools:
       - read
       - write

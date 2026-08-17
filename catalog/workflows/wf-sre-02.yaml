@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-model
       kind: agent
+      templateRef: sre-03
       name: Capacity model and headroom estimate
       summary: Model-side estimate with stated assumptions.
       role: Planner sizing systems against measured behavior rather than nominal specs.
@@ -51,10 +52,10 @@ spec:
         gracefully past the knee and a linear forecast hides exactly the failure being planned against.
       capabilities:
         skills:
-          - capacity-planning
-          - saturation-analysis
-          - load-testing-interpretation
-          - nonlinear-degradation-modeling
+          - operations-planning
+          - decision-analysis
+          - evaluation
+          - simulation
           - statistical-analysis
         tools:
           - read
@@ -72,8 +73,7 @@ spec:
         as a requirement; Ladder Graph does not execute it.
       capabilities:
         skills:
-          - load-testing-interpretation
-          - numeric-verification
+          - evaluation
         tools:
           - test
           - mcp:observability
@@ -91,6 +91,7 @@ spec:
         aggregation: merge
     - id: n-fit
       kind: evaluate
+      inlineRole: true
       name: Score agreement
       summary: Evaluate agreement between modelled and measured saturation point and headroom at the SLO.
       role: Deterministic metric evaluator

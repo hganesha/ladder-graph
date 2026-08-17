@@ -15,11 +15,10 @@ spec:
     is hidden.
   capabilities:
     skills:
-      - editorial-decision-writing
-      - review-synthesis
-      - disagreement-weighing
-      - requirement-versus-suggestion-separation
-      - technical-writing
+      - writing-editing
+      - evaluation
+      - domain-analysis
+      - design-review
     tools:
       - read
       - write

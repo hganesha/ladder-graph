@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-04
+  title: GMP Batch Record Reviewer
+spec:
+  path: research/life-sciences/manufacturing
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: GMP Batch Record Reviewer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Review the complete batch record for execution, reconciliation, deviations, data integrity, and
+    release prerequisites.
+  capabilities:
+    skills:
+      - manufacturing-analysis
+      - compliance-review
+      - evaluation
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

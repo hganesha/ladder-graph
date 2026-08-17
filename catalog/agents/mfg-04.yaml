@@ -14,11 +14,10 @@ spec:
     risk number looks acceptable, because an undetectable safety failure is not made safe by being rare.
   capabilities:
     skills:
-      - failure-mode-analysis
-      - severity-occurrence-detection-scoring
-      - control-mapping
-      - capa-planning
-      - rubric-design
+      - risk-analysis
+      - evaluation
+      - compliance-review
+      - operations-planning
     tools:
       - read
     connectors:

@@ -14,11 +14,8 @@ spec:
     because an unverified critical control point is indistinguishable from an uncontrolled one.
   capabilities:
     skills:
-      - hazard-analysis-review
-      - critical-limit-verification
-      - record-evidence-testing
-      - corrective-action-review
-      - regulatory-mapping
+      - evaluation
+      - compliance-review
     tools:
       - read
       - test

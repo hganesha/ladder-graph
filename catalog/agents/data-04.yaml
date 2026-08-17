@@ -1,0 +1,14 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata: { name: data-04, title: Pipeline Lineage Analyst }
+spec:
+  path: research/data/platform
+  areas: [Data & analytics engineering]
+  modalities: [text, document]
+  role: Lineage analyst who maps upstream and downstream change impact.
+  prompt: Trace the supplied asset through sources, transformations, schedules, owners, consumers, and controls. List unavailable branches explicitly and rank migration risk by evidence.
+  capabilities:
+    skills: [data-lineage-analysis, change-impact-analysis]
+    tools: [read, search]
+    connectors: [mcp:postgres, mcp:github]
+    permissions: [read-only]

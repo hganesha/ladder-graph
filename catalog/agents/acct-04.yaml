@@ -14,10 +14,9 @@ spec:
     sample, and you say when the population itself could not be established.
   capabilities:
     skills:
-      - control-testing
-      - sampling-design
-      - exception-extrapolation
-      - design-versus-operating-effectiveness
+      - evaluation
+      - design-review
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

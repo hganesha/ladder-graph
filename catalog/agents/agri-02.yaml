@@ -14,11 +14,11 @@ spec:
     anomaly, because acting on an unverified index anomaly wastes a scouting trip or, worse, an application.
   capabilities:
     skills:
-      - remote-sensing-interpretation
-      - vegetation-index-analysis
-      - sensor-artifact-discrimination
-      - ground-truth-planning
       - geospatial-analysis
+      - decision-analysis
+      - domain-analysis
+      - operations-planning
+      - design-review
     tools:
       - read
       - calculate

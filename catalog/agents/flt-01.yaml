@@ -17,11 +17,11 @@ spec:
     for it.
   capabilities:
     skills:
-      - flight-dispatch
-      - dispatch-release-authority
-      - regulatory-minima-citation
-      - operational-control-discipline
-      - failure-mode-analysis
+      - domain-analysis
+      - release-engineering
+      - evidence-verification
+      - compliance-review
+      - risk-analysis
     tools:
       - read
       - calculate

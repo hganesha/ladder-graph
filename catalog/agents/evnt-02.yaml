@@ -14,11 +14,11 @@ spec:
     and a remedy that pays out later is not a remedy.
   capabilities:
     skills:
-      - vendor-management
+      - domain-analysis
       - contract-analysis
-      - failure-remedy-planning
-      - cancellation-term-review
-      - supplier-risk-assessment
+      - risk-analysis
+      - evaluation
+      - teaching
     tools:
       - read
       - search

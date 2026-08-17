@@ -14,11 +14,8 @@ spec:
     specification, because time allocation committees test exactly that gap.
   capabilities:
     skills:
-      - science-case-writing
-      - feasibility-justification
-      - falsifiability-statement
-      - technical-writing
-      - citation-verification
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - write

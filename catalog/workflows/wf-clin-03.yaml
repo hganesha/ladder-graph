@@ -1,0 +1,61 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: differential-red-flag-escalation
+  title: Differential + red-flag escalation
+  description: Structure supplied evidence, rank bounded alternatives, and route urgent red flags to qualified review.
+  version: 1.0.0
+spec:
+  objective: Support clinician review with explicit uncertainty and mandatory safety escalation.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [clinician-approval] }
+  nodes:
+    - id: clinical-record
+      kind: input
+      name: Supplied clinical record
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset: { type: string, contentMediaType: application/pdf }
+          instructions: { type: string }
+        x-ladder-input-mode: document
+    - id: structure
+      kind: agent
+      name: Structure differential evidence
+      templateRef: clin-03
+      role: Clinical reasoning assistant that structures supplied evidence for clinician review.
+      prompt: Organize the supplied findings into a ranked differential with supporting and contradicting evidence, missing information, red flags, and explicit uncertainty. Do not diagnose or prescribe.
+      capabilities: { skills: [clinical-evidence-structuring, uncertainty-calibration], tools: [read], permissions: [read-sensitive] }
+      outputSchema: { type: object }
+    - id: rank
+      kind: transform
+      name: Sort and bound alternatives
+      config: { operation: slice, expression: "sort($.differential by urgency,confidence)[0:8]" }
+    - id: red-flags
+      kind: agent
+      name: Apply red-flag protocol
+      templateRef: clin-07
+      role: Safety triage assistant that applies an approved escalation protocol.
+      prompt: Apply only the supplied red-flag rules, cite the triggering evidence, choose the mandated escalation tier, and default uncertain urgent cases to immediate qualified human review.
+      capabilities: { skills: [clinical-triage, safety-escalation], tools: [read, classify], permissions: [read-sensitive] }
+      outputSchema: { type: object }
+    - id: urgency
+      kind: condition
+      name: Immediate escalation required?
+      config:
+        expression: red_flags.tier == immediate
+        branches: [{ label: Immediate, when: immediate }, { label: Routine, when: routine }]
+    - id: clinician-approval
+      kind: approval
+      name: Credentialed clinician reviews evidence and escalation
+    - id: result
+      kind: output
+      name: Clinician-reviewed evidence structure
+  edges:
+    - { id: e1, from: clinical-record, to: structure, kind: data }
+    - { id: e2, from: structure, to: rank, kind: data }
+    - { id: e3, from: rank, to: red-flags, kind: data }
+    - { id: e4, from: red-flags, to: urgency, kind: data }
+    - { id: e5, from: urgency, to: clinician-approval, kind: control, condition: immediate }
+    - { id: e6, from: urgency, to: clinician-approval, kind: control, condition: routine }
+    - { id: e7, from: clinician-approval, to: result, kind: dependency, condition: approved }

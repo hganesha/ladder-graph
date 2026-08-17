@@ -13,8 +13,8 @@ spec:
     traceable decisions.
   capabilities:
     skills:
-      - bim-coordination
-      - delivery-coordination
+      - design-review
+      - release-engineering
     tools:
       - read
       - edit

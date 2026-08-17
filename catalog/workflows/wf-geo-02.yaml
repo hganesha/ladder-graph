@@ -51,6 +51,7 @@ spec:
           acquisition_date, crs'
     - id: n-specialist
       kind: agent
+      templateRef: geo-02
       name: Engineer the release-ready layer
       summary: Specialist pass over normalized fields.
       role: Engineer preparing spatial data with correct projection, topology, and lineage.
@@ -61,10 +62,8 @@ spec:
         authoritative shape.
       capabilities:
         skills:
-          - spatial-data-engineering
-          - coordinate-reference-alignment
-          - topology-repair
-          - positional-accuracy-declaration
+          - data-engineering
+          - domain-analysis
           - data-lineage-analysis
         tools:
           - read
@@ -77,6 +76,7 @@ spec:
         type: object
     - id: n-score
       kind: teacher
+      inlineRole: true
       name: Scored teacher feedback
       summary: Score feedback from a host-resolved teacher model.
       role: Host-resolved teacher model
@@ -99,6 +99,7 @@ spec:
         feedbackMode: score
     - id: n-gate
       kind: evaluate
+      inlineRole: true
       name: Score the specialist result
       summary: Evaluate positional accuracy honesty, lineage completeness, and residual re-identification
         risk.
@@ -146,6 +147,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: geo-06
       name: Apply aggregation and perturbation fixes
       summary: Corrective pass on the scored weaknesses.
       role: Reviewer assessing re-identification and sensitivity risk in location data.
@@ -156,11 +158,11 @@ spec:
         a person.
       capabilities:
         skills:
-          - re-identification-risk-assessment
-          - spatial-aggregation-design
-          - trajectory-uniqueness-analysis
+          - teaching
+          - design-review
+          - decision-analysis
           - de-identification
-          - regulatory-mapping
+          - compliance-review
         tools:
           - read
         connectors: []

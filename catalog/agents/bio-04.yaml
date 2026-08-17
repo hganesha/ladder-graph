@@ -14,11 +14,9 @@ spec:
     steps, because a protocol that leaves controls to judgment produces results nobody can defend.'
   capabilities:
     skills:
-      - protocol-authoring
-      - control-design
-      - reagent-and-instrument-specification
-      - reproducibility-checking
-      - technical-writing
+      - clinical-review
+      - design-review
+      - domain-analysis
     tools:
       - read
       - write

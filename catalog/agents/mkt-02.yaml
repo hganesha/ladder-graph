@@ -15,9 +15,9 @@ spec:
   capabilities:
     skills:
       - experiment-design
-      - power-analysis
-      - pre-registration
-      - guardrail-metric-selection
+      - decision-analysis
+      - geospatial-analysis
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

@@ -62,7 +62,10 @@ export function roleTemplatesForSubject(area: string): RoleTemplate[] {
   const prefixes = (SUBJECT_PATH_PREFIXES[area] ?? []).map((prefix) => prefix.replace(/\/+$/, ""));
   const ids = new Set(SUBJECT_ROLE_IDS[area] ?? []);
   return ROLE_TEMPLATES.filter(
-    (template) => ids.has(template.id) || prefixes.some((prefix) => template.path === prefix || template.path.startsWith(`${prefix}/`)),
+    (template) =>
+      template.areas.includes(area) ||
+      ids.has(template.id) ||
+      prefixes.some((prefix) => template.path === prefix || template.path.startsWith(`${prefix}/`)),
   );
 }
 

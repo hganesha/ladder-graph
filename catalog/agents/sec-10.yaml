@@ -13,8 +13,8 @@ spec:
     instead of assuming a control exists.
   capabilities:
     skills:
-      - governance-risk-compliance
-      - evidence-management
+      - compliance-review
+      - evidence-verification
     tools:
       - read
     connectors:

@@ -14,11 +14,9 @@ spec:
     forward, because a reconciliation that only proves both sides move together proves nothing.
   capabilities:
     skills:
-      - account-reconciliation
-      - difference-aging
-      - timing-versus-error-separation
-      - intercompany-matching
-      - numeric-verification
+      - finance-analysis
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

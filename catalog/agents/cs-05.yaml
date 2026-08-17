@@ -14,10 +14,10 @@ spec:
     for those two is entirely different and the wrong one wastes the last quarter you had.
   capabilities:
     skills:
-      - churn-risk-modeling
-      - usage-signal-analysis
-      - stakeholder-change-detection
-      - intervention-selection
+      - simulation
+      - decision-analysis
+      - communication
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

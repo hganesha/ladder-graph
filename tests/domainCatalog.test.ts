@@ -54,9 +54,9 @@ const domainWorkflows = WORKFLOW_TEMPLATES.filter((workflow) => DOMAIN_AREAS.has
 describe("domain expansion catalog", () => {
   it("adds every supplied agent and workflow without duplicate library IDs", () => {
     expect(domainRoles).toHaveLength(184);
-    expect(domainWorkflows).toHaveLength(64);
-    expect(ROLE_TEMPLATES).toHaveLength(307);
-    expect(WORKFLOW_TEMPLATES).toHaveLength(93);
+    expect(domainWorkflows).toHaveLength(69);
+    expect(ROLE_TEMPLATES).toHaveLength(359);
+    expect(WORKFLOW_TEMPLATES).toHaveLength(124);
     expect(new Set(ROLE_TEMPLATES.map((role) => role.id)).size).toBe(ROLE_TEMPLATES.length);
     expect(new Set(WORKFLOW_TEMPLATES.map((workflow) => workflow.id)).size).toBe(WORKFLOW_TEMPLATES.length);
     expect(new Set(domainWorkflows.map((workflow) => workflow.area))).toEqual(DOMAIN_AREAS);
@@ -96,5 +96,11 @@ describe("domain expansion catalog", () => {
     expect(new Set(nodes.filter((node) => node.kind === "group").map((node) => `${node.config?.execution}/${node.config?.exit}`))).toEqual(
       new Set(["parallel/aggregate", "parallel/serialize", "sequential/aggregate", "sequential/serialize"]),
     );
+  });
+
+  it("generates searchable modality metadata for every catalog entry", () => {
+    expect(WORKFLOW_TEMPLATES.every((workflow) => workflow.modalities.length > 0)).toBe(true);
+    expect(ROLE_TEMPLATES.every((role) => role.modalities.length > 0)).toBe(true);
+    expect(WORKFLOW_TEMPLATES.find((workflow) => workflow.id === "wf-music-01")?.modalities).toContain("audio");
   });
 });

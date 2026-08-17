@@ -1,0 +1,170 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: pharmacovigilance-signal-triage
+  title: Pharmacovigilance signal triage
+  description: Prioritize safety cases, preserve uncertainty, and trigger accountable reporting clocks.
+  version: 1.0.0
+spec:
+  objective: Prioritize safety cases, preserve uncertainty, and trigger accountable reporting clocks.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: prioritize
+      kind: transform
+      name: Filter, sort, and bound the queue
+      config:
+        operation: filter
+        expression: $.cases where reportable_or_uncertain
+    - id: role-1
+      kind: agent
+      name: Pharmacovigilance Signal Analyst
+      templateRef: gxp-03
+      role: Pharmacovigilance Signal Analyst operating within supplied evidence, policy, and human-approval
+        boundaries.
+      prompt: Triage safety cases and signals using the supplied criteria, evidence, expectedness, seriousness, and
+        reporting clocks.
+      capabilities:
+        skills:
+          - clinical-review
+          - risk-analysis
+          - statistical-analysis
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-sensitive
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Biostatistics Reviewer
+      templateRef: bio-05
+      role: Biostatistician reviewing design, analysis, and inference in biological studies.
+      prompt: You are a Biostatistics Reviewer. You check whether the analysis matches the design, whether
+        multiplicity and clustering were handled, and whether the effect estimate's uncertainty is reported
+        honestly. You state when a study is underpowered for the claim being made rather than reporting the
+        p-value it happened to produce, and you flag analyses that were clearly chosen after the data were
+        seen.
+      capabilities:
+        skills:
+          - evaluation
+          - domain-analysis
+          - decision-analysis
+          - operations-planning
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Regulatory Change Monitor
+      templateRef: qac-01
+      role: Monitor tracking regulatory change and translating it into obligations.
+      prompt: You are a Regulatory Change Monitor. You track changes across the regulations that apply, and for each
+        change you state the effective date, the transition provisions, and the specific obligations that are
+        created, modified, or removed. You distinguish guidance from binding requirement, because treating the
+        two the same produces either wasted work or an unmitigated gap.
+      capabilities:
+        skills:
+          - observability
+          - contract-analysis
+          - domain-analysis
+          - design-review
+          - compliance-review
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: collect
+      kind: aggregator
+      name: Collect signal assessments
+      config:
+        aggregation: collect
+    - id: escalation
+      kind: condition
+      name: Reporting clock triggered?
+      config:
+        expression: signals.any(item => item.reportable)
+        branches:
+          - label: Escalate
+            when: escalate
+          - label: Monitor
+            when: monitor
+    - id: approval
+      kind: approval
+      name: Accountable domain reviewer approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: prioritize
+      kind: data
+    - id: e2
+      from: prioritize
+      to: role-1
+      kind: data
+    - id: e3
+      from: prioritize
+      to: role-2
+      kind: data
+    - id: e4
+      from: prioritize
+      to: role-3
+      kind: data
+    - id: e5
+      from: role-1
+      to: collect
+      kind: data
+    - id: e6
+      from: role-2
+      to: collect
+      kind: data
+    - id: e7
+      from: role-3
+      to: collect
+      kind: data
+    - id: e8
+      from: collect
+      to: escalation
+      kind: data
+    - id: e9
+      from: escalation
+      to: approval
+      kind: control
+      condition: escalate
+    - id: e10
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

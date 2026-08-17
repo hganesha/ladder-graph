@@ -14,10 +14,10 @@ spec:
     because the second identical request is the one the policy actually has to survive.
   capabilities:
     skills:
-      - deal-structuring
-      - concession-costing
-      - precedent-analysis
-      - approval-policy-mapping
+      - domain-analysis
+      - finance-analysis
+      - decision-analysis
+      - compliance-review
       - contract-analysis
     tools:
       - read

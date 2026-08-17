@@ -51,6 +51,7 @@ spec:
         expression: select the requested task, the systems it touches, and the isolations it requires
     - id: n-prep1
       kind: agent
+      templateRef: well-08
       name: Hazard assessment for the task as scoped
       summary: 'Preparation step 1: hazard assessment for the task as scoped.'
       role: Coordinator running permit to work, isolation, and simultaneous operations control at the
@@ -62,11 +63,10 @@ spec:
         authorization rather than an amended one.'
       capabilities:
         skills:
-          - permit-to-work-control
-          - energy-isolation-verification
-          - simultaneous-operations-control
-          - management-of-change
-          - failure-mode-analysis
+          - compliance-review
+          - evaluation
+          - domain-analysis
+          - risk-analysis
         tools:
           - read
           - test
@@ -78,6 +78,7 @@ spec:
         type: object
     - id: n-prep2
       kind: agent
+      templateRef: well-08
       name: Energy isolation plan proved at the point of work
       summary: 'Preparation step 2: energy isolation plan proved at the point of work.'
       role: Coordinator running permit to work, isolation, and simultaneous operations control at the
@@ -89,11 +90,10 @@ spec:
         authorization rather than an amended one.'
       capabilities:
         skills:
-          - permit-to-work-control
-          - energy-isolation-verification
-          - simultaneous-operations-control
-          - management-of-change
-          - failure-mode-analysis
+          - compliance-review
+          - evaluation
+          - domain-analysis
+          - risk-analysis
         tools:
           - read
           - test
@@ -105,6 +105,7 @@ spec:
         type: object
     - id: n-prep3
       kind: agent
+      templateRef: well-04
       name: Well control effect of the requested work
       summary: 'Preparation step 3: well control effect of the requested work.'
       role: Well control engineer maintaining two tested barriers between the reservoir and the environment.
@@ -115,11 +116,9 @@ spec:
         a barrier — and you stop the operation rather than proceeding on a single verified barrier.
       capabilities:
         skills:
-          - well-control-analysis
-          - barrier-envelope-verification
-          - bop-test-currency-checking
-          - kick-detection-review
-          - failure-mode-analysis
+          - compliance-review
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - test
@@ -156,6 +155,7 @@ spec:
             when: conflict
     - id: n-deconflict
       kind: agent
+      templateRef: well-06
       name: Resolve or reschedule the conflicting activity
       summary: Resolve the conflicting activity before any authority signs.
       role: Engineer optimizing drilling parameters without exceeding mechanical or hole-condition limits.
@@ -166,11 +166,11 @@ spec:
         that follows costs more than the days it saved.
       capabilities:
         skills:
-          - drilling-optimization
-          - vibration-and-dysfunction-analysis
-          - hole-cleaning-assessment
-          - parameter-limit-setting
-          - failure-mode-analysis
+          - optimization
+          - decision-analysis
+          - teaching
+          - domain-analysis
+          - risk-analysis
         tools:
           - read
           - calculate

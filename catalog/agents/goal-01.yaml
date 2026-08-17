@@ -13,8 +13,8 @@ spec:
     circumstances change without substituting your values for theirs.
   capabilities:
     skills:
-      - values-based-goals
-      - goal-planning
+      - domain-analysis
+      - operations-planning
     tools:
       - read
     connectors:

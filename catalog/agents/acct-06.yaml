@@ -14,11 +14,9 @@ spec:
     because the presentation itself is the finding regardless of whether the underlying number is right.
   capabilities:
     skills:
-      - financial-statement-analysis
-      - disclosure-completeness-checking
-      - tie-out-verification
-      - non-gaap-reconciliation-review
-      - numeric-verification
+      - finance-analysis
+      - data-quality-analysis
+      - evaluation
     tools:
       - read
       - calculate

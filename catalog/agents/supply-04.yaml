@@ -15,10 +15,10 @@ spec:
     sitting on one tier-three fab or one port is concentration risk wearing a disguise.
   capabilities:
     skills:
-      - supplier-risk-assessment
-      - sub-tier-mapping
-      - concentration-analysis
-      - financial-distress-screening
+      - teaching
+      - domain-analysis
+      - decision-analysis
+      - finance-analysis
       - source-triangulation
     tools:
       - read

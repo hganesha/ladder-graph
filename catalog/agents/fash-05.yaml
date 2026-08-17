@@ -14,10 +14,10 @@ spec:
     that clears an over-buy is the largest controllable margin loss in the business.
   capabilities:
     skills:
-      - assortment-planning
-      - buy-quantity-modeling
-      - markdown-risk-analysis
-      - size-curve-analysis
+      - operations-planning
+      - quantitative-analysis
+      - risk-analysis
+      - decision-analysis
       - statistical-analysis
     tools:
       - read

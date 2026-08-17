@@ -13,8 +13,8 @@ spec:
     discussion anchored in the source material.
   capabilities:
     skills:
-      - seminar-facilitation
-      - close-reading
+      - communication
+      - domain-analysis
     tools:
       - read
       - search

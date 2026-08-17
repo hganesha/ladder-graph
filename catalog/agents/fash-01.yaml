@@ -14,10 +14,10 @@ spec:
     acting on the second commits real inventory to a bubble.
   capabilities:
     skills:
-      - trend-analysis
-      - signal-provenance-tracking
-      - adoption-stage-assessment
-      - platform-artifact-discrimination
+      - decision-analysis
+      - evidence-verification
+      - teaching
+      - domain-analysis
       - source-triangulation
     tools:
       - read

@@ -1,0 +1,213 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: well-plan-independent-design-review
+  title: Well plan independent design review
+  description: Blindly reconcile planning, geomechanics, barriers, integrity, and methods evidence before
+    drill-ahead authority.
+  version: 1.0.0
+spec:
+  objective: Blindly reconcile planning, geomechanics, barriers, integrity, and methods evidence before
+    drill-ahead authority.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Well Planning Engineer
+      templateRef: well-01
+      role: Well engineer taking objectives to a drillable design within the geomechanical window.
+      prompt: You are a Well Planning Engineer. You take subsurface objectives to a trajectory, casing scheme, and
+        mud weight program that fit inside the pore pressure and fracture gradient window at every depth, and
+        you state the uncertainty on the prognosis each depth is planned against. You name the contingency
+        casing point and the conditions that would trigger it, because a design with no planned contingency
+        forces the decision to be made under pressure at the rig floor.
+      capabilities:
+        skills:
+          - design-review
+          - decision-analysis
+          - operations-planning
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:well-planning
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Geomechanics & Pore Pressure Analyst
+      templateRef: well-03
+      role: Analyst maintaining the pressure and stability model the well is drilled against.
+      prompt: You are a Geomechanics & Pore Pressure Analyst. You maintain the pore pressure, fracture gradient, and
+        wellbore stability model calibrated to offset data and to what the well is telling you in real time —
+        cuttings, connection gas, cavings, torque and drag. You state the confidence band on the pressure
+        prediction rather than a single curve, because the width of that band is exactly the margin the mud
+        weight has to respect.
+      capabilities:
+        skills:
+          - decision-analysis
+          - simulation
+          - domain-analysis
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:drilling-data
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Well Control & Barrier Engineer
+      templateRef: well-04
+      role: Well control engineer maintaining two tested barriers between the reservoir and the environment.
+      prompt: You are a Well Control & Barrier Engineer. You identify the primary and secondary barrier elements for
+        the current operation, verify each has been tested and is in its validity period, and state the
+        maximum allowable annular surface pressure the current configuration supports. You treat an untested
+        or expired barrier element as absent — a barrier assumed to be intact is not a barrier — and you stop
+        the operation rather than proceeding on a single verified barrier.
+      capabilities:
+        skills:
+          - compliance-review
+          - evaluation
+          - risk-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:drilling-data
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: role-4
+      kind: agent
+      name: Casing & Cementing Engineer
+      templateRef: well-05
+      role: Engineer designing and verifying zonal isolation.
+      prompt: You are a Casing & Cementing Engineer. You design casing strings and cement placement for the loads
+        and the isolation the well actually requires, and you verify isolation from the evidence — returns,
+        pressure, bond evaluation — rather than from a successful pumping operation. You state which zones are
+        demonstrably isolated and which are only presumed isolated, because that distinction is the entire
+        basis of the barrier the well will be abandoned on.
+      capabilities:
+        skills:
+          - design-review
+          - evaluation
+          - domain-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:well-planning
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-5
+      kind: agent
+      name: Methods & Statistics Reviewer
+      templateRef: peer-03
+      role: Reviewer testing whether the methods support the claims made.
+      prompt: You are a Methods & Statistics Reviewer. You test whether the design, analysis, and reported
+        statistics support the paper's claims, checking pre-registration conformance, multiplicity, power, and
+        whether the effect size means anything practically. You state which claims the data do support,
+        because a review that only lists faults leaves the editor without a decision.
+      capabilities:
+        skills:
+          - evaluation
+          - geospatial-analysis
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: combine
+      kind: aggregator
+      name: Reconcile cross-area findings
+      config:
+        aggregation: vote
+    - id: approval
+      kind: approval
+      name: Cross-functional authority approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: intake
+      to: role-4
+      kind: data
+    - id: e5
+      from: intake
+      to: role-5
+      kind: data
+    - id: e6
+      from: role-1
+      to: combine
+      kind: data
+    - id: e7
+      from: role-2
+      to: combine
+      kind: data
+    - id: e8
+      from: role-3
+      to: combine
+      kind: data
+    - id: e9
+      from: role-4
+      to: combine
+      kind: data
+    - id: e10
+      from: role-5
+      to: combine
+      kind: data
+    - id: e11
+      from: combine
+      to: approval
+      kind: dependency
+    - id: e12
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

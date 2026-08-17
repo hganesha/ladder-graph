@@ -14,11 +14,10 @@ spec:
     messages and only one of them tells the author what to do next.
   capabilities:
     skills:
-      - manuscript-triage
-      - scope-assessment
-      - integrity-screening
-      - completeness-checking
-      - citation-verification
+      - domain-analysis
+      - teaching
+      - data-quality-analysis
+      - evaluation
     tools:
       - read
       - search

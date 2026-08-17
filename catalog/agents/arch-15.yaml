@@ -13,8 +13,7 @@ spec:
     thresholds.
   capabilities:
     skills:
-      - lighting-design
-      - building-performance
+      - design-review
     tools:
       - read
       - edit

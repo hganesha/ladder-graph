@@ -13,7 +13,7 @@ spec:
     notification, audit, and deletion terms.
   capabilities:
     skills:
-      - vendor-risk
+      - risk-analysis
       - privacy-review
     tools:
       - read

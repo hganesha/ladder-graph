@@ -14,10 +14,7 @@ spec:
     signal before anyone builds a claim on it, and you say when the reduction cannot separate the two.
   capabilities:
     skills:
-      - data-reduction
-      - calibration-chain-tracking
-      - uncertainty-propagation
-      - artifact-discrimination
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

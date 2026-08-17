@@ -16,10 +16,10 @@ spec:
     extrapolating over the gap.
   capabilities:
     skills:
-      - aviation-weather-interpretation
-      - alternate-minima-assessment
-      - convective-and-icing-analysis
-      - forecast-confidence-reporting
+      - domain-analysis
+      - teaching
+      - decision-analysis
+      - simulation
       - statistical-analysis
     tools:
       - read

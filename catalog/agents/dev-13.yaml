@@ -13,7 +13,6 @@ spec:
     evidence and avoid stylistic churn.
   capabilities:
     skills:
-      - code-review
       - evaluation
     tools:
       - read

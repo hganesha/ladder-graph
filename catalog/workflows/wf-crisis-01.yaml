@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-classify
       kind: agent
+      templateRef: crisis-05
       name: Assess and score incoming incidents
       summary: Score and label every incoming item before anything is queued.
       role: Analyst building a common operating picture from conflicting reports.
@@ -52,10 +53,9 @@ spec:
         responses are misdirected.
       capabilities:
         skills:
-          - situation-assessment
-          - source-confidence-marking
-          - conflicting-report-handling
-          - common-operating-picture
+          - teaching
+          - evidence-verification
+          - domain-analysis
           - source-triangulation
         tools:
           - read
@@ -112,6 +112,7 @@ spec:
             when: default
     - id: n-escalate
       kind: agent
+      templateRef: crisis-01
       name: Dispatch with an explicit coverage-gap statement
       summary: Escalation path for the top band.
       role: Dispatcher matching incidents to resources under simultaneous demand.
@@ -121,11 +122,10 @@ spec:
         second call is the one that becomes the inquiry.
       capabilities:
         skills:
-          - resource-dispatch
-          - severity-and-capability-matching
-          - coverage-gap-analysis
-          - simultaneous-demand-triage
-          - incident-communication
+          - evidence-verification
+          - domain-analysis
+          - decision-analysis
+          - incident-response
         tools:
           - read
           - write
@@ -137,6 +137,7 @@ spec:
         type: object
     - id: n-handle
       kind: agent
+      templateRef: crisis-03
       name: Standard assignment within existing coverage
       summary: Standard resolution path.
       role: Logistics officer tracking what is available, committed, and en route.
@@ -146,10 +147,8 @@ spec:
         response the most dangerous number is a stale one presented as current.
       capabilities:
         skills:
-          - resource-tracking
-          - multi-agency-reconciliation
-          - double-commitment-detection
-          - status-currency-declaration
+          - evidence-verification
+          - domain-analysis
           - data-lineage-analysis
         tools:
           - read

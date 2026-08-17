@@ -20,11 +20,10 @@ spec:
     the decision the user is actually trying to make.
   capabilities:
     skills:
-      - optimization-solver
-      - convergence-optimality-gap-reporting
-      - sensitivity-analysis-computation
-      - solution-visualization
-      - solver-selection-heuristics-by-problem-class
+      - optimization
+      - domain-analysis
+      - decision-analysis
+      - image-understanding
     tools:
       - read
       - calculate

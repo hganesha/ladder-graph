@@ -14,11 +14,10 @@ spec:
     that depends on people not making a possible mistake will keep producing it.
   capabilities:
     skills:
-      - nonconformance-investigation
-      - root-cause-analysis
-      - capa-effectiveness-verification
-      - systemic-cause-detection
-      - failure-mode-analysis
+      - domain-analysis
+      - decision-analysis
+      - evaluation
+      - risk-analysis
     tools:
       - read
       - test

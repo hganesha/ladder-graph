@@ -1,0 +1,206 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: launch-readiness-barrier-check
+  title: Launch readiness barrier check
+  description: Require engineering, reliability, marketing, quality, and security evidence before launch authorization.
+  version: 1.0.0
+spec:
+  objective: Require engineering, reliability, marketing, quality, and security evidence before launch authorization.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Test Engineer
+      templateRef: dev-09
+      role: Independent SDET
+      prompt: Design unit, integration, property-based, and visual regression tests from the contract. Cover
+        boundaries, malformed input and concurrency, avoid over-mocking, and use mutation evidence when
+        coverage alone could mislead.
+      capabilities:
+        skills:
+          - test-design
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:github
+          - mcp:browser
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Deployment & Release Engineer
+      templateRef: sre-04
+      role: Release engineer designing deployments that can be reversed safely.
+      prompt: You are a Deployment & Release Engineer. You design rollout strategy, health gates, and rollback path
+        together, and you state which changes are reversible and which are not. You treat an irreversible
+        migration as requiring a different plan than a reversible deploy, because a rollback path that does
+        not exist is discovered during the incident it was meant to prevent.
+      capabilities:
+        skills:
+          - release-engineering
+          - domain-analysis
+          - decision-analysis
+          - risk-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:ci-cd
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Brand & Claims Reviewer
+      templateRef: mkt-05
+      role: Brand reviewer checking voice, legal claim substantiation, and disclosure.
+      prompt: You are a Brand & Claims Reviewer. You check every asset for voice consistency, substantiated
+        performance and comparison claims, required disclosures, and accessible presentation, and you cite the
+        specific line that fails. You treat an unsubstantiated superiority or outcome claim as blocking rather
+        than as a wording preference, because that is the line that draws a regulator or a competitor.
+      capabilities:
+        skills:
+          - evaluation
+          - domain-analysis
+          - compliance-review
+          - accessibility
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-4
+      kind: agent
+      name: Certification Readiness Assessor
+      templateRef: qac-04
+      role: Assessor testing readiness against a certification scheme before the real audit.
+      prompt: You are a Certification Readiness Assessor. You test the organization against each clause of the
+        scheme with the evidence that would be presented, and you grade readiness by clause rather than
+        overall. You report a clause as not ready when the evidence exists but would not satisfy an auditor,
+        because that distinction is the entire value of a readiness assessment.
+      capabilities:
+        skills:
+          - teaching
+          - evaluation
+          - evidence-verification
+          - operations-planning
+          - compliance-review
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-5
+      kind: agent
+      name: Application Security Engineer
+      templateRef: sec-12
+      role: Application security engineer
+      prompt: Threat-model designs before implementation and triage SAST, DAST, dependency, authentication,
+        authorization, and validation findings by exploitability. Give framework-specific remediation and
+        avoid flooding delivery teams with unverified alerts.
+      capabilities:
+        skills:
+          - application-security
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:github
+          - mcp:security-scanner
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: combine
+      kind: aggregator
+      name: Reconcile cross-area findings
+      config:
+        aggregation: collect
+    - id: approval
+      kind: approval
+      name: Cross-functional authority approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: intake
+      to: role-4
+      kind: data
+    - id: e5
+      from: intake
+      to: role-5
+      kind: data
+    - id: e6
+      from: role-1
+      to: combine
+      kind: data
+    - id: e7
+      from: role-2
+      to: combine
+      kind: data
+    - id: e8
+      from: role-3
+      to: combine
+      kind: data
+    - id: e9
+      from: role-4
+      to: combine
+      kind: data
+    - id: e10
+      from: role-5
+      to: combine
+      kind: data
+    - id: e11
+      from: combine
+      to: approval
+      kind: dependency
+    - id: e12
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

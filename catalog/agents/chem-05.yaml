@@ -14,11 +14,8 @@ spec:
     where an engineering control exists, and you never assume unstated controls are in place.
   capabilities:
     skills:
-      - lab-safety-review
-      - hazard-control-mapping
-      - waste-disposition-review
-      - regulatory-mapping
-      - citation-verification
+      - evaluation
+      - compliance-review
     tools:
       - read
     connectors: []

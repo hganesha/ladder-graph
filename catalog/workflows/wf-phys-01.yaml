@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n2
       kind: agent
+      templateRef: phys-08
       name: Classify Problem Domain & Extract Givens
       summary: Classify Problem Domain & Extract Givens
       role: Physics educator specializing in building physical intuition, not just formula manipulation,
@@ -56,11 +57,9 @@ spec:
         sanity before it's presented as correct.
       capabilities:
         skills:
-          - problem-domain-classification
-          - order-of-magnitude-sanity-check-heuristics
-          - analogy-and-limiting-case-reference
-          - latex-rendering
-          - routing-logic-to-domain-specific-solver-agents
+          - domain-analysis
+          - image-understanding
+          - optimization
         tools:
           - read
           - calculate
@@ -89,6 +88,7 @@ spec:
             when: default
     - id: n4a
       kind: agent
+      templateRef: phys-01
       name: Solve — Classical Mechanics
       summary: Solve — Classical Mechanics
       role: Physics instructor/solver specializing in Newtonian and Lagrangian/Hamiltonian mechanics.
@@ -102,11 +102,9 @@ spec:
         rather than silently baked in."
       capabilities:
         skills:
-          - symbolic-numeric-solver
-          - free-body-diagram-and-lagrangian-derivation
-          - latex-rendering
-          - plotting-visualization
-          - dimensional-consistency-pre-check
+          - quantitative-analysis
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -117,6 +115,7 @@ spec:
         type: object
     - id: n4b
       kind: agent
+      templateRef: phys-02
       name: Solve — Electromagnetism
       summary: Solve — Electromagnetism
       role: Physics specialist in electricity, magnetism, and electromagnetic theory, from electrostatics
@@ -130,11 +129,9 @@ spec:
         problems are especially sensitive to which idealization is in play.
       capabilities:
         skills:
-          - symbolic-numeric-solver
-          - vector-calculus-computation
-          - field-visualization
-          - circuit-analysis-solver
-          - latex-rendering
+          - quantitative-analysis
+          - image-understanding
+          - optimization
         tools:
           - read
           - calculate
@@ -145,6 +142,7 @@ spec:
         type: object
     - id: n4c
       kind: agent
+      templateRef: phys-03
       name: Solve — Thermodynamics
       summary: Solve — Thermodynamics
       role: Physics specialist bridging macroscopic thermodynamics and microscopic statistical mechanics.
@@ -157,11 +155,9 @@ spec:
         is where students and even careful practitioners most often make errors.
       capabilities:
         skills:
-          - symbolic-numeric-solver
-          - thermodynamic-cycle-diagram-generation
-          - partition-function-computation
-          - latex-rendering
-          - state-function-vs-path-function-checking
+          - quantitative-analysis
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -172,6 +168,7 @@ spec:
         type: object
     - id: n4d
       kind: agent
+      templateRef: phys-04
       name: Solve — Quantum Mechanics
       summary: Solve — Quantum Mechanics
       role: Physics instructor specializing in quantum mechanics, from introductory wave mechanics through
@@ -186,11 +183,9 @@ spec:
         giving the correct answer.
       capabilities:
         skills:
-          - symbolic-numeric-solver
-          - operator-eigenvalue-computation
-          - wavefunction-visualization
-          - latex-rendering
-          - misconception-pattern-reference
+          - quantitative-analysis
+          - domain-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -207,6 +202,7 @@ spec:
         join: first
     - id: n6
       kind: agent
+      templateRef: phys-06
       name: Dimensional & Units Consistency Check
       summary: Dimensional & Units Consistency Check
       role: Physics specialist enforcing dimensional consistency and unit correctness across derivations.
@@ -219,11 +215,9 @@ spec:
         sanity-checking a proposed formula or building intuition before a full derivation.
       capabilities:
         skills:
-          - unit-conversion-dimensional-analysis
-          - buckingham-pi-derivation
-          - codata-physical-constants-database
-          - dimensional-consistency-linting-for-equations
-          - unit-system-conversion
+          - quantitative-analysis
+          - domain-analysis
+          - data-engineering
         tools:
           - read
           - calculate
@@ -235,6 +229,7 @@ spec:
         type: object
     - id: n7
       kind: evaluate
+      inlineRole: true
       name: Numerical Sanity Check
       summary: Evaluate order of magnitude and limiting case check.
       role: Deterministic metric evaluator
@@ -298,6 +293,7 @@ spec:
         onExhausted: stop
     - id: n9
       kind: agent
+      templateRef: phys-08
       name: Generate Final Solution Write-up
       summary: Generate Final Solution Write-up
       role: Physics educator specializing in building physical intuition, not just formula manipulation,
@@ -312,11 +308,9 @@ spec:
         sanity before it's presented as correct.
       capabilities:
         skills:
-          - problem-domain-classification
-          - order-of-magnitude-sanity-check-heuristics
-          - analogy-and-limiting-case-reference
-          - latex-rendering
-          - routing-logic-to-domain-specific-solver-agents
+          - domain-analysis
+          - image-understanding
+          - optimization
         tools:
           - read
           - calculate

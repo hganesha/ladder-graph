@@ -53,6 +53,8 @@
                 ]
               },
               "name": { "type": "string" },
+              "templateRef": { "type": "string", "pattern": "^[a-z0-9]+(?:[-_.][a-z0-9]+)*$" },
+              "inlineRole": { "type": "boolean" },
               "summary": { "type": "string" },
               "role": { "type": "string" },
               "prompt": { "type": "string" },

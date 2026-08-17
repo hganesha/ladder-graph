@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-phase1
       kind: agent
+      templateRef: hr-05
       name: Capacity justification for the opening
       summary: 'Phase 1: capacity justification for the opening.'
       role: Workforce planner modeling headcount, attrition, and skill supply against committed demand.
@@ -52,10 +53,8 @@ spec:
         with a start date.
       capabilities:
         skills:
-          - workforce-modeling
-          - attrition-forecasting
-          - ramp-time-modeling
-          - sensitivity-analysis
+          - simulation
+          - decision-analysis
           - statistical-analysis
         tools:
           - read
@@ -69,6 +68,7 @@ spec:
         type: object
     - id: n-phase2
       kind: agent
+      templateRef: hr-01
       name: Evidence-backed candidate pool
       summary: 'Phase 2: evidence-backed candidate pool.'
       role: Sourcing researcher building evidence-backed candidate pools against a written role scorecard.
@@ -79,10 +79,9 @@ spec:
         — and say when the pool is too narrow to be fair.
       capabilities:
         skills:
-          - candidate-sourcing
-          - scorecard-translation
-          - evidence-citation
-          - sourcing-bias-avoidance
+          - supply-chain-analysis
+          - writing-editing
+          - evidence-verification
           - source-triangulation
         tools:
           - read
@@ -95,6 +94,7 @@ spec:
         type: object
     - id: n-phase3
       kind: agent
+      templateRef: hr-06
       name: Compensation band placement
       summary: 'Phase 3: compensation band placement.'
       role: Compensation analyst placing roles in bands against market data and internal equity.
@@ -104,10 +104,8 @@ spec:
         that fixes one candidate and breaks three tenured employees is not a solved problem.
       capabilities:
         skills:
-          - compensation-benchmarking
-          - internal-equity-analysis
-          - band-construction
-          - pay-compression-detection
+          - domain-analysis
+          - design-review
           - statistical-analysis
         tools:
           - read
@@ -137,6 +135,7 @@ spec:
         access dependencies, and owners are actually decided.
     - id: n-check
       kind: evaluate
+      inlineRole: true
       name: Check the staged result
       summary: Evaluate checkpoint observability, dependency ownership, and access lead times against
         the start date.
@@ -184,6 +183,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: hr-04
       name: Repair the ramp plan gaps
       summary: Smallest corrective pass before re-gating.
       role: Onboarding designer building role-specific ramp plans with observable checkpoints.
@@ -194,11 +194,9 @@ spec:
         a plan that has already failed.
       capabilities:
         skills:
-          - onboarding-design
-          - backward-design
-          - checkpoint-definition
-          - dependency-sequencing
-          - rubric-design
+          - design-review
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - write

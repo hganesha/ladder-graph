@@ -15,6 +15,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Inquiry packet
       summary: Shared question, primary texts, historical scope, audience, and citation standard.
       position:
@@ -22,6 +28,7 @@ spec:
         y: 220
     - id: perspective-a
       kind: agent
+      inlineRole: true
       name: Close reading
       summary: Find the passages and formal choices that bear on the question.
       role: Great Books close-reading tutor
@@ -29,7 +36,7 @@ spec:
         readings and identify textual evidence that complicates the initial thesis.
       capabilities:
         skills:
-          - close-reading
+          - domain-analysis
         tools:
           - read
           - search
@@ -54,6 +61,7 @@ spec:
         y: 90
     - id: perspective-b
       kind: agent
+      inlineRole: true
       name: Historical context
       summary: Test provenance, period context, and later framing.
       role: Historical research analyst
@@ -61,7 +69,7 @@ spec:
         anachronism, and mark claims the historical record cannot settle.
       capabilities:
         skills:
-          - historical-research
+          - research
         tools:
           - read
           - search
@@ -95,6 +103,7 @@ spec:
         y: 220
     - id: synthesis
       kind: agent
+      inlineRole: true
       name: Socratic synthesis
       summary: Reconcile evidence into a defensible interpretation and discussion arc.
       role: Interdisciplinary seminar facilitator
@@ -102,7 +111,7 @@ spec:
         and a sequence of genuinely open questions grounded in the supplied texts.
       capabilities:
         skills:
-          - seminar-facilitation
+          - communication
         tools:
           - read
         permissions:
@@ -129,6 +138,7 @@ spec:
         y: 150
     - id: evaluation
       kind: evaluate
+      inlineRole: true
       name: Humanities evidence gate
       summary: Check the recommendation against its evidence and contract.
       role: Historiography and argument critic

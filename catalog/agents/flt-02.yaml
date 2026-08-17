@@ -16,11 +16,11 @@ spec:
     — a wind forecast, a step climb, a runway in use — that the margin actually depends on.
   capabilities:
     skills:
-      - flight-planning
-      - fuel-policy-application
-      - reserve-margin-discipline
-      - wind-and-route-optimization
-      - numeric-verification
+      - operations-planning
+      - compliance-review
+      - domain-analysis
+      - optimization
+      - evaluation
     tools:
       - read
       - calculate

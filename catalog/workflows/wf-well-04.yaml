@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-assess
       kind: agent
+      templateRef: well-03
       name: Assess the well against the pressure and stability model
       summary: Assess current conditions against the criteria declared before the decision point.
       role: Analyst maintaining the pressure and stability model the well is drilled against.
@@ -52,10 +53,9 @@ spec:
         exactly the margin the mud weight has to respect.
       capabilities:
         skills:
-          - pore-pressure-analysis
-          - wellbore-stability-modeling
-          - real-time-model-calibration
-          - uncertainty-band-reporting
+          - decision-analysis
+          - simulation
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -68,6 +68,7 @@ spec:
         type: object
     - id: n-criteria
       kind: evaluate
+      inlineRole: true
       name: Score against the declared criteria
       summary: Evaluate mud weight margin to pore pressure and fracture gradient, hole condition, and
         trend in connection gas and cavings.
@@ -119,6 +120,7 @@ spec:
             when: default
     - id: n-proceed
       kind: agent
+      templateRef: well-06
       name: Drill ahead within the declared parameter limits
       summary: Execute against the approved plan.
       role: Engineer optimizing drilling parameters without exceeding mechanical or hole-condition limits.
@@ -129,11 +131,11 @@ spec:
         that follows costs more than the days it saved.
       capabilities:
         skills:
-          - drilling-optimization
-          - vibration-and-dysfunction-analysis
-          - hole-cleaning-assessment
-          - parameter-limit-setting
-          - failure-mode-analysis
+          - optimization
+          - decision-analysis
+          - teaching
+          - domain-analysis
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -158,6 +160,7 @@ spec:
         onExhausted: stop
     - id: n-contingency
       kind: agent
+      templateRef: well-01
       name: Set the contingency casing point as planned
       summary: The pre-planned alternative, chosen because it was planned before it was needed.
       role: Well engineer taking objectives to a drillable design within the geomechanical window.
@@ -168,11 +171,10 @@ spec:
         with no planned contingency forces the decision to be made under pressure at the rig floor.
       capabilities:
         skills:
-          - well-design
-          - casing-scheme-design
-          - pressure-window-analysis
-          - contingency-depth-planning
-          - numeric-verification
+          - design-review
+          - decision-analysis
+          - operations-planning
+          - evaluation
         tools:
           - read
           - calculate

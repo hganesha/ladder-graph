@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-phase1
       kind: agent
+      templateRef: film-02
       name: Editorial structure pass
       summary: 'Phase 1: editorial structure pass.'
       role: Editor working structure, pacing, and clarity in the cut.
@@ -51,11 +52,10 @@ spec:
         because trimming a scene that is structurally necessary makes the cut faster and worse.
       capabilities:
         skills:
-          - editorial-analysis
-          - structure-and-pacing-assessment
-          - information-flow-checking
-          - coverage-gap-analysis
-          - storytelling
+          - writing-editing
+          - teaching
+          - domain-analysis
+          - decision-analysis
         tools:
           - read
         connectors:
@@ -66,6 +66,7 @@ spec:
         type: object
     - id: n-phase2
       kind: agent
+      templateRef: film-03
       name: VFX shot scoping and dependencies
       summary: 'Phase 2: vfx shot scoping and dependencies.'
       role: VFX planner scoping shots, methods, and dependencies realistically.
@@ -75,11 +76,10 @@ spec:
         because those are the shots that get done three times.
       capabilities:
         skills:
-          - vfx-scoping
-          - method-selection
-          - dependency-and-lock-tracking
-          - bid-realism-assessment
-          - failure-mode-analysis
+          - video-processing
+          - domain-analysis
+          - teaching
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -91,6 +91,7 @@ spec:
         type: object
     - id: n-phase3
       kind: agent
+      templateRef: film-04
       name: Colour and look continuity
       summary: 'Phase 3: colour and look continuity.'
       role: Colourist working look, consistency, and deliverable compliance.
@@ -100,11 +101,11 @@ spec:
         than shipping it and waiting for QC to catch it.
       capabilities:
         skills:
-          - colour-grading
-          - shot-continuity-management
-          - delivery-spec-compliance
-          - display-target-checking
-          - post-pipeline-design
+          - video-processing
+          - design-review
+          - release-engineering
+          - domain-analysis
+          - data-engineering
         tools:
           - read
         connectors: []
@@ -131,6 +132,7 @@ spec:
         here rather than upstream.
     - id: n-check
       kind: evaluate
+      inlineRole: true
       name: Check the staged result
       summary: Evaluate technical specification compliance, caption and accessibility coverage, and continuity.
       role: Deterministic metric evaluator
@@ -177,6 +179,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: film-06
       name: Fix the faults at the cited timecodes
       summary: Smallest corrective pass before re-gating.
       role: QC reviewer testing masters against technical and accessibility specifications.
@@ -186,11 +189,10 @@ spec:
         cannot absorb it, because a rejected delivery costs more than a late one.
       capabilities:
         skills:
-          - delivery-qc
-          - specification-testing
-          - caption-and-accessibility-review
-          - timecode-fault-reporting
-          - accessibility-review
+          - release-engineering
+          - evaluation
+          - accessibility
+          - implementation
         tools:
           - read
           - test

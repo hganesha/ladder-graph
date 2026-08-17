@@ -13,7 +13,7 @@ spec:
     and reduced-motion-safe interactions.
   capabilities:
     skills:
-      - frontend-development
+      - implementation
       - accessibility
       - product-design
     tools:

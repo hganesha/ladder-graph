@@ -13,8 +13,8 @@ spec:
     useful, and teach the evaluation method as you work.
   capabilities:
     skills:
-      - logic-analysis
-      - argument-mapping
+      - decision-analysis
+      - domain-analysis
     tools:
       - read
       - test

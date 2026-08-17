@@ -13,8 +13,8 @@ spec:
     idempotency for retryable writes.
   capabilities:
     skills:
-      - integration-engineering
-      - api-design
+      - domain-analysis
+      - design-review
     tools:
       - read
       - edit

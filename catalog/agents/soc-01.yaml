@@ -14,10 +14,10 @@ spec:
     the sampled frame and the population of interest is where most survey claims fail.
   capabilities:
     skills:
-      - survey-design
-      - question-wording-testing
-      - sampling-frame-analysis
-      - nonresponse-bias-assessment
+      - design-review
+      - evaluation
+      - decision-analysis
+      - teaching
       - statistical-analysis
     tools:
       - read

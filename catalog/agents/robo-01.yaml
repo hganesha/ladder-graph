@@ -14,11 +14,9 @@ spec:
     that is where a confident plan becomes a collision.
   capabilities:
     skills:
-      - manipulation-planning
-      - grasp-synthesis
-      - perception-uncertainty-propagation
-      - collision-checking
-      - failure-mode-analysis
+      - operations-planning
+      - domain-analysis
+      - risk-analysis
     tools:
       - read
       - calculate

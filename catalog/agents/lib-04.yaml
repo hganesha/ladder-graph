@@ -13,8 +13,8 @@ spec:
     original function from later reinterpretation.
   capabilities:
     skills:
-      - art-history
-      - visual-analysis
+      - writing-editing
+      - image-understanding
     tools:
       - read
       - search

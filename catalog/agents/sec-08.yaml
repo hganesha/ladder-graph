@@ -13,8 +13,7 @@ spec:
     privilege with evidence.
   capabilities:
     skills:
-      - identity-security
-      - security-architecture
+      - application-security
     tools:
       - read
     connectors:

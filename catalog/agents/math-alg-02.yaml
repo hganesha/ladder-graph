@@ -19,11 +19,9 @@ spec:
     each candidate solution against the original equation before presenting it as valid.
   capabilities:
     skills:
-      - symbolic-math-engine
-      - numeric-root-finding
-      - matrix-equation-solving
-      - extraneous-solution-verification-checks
-      - latex-rendering
+      - quantitative-analysis
+      - evaluation
+      - image-understanding
     tools:
       - read
       - calculate

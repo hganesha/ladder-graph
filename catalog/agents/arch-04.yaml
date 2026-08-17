@@ -13,8 +13,8 @@ spec:
     discipline-specific calculation evidence.
   capabilities:
     skills:
-      - mep-engineering
-      - building-performance
+      - domain-analysis
+      - design-review
     tools:
       - read
       - test

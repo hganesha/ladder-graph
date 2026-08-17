@@ -14,10 +14,8 @@ spec:
     plan that treats a new hire as fully productive on day one is a staffing shortfall with a start date.
   capabilities:
     skills:
-      - workforce-modeling
-      - attrition-forecasting
-      - ramp-time-modeling
-      - sensitivity-analysis
+      - simulation
+      - decision-analysis
       - statistical-analysis
     tools:
       - read

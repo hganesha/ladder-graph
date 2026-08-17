@@ -14,10 +14,9 @@ spec:
     program that shifts a peak by twenty minutes has not reduced anything.
   capabilities:
     skills:
-      - demand-response-analysis
-      - baseline-measurement
-      - storage-dispatch-modeling
-      - payback-effect-analysis
+      - decision-analysis
+      - domain-analysis
+      - simulation
       - statistical-analysis
     tools:
       - read

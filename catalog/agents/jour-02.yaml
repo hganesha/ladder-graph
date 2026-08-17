@@ -1,0 +1,26 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: jour-02
+  title: Source Triangulator
+spec:
+  path: research/journalism/verification
+  areas:
+    - Journalism & verification
+  modalities:
+    - text
+    - document
+    - audio
+    - video
+  role: Source Triangulator operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Compare independent source classes, incentives, provenance, timing, and contradictions before drawing
+    a conclusion.
+  capabilities:
+    skills:
+      - source-triangulation
+      - evidence-verification
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-assess1
       kind: agent
+      templateRef: qac-04
       name: First blind control assessment
       summary: Blind assessment 1; no sight of the other assessments.
       role: Assessor testing readiness against a certification scheme before the real audit.
@@ -51,11 +52,11 @@ spec:
         an auditor, because that distinction is the entire value of a readiness assessment.
       capabilities:
         skills:
-          - certification-readiness-assessment
-          - clause-by-clause-testing
-          - evidence-sufficiency-grading
-          - gap-remediation-planning
-          - regulatory-mapping
+          - teaching
+          - evaluation
+          - evidence-verification
+          - operations-planning
+          - compliance-review
         tools:
           - read
           - test
@@ -67,6 +68,7 @@ spec:
         type: object
     - id: n-assess2
       kind: agent
+      templateRef: qac-06
       name: Second blind control assessment
       summary: Blind assessment 2; no sight of the other assessments.
       role: Reviewer assessing whether the quality system works as documented.
@@ -76,11 +78,8 @@ spec:
         the gap between the manual and the floor is where certification and reality separate.
       capabilities:
         skills:
-          - quality-system-review
-          - process-conformance-testing
-          - record-integrity-checking
-          - management-review-assessment
-          - rubric-design
+          - evaluation
+          - domain-analysis
         tools:
           - read
           - test
@@ -92,6 +91,7 @@ spec:
         type: object
     - id: n-assess3
       kind: agent
+      templateRef: qac-03
       name: Evidence sufficiency assessment
       summary: Blind assessment 3; no sight of the other assessments.
       role: Collector assembling audit trails that stand up without the collector present.
@@ -101,11 +101,9 @@ spec:
         because an audit trail that depends on someone remembering how it was made is not an audit trail.
       capabilities:
         skills:
-          - audit-evidence-collection
-          - completeness-verification
-          - population-versus-sample-declaration
+          - evaluation
+          - statistical-analysis
           - data-lineage-analysis
-          - citation-verification
         tools:
           - read
           - search
@@ -129,6 +127,7 @@ spec:
         exit: aggregate
     - id: n-teacher
       kind: teacher
+      inlineRole: true
       name: Rubric calibration
       summary: Critique the assessors against the rubric — this scores the graders, not the work.
       role: Host-resolved teacher model
@@ -151,6 +150,7 @@ spec:
         feedbackMode: rubric
     - id: n-agreement
       kind: evaluate
+      inlineRole: true
       name: Score inter-assessor agreement
       summary: Evaluate inter-auditor agreement per clause and evidence sufficiency behind each grade.
       role: Deterministic metric evaluator

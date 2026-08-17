@@ -1,0 +1,26 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-08
+  title: Supplier Qualification Auditor (GxP)
+spec:
+  path: research/life-sciences/suppliers
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: Supplier Qualification Auditor (GxP) operating within supplied evidence, policy, and human-approval
+    boundaries.
+  prompt: Assess supplier quality systems, technical capability, data integrity, change notification, audit
+    evidence, and residual risk.
+  capabilities:
+    skills:
+      - supply-chain-analysis
+      - compliance-review
+      - risk-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

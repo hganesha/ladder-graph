@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-07
+  title: Validation Protocol Author
+spec:
+  path: research/life-sciences/validation
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: Validation Protocol Author operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Author traceable validation objectives, acceptance criteria, evidence capture, deviations, approvals,
+    and change control.
+  capabilities:
+    skills:
+      - evaluation
+      - compliance-review
+      - writing-editing
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

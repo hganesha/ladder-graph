@@ -13,8 +13,7 @@ spec:
     MITRE ATT&CK mappings without exceeding scope.
   capabilities:
     skills:
-      - penetration-testing
-      - threat-modeling
+      - application-security
     tools:
       - read
       - test

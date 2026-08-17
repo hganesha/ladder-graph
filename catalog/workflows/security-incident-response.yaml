@@ -17,6 +17,12 @@ spec:
   nodes:
     - id: alert
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Security alert
       summary: Alert, affected systems, timestamps, and available telemetry.
       position:
@@ -24,6 +30,7 @@ spec:
         y: 250
     - id: triage
       kind: agent
+      inlineRole: true
       name: SOC triage
       summary: Correlate signals and set an evidence-backed severity.
       role: Tier 1/2 SOC analyst
@@ -32,7 +39,7 @@ spec:
         evidence, and escalation rationale.
       capabilities:
         skills:
-          - soc-triage
+          - domain-analysis
           - incident-response
         tools:
           - read
@@ -68,6 +75,7 @@ spec:
         y: 250
     - id: intel
       kind: agent
+      inlineRole: true
       name: Threat intelligence
       summary: Map relevant IOCs and durable adversary behavior.
       role: Threat intelligence analyst
@@ -75,7 +83,7 @@ spec:
         campaigns, and label source, recency, and confidence. Do not overstate attribution.
       capabilities:
         skills:
-          - threat-intelligence
+          - application-security
           - research
         tools:
           - read
@@ -106,6 +114,7 @@ spec:
         y: 90
     - id: dfir
       kind: agent
+      inlineRole: true
       name: Forensic investigation
       summary: Reconstruct the attack path and scope with chain of custody.
       role: DFIR specialist
@@ -114,7 +123,7 @@ spec:
         inference. Recommend evidence-preserving containment and eradication steps.
       capabilities:
         skills:
-          - digital-forensics
+          - application-security
           - incident-response
         tools:
           - read
@@ -170,6 +179,7 @@ spec:
         y: 250
     - id: response
       kind: agent
+      inlineRole: true
       name: Contain, eradicate, recover
       summary: Restore service with the smallest safe mitigation first.
       role: Incident commander and responder
@@ -218,6 +228,7 @@ spec:
         y: 250
     - id: communications
       kind: agent
+      inlineRole: true
       name: Incident communications
       summary: Draft fact-based stakeholder and regulatory updates.
       role: Incident response communications lead
@@ -226,7 +237,6 @@ spec:
         public communications without unsupported attribution or speculation.
       capabilities:
         skills:
-          - incident-communications
           - incident-response
         tools:
           - read
@@ -260,6 +270,7 @@ spec:
         y: 100
     - id: recovery-gate
       kind: evaluate
+      inlineRole: true
       name: Recovery and evidence gate
       summary: Verify health, containment, scope, and record quality.
       role: Independent incident review lead

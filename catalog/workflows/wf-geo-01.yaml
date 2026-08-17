@@ -49,6 +49,7 @@ spec:
         expression: deduplicate draft_findings by normalized location and change type
     - id: n-verify1
       kind: agent
+      templateRef: geo-01
       name: Verify against imagery and change detection
       summary: 'Verification pass 1: verify against imagery and change detection.'
       role: Analyst deriving land-surface information from imagery with stated method and error.
@@ -59,11 +60,10 @@ spec:
         detected change in a naive comparison is not change.
       capabilities:
         skills:
-          - remote-sensing-interpretation
-          - classification-accuracy-assessment
-          - change-detection-discipline
-          - atmospheric-correction-declaration
           - geospatial-analysis
+          - teaching
+          - domain-analysis
+          - design-review
         tools:
           - read
           - calculate
@@ -83,6 +83,7 @@ spec:
           evidence: {}
     - id: n-verify2
       kind: agent
+      templateRef: geo-03
       name: Verify against parcel and policy records
       summary: 'Verification pass 2: verify against parcel and policy records.'
       role: Analyst assessing land use, zoning, and development patterns spatially.
@@ -93,11 +94,11 @@ spec:
         findings.
       capabilities:
         skills:
-          - land-use-analysis
-          - accessibility-modeling
-          - aggregation-sensitivity-testing
-          - policy-boundary-mapping
-          - geospatial-analysis
+          - decision-analysis
+          - accessibility
+          - evaluation
+          - compliance-review
+          - design-review
         tools:
           - read
           - calculate
@@ -118,6 +119,7 @@ spec:
           evidence: {}
     - id: n-verify3
       kind: agent
+      templateRef: geo-05
       name: Verify against the independent validation sample
       summary: 'Verification pass 3: verify against the independent validation sample.'
       role: Analyst designing and executing validation of geospatial products.
@@ -127,10 +129,9 @@ spec:
         it measures memorization and reports it as accuracy.
       capabilities:
         skills:
-          - validation-design
-          - sampling-design
-          - confusion-matrix-reporting
-          - independence-checking
+          - evaluation
+          - design-review
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -168,6 +169,7 @@ spec:
             when: unverified
     - id: n-resolve
       kind: agent
+      templateRef: geo-04
       name: Rewrite or withdraw unverified findings
       summary: Close, replace, or explicitly withdraw each unverified item.
       role: Cartographer designing maps that are accurate, legible, and honest.
@@ -178,11 +180,11 @@ spec:
         the resulting map is less striking.
       capabilities:
         skills:
-          - cartographic-design
-          - classification-scheme-selection
-          - normalization-discipline
-          - accessibility-review
-          - geospatial-analysis
+          - privacy-review
+          - scientific-analysis
+          - domain-analysis
+          - accessibility
+          - design-review
         tools:
           - read
           - write

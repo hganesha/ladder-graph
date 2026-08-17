@@ -51,6 +51,7 @@ spec:
         x-ladder-input-mode: audio
     - id: n2
       kind: agent
+      templateRef: music-an-01
       name: Transcribe Notes & Pitch
       summary: Transcribe Notes & Pitch
       role: Music information retrieval (MIR) specialist performing audio-to-symbolic transcription.
@@ -63,11 +64,9 @@ spec:
         musicians can work with the result directly, rather than an ad hoc internal structure.
       capabilities:
         skills:
-          - audio-analysis
-          - polyphonic-pitch-detection-models
-          - midi-parsing-generation
-          - musicxml-export
-          - confidence-scoring-per-note-passage
+          - audio-processing
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - audio
@@ -93,6 +92,7 @@ spec:
             when: default
     - id: n4a
       kind: agent
+      templateRef: music-an-03
       name: Analyze Rhythm & Meter (Solo)
       summary: Analyze Rhythm & Meter (Solo)
       role: MIR specialist focused on rhythmic and metric structure.
@@ -105,11 +105,8 @@ spec:
         structural analysis.
       capabilities:
         skills:
-          - beat-tempo-tracking
-          - meter-detection-algorithms
-          - groove-swing-ratio-estimation
-          - syncopation-pattern-detection
-          - confidence-scoring-for-ambiguous-tempo-regions
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - audio
@@ -120,6 +117,7 @@ spec:
         type: object
     - id: n4b
       kind: agent
+      templateRef: music-an-03
       name: Analyze Rhythm & Meter (Ensemble)
       summary: Analyze Rhythm & Meter (Ensemble)
       role: MIR specialist focused on rhythmic and metric structure.
@@ -132,11 +130,8 @@ spec:
         structural analysis.
       capabilities:
         skills:
-          - beat-tempo-tracking
-          - meter-detection-algorithms
-          - groove-swing-ratio-estimation
-          - syncopation-pattern-detection
-          - confidence-scoring-for-ambiguous-tempo-regions
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - audio
@@ -147,6 +142,7 @@ spec:
         type: object
     - id: n4c
       kind: agent
+      templateRef: music-an-03
       name: Analyze Rhythm & Meter (Vocal)
       summary: Analyze Rhythm & Meter (Vocal)
       role: MIR specialist focused on rhythmic and metric structure.
@@ -159,11 +155,8 @@ spec:
         structural analysis.
       capabilities:
         skills:
-          - beat-tempo-tracking
-          - meter-detection-algorithms
-          - groove-swing-ratio-estimation
-          - syncopation-pattern-detection
-          - confidence-scoring-for-ambiguous-tempo-regions
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - audio
@@ -180,6 +173,7 @@ spec:
         join: first
     - id: n6
       kind: agent
+      templateRef: music-an-02
       name: Analyze Chords & Harmony
       summary: Analyze Chords & Harmony
       role: Music theorist specializing in harmonic analysis — functional harmony, jazz chord-scale
@@ -193,11 +187,9 @@ spec:
         label where music theorists would actually disagree.
       capabilities:
         skills:
-          - chord-recognition-model
-          - key-modulation-detection
-          - roman-numeral-analysis-engine
-          - symbolic-music-toolkit
-          - harmonic-function-reference
+          - domain-analysis
+          - decision-analysis
+          - audio-processing
         tools:
           - read
           - audio
@@ -214,6 +206,7 @@ spec:
         join: all
     - id: n8
       kind: agent
+      templateRef: music-an-04
       name: Analyze Structure & Form
       summary: Analyze Structure & Form
       role: Musicologist specializing in formal analysis — song form and common-practice forms such as
@@ -228,11 +221,9 @@ spec:
         sonata-form vocabulary on a piece that isn't in that tradition.
       capabilities:
         skills:
-          - structural-segmentation-algorithms
-          - motif-detection-and-similarity-matching
-          - symbolic-music-toolkit
-          - form-type-reference
-          - consistency-scoring-across-sections
+          - domain-analysis
+          - audio-processing
+          - evaluation
         tools:
           - read
           - audio
@@ -243,6 +234,7 @@ spec:
         type: object
     - id: n9
       kind: evaluate
+      inlineRole: true
       name: Confidence Check on Transcription
       summary: Evaluate pitch detection confidence.
       role: Deterministic metric evaluator
@@ -288,6 +280,7 @@ spec:
             when: "false"
     - id: n11
       kind: agent
+      templateRef: music-an-04
       name: Compile Analysis Report
       summary: Compile Analysis Report
       role: Musicologist specializing in formal analysis — song form and common-practice forms such as
@@ -302,11 +295,9 @@ spec:
         sonata-form vocabulary on a piece that isn't in that tradition.
       capabilities:
         skills:
-          - structural-segmentation-algorithms
-          - motif-detection-and-similarity-matching
-          - symbolic-music-toolkit
-          - form-type-reference
-          - consistency-scoring-across-sections
+          - domain-analysis
+          - audio-processing
+          - evaluation
         tools:
           - read
           - audio

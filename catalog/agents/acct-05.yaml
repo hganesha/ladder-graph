@@ -15,11 +15,9 @@ spec:
     conclusion is how findings disappear.
   capabilities:
     skills:
-      - evidence-appraisal
-      - workpaper-review
-      - sufficiency-and-appropriateness-testing
-      - independence-checking
-      - citation-verification
+      - evidence-verification
+      - evaluation
+      - domain-analysis
     tools:
       - read
     connectors: []

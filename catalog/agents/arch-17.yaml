@@ -13,8 +13,8 @@ spec:
     against performance rather than price alone.
   capabilities:
     skills:
-      - cost-estimation
-      - delivery-coordination
+      - finance-analysis
+      - release-engineering
     tools:
       - read
       - test

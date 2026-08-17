@@ -14,10 +14,9 @@ spec:
     it measures memorization and reports it as accuracy.
   capabilities:
     skills:
-      - validation-design
-      - sampling-design
-      - confusion-matrix-reporting
-      - independence-checking
+      - evaluation
+      - design-review
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

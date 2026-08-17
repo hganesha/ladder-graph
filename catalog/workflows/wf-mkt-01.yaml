@@ -49,6 +49,7 @@ spec:
         expression: select the primary metric, the pre-registered stopping rule, and the guardrail metrics
     - id: n-derive
       kind: agent
+      templateRef: mkt-06
       name: Analyst readout against the pre-registration
       summary: First derivation, from the specification.
       role: Analyst reading experiment results honestly, including the null ones.
@@ -58,10 +59,8 @@ spec:
         and you name every deviation from the pre-registration in the readout itself.'
       capabilities:
         skills:
-          - experiment-readout
-          - confidence-interval-reporting
-          - p-hacking-detection
-          - segment-discipline
+          - experiment-design
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -80,7 +79,7 @@ spec:
       capabilities:
         skills:
           - statistical-analysis
-          - numeric-verification
+          - evaluation
         tools:
           - calculate
           - mcp:data-warehouse
@@ -110,6 +109,7 @@ spec:
             when: discrepant
     - id: n-reconcile
       kind: agent
+      templateRef: mkt-02
       name: Explain the readout disagreement
       summary: Explain the discrepancy before anything downstream consumes the number.
       role: Experiment designer pre-registering hypotheses, metrics, and stopping rules.
@@ -120,9 +120,9 @@ spec:
       capabilities:
         skills:
           - experiment-design
-          - power-analysis
-          - pre-registration
-          - guardrail-metric-selection
+          - decision-analysis
+          - geospatial-analysis
+          - domain-analysis
           - statistical-analysis
         tools:
           - read

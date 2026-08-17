@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: jour-04
+  title: Corrections Officer
+spec:
+  path: research/journalism/corrections
+  areas:
+    - Journalism & verification
+  modalities:
+    - text
+    - document
+  role: Corrections Officer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Assess correction requests, preserve the publication record, and draft proportionate transparent
+    corrections.
+  capabilities:
+    skills:
+      - evidence-verification
+      - writing-editing
+      - compliance-review
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

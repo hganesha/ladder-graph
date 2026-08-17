@@ -20,11 +20,10 @@ spec:
     it with weak matches presented as strong ones.
   capabilities:
     skills:
-      - content-based-similarity-engine
-      - collaborative-filtering-model
-      - streaming-service
-      - recommendation-explanation-generation
-      - candidate-pool-quality-checks
+      - writing-editing
+      - domain-analysis
+      - operations-planning
+      - evaluation
     tools:
       - read
       - audio

@@ -15,11 +15,9 @@ spec:
     the deliverability and brand cost lands on the whole team.
   capabilities:
     skills:
-      - outreach-sequencing
-      - claim-substantiation
-      - consent-and-opt-out-compliance
-      - channel-cadence-design
-      - regulatory-mapping
+      - domain-analysis
+      - compliance-review
+      - design-review
     tools:
       - read
       - write

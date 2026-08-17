@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-source1
       kind: agent
+      templateRef: acct-01
       name: Ledger-side classification and balances
       summary: 'Source extraction 1: ledger-side classification and balances.'
       role: Bookkeeper classifying transactions to the chart of accounts with an evidenced basis.
@@ -52,11 +53,9 @@ spec:
         wrong classification is not.
       capabilities:
         skills:
-          - transaction-classification
-          - chart-of-accounts-mapping
-          - supporting-document-tracing
-          - suspense-item-handling
-          - financial-statement-analysis
+          - domain-analysis
+          - finance-analysis
+          - communication
         tools:
           - read
           - calculate
@@ -68,6 +67,7 @@ spec:
         type: object
     - id: n-source2
       kind: agent
+      templateRef: acct-02
       name: Subledger and bank-side detail
       summary: 'Source extraction 2: subledger and bank-side detail.'
       role: Reconciliation specialist tying subledgers, banks, and intercompany balances to the ledger.
@@ -78,11 +78,9 @@ spec:
         nothing.
       capabilities:
         skills:
-          - account-reconciliation
-          - difference-aging
-          - timing-versus-error-separation
-          - intercompany-matching
-          - numeric-verification
+          - finance-analysis
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -101,6 +99,7 @@ spec:
         expression: merge the two extracted balance records on account, entity, and period
     - id: n-reconcile
       kind: agent
+      templateRef: acct-02
       name: Reconcile matched balances
       summary: Reconcile fields that arrived from more than one source.
       role: Reconciliation specialist tying subledgers, banks, and intercompany balances to the ledger.
@@ -111,11 +110,9 @@ spec:
         nothing.
       capabilities:
         skills:
-          - account-reconciliation
-          - difference-aging
-          - timing-versus-error-separation
-          - intercompany-matching
-          - numeric-verification
+          - finance-analysis
+          - domain-analysis
+          - evaluation
         tools:
           - read
           - calculate
@@ -127,6 +124,7 @@ spec:
         type: object
     - id: n-exceptions
       kind: agent
+      templateRef: acct-05
       name: State every unreconciled difference
       summary: Everything that could not be reconciled, stated as an exception.
       role: Independent reviewer testing whether the evidence supports the conclusion.
@@ -137,11 +135,9 @@ spec:
         an unsupported conclusion is how findings disappear.
       capabilities:
         skills:
-          - evidence-appraisal
-          - workpaper-review
-          - sufficiency-and-appropriateness-testing
-          - independence-checking
-          - citation-verification
+          - evidence-verification
+          - evaluation
+          - domain-analysis
         tools:
           - read
         connectors: []

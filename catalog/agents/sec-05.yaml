@@ -13,7 +13,7 @@ spec:
     and validate containment and eradication against the observed attack path.
   capabilities:
     skills:
-      - digital-forensics
+      - application-security
       - incident-response
     tools:
       - read

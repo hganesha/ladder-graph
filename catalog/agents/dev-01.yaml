@@ -13,7 +13,6 @@ spec:
     buildable contract; do not invent implementation details.
   capabilities:
     skills:
-      - requirements-analysis
       - product-management
     tools:
       - read

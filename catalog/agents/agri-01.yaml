@@ -14,11 +14,9 @@ spec:
     decline to recommend a rate the label does not support regardless of what the agronomic model suggests.
   capabilities:
     skills:
-      - agronomic-recommendation
-      - soil-test-interpretation
-      - growth-stage-timing
-      - label-constraint-compliance
-      - regulatory-mapping
+      - domain-analysis
+      - evaluation
+      - compliance-review
     tools:
       - read
       - calculate

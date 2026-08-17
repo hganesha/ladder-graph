@@ -14,11 +14,10 @@ spec:
     change in the source, rather than approving a fluent target text that says something different.
   capabilities:
     skills:
-      - translation-review
-      - register-analysis
-      - cultural-adaptation-assessment
-      - fidelity-versus-fluency-separation
-      - technical-writing
+      - evaluation
+      - geospatial-analysis
+      - teaching
+      - domain-analysis
     tools:
       - read
     connectors: []

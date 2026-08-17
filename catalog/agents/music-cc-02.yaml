@@ -18,11 +18,10 @@ spec:
     hiding the compromise — the human songwriter should get to make that call.
   capabilities:
     skills:
-      - syllable-stress-scansion-analysis
-      - rhyme-scheme-generation-and-checking
-      - thematic-consistency-checking-against-brief
-      - melody-to-lyric-alignment
-      - lyric-sheet-export-versioning
+      - decision-analysis
+      - scientific-analysis
+      - domain-analysis
+      - audio-processing
     tools:
       - read
       - audio

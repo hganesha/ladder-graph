@@ -14,11 +14,11 @@ spec:
     — cap rate, absorption, adjustment scale — because a single-point value hides where the risk is.
   capabilities:
     skills:
-      - property-valuation
-      - comparable-adjustment-reasoning
-      - income-approach-modeling
-      - sensitivity-analysis
-      - numeric-verification
+      - finance-analysis
+      - domain-analysis
+      - simulation
+      - decision-analysis
+      - evaluation
     tools:
       - read
       - calculate

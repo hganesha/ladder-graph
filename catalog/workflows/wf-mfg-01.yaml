@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-model
       kind: agent
+      templateRef: mfg-01
       name: Engineering remaining-life estimate
       summary: Model-side estimate with stated assumptions.
       role: Reliability engineer converting asset condition evidence into maintenance decisions.
@@ -52,11 +53,10 @@ spec:
         bad data costs the program its credibility.
       capabilities:
         skills:
-          - predictive-maintenance
-          - failure-mode-analysis
-          - condition-monitoring-interpretation
-          - remaining-useful-life-estimation
-          - sensor-fault-discrimination
+          - manufacturing-analysis
+          - risk-analysis
+          - observability
+          - domain-analysis
         tools:
           - read
           - calculate
@@ -74,8 +74,8 @@ spec:
         Ladder Graph does not execute it.
       capabilities:
         skills:
-          - condition-monitoring-interpretation
-          - numeric-verification
+          - observability
+          - evaluation
         tools:
           - calculate
           - mcp:historian
@@ -93,6 +93,7 @@ spec:
         aggregation: merge
     - id: n-fit
       kind: evaluate
+      inlineRole: true
       name: Score agreement
       summary: Evaluate agreement between the engineering estimate and the instrument run on failure mode
         and remaining-life band.

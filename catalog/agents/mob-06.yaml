@@ -14,11 +14,11 @@ spec:
     follows from 'driver error' and from 'a design that invites driver error' are not the same recommendation.
   capabilities:
     skills:
-      - incident-reconstruction
-      - timeline-construction
-      - human-factors-analysis
-      - causal-claim-discipline
-      - failure-mode-analysis
+      - incident-response
+      - domain-analysis
+      - decision-analysis
+      - experiment-design
+      - risk-analysis
     tools:
       - read
       - search

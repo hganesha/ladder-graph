@@ -13,8 +13,8 @@ spec:
     controls when scanning or patching could disrupt operations.
   capabilities:
     skills:
-      - ot-ics-security
-      - risk-prioritization
+      - application-security
+      - risk-analysis
     tools:
       - read
       - monitor

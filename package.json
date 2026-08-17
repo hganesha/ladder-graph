@@ -6,7 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run catalog:generate && tsc -b && vite build",
+    "catalog:audit": "node scripts/audit-catalog.mjs --check",
     "catalog:generate": "node scripts/generate-catalog-index.mjs && biome format --write src/generated/catalog.ts",
+    "catalog:generate-roadmap": "node scripts/generate-roadmap-expansion.mjs && node scripts/normalize-capability-vocabulary.mjs && node scripts/mark-inline-catalog-roles.mjs && node scripts/update-agent-usage.mjs && npm run catalog:generate",
+    "catalog:normalize-inputs": "node scripts/backfill-input-modalities.mjs",
+    "catalog:normalize-capabilities": "node scripts/normalize-capability-vocabulary.mjs && npm run catalog:generate",
+    "catalog:mark-inline-roles": "node scripts/mark-inline-catalog-roles.mjs && npm run catalog:generate",
+    "catalog:update-agent-usage": "node scripts/update-agent-usage.mjs && npm run catalog:generate",
+    "catalog:sync-roles": "node scripts/sync-catalog-roles.mjs --write && npm run catalog:generate",
+    "catalog:adopt-role-refs": "node scripts/sync-catalog-roles.mjs --write --adopt-inferred && npm run catalog:generate",
+    "catalog:sync-roles:check": "node scripts/sync-catalog-roles.mjs --check",
     "format:check": "biome format .",
     "lint": "biome lint .",
     "preview": "vite preview",
@@ -16,7 +25,7 @@
     "test:e2e": "playwright test",
     "wasm:build": "wasm-pack build crates/lgir-wasm --target web --out-dir ../../src/wasm/pkg --release && node scripts/normalize-wasm-artifacts.mjs",
     "rust:test": "cargo test --workspace",
-    "check": "npm run typecheck && npm run test && npm run build"
+    "check": "npm run catalog:audit && npm run catalog:sync-roles:check && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
     "@codemirror/lang-yaml": "^6.1.2",

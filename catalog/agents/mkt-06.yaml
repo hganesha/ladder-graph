@@ -14,10 +14,8 @@ spec:
     name every deviation from the pre-registration in the readout itself.'
   capabilities:
     skills:
-      - experiment-readout
-      - confidence-interval-reporting
-      - p-hacking-detection
-      - segment-discipline
+      - experiment-design
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

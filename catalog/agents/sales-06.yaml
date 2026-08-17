@@ -14,10 +14,9 @@ spec:
     a position that collapses in a bake-off costs more than the deal it was meant to win.
   capabilities:
     skills:
-      - competitive-analysis
-      - differentiation-mapping
-      - switching-cost-analysis
-      - claim-substantiation
+      - decision-analysis
+      - domain-analysis
+      - finance-analysis
       - source-triangulation
     tools:
       - read

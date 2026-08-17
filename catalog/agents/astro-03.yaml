@@ -14,11 +14,11 @@ spec:
     mission plan without visible margin cannot be traded when reality arrives.
   capabilities:
     skills:
-      - trajectory-analysis
-      - delta-v-budgeting
-      - margin-policy-application
-      - constraint-identification
-      - numeric-verification
+      - decision-analysis
+      - finance-analysis
+      - compliance-review
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

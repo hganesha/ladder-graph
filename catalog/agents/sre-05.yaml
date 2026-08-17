@@ -14,11 +14,10 @@ spec:
     is a reliability risk with a measurable cost.
   capabilities:
     skills:
-      - observability-design
-      - sli-and-slo-definition
-      - alert-actionability-review
-      - instrumentation-planning
-      - incident-communication
+      - observability
+      - domain-analysis
+      - operations-planning
+      - incident-response
     tools:
       - read
       - write

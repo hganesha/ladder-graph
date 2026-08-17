@@ -17,11 +17,10 @@ spec:
     obey, and you report the simulation's estimated numerical error alongside its result.
   capabilities:
     skills:
-      - numerical-integration-ode-pde-solver
-      - monte-carlo-simulation
-      - finite-element-finite-difference-framework
-      - conservation-law-validation-checks
-      - simulation-visualization
+      - quantitative-analysis
+      - simulation
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

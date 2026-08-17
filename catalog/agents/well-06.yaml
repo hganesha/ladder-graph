@@ -16,11 +16,11 @@ spec:
     costs more than the days it saved.
   capabilities:
     skills:
-      - drilling-optimization
-      - vibration-and-dysfunction-analysis
-      - hole-cleaning-assessment
-      - parameter-limit-setting
-      - failure-mode-analysis
+      - optimization
+      - decision-analysis
+      - teaching
+      - domain-analysis
+      - risk-analysis
     tools:
       - read
       - calculate

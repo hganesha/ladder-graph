@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-classify
       kind: agent
+      templateRef: mob-02
       name: Score incidents by network effect
       summary: Score and label every incoming item before anything is queued.
       role: Traffic operations analyst coordinating signal, incident, and demand response on a network.
@@ -51,11 +52,9 @@ spec:
         route that clears an arterial often moves the delay onto a residential street.
       capabilities:
         skills:
-          - traffic-network-analysis
-          - incident-impact-modeling
-          - signal-strategy-selection
-          - diversion-effect-analysis
-          - failure-mode-analysis
+          - decision-analysis
+          - incident-response
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -112,6 +111,7 @@ spec:
             when: default
     - id: n-escalate
       kind: agent
+      templateRef: mob-02
       name: Coordinated network response and diversion
       summary: Escalation path for the top band.
       role: Traffic operations analyst coordinating signal, incident, and demand response on a network.
@@ -121,11 +121,9 @@ spec:
         route that clears an arterial often moves the delay onto a residential street.
       capabilities:
         skills:
-          - traffic-network-analysis
-          - incident-impact-modeling
-          - signal-strategy-selection
-          - diversion-effect-analysis
-          - failure-mode-analysis
+          - decision-analysis
+          - incident-response
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -138,6 +136,7 @@ spec:
         type: object
     - id: n-handle
       kind: agent
+      templateRef: mob-03
       name: Standard dispatch assignment
       summary: Standard resolution path.
       role: Dispatch engineer producing feasible vehicle assignments under hard constraints.
@@ -148,11 +147,9 @@ spec:
         how much is left on the table.
       capabilities:
         skills:
-          - dispatch-optimization
-          - constraint-feasibility-checking
-          - hours-of-service-compliance
-          - optimality-gap-reporting
-          - route-optimization
+          - optimization
+          - domain-analysis
+          - compliance-review
         tools:
           - read
           - calculate

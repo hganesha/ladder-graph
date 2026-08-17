@@ -5,6 +5,33 @@ import { parse } from "yaml";
 const root = resolve(import.meta.dirname, "..");
 const catalogRoot = resolve(root, "catalog");
 const manifest = JSON.parse(await readFile(resolve(catalogRoot, "manifest.json"), "utf8"));
+const agentUsage = JSON.parse(await readFile(resolve(catalogRoot, "agent-usage.json"), "utf8"));
+const paletteOnlyAgents = new Set(agentUsage.paletteOnly);
+
+const supportedModalities = new Set(["text", "image", "audio", "video", "document", "mixed"]);
+
+function workflowModalities(document) {
+  const modes = document.spec.nodes
+    .filter((node) => node.kind === "input")
+    .map((node) => node.inputSchema?.["x-ladder-input-mode"] ?? "text")
+    .filter((mode) => supportedModalities.has(mode));
+  return [...new Set(modes.length ? modes : ["text"])];
+}
+
+function agentModalities(document) {
+  const explicit = document.spec.modalities?.filter((mode) => supportedModalities.has(mode));
+  if (explicit?.length) return [...new Set(explicit)];
+
+  const text = [document.metadata.title, document.spec.role, document.spec.prompt, ...(document.spec.capabilities?.skills ?? [])]
+    .join(" ")
+    .toLowerCase();
+  const modes = new Set(["text", "document"]);
+  if (/\b(image|imaging|visual|vision|ocr|photograph|remote sensing|cartograph)/.test(text)) modes.add("image");
+  if (/\b(audio|speech|transcri|radio|sound|music|voice|acoustic)/.test(text)) modes.add("audio");
+  if (/\b(video|film|footage|dailies|motion picture)/.test(text)) modes.add("video");
+  if (/\b(mixed media|multimodal|cross-media)/.test(text)) modes.add("mixed");
+  return [...modes];
+}
 
 async function assertCatalogFiles(directory, expected) {
   const actual = (await readdir(resolve(catalogRoot, directory))).filter((name) => name.endsWith(".yaml")).sort();
@@ -20,9 +47,12 @@ await assertCatalogFiles("agents", manifest.agents);
 const workflows = await Promise.all(
   manifest.workflows.map(async (entry) => {
     const { file, ...definition } = entry;
+    const yaml = await readFile(resolve(catalogRoot, file), "utf8");
+    const document = parse(yaml);
     return {
       ...definition,
-      yaml: await readFile(resolve(catalogRoot, file), "utf8"),
+      modalities: workflowModalities(document),
+      yaml,
     };
   }),
 );
@@ -40,6 +70,9 @@ const agents = await Promise.all(
       name: document.metadata.title,
       role: document.spec.role,
       prompt: document.spec.prompt,
+      areas: document.spec.areas ?? [],
+      modalities: agentModalities(document),
+      usage: paletteOnlyAgents.has(entry.id) ? "palette-only" : "workflow-bound",
       skills: document.spec.capabilities?.skills ?? [],
       tools: document.spec.capabilities?.tools ?? [],
       connectors: document.spec.capabilities?.connectors ?? [],

@@ -14,11 +14,9 @@ spec:
     arterial often moves the delay onto a residential street.
   capabilities:
     skills:
-      - traffic-network-analysis
-      - incident-impact-modeling
-      - signal-strategy-selection
-      - diversion-effect-analysis
-      - failure-mode-analysis
+      - decision-analysis
+      - incident-response
+      - risk-analysis
     tools:
       - read
       - calculate

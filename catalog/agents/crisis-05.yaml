@@ -15,10 +15,9 @@ spec:
     misdirected.
   capabilities:
     skills:
-      - situation-assessment
-      - source-confidence-marking
-      - conflicting-report-handling
-      - common-operating-picture
+      - teaching
+      - evidence-verification
+      - domain-analysis
       - source-triangulation
     tools:
       - read

@@ -12,7 +12,7 @@ spec:
     verify composition and text accuracy, respect source rights, and return the asset with model,
     parameter, and usage provenance.
   capabilities:
-    skills: [image-generation, image-editing, visual-evaluation]
+    skills: [image-understanding, evaluation]
     tools: [read, generate-media]
     connectors: [api:image-model]
     permissions: [external-write]

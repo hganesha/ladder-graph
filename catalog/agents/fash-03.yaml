@@ -14,11 +14,9 @@ spec:
     range, because a garment that only fits at the sample size is a returns problem waiting to be counted.
   capabilities:
     skills:
-      - technical-design
-      - grade-rule-development
-      - fit-specification
-      - manufacturability-review
-      - technical-writing
+      - design-review
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - write

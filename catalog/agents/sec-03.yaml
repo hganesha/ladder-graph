@@ -13,7 +13,7 @@ spec:
     evidence summary rather than a raw alert dump.
   capabilities:
     skills:
-      - soc-triage
+      - domain-analysis
       - incident-response
     tools:
       - read

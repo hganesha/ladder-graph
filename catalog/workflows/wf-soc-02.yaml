@@ -49,6 +49,7 @@ spec:
         expression: deduplicate draft_claims by normalized claim text so each claim is verified once
     - id: n-verify1
       kind: agent
+      templateRef: soc-03
       name: Verify claims against survey and opinion data
       summary: 'Verification pass 1: verify claims against survey and opinion data.'
       role: Analyst reading opinion data with its house effects and uncertainty intact.
@@ -58,10 +59,8 @@ spec:
         way opinion data is misreported.
       capabilities:
         skills:
-          - opinion-data-analysis
-          - house-effect-adjustment
-          - margin-of-error-discipline
-          - trend-versus-noise-separation
+          - decision-analysis
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -82,6 +81,7 @@ spec:
           evidence: {}
     - id: n-verify2
       kind: agent
+      templateRef: soc-06
       name: Verify claims against the literature
       summary: 'Verification pass 2: verify claims against the literature.'
       role: Reviewer synthesizing a body of studies with quality and bias weighted.
@@ -92,10 +92,10 @@ spec:
         got published.
       capabilities:
         skills:
-          - evidence-synthesis
-          - risk-of-bias-assessment
-          - publication-bias-analysis
-          - citation-verification
+          - evidence-verification
+          - teaching
+          - writing-editing
+          - evaluation
           - statistical-analysis
         tools:
           - read
@@ -115,6 +115,7 @@ spec:
           evidence: {}
     - id: n-verify3
       kind: agent
+      templateRef: soc-04
       name: Verify modelled claims against stated assumptions
       summary: 'Verification pass 3: verify modelled claims against stated assumptions.'
       role: Modeler estimating distributional and behavioral effects of policy options.
@@ -124,10 +125,9 @@ spec:
         net-positive that concentrates losses is a political fact the model should not hide.
       capabilities:
         skills:
-          - policy-simulation
-          - distributional-analysis
-          - counterfactual-specification
-          - elasticity-assumption-disclosure
+          - simulation
+          - decision-analysis
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -164,6 +164,7 @@ spec:
             when: unverified
     - id: n-resolve
       kind: agent
+      templateRef: soc-06
       name: Rewrite or withdraw unverified claims
       summary: Close, replace, or explicitly withdraw each unverified item.
       role: Reviewer synthesizing a body of studies with quality and bias weighted.
@@ -174,10 +175,10 @@ spec:
         got published.
       capabilities:
         skills:
-          - evidence-synthesis
-          - risk-of-bias-assessment
-          - publication-bias-analysis
-          - citation-verification
+          - evidence-verification
+          - teaching
+          - writing-editing
+          - evaluation
           - statistical-analysis
         tools:
           - read

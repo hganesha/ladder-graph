@@ -1,0 +1,135 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: rfp-compliance-submission-gate
+  title: RFP compliance matrix + submission gate
+  description: Split cited requirements, prepare responses in parallel, collect evidence, and gate submission.
+  version: 1.0.0
+spec:
+  objective: Split cited requirements, prepare responses in parallel, collect evidence, and gate submission.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Solicitation Requirements Analyst
+      templateRef: pub-01
+      role: Solicitation Requirements Analyst operating within supplied evidence, policy, and human-approval
+        boundaries.
+      prompt: Extract every solicitation requirement with citation, type, owner, evidence, and submission
+        consequence.
+      capabilities:
+        skills:
+          - compliance-review
+          - evidence-verification
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Compliance Matrix Builder
+      templateRef: pub-02
+      role: Compliance Matrix Builder operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Build a complete requirement-to-response matrix and expose every missing or conflicting response
+        obligation.
+      capabilities:
+        skills:
+          - compliance-review
+          - operations-planning
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Cost Realism Analyst
+      templateRef: pub-04
+      role: Cost Realism Analyst operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Test proposed cost against scope, labor, schedule, assumptions, risk, and the solicitation basis
+        without inventing rates.
+      capabilities:
+        skills:
+          - finance-analysis
+          - risk-analysis
+          - quantitative-analysis
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: requirements
+      kind: transform
+      name: Split cited requirements
+      config:
+        operation: slice
+        expression: $.requirements[0:200]
+    - id: work-group
+      kind: group
+      name: Bounded specialist phase
+      config:
+        members:
+          - role-1
+          - role-2
+          - role-3
+        execution: parallel
+        exit: aggregate
+    - id: collect
+      kind: aggregator
+      name: Collect compliant responses
+      config:
+        aggregation: collect
+    - id: approval
+      kind: approval
+      name: Accountable domain reviewer approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: requirements
+      kind: data
+    - id: e2
+      from: requirements
+      to: work-group
+      kind: data
+    - id: e3
+      from: work-group
+      to: collect
+      kind: data
+    - id: e4
+      from: collect
+      to: approval
+      kind: dependency
+    - id: e5
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

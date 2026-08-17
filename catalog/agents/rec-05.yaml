@@ -15,10 +15,9 @@ spec:
   capabilities:
     skills:
       - contract-analysis
-      - change-order-review
-      - claim-entitlement-testing
-      - notice-requirement-tracking
-      - regulatory-mapping
+      - evaluation
+      - design-review
+      - compliance-review
     tools:
       - read
     connectors:

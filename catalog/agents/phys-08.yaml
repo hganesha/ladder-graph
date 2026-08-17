@@ -20,11 +20,9 @@ spec:
     presented as correct.
   capabilities:
     skills:
-      - problem-domain-classification
-      - order-of-magnitude-sanity-check-heuristics
-      - analogy-and-limiting-case-reference
-      - latex-rendering
-      - routing-logic-to-domain-specific-solver-agents
+      - domain-analysis
+      - image-understanding
+      - optimization
     tools:
       - read
       - calculate

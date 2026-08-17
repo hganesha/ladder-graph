@@ -1,0 +1,54 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: discovery-triage-privilege-log
+  title: Discovery triage + privilege log
+  description: Triage records and privilege-review completed branches while preserving failed-source envelopes.
+  version: 1.0.0
+spec:
+  objective: Produce a reviewable discovery queue and privilege log with every unavailable source disclosed.
+  policies: { maxConcurrency: 4, onFailure: preserve-completed, requireApprovalFor: [production-approval] }
+  nodes:
+    - id: records
+      kind: input
+      name: Collected records and review protocol
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset: { type: string, contentMediaType: application/pdf }
+          instructions: { type: string }
+        x-ladder-input-mode: document
+    - id: triage
+      kind: agent
+      name: Triage responsive records
+      templateRef: legal-05
+      role: Discovery triage specialist who prioritizes review without making final responsiveness decisions.
+      prompt: Deduplicate and prioritize supplied records by the approved issues, custodians, dates, and search protocol. Preserve provenance, list failed or unavailable sources, and send borderline items to human review.
+      capabilities: { skills: [discovery-triage, evidence-provenance], tools: [read, search, classify], permissions: [read-sensitive] }
+      outputSchema: { type: object }
+    - id: privilege
+      kind: agent
+      name: Apply privilege rules
+      templateRef: legal-04
+      role: Privilege review specialist operating under counsel-approved rules.
+      prompt: Apply only the supplied privilege rules. Record the evidence for each classification, separate uncertain items, minimize exposure of sensitive content, and require counsel approval before production.
+      capabilities: { skills: [privilege-review, sensitive-data-handling], tools: [read, classify], permissions: [read-sensitive] }
+      outputSchema: { type: object }
+    - id: partial-fan-in
+      kind: join
+      name: Preserve completed and failed branches
+      config: { join: allSettled }
+    - id: production-approval
+      kind: approval
+      name: Counsel approves production and privilege log
+    - id: result
+      kind: output
+      name: Discovery queue, privilege log, and failure register
+  edges:
+    - { id: e1, from: records, to: triage, kind: data }
+    - { id: e2, from: records, to: privilege, kind: data }
+    - { id: e3, from: triage, to: partial-fan-in, kind: data }
+    - { id: e4, from: privilege, to: partial-fan-in, kind: data }
+    - { id: e5, from: partial-fan-in, to: production-approval, kind: dependency }
+    - { id: e6, from: production-approval, to: result, kind: dependency, condition: approved }

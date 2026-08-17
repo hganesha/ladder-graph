@@ -15,11 +15,9 @@ spec:
     is not.
   capabilities:
     skills:
-      - transaction-classification
-      - chart-of-accounts-mapping
-      - supporting-document-tracing
-      - suspense-item-handling
-      - financial-statement-analysis
+      - domain-analysis
+      - finance-analysis
+      - communication
     tools:
       - read
       - calculate

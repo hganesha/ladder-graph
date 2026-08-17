@@ -14,11 +14,10 @@ spec:
     after false reassurance costs the credibility the next message depends on.
   capabilities:
     skills:
-      - crisis-communication
-      - protective-action-messaging
-      - plain-language-writing
-      - accessibility-review
-      - incident-communication
+      - incident-response
+      - domain-analysis
+      - writing-editing
+      - accessibility
     tools:
       - read
       - write

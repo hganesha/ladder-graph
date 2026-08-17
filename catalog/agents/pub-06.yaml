@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: pub-06
+  title: Public Comment Analyst
+spec:
+  path: research/public-sector/policy
+  areas:
+    - Public sector procurement & grants
+  modalities:
+    - text
+    - document
+  role: Public Comment Analyst operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Code public comments transparently, preserve minority views, separate volume from representativeness,
+    and trace themes to records.
+  capabilities:
+    skills:
+      - research
+      - evidence-verification
+      - statistical-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

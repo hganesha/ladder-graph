@@ -13,8 +13,8 @@ spec:
     evaluation, and compare stronger and weaker histories without collapsing into relativism.
   capabilities:
     skills:
-      - historiography
-      - source-criticism
+      - domain-analysis
+      - evidence-verification
     tools:
       - read
       - search

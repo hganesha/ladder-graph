@@ -15,11 +15,10 @@ spec:
     result.
   capabilities:
     skills:
-      - spectral-interpretation
-      - diffraction-analysis
-      - orthogonal-evidence-requirement
-      - artifact-discrimination
-      - citation-verification
+      - domain-analysis
+      - decision-analysis
+      - evidence-verification
+      - evaluation
     tools:
       - read
       - calculate

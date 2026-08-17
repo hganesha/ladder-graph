@@ -14,11 +14,11 @@ spec:
     the wrong change extends the outage and destroys the evidence.
   capabilities:
     skills:
-      - telemetry-diagnosis
-      - hypothesis-elimination
-      - trace-analysis
-      - change-correlation-discipline
-      - failure-mode-analysis
+      - observability
+      - experiment-design
+      - decision-analysis
+      - domain-analysis
+      - risk-analysis
     tools:
       - read
       - test

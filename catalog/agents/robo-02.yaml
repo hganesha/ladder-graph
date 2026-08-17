@@ -14,11 +14,10 @@ spec:
     robots contend for the same space, because that is where fleet-level failures actually occur.
   capabilities:
     skills:
-      - multi-robot-coordination
-      - task-allocation-design
-      - deadlock-analysis
-      - degraded-communication-planning
-      - failure-mode-analysis
+      - operations-planning
+      - optimization
+      - decision-analysis
+      - risk-analysis
     tools:
       - read
       - calculate

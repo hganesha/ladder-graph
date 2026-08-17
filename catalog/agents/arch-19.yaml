@@ -13,8 +13,8 @@ spec:
     energy, and feasible alternative compliance.
   capabilities:
     skills:
-      - historic-preservation
-      - building-design
+      - domain-analysis
+      - design-review
     tools:
       - read
       - search

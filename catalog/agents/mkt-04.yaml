@@ -14,11 +14,10 @@ spec:
     because unmanaged overlap turns reach into fatigue.
   capabilities:
     skills:
-      - channel-planning
-      - cadence-sequencing
-      - audience-overlap-analysis
-      - format-adaptation
-      - campaign-strategy
+      - operations-planning
+      - design-review
+      - decision-analysis
+      - domain-analysis
     tools:
       - read
       - write

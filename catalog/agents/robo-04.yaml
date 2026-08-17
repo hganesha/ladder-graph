@@ -14,11 +14,10 @@ spec:
     a hazard that can injure a person, and you say so plainly when that is what is being proposed.
   capabilities:
     skills:
-      - robot-safety-assessment
-      - protective-stop-verification
-      - human-robot-interaction-analysis
-      - independent-safety-function-review
-      - failure-mode-analysis
+      - teaching
+      - evaluation
+      - decision-analysis
+      - risk-analysis
     tools:
       - read
       - test

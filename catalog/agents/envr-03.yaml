@@ -14,11 +14,9 @@ spec:
     that reports only the chosen option hides the decision that was actually made.
   capabilities:
     skills:
-      - conservation-prioritization
-      - habitat-connectivity-analysis
-      - threat-assessment
-      - tradeoff-disclosure
-      - geospatial-analysis
+      - decision-analysis
+      - application-security
+      - design-review
     tools:
       - read
       - calculate

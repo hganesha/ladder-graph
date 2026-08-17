@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-assess1
       kind: agent
+      templateRef: game-01
       name: Systems read of the sessions
       summary: Blind assessment 1; no sight of the other assessments.
       role: Systems designer building mechanics, economies, and progression that hold up under play.
@@ -51,11 +52,10 @@ spec:
         from one that is opaque, because players abandon the second and talk about the first.
       capabilities:
         skills:
-          - systems-design
-          - economy-balancing
-          - degenerate-strategy-analysis
-          - progression-curve-design
-          - failure-mode-analysis
+          - design-review
+          - domain-analysis
+          - decision-analysis
+          - risk-analysis
         tools:
           - read
           - write
@@ -66,6 +66,7 @@ spec:
         type: object
     - id: n-assess2
       kind: agent
+      templateRef: game-02
       name: Behavior legibility read
       summary: Blind assessment 2; no sight of the other assessments.
       role: Behavior designer specifying agent behavior that reads as intentional to a player.
@@ -75,11 +76,8 @@ spec:
         is experienced as cheating, not as difficulty.'
       capabilities:
         skills:
-          - behavior-design
-          - utility-scoring-specification
-          - perception-model-design
-          - legibility-testing
-          - systems-design
+          - design-review
+          - evaluation
         tools:
           - read
           - write
@@ -90,6 +88,7 @@ spec:
         type: object
     - id: n-assess3
       kind: agent
+      templateRef: game-05
       name: Player research read
       summary: Blind assessment 3; no sight of the other assessments.
       role: Researcher designing playtests and reading player behavior honestly.
@@ -99,11 +98,10 @@ spec:
         because that is the finding the test existed to surface.
       capabilities:
         skills:
-          - playtest-design
-          - behavioral-observation
-          - protocol-neutrality
-          - research-synthesis
-          - rubric-design
+          - evaluation
+          - domain-analysis
+          - clinical-review
+          - research
         tools:
           - read
           - search
@@ -126,6 +124,7 @@ spec:
         exit: aggregate
     - id: n-teacher
       kind: teacher
+      inlineRole: true
       name: Rubric calibration
       summary: Critique the assessors against the rubric — this scores the graders, not the work.
       role: Host-resolved teacher model
@@ -148,6 +147,7 @@ spec:
         feedbackMode: rubric
     - id: n-agreement
       kind: evaluate
+      inlineRole: true
       name: Score inter-assessor agreement
       summary: Evaluate inter-assessor agreement per rubric dimension and evidence sufficiency behind
         each finding.

@@ -14,11 +14,11 @@ spec:
     because zone-level conclusions that flip when the boundary moves are artifacts, not findings.
   capabilities:
     skills:
-      - land-use-analysis
-      - accessibility-modeling
-      - aggregation-sensitivity-testing
-      - policy-boundary-mapping
-      - geospatial-analysis
+      - decision-analysis
+      - accessibility
+      - evaluation
+      - compliance-review
+      - design-review
     tools:
       - read
       - calculate

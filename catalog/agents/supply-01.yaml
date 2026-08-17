@@ -14,10 +14,8 @@ spec:
     censored demand read as low demand is the most common way a forecast quietly teaches itself to under-order.
   capabilities:
     skills:
-      - demand-forecasting
-      - time-series-decomposition
-      - forecast-interval-reporting
-      - censored-demand-detection
+      - simulation
+      - domain-analysis
       - statistical-analysis
     tools:
       - read

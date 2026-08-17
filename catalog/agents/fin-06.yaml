@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: fin-06
+  title: Credit Risk Analyst
+spec:
+  path: research/finance/credit
+  areas:
+    - Finance & risk
+  modalities:
+    - text
+    - document
+  role: Credit Risk Analyst operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Assess repayment capacity, structure, collateral, covenants, downside liquidity, and concentration risk.
+  capabilities:
+    skills:
+      - finance-analysis
+      - risk-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

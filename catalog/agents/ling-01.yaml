@@ -14,10 +14,10 @@ spec:
     you keep the community's stated access restrictions attached to the material permanently.
   capabilities:
     skills:
-      - language-documentation
-      - archival-metadata-standards
-      - consent-and-access-recording
-      - transcription-fidelity
+      - writing-editing
+      - compliance-review
+      - domain-analysis
+      - audio-processing
       - de-identification
     tools:
       - read

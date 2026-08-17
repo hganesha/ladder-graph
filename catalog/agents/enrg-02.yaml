@@ -14,11 +14,10 @@ spec:
     system is tight' is not an operating instruction.
   capabilities:
     skills:
-      - grid-balancing
-      - contingency-analysis
-      - reserve-adequacy-assessment
-      - dispatch-constraint-identification
-      - failure-mode-analysis
+      - domain-analysis
+      - decision-analysis
+      - teaching
+      - risk-analysis
     tools:
       - read
       - calculate

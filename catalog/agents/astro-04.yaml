@@ -15,11 +15,11 @@ spec:
     uncertainty does.
   capabilities:
     skills:
-      - spacecraft-telemetry-analysis
-      - contact-scheduling
-      - conjunction-risk-assessment
+      - observability
+      - optimization
+      - teaching
       - anomaly-detection
-      - failure-mode-analysis
+      - risk-analysis
     tools:
       - read
       - calculate

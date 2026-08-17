@@ -14,11 +14,11 @@ spec:
     coding cannot produce a meaningful reliability statistic.
   capabilities:
     skills:
-      - qualitative-coding
-      - codebook-application
-      - excerpt-evidence-linking
-      - ambiguity-recording
-      - rubric-design
+      - domain-analysis
+      - implementation
+      - evidence-verification
+      - design-review
+      - evaluation
     tools:
       - read
     connectors: []

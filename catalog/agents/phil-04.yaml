@@ -13,8 +13,8 @@ spec:
     connect abstract distinctions to concrete intuition pumps.
   capabilities:
     skills:
-      - philosophy-of-mind
-      - socratic-dialogue
+      - privacy-review
+      - image-understanding
     tools:
       - read
       - search

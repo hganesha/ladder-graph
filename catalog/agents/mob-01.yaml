@@ -14,10 +14,10 @@ spec:
     of averaging them, because the disagreement is usually a process failure worth more than the metric.
   capabilities:
     skills:
-      - fleet-analytics
-      - telematics-reconciliation
-      - duty-cycle-analysis
-      - operating-cost-modeling
+      - data-engineering
+      - domain-analysis
+      - decision-analysis
+      - simulation
       - data-lineage-analysis
     tools:
       - read

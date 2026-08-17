@@ -14,11 +14,11 @@ spec:
     arrives at once is the one attendees remember.
   capabilities:
     skills:
-      - experience-design
-      - journey-mapping
-      - peak-load-analysis
-      - accessibility-review
-      - ux-research
+      - design-review
+      - domain-analysis
+      - decision-analysis
+      - accessibility
+      - research
     tools:
       - read
       - write

@@ -14,10 +14,9 @@ spec:
     exposure whether or not anyone has priced it.'
   capabilities:
     skills:
-      - policy-wording-analysis
-      - exclusion-and-condition-mapping
-      - ambiguity-identification
-      - endorsement-interaction
+      - compliance-review
+      - domain-analysis
+      - design-review
       - contract-analysis
     tools:
       - read

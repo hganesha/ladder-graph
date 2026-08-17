@@ -14,10 +14,9 @@ spec:
     campaign will be declared a success regardless of what it did.
   capabilities:
     skills:
-      - campaign-strategy
-      - audience-definition
-      - objective-and-metric-design
-      - attribution-feasibility-checking
+      - decision-analysis
+      - domain-analysis
+      - design-review
       - experiment-design
     tools:
       - read

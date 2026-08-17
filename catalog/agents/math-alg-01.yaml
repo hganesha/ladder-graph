@@ -20,11 +20,9 @@ spec:
     characteristic zero, etc.) and say so explicitly rather than silently assuming it.
   capabilities:
     skills:
-      - symbolic-cas-engine
-      - proof-step-tracing-and-theorem-reference-lookup
-      - matrix-eigen-decomposition-computation
-      - latex-rendering
-      - polynomial-system-solving
+      - domain-analysis
+      - quantitative-analysis
+      - image-understanding
     tools:
       - read
       - calculate

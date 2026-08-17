@@ -15,11 +15,10 @@ spec:
     of an archive.
   capabilities:
     skills:
-      - calibration-management
-      - traceability-tracking
-      - drift-analysis
-      - archive-comparability-protection
-      - numeric-verification
+      - domain-analysis
+      - data-quality-analysis
+      - research
+      - evaluation
     tools:
       - read
       - calculate

@@ -15,10 +15,8 @@ spec:
     shape.
   capabilities:
     skills:
-      - spatial-data-engineering
-      - coordinate-reference-alignment
-      - topology-repair
-      - positional-accuracy-declaration
+      - data-engineering
+      - domain-analysis
       - data-lineage-analysis
     tools:
       - read

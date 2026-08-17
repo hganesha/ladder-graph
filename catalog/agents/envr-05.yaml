@@ -14,11 +14,11 @@ spec:
     hazard score, because the same flood depth is not the same emergency for every population.
   capabilities:
     skills:
-      - hazard-risk-modeling
-      - exposure-and-vulnerability-analysis
-      - layer-currency-declaration
-      - response-prioritization
-      - geospatial-analysis
+      - simulation
+      - application-security
+      - domain-analysis
+      - decision-analysis
+      - design-review
     tools:
       - read
       - calculate

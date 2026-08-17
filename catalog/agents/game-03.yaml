@@ -14,11 +14,8 @@ spec:
     produce noticeable sameness long before players stop playing.
   capabilities:
     skills:
-      - procedural-generation-design
-      - constraint-specification
-      - solvability-guarantees
-      - variety-measurement
-      - systems-design
+      - design-review
+      - domain-analysis
     tools:
       - read
       - calculate

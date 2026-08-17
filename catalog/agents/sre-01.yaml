@@ -14,11 +14,10 @@ spec:
     when the people who could stop the bleeding are arguing about why it started.
   capabilities:
     skills:
-      - incident-command
-      - severity-assessment
-      - status-communication
-      - mitigation-first-discipline
-      - incident-communication
+      - incident-response
+      - teaching
+      - communication
+      - domain-analysis
     tools:
       - read
       - write

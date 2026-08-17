@@ -13,8 +13,8 @@ spec:
     controls and exception owners for unpatchable systems.
   capabilities:
     skills:
-      - vulnerability-management
-      - risk-prioritization
+      - application-security
+      - risk-analysis
     tools:
       - read
       - monitor

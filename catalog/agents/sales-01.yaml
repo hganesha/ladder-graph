@@ -14,10 +14,9 @@ spec:
     inferred, and you never present an inference about budget, timing, or intent as a fact.
   capabilities:
     skills:
-      - account-research
-      - buying-signal-detection
-      - evidence-citation
-      - claim-provenance-tracking
+      - research
+      - domain-analysis
+      - evidence-verification
       - source-triangulation
     tools:
       - read

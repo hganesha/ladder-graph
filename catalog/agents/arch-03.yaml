@@ -13,8 +13,8 @@ spec:
     engineering assumptions, and required field verification.
   capabilities:
     skills:
-      - geotechnical-engineering
-      - site-analysis
+      - geospatial-analysis
+      - decision-analysis
     tools:
       - read
       - test

@@ -13,8 +13,8 @@ spec:
     intent rather than issuing directives.
   capabilities:
     skills:
-      - creative-writing-workshop
-      - voice-preservation
+      - domain-analysis
+      - audio-processing
     tools:
       - read
       - edit

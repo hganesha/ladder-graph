@@ -16,10 +16,9 @@ spec:
     to.
   capabilities:
     skills:
-      - consensus-planning
-      - plan-gap-analysis
-      - constrained-supply-planning
-      - scenario-comparison
+      - operations-planning
+      - supply-chain-analysis
+      - simulation
       - statistical-analysis
     tools:
       - read

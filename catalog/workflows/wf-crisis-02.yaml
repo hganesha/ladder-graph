@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-source1
       kind: agent
+      templateRef: crisis-03
       name: Primary agency resource extraction
       summary: 'Source extraction 1: primary agency resource extraction.'
       role: Logistics officer tracking what is available, committed, and en route.
@@ -51,10 +52,8 @@ spec:
         response the most dangerous number is a stale one presented as current.
       capabilities:
         skills:
-          - resource-tracking
-          - multi-agency-reconciliation
-          - double-commitment-detection
-          - status-currency-declaration
+          - evidence-verification
+          - domain-analysis
           - data-lineage-analysis
         tools:
           - read
@@ -68,6 +67,7 @@ spec:
         type: object
     - id: n-source2
       kind: agent
+      templateRef: crisis-05
       name: Mutual aid and partner extraction
       summary: 'Source extraction 2: mutual aid and partner extraction.'
       role: Analyst building a common operating picture from conflicting reports.
@@ -78,10 +78,9 @@ spec:
         responses are misdirected.
       capabilities:
         skills:
-          - situation-assessment
-          - source-confidence-marking
-          - conflicting-report-handling
-          - common-operating-picture
+          - teaching
+          - evidence-verification
+          - domain-analysis
           - source-triangulation
         tools:
           - read
@@ -101,6 +100,7 @@ spec:
         expression: merge the extracted resource records on resource_id, agency, and as_of_time
     - id: n-reconcile
       kind: agent
+      templateRef: crisis-03
       name: Reconcile matched resource records
       summary: Reconcile fields that arrived from more than one source.
       role: Logistics officer tracking what is available, committed, and en route.
@@ -110,10 +110,8 @@ spec:
         response the most dangerous number is a stale one presented as current.
       capabilities:
         skills:
-          - resource-tracking
-          - multi-agency-reconciliation
-          - double-commitment-detection
-          - status-currency-declaration
+          - evidence-verification
+          - domain-analysis
           - data-lineage-analysis
         tools:
           - read
@@ -127,6 +125,7 @@ spec:
         type: object
     - id: n-exceptions
       kind: agent
+      templateRef: crisis-02
       name: State double commitments and stale records as exceptions
       summary: Everything that could not be reconciled, stated as an exception.
       role: Analyst running scenarios that stress plans rather than confirming them.
@@ -136,11 +135,9 @@ spec:
         is designed to test, because an exercise that confirms the plan teaches nobody anything.
       capabilities:
         skills:
-          - scenario-design
-          - assumption-stress-testing
-          - plan-failure-identification
-          - exercise-evaluation
-          - failure-mode-analysis
+          - simulation
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - calculate

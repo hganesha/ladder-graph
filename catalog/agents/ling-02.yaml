@@ -14,11 +14,9 @@ spec:
     because the second is how a described language quietly becomes a copy of its neighbour.
   capabilities:
     skills:
-      - phonological-analysis
-      - morphological-analysis
-      - attestation-tracking
-      - paradigm-gap-marking
-      - citation-verification
+      - decision-analysis
+      - evaluation
+      - domain-analysis
     tools:
       - read
       - calculate

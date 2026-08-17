@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: text
     - id: n-phase1
       kind: agent
+      templateRef: chem-02
       name: Retrosynthetic route comparison
       summary: 'Phase 1: retrosynthetic route comparison.'
       role: Synthetic chemist planning routes with realistic steps, yields, and hazards.
@@ -52,11 +53,10 @@ spec:
         is not a route.
       capabilities:
         skills:
-          - retrosynthesis-planning
-          - route-comparison
-          - yield-realism-assessment
-          - reagent-hazard-identification
-          - failure-mode-analysis
+          - operations-planning
+          - domain-analysis
+          - teaching
+          - risk-analysis
         tools:
           - read
           - search
@@ -68,6 +68,7 @@ spec:
         type: object
     - id: n-phase2
       kind: agent
+      templateRef: chem-03
       name: Characterization and confirmation plan
       summary: 'Phase 2: characterization and confirmation plan.'
       role: Analyst interpreting spectra, diffraction, and microscopy against structural claims.
@@ -78,11 +79,10 @@ spec:
         path to a retracted result.
       capabilities:
         skills:
-          - spectral-interpretation
-          - diffraction-analysis
-          - orthogonal-evidence-requirement
-          - artifact-discrimination
-          - citation-verification
+          - domain-analysis
+          - decision-analysis
+          - evidence-verification
+          - evaluation
         tools:
           - read
           - calculate
@@ -94,6 +94,7 @@ spec:
         type: object
     - id: n-phase3
       kind: agent
+      templateRef: chem-06
       name: Design of experiments for the key step
       summary: 'Phase 3: design of experiments for the key step.'
       role: Statistician designing efficient experiments and reading their results honestly.
@@ -105,9 +106,9 @@ spec:
       capabilities:
         skills:
           - experiment-design
-          - factorial-and-response-surface-design
-          - confounding-analysis
-          - replication-planning
+          - design-review
+          - decision-analysis
+          - operations-planning
           - statistical-analysis
         tools:
           - read
@@ -137,6 +138,7 @@ spec:
         decisions are made here.
     - id: n-check
       kind: evaluate
+      inlineRole: true
       name: Check the staged result
       summary: Evaluate hazard control adequacy, orthogonal characterization coverage, and route practicality
         at the stated scale.
@@ -184,6 +186,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: chem-04
       name: Repair the protocol's control gaps
       summary: Smallest corrective pass before re-gating.
       role: Process chemist translating bench routes into safe, controllable processes.
@@ -194,11 +197,11 @@ spec:
         are how incidents happen.
       capabilities:
         skills:
-          - scale-up-analysis
-          - thermal-hazard-assessment
-          - impurity-fate-tracking
-          - process-control-design
-          - failure-mode-analysis
+          - decision-analysis
+          - teaching
+          - domain-analysis
+          - design-review
+          - risk-analysis
         tools:
           - read
           - calculate

@@ -14,11 +14,10 @@ spec:
     cannot answer within a recall window is a record-keeping system, not a traceability system.
   capabilities:
     skills:
-      - lot-genealogy-reconstruction
-      - chain-of-custody-verification
-      - recall-scope-determination
+      - domain-analysis
+      - evaluation
       - data-lineage-analysis
-      - regulatory-mapping
+      - compliance-review
     tools:
       - read
       - search

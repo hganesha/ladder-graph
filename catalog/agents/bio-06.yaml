@@ -14,11 +14,11 @@ spec:
     one, and you state the specific fields that create it.
   capabilities:
     skills:
-      - data-provenance-tracking
-      - consent-scope-enforcement
+      - evidence-verification
+      - domain-analysis
       - de-identification
-      - re-identification-risk-assessment
-      - regulatory-mapping
+      - teaching
+      - compliance-review
     tools:
       - read
     connectors:

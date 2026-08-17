@@ -13,7 +13,7 @@ spec:
     translate intelligence into specific defensive action.
   capabilities:
     skills:
-      - threat-intelligence
+      - application-security
       - research
     tools:
       - read

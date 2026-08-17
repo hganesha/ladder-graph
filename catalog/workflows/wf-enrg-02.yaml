@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-model
       kind: agent
+      templateRef: enrg-02
       name: Operator balancing plan
       summary: Model-side estimate with stated assumptions.
       role: System operations analyst balancing load, generation, and reserve within security limits.
@@ -51,11 +52,10 @@ spec:
         from, because 'the system is tight' is not an operating instruction.
       capabilities:
         skills:
-          - grid-balancing
-          - contingency-analysis
-          - reserve-adequacy-assessment
-          - dispatch-constraint-identification
-          - failure-mode-analysis
+          - domain-analysis
+          - decision-analysis
+          - teaching
+          - risk-analysis
         tools:
           - read
           - calculate
@@ -73,8 +73,8 @@ spec:
         does not execute it.
       capabilities:
         skills:
-          - contingency-analysis
-          - numeric-verification
+          - decision-analysis
+          - evaluation
         tools:
           - calculate
           - mcp:scada
@@ -92,6 +92,7 @@ spec:
         aggregation: merge
     - id: n-fit
       kind: evaluate
+      inlineRole: true
       name: Score agreement
       summary: Evaluate post-contingency limit violations, reserve adequacy, and flexibility availability.
       role: Deterministic metric evaluator

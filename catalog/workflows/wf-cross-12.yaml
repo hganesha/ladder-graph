@@ -1,0 +1,175 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: inspection-video-defect-adjudication
+  title: Inspection video + defect adjudication
+  description: Blindly review inspection video, manufacturing evidence, quality criteria, and damage analogues
+    before defect disposition.
+  version: 1.0.0
+spec:
+  objective: Blindly review inspection video, manufacturing evidence, quality criteria, and damage analogues
+    before defect disposition.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: video/*
+          instructions:
+            type: string
+        x-ladder-input-mode: video
+    - id: role-1
+      kind: agent
+      name: Process Quality Engineer
+      templateRef: mfg-02
+      role: Quality engineer running SPC, capability studies, and defect investigations.
+      prompt: You are a Process Quality Engineer. You judge process behavior from control charts and capability
+        indices using the rules the chart supports, and you separate common-cause variation from a genuine
+        special cause before anyone adjusts a setpoint. You call out tampering — reacting to noise as if it
+        were signal — because over-adjustment is the most common way a stable process is made unstable.
+      capabilities:
+        skills:
+          - statistical-analysis
+          - decision-analysis
+          - domain-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:mes
+          - mcp:historian
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: FMEA Facilitator
+      templateRef: mfg-04
+      role: Risk facilitator running failure mode and effects analysis to actionable controls.
+      prompt: You are an FMEA Facilitator. You drive each function to its failure modes, effects, causes, and
+        current controls, and you score severity, occurrence, and detection with the reasoning for each number
+        written down. You treat a high-severity, low-detection mode as action-required even when its risk
+        number looks acceptable, because an undetectable safety failure is not made safe by being rare.
+      capabilities:
+        skills:
+          - risk-analysis
+          - evaluation
+          - compliance-review
+          - operations-planning
+        tools:
+          - read
+        connectors:
+          - mcp:plm
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Claims Adjuster
+      templateRef: insr-01
+      role: Adjuster establishing coverage, causation, and quantum from the evidence on file.
+      prompt: You are a Claims Adjuster. You establish coverage under the policy as written, causation from the
+        evidence, and quantum from documented loss, keeping those three determinations separate. You state
+        which element is unsupported rather than declining a claim on a general impression, because a denial
+        that cannot name its policy provision and its evidence will not survive review.
+      capabilities:
+        skills:
+          - domain-analysis
+          - decision-analysis
+          - quantitative-analysis
+          - evaluation
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:claims-system
+        permissions:
+          - read-only
+          - pii-restricted
+      outputSchema:
+        type: object
+    - id: role-4
+      kind: agent
+      name: Imaging Interpretation Specialist
+      templateRef: clin-01
+      role: Imaging interpretation specialist supporting, never replacing, credentialed clinical review.
+      prompt: Describe observable imaging findings with location, confidence, and limitations. Do not infer beyond
+        the supplied study, and route all diagnostic conclusions and urgent findings to a credentialed
+        clinician.
+      capabilities:
+        skills:
+          - image-understanding
+          - clinical-safety
+        tools:
+          - read
+        permissions:
+          - read-sensitive
+      outputSchema:
+        type: object
+    - id: combine
+      kind: aggregator
+      name: Reconcile cross-area findings
+      config:
+        aggregation: vote
+    - id: approval
+      kind: approval
+      name: Cross-functional authority approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: intake
+      to: role-4
+      kind: data
+    - id: e5
+      from: role-1
+      to: combine
+      kind: data
+    - id: e6
+      from: role-2
+      to: combine
+      kind: data
+    - id: e7
+      from: role-3
+      to: combine
+      kind: data
+    - id: e8
+      from: role-4
+      to: combine
+      kind: data
+    - id: e9
+      from: combine
+      to: approval
+      kind: dependency
+    - id: e10
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

@@ -13,8 +13,8 @@ spec:
     guidance when delivery matters.
   capabilities:
     skills:
-      - rhetoric-coaching
-      - argument-mapping
+      - writing-editing
+      - domain-analysis
     tools:
       - read
       - edit

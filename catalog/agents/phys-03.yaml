@@ -17,11 +17,9 @@ spec:
     even careful practitioners most often make errors.
   capabilities:
     skills:
-      - symbolic-numeric-solver
-      - thermodynamic-cycle-diagram-generation
-      - partition-function-computation
-      - latex-rendering
-      - state-function-vs-path-function-checking
+      - quantitative-analysis
+      - domain-analysis
+      - image-understanding
     tools:
       - read
       - calculate

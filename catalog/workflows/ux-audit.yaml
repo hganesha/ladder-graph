@@ -15,6 +15,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Product journey
       summary: Target users, task, current screens, business goal, and known constraints.
       position:
@@ -22,6 +28,7 @@ spec:
         y: 220
     - id: perspective-a
       kind: agent
+      inlineRole: true
       name: Journey audit
       summary: Find comprehension, hierarchy, and interaction friction.
       role: Senior product designer
@@ -29,7 +36,7 @@ spec:
         severity, and a concrete design principle.
       capabilities:
         skills:
-          - ux-audit
+          - evaluation
         tools:
           - read
           - search
@@ -54,6 +61,7 @@ spec:
         y: 90
     - id: perspective-b
       kind: agent
+      inlineRole: true
       name: Accessibility audit
       summary: Find keyboard, contrast, semantics, and assistive-tech risks.
       role: Accessibility specialist
@@ -95,6 +103,7 @@ spec:
         y: 220
     - id: synthesis
       kind: agent
+      inlineRole: true
       name: Redesign brief
       summary: Translate findings into a coherent design direction.
       role: Product design lead
@@ -129,6 +138,7 @@ spec:
         y: 150
     - id: evaluation
       kind: evaluate
+      inlineRole: true
       name: Brief quality gate
       summary: Check the recommendation against its evidence and contract.
       role: Design critique lead

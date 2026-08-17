@@ -15,11 +15,9 @@ spec:
     error and the easiest to hide.
   capabilities:
     skills:
-      - emissions-inventory
-      - boundary-definition
-      - emission-factor-versioning
-      - double-counting-detection
-      - numeric-verification
+      - supply-chain-analysis
+      - domain-analysis
+      - evaluation
     tools:
       - read
       - calculate

@@ -15,11 +15,10 @@ spec:
     a better answer.
   capabilities:
     skills:
-      - route-optimization
-      - network-flow-modeling
-      - constraint-formalization
-      - optimality-gap-reporting
-      - failure-mode-analysis
+      - optimization
+      - simulation
+      - domain-analysis
+      - risk-analysis
     tools:
       - read
       - calculate

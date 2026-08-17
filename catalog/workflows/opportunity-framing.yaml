@@ -14,6 +14,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Opportunity brief
       summary: Problem signal, target users, strategic context, and constraints.
       position:
@@ -21,6 +27,7 @@ spec:
         y: 220
     - id: perspective-a
       kind: agent
+      inlineRole: true
       name: User evidence
       summary: Clarify the job, pain, alternatives, and urgency.
       role: Product discovery researcher
@@ -28,7 +35,7 @@ spec:
         confidence levels.
       capabilities:
         skills:
-          - product-discovery
+          - product-management
         tools:
           - read
           - search
@@ -53,6 +60,7 @@ spec:
         y: 90
     - id: perspective-b
       kind: agent
+      inlineRole: true
       name: Business constraints
       summary: Test strategic fit, feasibility, and opportunity cost.
       role: Product strategy analyst
@@ -60,7 +68,7 @@ spec:
         before committing.
       capabilities:
         skills:
-          - product-strategy
+          - product-management
         tools:
           - read
           - search
@@ -94,6 +102,7 @@ spec:
         y: 220
     - id: synthesis
       kind: agent
+      inlineRole: true
       name: Opportunity decision
       summary: Define the problem, outcome, guardrails, and next bet.
       role: Principal product manager
@@ -128,6 +137,7 @@ spec:
         y: 150
     - id: evaluation
       kind: evaluate
+      inlineRole: true
       name: Decision quality gate
       summary: Check the recommendation against its evidence and contract.
       role: Product review lead

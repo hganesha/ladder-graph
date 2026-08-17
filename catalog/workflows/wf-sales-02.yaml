@@ -49,6 +49,7 @@ spec:
         expression: select the non-standard terms and the policy clause each one departs from
     - id: n-position1
       kind: agent
+      templateRef: sales-04
       name: Commercial position on each term
       summary: 'Independent position 1: commercial position on each term.'
       role: Deal desk reviewer pricing non-standard terms against policy and precedent.
@@ -59,10 +60,10 @@ spec:
         to survive.
       capabilities:
         skills:
-          - deal-structuring
-          - concession-costing
-          - precedent-analysis
-          - approval-policy-mapping
+          - domain-analysis
+          - finance-analysis
+          - decision-analysis
+          - compliance-review
           - contract-analysis
         tools:
           - read
@@ -76,6 +77,7 @@ spec:
         type: object
     - id: n-position2
       kind: agent
+      templateRef: sales-02
       name: Qualification and risk position
       summary: 'Independent position 2: qualification and risk position.'
       role: Qualification analyst testing an opportunity against explicit criteria and disconfirming evidence.
@@ -86,11 +88,10 @@ spec:
         quarter was mis-qualified at the start.
       capabilities:
         skills:
-          - opportunity-qualification
-          - disconfirming-evidence-search
-          - decision-process-mapping
-          - champion-testing
-          - evidence-citation
+          - domain-analysis
+          - evidence-verification
+          - manufacturing-analysis
+          - evaluation
         tools:
           - read
           - search
@@ -102,6 +103,7 @@ spec:
         type: object
     - id: n-position3
       kind: agent
+      templateRef: sales-05
       name: Forecast integrity position
       summary: 'Independent position 3: forecast integrity position.'
       role: Pipeline auditor testing forecast integrity against stage evidence.
@@ -112,10 +114,9 @@ spec:
         the forecast miss arriving early.
       capabilities:
         skills:
-          - pipeline-auditing
-          - stage-exit-criteria-testing
-          - forecast-integrity-analysis
-          - stall-detection
+          - evaluation
+          - simulation
+          - domain-analysis
           - statistical-analysis
         tools:
           - read
@@ -146,6 +147,7 @@ spec:
             when: collisions
     - id: n-resolve
       kind: agent
+      templateRef: sales-04
       name: Resolve collisions into one recommended structure
       summary: Work each collision to a recommended position with a stated fallback.
       role: Deal desk reviewer pricing non-standard terms against policy and precedent.
@@ -156,10 +158,10 @@ spec:
         to survive.
       capabilities:
         skills:
-          - deal-structuring
-          - concession-costing
-          - precedent-analysis
-          - approval-policy-mapping
+          - domain-analysis
+          - finance-analysis
+          - decision-analysis
+          - compliance-review
           - contract-analysis
         tools:
           - read

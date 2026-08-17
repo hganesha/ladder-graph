@@ -42,6 +42,7 @@ spec:
         x-ladder-input-mode: document
     - id: n-assess1
       kind: agent
+      templateRef: peer-03
       name: Methods and statistics review
       summary: Blind assessment 1; no sight of the other assessments.
       role: Reviewer testing whether the methods support the claims made.
@@ -51,10 +52,8 @@ spec:
         because a review that only lists faults leaves the editor without a decision.
       capabilities:
         skills:
-          - methods-review
-          - statistical-review
-          - pre-registration-conformance
-          - effect-size-interpretation
+          - evaluation
+          - geospatial-analysis
           - statistical-analysis
         tools:
           - read
@@ -66,6 +65,7 @@ spec:
         type: object
     - id: n-assess2
       kind: agent
+      templateRef: peer-04
       name: Reproducibility review
       summary: Blind assessment 2; no sight of the other assessments.
       role: Analyst testing whether the reported result can actually be regenerated.
@@ -75,11 +75,10 @@ spec:
         editorial responses and conflating them is unfair to authors.
       capabilities:
         skills:
-          - reproducibility-checking
-          - environment-and-dependency-capture
-          - artifact-verification
-          - failure-point-recording
-          - numeric-verification
+          - domain-analysis
+          - scientific-analysis
+          - evaluation
+          - risk-analysis
         tools:
           - read
           - test
@@ -91,6 +90,7 @@ spec:
         type: object
     - id: n-assess3
       kind: agent
+      templateRef: peer-05
       name: Integrity and citation review
       summary: Blind assessment 3; no sight of the other assessments.
       role: Screener checking images, text, and citations for integrity problems.
@@ -101,11 +101,10 @@ spec:
         severe and often permanent.
       capabilities:
         skills:
-          - integrity-screening
-          - image-duplication-detection
-          - text-overlap-analysis
-          - observation-versus-allegation-discipline
-          - citation-verification
+          - domain-analysis
+          - image-understanding
+          - decision-analysis
+          - evaluation
         tools:
           - read
           - search
@@ -129,6 +128,7 @@ spec:
         exit: serialize
     - id: n-teacher
       kind: teacher
+      inlineRole: true
       name: Rubric calibration
       summary: Critique the assessors against the rubric — this scores the graders, not the work.
       role: Host-resolved teacher model
@@ -151,6 +151,7 @@ spec:
         feedbackMode: rubric
     - id: n-agreement
       kind: evaluate
+      inlineRole: true
       name: Score inter-assessor agreement
       summary: Evaluate inter-reviewer agreement per rubric criterion and evidence behind each criticism.
       role: Deterministic metric evaluator

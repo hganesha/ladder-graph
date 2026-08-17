@@ -13,8 +13,7 @@ spec:
     and distinguish authorial intent from what a lens illuminates.
   capabilities:
     skills:
-      - literary-criticism
-      - close-reading
+      - domain-analysis
     tools:
       - read
       - search

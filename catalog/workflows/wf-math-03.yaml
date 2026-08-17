@@ -41,6 +41,7 @@ spec:
         x-ladder-input-mode: text
     - id: n2
       kind: agent
+      templateRef: math-alg-01
       name: Construct/Complete Proof
       summary: Construct/Complete Proof
       role: PhD-level algebraist covering linear algebra, abstract algebra (groups/rings/fields), and
@@ -56,11 +57,9 @@ spec:
         it.
       capabilities:
         skills:
-          - symbolic-cas-engine
-          - proof-step-tracing-and-theorem-reference-lookup
-          - matrix-eigen-decomposition-computation
-          - latex-rendering
-          - polynomial-system-solving
+          - domain-analysis
+          - quantitative-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -71,6 +70,7 @@ spec:
         type: object
     - id: n3
       kind: agent
+      templateRef: math-gen-01
       name: Verify Proof Step-by-Step
       summary: Verify Proof Step-by-Step
       role: Formal-logic-trained mathematician who checks proof validity independent of who or what
@@ -85,11 +85,10 @@ spec:
         agent.
       capabilities:
         skills:
-          - formal-logic-step-checking
-          - theorem-axiom-reference-lookup
-          - case-completeness-checking
-          - latex-rendering
-          - proof-assistant-for-machine-checkable-fragments
+          - domain-analysis
+          - data-quality-analysis
+          - image-understanding
+          - quantitative-analysis
         tools:
           - read
           - calculate
@@ -102,6 +101,7 @@ spec:
         type: object
     - id: n4
       kind: evaluate
+      inlineRole: true
       name: Rigor Score
       summary: Evaluate fraction of steps justified.
       role: Deterministic metric evaluator
@@ -147,6 +147,7 @@ spec:
             when: "false"
     - id: n7
       kind: agent
+      templateRef: math-alg-01
       name: Revise Proof Using Verifier Feedback
       summary: Revise Proof Using Verifier Feedback
       role: PhD-level algebraist covering linear algebra, abstract algebra (groups/rings/fields), and
@@ -162,11 +163,9 @@ spec:
         it.
       capabilities:
         skills:
-          - symbolic-cas-engine
-          - proof-step-tracing-and-theorem-reference-lookup
-          - matrix-eigen-decomposition-computation
-          - latex-rendering
-          - polynomial-system-solving
+          - domain-analysis
+          - quantitative-analysis
+          - image-understanding
         tools:
           - read
           - calculate
@@ -194,6 +193,7 @@ spec:
       summary: Pause for reviewing mathematician; on timeout, escalate.
     - id: n8
       kind: agent
+      templateRef: math-gen-01
       name: Final Formatted Write-up (LaTeX)
       summary: Final Formatted Write-up (LaTeX)
       role: Formal-logic-trained mathematician who checks proof validity independent of who or what
@@ -208,11 +208,10 @@ spec:
         agent.
       capabilities:
         skills:
-          - formal-logic-step-checking
-          - theorem-axiom-reference-lookup
-          - case-completeness-checking
-          - latex-rendering
-          - proof-assistant-for-machine-checkable-fragments
+          - domain-analysis
+          - data-quality-analysis
+          - image-understanding
+          - quantitative-analysis
         tools:
           - read
           - calculate

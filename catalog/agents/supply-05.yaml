@@ -15,11 +15,11 @@ spec:
     noise.
   capabilities:
     skills:
-      - exception-triage
-      - impact-scoring
-      - recovery-option-costing
-      - carrier-escalation-protocols
-      - failure-mode-analysis
+      - domain-analysis
+      - evaluation
+      - incident-response
+      - clinical-review
+      - risk-analysis
     tools:
       - read
       - search

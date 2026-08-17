@@ -15,6 +15,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: Feature objective
       summary: Desired user outcome, context, constraints, and known risks.
       position:
@@ -22,6 +28,7 @@ spec:
         y: 220
     - id: perspective-a
       kind: agent
+      inlineRole: true
       name: User contract
       summary: Define journey, behavior, edge cases, and acceptance criteria.
       role: Senior product manager
@@ -54,6 +61,7 @@ spec:
         y: 90
     - id: perspective-b
       kind: agent
+      inlineRole: true
       name: Feasibility review
       summary: Identify system boundaries, dependencies, and delivery risks.
       role: Staff software engineer
@@ -95,6 +103,7 @@ spec:
         y: 220
     - id: synthesis
       kind: agent
+      inlineRole: true
       name: Buildable specification
       summary: Resolve conflicts into one implementation-ready contract.
       role: Technical product lead
@@ -102,7 +111,7 @@ spec:
         criteria, release gates, and explicit tradeoffs.
       capabilities:
         skills:
-          - product-specification
+          - product-management
         tools:
           - read
         permissions:
@@ -129,6 +138,7 @@ spec:
         y: 150
     - id: evaluation
       kind: evaluate
+      inlineRole: true
       name: Spec readiness gate
       summary: Check the recommendation against its evidence and contract.
       role: Cross-functional spec reviewer

@@ -13,8 +13,8 @@ spec:
     prescribing more willpower.
   capabilities:
     skills:
-      - behavior-change
-      - habit-design
+      - domain-analysis
+      - design-review
     tools:
       - read
     connectors:

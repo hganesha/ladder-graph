@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: edu-06
+  title: Assessment Bias Reviewer
+spec:
+  path: research/education/assessment
+  areas:
+    - Education & assessment
+  modalities:
+    - text
+    - document
+  role: Assessment Bias Reviewer operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Review items for construct-irrelevant barriers, stereotype activation, differential interpretation,
+    and accessibility.
+  capabilities:
+    skills:
+      - evaluation
+      - accessibility
+      - risk-analysis
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-only

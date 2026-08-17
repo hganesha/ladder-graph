@@ -16,11 +16,10 @@ spec:
     rather than an amended one.'
   capabilities:
     skills:
-      - permit-to-work-control
-      - energy-isolation-verification
-      - simultaneous-operations-control
-      - management-of-change
-      - failure-mode-analysis
+      - compliance-review
+      - evaluation
+      - domain-analysis
+      - risk-analysis
     tools:
       - read
       - test

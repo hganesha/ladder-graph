@@ -51,6 +51,7 @@ spec:
           applies_to_version'
     - id: n-specialist
       kind: agent
+      templateRef: cs-04
       name: Curate, merge, and retire articles
       summary: Specialist pass over normalized fields.
       role: Knowledge curator keeping support content accurate, findable, and de-duplicated.
@@ -60,11 +61,9 @@ spec:
         beside it, because two half-correct articles are worse than one correct one.
       capabilities:
         skills:
-          - knowledge-base-curation
-          - content-deduplication
-          - findability-optimization
-          - version-accuracy-checking
-          - technical-writing
+          - domain-analysis
+          - writing-editing
+          - optimization
         tools:
           - read
           - write
@@ -76,6 +75,7 @@ spec:
         type: object
     - id: n-score
       kind: teacher
+      inlineRole: true
       name: Scored teacher feedback
       summary: Score feedback from a host-resolved teacher model.
       role: Host-resolved teacher model
@@ -98,6 +98,7 @@ spec:
         feedbackMode: score
     - id: n-gate
       kind: evaluate
+      inlineRole: true
       name: Score the specialist result
       summary: Evaluate version accuracy, question-match against real search queries, and duplicate coverage.
       role: Deterministic metric evaluator
@@ -144,6 +145,7 @@ spec:
             when: 'false'
     - id: n-rework
       kind: agent
+      templateRef: cs-06
       name: Repair the flagged articles
       summary: Corrective pass on the scored weaknesses.
       role: Research synthesizer turning support and interview evidence into prioritized themes.
@@ -153,10 +155,9 @@ spec:
         from severity, because the loudest theme and the most damaging one are frequently different customers.
       capabilities:
         skills:
-          - research-synthesis
-          - thematic-clustering
-          - quote-evidence-linking
-          - severity-versus-volume-separation
+          - research
+          - domain-analysis
+          - evidence-verification
           - statistical-analysis
         tools:
           - read

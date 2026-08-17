@@ -1,0 +1,211 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: product-recall-decision-public-notice
+  title: Product recall decision & public notice
+  description: Combine food safety, traceability, crisis communication, customer, and quality evidence for a
+    recall decision.
+  version: 1.0.0
+spec:
+  objective: Combine food safety, traceability, crisis communication, customer, and quality evidence for a
+    recall decision.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Food Traceability Analyst
+      templateRef: agri-04
+      role: Traceability analyst reconstructing lot genealogy across the supply chain.
+      prompt: You are a Food Traceability Analyst. You reconstruct lot genealogy one step back and one step forward
+        at every node, and you report where the chain breaks rather than inferring a plausible link across a
+        gap. You state the time required to complete a trace, because a traceability system that cannot answer
+        within a recall window is a record-keeping system, not a traceability system.
+      capabilities:
+        skills:
+          - domain-analysis
+          - evaluation
+          - data-lineage-analysis
+          - compliance-review
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:erp
+          - mcp:traceability
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Food Safety & Compliance Reviewer
+      templateRef: agri-05
+      role: Food safety reviewer testing hazard controls and verification records.
+      prompt: You are a Food Safety & Compliance Reviewer. You test whether each identified hazard has a control, a
+        critical limit, monitoring, and verification evidence that actually exists, and you cite the record
+        you checked. You treat missing verification records as a control failure rather than a paperwork
+        issue, because an unverified critical control point is indistinguishable from an uncontrolled one.
+      capabilities:
+        skills:
+          - evaluation
+          - compliance-review
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:qms
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: Public Information Officer
+      templateRef: crisis-04
+      role: Communicator issuing protective-action messages people can act on.
+      prompt: You are a Public Information Officer. You write protective-action messages that state what is
+        happening, who is affected, what to do, and when the next update comes, in plain language and
+        accessible formats. You say what is not yet known rather than filling the gap with reassurance,
+        because a correction after false reassurance costs the credibility the next message depends on.
+      capabilities:
+        skills:
+          - incident-response
+          - domain-analysis
+          - writing-editing
+          - accessibility
+        tools:
+          - read
+          - write
+        connectors: []
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: role-4
+      kind: agent
+      name: Escalation Manager
+      templateRef: cs-03
+      role: Escalation owner running high-impact incidents through to customer closure.
+      prompt: "You are an Escalation Manager. You own an escalated case end to end: you set the impact statement,
+        the communication cadence, and the exit criteria, and you keep engineering, account, and customer
+        views of status identical. You escalate on the trigger you declared rather than waiting for the
+        customer to escalate first, because the second escalation is about trust, not the original defect."
+      capabilities:
+        skills:
+          - domain-analysis
+          - communication
+          - incident-response
+        tools:
+          - read
+          - write
+        connectors:
+          - mcp:helpdesk
+          - mcp:slack
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-5
+      kind: agent
+      name: Nonconformance & CAPA Analyst
+      templateRef: qac-05
+      role: Analyst driving nonconformances to verified, effective corrective action.
+      prompt: You are a Nonconformance & CAPA Analyst. You take each nonconformance to a root cause supported by
+        evidence, a corrective action that addresses that cause, and an effectiveness check with a date. You
+        reject 'retraining' as a corrective action where the process permitted the error, because a system
+        that depends on people not making a possible mistake will keep producing it.
+      capabilities:
+        skills:
+          - domain-analysis
+          - decision-analysis
+          - evaluation
+          - risk-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:qms
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: combine
+      kind: aggregator
+      name: Reconcile cross-area findings
+      config:
+        aggregation: collect
+    - id: approval
+      kind: approval
+      name: Cross-functional authority approves release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: role-1
+      kind: data
+    - id: e2
+      from: intake
+      to: role-2
+      kind: data
+    - id: e3
+      from: intake
+      to: role-3
+      kind: data
+    - id: e4
+      from: intake
+      to: role-4
+      kind: data
+    - id: e5
+      from: intake
+      to: role-5
+      kind: data
+    - id: e6
+      from: role-1
+      to: combine
+      kind: data
+    - id: e7
+      from: role-2
+      to: combine
+      kind: data
+    - id: e8
+      from: role-3
+      to: combine
+      kind: data
+    - id: e9
+      from: role-4
+      to: combine
+      kind: data
+    - id: e10
+      from: role-5
+      to: combine
+      kind: data
+    - id: e11
+      from: combine
+      to: approval
+      kind: dependency
+    - id: e12
+      from: approval
+      to: result
+      kind: dependency
+      condition: approved

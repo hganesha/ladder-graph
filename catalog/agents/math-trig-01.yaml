@@ -20,11 +20,10 @@ spec:
     only need the identity named.
   capabilities:
     skills:
-      - symbolic-math-engine
-      - graphing-plotting
-      - step-by-step-derivation-tracing
-      - latex-rendering
-      - unit-circle-visualization
+      - quantitative-analysis
+      - privacy-review
+      - domain-analysis
+      - image-understanding
     tools:
       - read
       - calculate

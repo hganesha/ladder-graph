@@ -13,8 +13,7 @@ spec:
     and operational response.
   capabilities:
     skills:
-      - physical-security
-      - threat-modeling
+      - application-security
     tools:
       - read
     connectors: []

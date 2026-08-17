@@ -28,7 +28,9 @@ describe("welcome gallery", () => {
     expect(screen.getByRole("heading", { name: "Starter workflows" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open MCP companion" })).toBeInTheDocument();
     expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows`, { exact: false })).toBeInTheDocument();
-    expect(within(screen.getByRole("group", { name: "Subject areas" })).getAllByRole("button")).toHaveLength(45);
+    expect(within(screen.getByRole("group", { name: "Subject areas" })).getAllByRole("button")).toHaveLength(
+      new Set(WORKFLOW_TEMPLATES.map((template) => template.area)).size,
+    );
     expect(screen.getByRole("button", { name: "Core patterns" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByRole("tab")).toHaveLength(2);
     expect(screen.getByRole("tab", { name: "Workflows" })).toHaveAttribute("aria-selected", "true");
@@ -91,6 +93,18 @@ describe("welcome gallery", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Architecture & design" }));
     expect(screen.getByRole("button", { name: /open coordinated building design in studio/i })).toBeInTheDocument();
+  });
+
+  it("filters workflows and agents by input modality", () => {
+    render(<Welcome onBlank={() => undefined} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Multimodal" }));
+    fireEvent.change(screen.getByLabelText("Filter by modality"), { target: { value: "image" } });
+    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: /open multimodal asset production in studio/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
+    expect(screen.getAllByRole("button", { name: /start workflow with/i }).length).toBeGreaterThan(0);
   });
 
   it("exposes humanities, writing, and personal-development workflows", () => {

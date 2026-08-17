@@ -1,0 +1,436 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: regulated-software-delivery-program
+  title: Regulated software delivery, end to end
+  description: Compose discovery, architecture, delivery, validation, security, and deployment as a 25-node
+    regulated program.
+  version: 1.0.0
+spec:
+  objective: Deliver regulated software with traceable phase evidence and non-skippable release authority.
+  policies:
+    maxConcurrency: 8
+    onFailure: stop
+    requireApprovalFor:
+      - quality-approval
+      - release-approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Source material and instructions
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: application/pdf
+          instructions:
+            type: string
+        x-ladder-input-mode: document
+    - id: role-1
+      kind: agent
+      name: Requirements Analyst
+      templateRef: dev-01
+      role: Senior requirements analyst
+      prompt: Turn an ambiguous request into user stories, assumptions, targeted blocking questions, MoSCoW
+        priorities, Given/When/Then acceptance criteria, and explicit non-goals. Hand off a buildable
+        contract; do not invent implementation details.
+      capabilities:
+        skills:
+          - product-management
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:linear
+          - mcp:notion
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-2
+      kind: agent
+      name: Systems Architect
+      templateRef: dev-02
+      role: Principal systems architect
+      prompt: Translate validated requirements into an ADR and a component or C4 diagram. Define boundaries,
+        interfaces, data flows, consistency and scaling tradeoffs, and consequences without over-engineering
+        for hypothetical needs.
+      capabilities:
+        skills:
+          - software-architecture
+          - domain-analysis
+        tools:
+          - read
+        connectors:
+          - mcp:github
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-3
+      kind: agent
+      name: API Designer
+      templateRef: dev-05
+      role: API platform engineer
+      prompt: Define REST, GraphQL, or gRPC operations with machine-readable schemas, idempotency, pagination,
+        filtering, versioning, deprecation, and a consistent error taxonomy. Flag breaking changes before
+        release.
+      capabilities:
+        skills:
+          - design-review
+          - software-architecture
+        tools:
+          - read
+          - edit
+          - test
+        connectors:
+          - mcp:github
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+    - id: role-4
+      kind: agent
+      name: Test Engineer
+      templateRef: dev-09
+      role: Independent SDET
+      prompt: Design unit, integration, property-based, and visual regression tests from the contract. Cover
+        boundaries, malformed input and concurrency, avoid over-mocking, and use mutation evidence when
+        coverage alone could mislead.
+      capabilities:
+        skills:
+          - test-design
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:github
+          - mcp:browser
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-5
+      kind: agent
+      name: Code Reviewer / Critic
+      templateRef: dev-13
+      role: Senior independent code reviewer
+      prompt: Review the diff against requirements and repository conventions. Prioritize correctness, security,
+        maintainability, test gaps, and hidden scope expansion; attach every finding to evidence and avoid
+        stylistic churn.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:github
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-6
+      kind: agent
+      name: Application Security Engineer
+      templateRef: sec-12
+      role: Application security engineer
+      prompt: Threat-model designs before implementation and triage SAST, DAST, dependency, authentication,
+        authorization, and validation findings by exploitability. Give framework-specific remediation and
+        avoid flooding delivery teams with unverified alerts.
+      capabilities:
+        skills:
+          - application-security
+          - evaluation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:github
+          - mcp:security-scanner
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-7
+      kind: agent
+      name: DevSecOps Engineer
+      templateRef: sec-13
+      role: Platform security engineer
+      prompt: Build fail-fast security gates for source, dependencies, secrets, containers, and artifacts. Harden
+        the pipeline itself with isolated workers, signed provenance, and least-privilege credentials; track
+        remediation time and justified exceptions.
+      capabilities:
+        skills:
+          - domain-analysis
+          - release-engineering
+          - application-security
+        tools:
+          - read
+          - edit
+          - test
+        connectors:
+          - mcp:github
+          - mcp:security-scanner
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+    - id: role-8
+      kind: agent
+      name: Certification Readiness Assessor
+      templateRef: qac-04
+      role: Assessor testing readiness against a certification scheme before the real audit.
+      prompt: You are a Certification Readiness Assessor. You test the organization against each clause of the
+        scheme with the evidence that would be presented, and you grade readiness by clause rather than
+        overall. You report a clause as not ready when the evidence exists but would not satisfy an auditor,
+        because that distinction is the entire value of a readiness assessment.
+      capabilities:
+        skills:
+          - teaching
+          - evaluation
+          - evidence-verification
+          - operations-planning
+          - compliance-review
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: role-9
+      kind: agent
+      name: Validation Protocol Author
+      templateRef: gxp-07
+      role: Validation Protocol Author operating within supplied evidence, policy, and human-approval boundaries.
+      prompt: Author traceable validation objectives, acceptance criteria, evidence capture, deviations, approvals,
+        and change control.
+      capabilities:
+        skills:
+          - evaluation
+          - compliance-review
+          - writing-editing
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-sensitive
+      outputSchema:
+        type: object
+    - id: discovery-phase
+      kind: subgraph
+      name: Discovery Phase
+      config:
+        subgraph:
+          ref: ladder://workflows/builtin/feature-spec
+          inputMap:
+            request: /input
+          outputMap:
+            result: /output
+          checkpointer: perInvocation
+    - id: architecture-phase
+      kind: subgraph
+      name: Architecture Phase
+      config:
+        subgraph:
+          ref: ladder://workflows/builtin/secure-software-delivery
+          inputMap:
+            request: /input
+          outputMap:
+            result: /output
+          checkpointer: perInvocation
+    - id: delivery-group
+      kind: group
+      name: Parallel regulated delivery disciplines
+      config:
+        members:
+          - role-1
+          - role-2
+          - role-3
+          - role-4
+          - role-5
+          - role-6
+          - role-7
+          - role-8
+          - role-9
+        execution: parallel
+        exit: aggregate
+    - id: evidence-join
+      kind: join
+      name: Join delivery and architecture evidence
+      config:
+        join: all
+    - id: verification-phase
+      kind: subgraph
+      name: Verification Phase
+      config:
+        subgraph:
+          ref: ladder://workflows/builtin/implementation-review
+          inputMap:
+            request: /input
+          outputMap:
+            result: /output
+          checkpointer: perInvocation
+    - id: evidence-tool
+      kind: tool
+      name: Host-resolved validation evidence check
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - test
+        connectors:
+          - mcp:github
+        permissions:
+          - read-only
+    - id: evidence-select
+      kind: transform
+      name: Select release evidence
+      config:
+        operation: select
+        expression: $.verified_evidence
+    - id: security-phase
+      kind: subgraph
+      name: Security Phase
+      config:
+        subgraph:
+          ref: ladder://workflows/builtin/threat-model
+          inputMap:
+            request: /input
+          outputMap:
+            result: /output
+          checkpointer: perInvocation
+    - id: release-merge
+      kind: aggregator
+      name: Merge validation and security evidence
+      config:
+        aggregation: merge
+    - id: release-evaluation
+      kind: evaluate
+      name: Score release readiness
+      role: Independent regulated release evaluator
+      prompt: Score the supplied release evidence against every approved acceptance criterion and preserve every
+        failed or unavailable check.
+      inlineRole: true
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        threshold: 0.95
+    - id: release-decision
+      kind: condition
+      name: Release evidence complete?
+      config:
+        expression: evaluation.passed
+        branches:
+          - label: Ready
+            when: ready
+          - label: Blocked
+            when: blocked
+    - id: quality-approval
+      kind: approval
+      name: Quality and validation approve evidence
+    - id: deployment-phase
+      kind: subgraph
+      name: Deployment Phase
+      config:
+        subgraph:
+          ref: ladder://workflows/builtin/full-stack-delivery
+          inputMap:
+            request: /input
+          outputMap:
+            result: /output
+          checkpointer: perInvocation
+    - id: release-approval
+      kind: approval
+      name: Business, security, and quality authorize release
+    - id: result
+      kind: output
+      name: Released deliverable and unresolved-item register
+  edges:
+    - id: e1
+      from: intake
+      to: discovery-phase
+      kind: data
+    - id: e2
+      from: discovery-phase
+      to: architecture-phase
+      kind: data
+    - id: e3
+      from: architecture-phase
+      to: delivery-group
+      kind: data
+    - id: e4
+      from: architecture-phase
+      to: evidence-join
+      kind: data
+    - id: e5
+      from: delivery-group
+      to: evidence-join
+      kind: data
+    - id: e6
+      from: evidence-join
+      to: verification-phase
+      kind: data
+    - id: e7
+      from: verification-phase
+      to: evidence-tool
+      kind: dependency
+    - id: e8
+      from: evidence-tool
+      to: evidence-select
+      kind: data
+    - id: e9
+      from: evidence-select
+      to: security-phase
+      kind: data
+    - id: e10
+      from: evidence-select
+      to: release-merge
+      kind: data
+    - id: e11
+      from: security-phase
+      to: release-merge
+      kind: data
+    - id: e12
+      from: release-merge
+      to: release-evaluation
+      kind: data
+    - id: e13
+      from: release-evaluation
+      to: release-decision
+      kind: data
+    - id: e14
+      from: release-decision
+      to: quality-approval
+      kind: control
+      condition: ready
+    - id: e15
+      from: quality-approval
+      to: deployment-phase
+      kind: dependency
+      condition: approved
+    - id: e16
+      from: deployment-phase
+      to: release-approval
+      kind: dependency
+    - id: e17
+      from: release-approval
+      to: result
+      kind: dependency
+      condition: approved

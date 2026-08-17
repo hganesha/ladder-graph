@@ -12,8 +12,8 @@ spec:
     Model transmission paths, recommend assemblies and detailing, and define commissioning tests.
   capabilities:
     skills:
-      - acoustic-design
-      - building-performance
+      - audio-processing
+      - design-review
     tools:
       - read
       - test

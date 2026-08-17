@@ -14,11 +14,9 @@ spec:
     to test, because an exercise that confirms the plan teaches nobody anything.
   capabilities:
     skills:
-      - scenario-design
-      - assumption-stress-testing
-      - plan-failure-identification
-      - exercise-evaluation
-      - failure-mode-analysis
+      - simulation
+      - evaluation
+      - risk-analysis
     tools:
       - read
       - calculate

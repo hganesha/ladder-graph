@@ -14,11 +14,11 @@ spec:
     the last moment a real decision exists.
   capabilities:
     skills:
-      - budget-control
-      - commitment-tracking
-      - change-costing
-      - cancellation-threshold-analysis
-      - numeric-verification
+      - compliance-review
+      - domain-analysis
+      - finance-analysis
+      - decision-analysis
+      - evaluation
     tools:
       - read
       - calculate

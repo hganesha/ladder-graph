@@ -18,6 +18,12 @@ spec:
   nodes:
     - id: brief
       kind: input
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions. }
+        x-ladder-input-mode: text
       name: App brief
       summary: User outcome, scope, constraints, platform, data, and release expectations.
       position:
@@ -25,6 +31,7 @@ spec:
         y: 280
     - id: product-design
       kind: agent
+      inlineRole: true
       name: Product and UX design
       summary: Define the journey, screens, states, accessibility, and acceptance criteria.
       role: Senior product designer
@@ -69,6 +76,7 @@ spec:
         y: 100
     - id: architecture
       kind: agent
+      inlineRole: true
       name: System architecture
       summary: Define boundaries, interfaces, data, infrastructure, and operational constraints.
       role: Principal full-stack architect
@@ -125,6 +133,7 @@ spec:
         y: 220
     - id: evaluation-definition
       kind: agent
+      inlineRole: true
       name: Evaluation definition
       summary: Define measurable gates before implementation begins.
       role: Independent quality architect
@@ -134,8 +143,7 @@ spec:
         requirement, pass threshold, and owner.
       capabilities:
         skills:
-          - evaluation-design
-          - test-strategy
+          - evaluation
         tools:
           - read
         permissions:
@@ -169,6 +177,7 @@ spec:
         y: 110
     - id: plan-gate
       kind: evaluate
+      inlineRole: true
       name: Design and architecture gate
       summary: Reject ambiguous, conflicting, unsafe, or untestable plans.
       role: Cross-functional plan reviewer
@@ -177,7 +186,6 @@ spec:
         operational risks are addressed, and every material requirement has a measurable gate.
       capabilities:
         skills:
-          - architecture-review
           - evaluation
         tools:
           - read
@@ -212,6 +220,7 @@ spec:
         y: 540
     - id: frontend-build
       kind: agent
+      inlineRole: true
       name: Frontend implementation
       summary: Build the responsive, accessible client and its integration states.
       role: Senior frontend engineer
@@ -221,7 +230,7 @@ spec:
         conventions.
       capabilities:
         skills:
-          - frontend-development
+          - implementation
           - accessibility
         tools:
           - read
@@ -258,6 +267,7 @@ spec:
         y: 130
     - id: backend-build
       kind: agent
+      inlineRole: true
       name: Backend implementation
       summary: Build APIs, data, authorization, migrations, and operational behavior.
       role: Senior backend engineer
@@ -266,8 +276,8 @@ spec:
         and focused unit and integration tests. Do not widen scope without recording the decision.
       capabilities:
         skills:
-          - backend-development
-          - database-engineering
+          - implementation
+          - data-engineering
         tools:
           - read
           - edit
@@ -312,6 +322,7 @@ spec:
         y: 280
     - id: quality-gate
       kind: evaluate
+      inlineRole: true
       name: Functional quality gate
       summary: Evaluate the integrated app against the predefined product and engineering gates.
       role: Independent full-stack test lead
@@ -321,7 +332,6 @@ spec:
         risk.
       capabilities:
         skills:
-          - full-stack-testing
           - evaluation
         tools:
           - read
@@ -355,6 +365,7 @@ spec:
         y: 130
     - id: security-gate
       kind: evaluate
+      inlineRole: true
       name: Security and privacy gate
       summary: Review trust boundaries, data handling, authorization, dependencies, and deployment exposure.
       role: Independent application security reviewer
@@ -398,6 +409,7 @@ spec:
         y: 430
     - id: release-gate
       kind: evaluate
+      inlineRole: true
       name: Release readiness gate
       summary: Reconcile all evidence, known risk, rollout, observability, and rollback readiness.
       role: Release readiness evaluator
@@ -446,6 +458,7 @@ spec:
         y: 280
     - id: deploy
       kind: agent
+      inlineRole: true
       name: Deploy and verify
       summary: Deploy through the approved release path and verify production health.
       role: Senior release engineer
@@ -455,7 +468,7 @@ spec:
         immediately if a stop condition is met.
       capabilities:
         skills:
-          - deployment
+          - release-engineering
           - observability
         tools:
           - read

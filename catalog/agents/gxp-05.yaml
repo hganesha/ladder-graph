@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: gxp-05
+  title: Stability Study Analyst
+spec:
+  path: research/life-sciences/quality
+  areas:
+    - Life sciences & GxP operations
+  modalities:
+    - text
+    - document
+  role: Stability Study Analyst operating within supplied evidence, policy, and human-approval boundaries.
+  prompt: Evaluate stability data against protocol, trends, excursions, methods, storage conditions, and
+    shelf-life claims.
+  capabilities:
+    skills:
+      - scientific-analysis
+      - statistical-analysis
+      - compliance-review
+    tools:
+      - read
+    connectors: []
+    permissions:
+      - read-sensitive

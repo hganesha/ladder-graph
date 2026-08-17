@@ -15,10 +15,9 @@ spec:
     attached.
   capabilities:
     skills:
-      - pipeline-execution-auditing
-      - quality-control-interpretation
-      - batch-effect-detection
-      - reference-and-version-declaration
+      - evaluation
+      - clinical-review
+      - domain-analysis
       - data-lineage-analysis
     tools:
       - read

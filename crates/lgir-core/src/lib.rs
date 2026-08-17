@@ -67,6 +67,10 @@ pub struct Node {
     #[serde(default)]
     pub name: String,
     #[serde(default)]
+    pub template_ref: String,
+    #[serde(default)]
+    pub inline_role: bool,
+    #[serde(default)]
     pub summary: String,
     #[serde(default)]
     pub role: String,
