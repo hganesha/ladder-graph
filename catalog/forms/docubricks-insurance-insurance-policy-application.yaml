@@ -1,0 +1,270 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-insurance-insurance-policy-application
+  title: Insurance Policy Application
+  description: Insurance Policy Application contract normalized from the DocuBricks Insurance library.
+  version: insurance_insurance_policy_application_v1
+  source:
+    system: docubricks
+    sourceId: insurance/insurance_policy_application
+    sourcePath: Schemas/insurance/insurance_policy_application
+    sourceVersion: insurance_insurance_policy_application_v1
+    sourceDigest: e74d681da10a8e1d5930be8f200d8858b8ebdd529da886c450a2679cb5571d3f
+spec:
+  role: start
+  pages:
+    - id: main
+      title: Insurance Policy Application
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: application-date
+              name: application_date
+              label: Application Date
+              description: Date the application was completed or submitted.
+              dataType: date
+              widget: date
+            - id: effective-date-requested
+              name: effective_date_requested
+              label: Effective Date Requested
+              description: Requested policy effective date.
+              dataType: date
+              widget: date
+              required: true
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: applicant-entity-type
+              name: applicant_entity_type
+              label: Applicant Entity Type
+              description: Individual, corporation, LLC, trust, or other legal form.
+              dataType: string
+              widget: text
+            - id: deductible-requested
+              name: deductible_requested
+              label: Deductible Requested
+              description: Requested deductible or retention.
+              dataType: number
+              widget: number
+            - id: loss-history-summary
+              name: loss_history_summary
+              label: Loss History Summary
+              description: Applicant's stated loss or claims history.
+              dataType: string
+              widget: text
+            - id: annual-revenue
+              name: annual_revenue
+              label: Annual Revenue
+              description: Annual revenue when commercial exposure is stated.
+              dataType: number
+              widget: number
+            - id: employee-count
+              name: employee_count
+              label: Employee Count
+              description: Employee count when applicable.
+              dataType: integer
+              widget: number
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: applicant-name
+              name: applicant_name
+              label: Applicant Name
+              description: Named applicant or proposed insured.
+              dataType: string
+              widget: text
+              required: true
+            - id: insured-property-or-risk
+              name: insured_property_or_risk
+              label: Insured Property Or Risk
+              description: Property, operation, person, or risk to be insured.
+              dataType: string
+              widget: text
+            - id: prior-carrier-names
+              name: prior_carrier_names
+              label: Prior Carrier Names
+              description: Prior insurance carriers when listed.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: producer-name
+              name: producer_name
+              label: Producer Name
+              description: Agent, broker, or producer name.
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: mailing-address
+              name: mailing_address
+              label: Mailing Address
+              description: Applicant mailing address.
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: policy-type-requested
+              name: policy_type_requested
+              label: Policy Type Requested
+              description: Line of business or coverage type requested.
+              dataType: string
+              widget: text
+              required: true
+            - id: coverage-limit-requested
+              name: coverage_limit_requested
+              label: Coverage Limit Requested
+              description: Requested coverage limit or policy amount.
+              dataType: number
+              widget: number
+            - id: risk-controls
+              name: risk_controls
+              label: Risk Controls
+              description: Safety, security, compliance, or loss control measures.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: underwriting-status
+              name: underwriting_status
+              label: Underwriting Status
+              description: Submitted, quoted, bound, declined, pending, or other status.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      application_date:
+        type: date
+        description: Date the application was completed or submitted.
+        format: date
+      applicant_name:
+        type: string
+        description: Named applicant or proposed insured.
+      applicant_entity_type:
+        type: string
+        description: Individual, corporation, LLC, trust, or other legal form.
+      mailing_address:
+        type: string
+        description: Applicant mailing address.
+      policy_type_requested:
+        type: string
+        description: Line of business or coverage type requested.
+      effective_date_requested:
+        type: date
+        description: Requested policy effective date.
+        format: date
+      coverage_limit_requested:
+        type: number
+        description: Requested coverage limit or policy amount.
+      deductible_requested:
+        type: number
+        description: Requested deductible or retention.
+      insured_property_or_risk:
+        type: string
+        description: Property, operation, person, or risk to be insured.
+      prior_carrier_names:
+        type: array
+        items:
+          type: string
+        description: Prior insurance carriers when listed.
+      loss_history_summary:
+        type: string
+        description: Applicant's stated loss or claims history.
+      annual_revenue:
+        type: number
+        description: Annual revenue when commercial exposure is stated.
+      employee_count:
+        type: integer
+        description: Employee count when applicable.
+      risk_controls:
+        type: array
+        items:
+          type: string
+        description: Safety, security, compliance, or loss control measures.
+      producer_name:
+        type: string
+        description: Agent, broker, or producer name.
+      underwriting_status:
+        type: string
+        description: Submitted, quoted, bound, declined, pending, or other status.
+    required:
+      - applicant_name
+      - policy_type_requested
+      - effective_date_requested
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: applicant_name_present
+          rule_type: presence
+          fields:
+            - applicant_name
+          expression: applicant_name IS NOT NULL AND LENGTH(TRIM(applicant_name)) > 0
+          severity: fail
+          description: applicant_name is required for Insurance Policy Application extraction.
+          field_name: applicant_name
+        - name: policy_type_requested_present
+          rule_type: presence
+          fields:
+            - policy_type_requested
+          expression: policy_type_requested IS NOT NULL AND LENGTH(TRIM(policy_type_requested)) > 0
+          severity: fail
+          description: policy_type_requested is required for Insurance Policy Application extraction.
+          field_name: policy_type_requested
+        - name: effective_date_requested_present
+          rule_type: presence
+          fields:
+            - effective_date_requested
+          expression: effective_date_requested IS NOT NULL AND LENGTH(TRIM(effective_date_requested)) > 0
+          severity: fail
+          description: effective_date_requested is required for Insurance Policy Application extraction.
+          field_name: effective_date_requested
+        - name: coverage_limit_requested_non_negative
+          rule_type: range
+          fields:
+            - coverage_limit_requested
+          expression: coverage_limit_requested IS NULL OR coverage_limit_requested >= 0
+          severity: warn
+          description: coverage_limit_requested should be non-negative when present.
+          field_name: coverage_limit_requested
+        - name: deductible_requested_non_negative
+          rule_type: range
+          fields:
+            - deductible_requested
+          expression: deductible_requested IS NULL OR deductible_requested >= 0
+          severity: warn
+          description: deductible_requested should be non-negative when present.
+          field_name: deductible_requested
+        - name: annual_revenue_non_negative
+          rule_type: range
+          fields:
+            - annual_revenue
+          expression: annual_revenue IS NULL OR annual_revenue >= 0
+          severity: warn
+          description: annual_revenue should be non-negative when present.
+          field_name: annual_revenue
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - applicant_name
+            - policy_type_requested
+            - effective_date_requested
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - parties
+            - property_or_asset
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

@@ -13,6 +13,7 @@
     "catalog:normalize-capabilities": "node scripts/normalize-capability-vocabulary.mjs && npm run catalog:generate",
     "catalog:mark-inline-roles": "node scripts/mark-inline-catalog-roles.mjs && npm run catalog:generate",
     "catalog:update-agent-usage": "node scripts/update-agent-usage.mjs && npm run catalog:generate",
+    "docubricks:import": "node scripts/import-docubricks-library.mjs",
     "catalog:sync-roles": "node scripts/sync-catalog-roles.mjs --write && npm run catalog:generate",
     "catalog:adopt-role-refs": "node scripts/sync-catalog-roles.mjs --write --adopt-inferred && npm run catalog:generate",
     "catalog:sync-roles:check": "node scripts/sync-catalog-roles.mjs --check",

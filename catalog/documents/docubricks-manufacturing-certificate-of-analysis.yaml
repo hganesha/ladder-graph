@@ -1,0 +1,272 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-manufacturing-certificate-of-analysis
+  title: Certificate Of Analysis
+  description: Certificate Of Analysis contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_certificate_of_analysis_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/certificate_of_analysis
+    sourcePath: Schemas/manufacturing/certificate_of_analysis
+    sourceVersion: manufacturing_certificate_of_analysis_v1
+    sourceDigest: 9d1e03fb66f523cf5c3d46e94c9a8f3e642a5e7f7bd40051edda2a70a715d370
+spec:
+  documentType: certificate_of_analysis
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - certificate-date
+        - expiration-date
+        - manufacture-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - authorized-signer
+        - certificate-number
+        - specification-standard
+        - test-results
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - material-name
+        - supplier-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - lot-number
+        - part-or-material-number
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - coa-disposition
+  fields:
+    - id: certificate-number
+      name: certificate_number
+      label: Certificate Number
+      description: Certificate of analysis number.
+      dataType: string
+      required: true
+      sourcePath: /fields/certificate_number
+    - id: certificate-date
+      name: certificate_date
+      label: Certificate Date
+      description: Certificate date.
+      dataType: date
+      required: true
+      sourcePath: /fields/certificate_date
+    - id: supplier-name
+      name: supplier_name
+      label: Supplier Name
+      description: Supplier or manufacturer.
+      dataType: string
+      required: true
+      sourcePath: /fields/supplier_name
+    - id: material-name
+      name: material_name
+      label: Material Name
+      description: Material or product name.
+      dataType: string
+      required: true
+      sourcePath: /fields/material_name
+    - id: part-or-material-number
+      name: part_or_material_number
+      label: Part Or Material Number
+      description: Part, material, or item number.
+      dataType: string
+      sourcePath: /fields/part_or_material_number
+    - id: lot-number
+      name: lot_number
+      label: Lot Number
+      description: Lot, batch, heat, or serial number.
+      dataType: string
+      required: true
+      sourcePath: /fields/lot_number
+    - id: specification-standard
+      name: specification_standard
+      label: Specification Standard
+      description: Specification or standard referenced.
+      dataType: string
+      sourcePath: /fields/specification_standard
+    - id: test-results
+      name: test_results
+      label: Test Results
+      description: Test results with analyte or characteristic, method, result, unit, and limit.
+      dataType: array
+      required: true
+      sourcePath: /fields/test_results
+    - id: manufacture-date
+      name: manufacture_date
+      label: Manufacture Date
+      description: Manufacture date.
+      dataType: date
+      sourcePath: /fields/manufacture_date
+    - id: expiration-date
+      name: expiration_date
+      label: Expiration Date
+      description: Expiration or retest date.
+      dataType: date
+      sourcePath: /fields/expiration_date
+    - id: authorized-signer
+      name: authorized_signer
+      label: Authorized Signer
+      description: Authorized signer.
+      dataType: string
+      sourcePath: /fields/authorized_signer
+    - id: coa-disposition
+      name: coa_disposition
+      label: Coa Disposition
+      description: Conforms, accepted, rejected, or other disposition.
+      dataType: string
+      sourcePath: /fields/coa_disposition
+  validationRules:
+    - id: certificate-number-present
+      severity: error
+      description: certificate_number is required for Certificate of Analysis extraction.
+      rule:
+        op: present
+        field: certificate_number
+      sourceExpression: certificate_number IS NOT NULL AND LENGTH(TRIM(certificate_number)) > 0
+      supported: true
+    - id: certificate-date-present
+      severity: error
+      description: certificate_date is required for Certificate of Analysis extraction.
+      rule:
+        op: present
+        field: certificate_date
+      sourceExpression: certificate_date IS NOT NULL AND LENGTH(TRIM(certificate_date)) > 0
+      supported: true
+    - id: supplier-name-present
+      severity: error
+      description: supplier_name is required for Certificate of Analysis extraction.
+      rule:
+        op: present
+        field: supplier_name
+      sourceExpression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
+      supported: true
+    - id: material-name-present
+      severity: error
+      description: material_name is required for Certificate of Analysis extraction.
+      rule:
+        op: present
+        field: material_name
+      sourceExpression: material_name IS NOT NULL AND LENGTH(TRIM(material_name)) > 0
+      supported: true
+    - id: lot-number-present
+      severity: error
+      description: lot_number is required for Certificate of Analysis extraction.
+      rule:
+        op: present
+        field: lot_number
+      sourceExpression: lot_number IS NOT NULL AND LENGTH(TRIM(lot_number)) > 0
+      supported: true
+    - id: test-results-present
+      severity: error
+      description: test_results is required for Certificate of Analysis extraction.
+      sourceExpression: test_results IS NOT NULL AND JSON_ARRAY_LENGTH(test_results) > 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      certificate_number:
+        type: string
+        description: Certificate of analysis number.
+      certificate_date:
+        type: date
+        description: Certificate date.
+        format: date
+      supplier_name:
+        type: string
+        description: Supplier or manufacturer.
+      material_name:
+        type: string
+        description: Material or product name.
+      part_or_material_number:
+        type: string
+        description: Part, material, or item number.
+      lot_number:
+        type: string
+        description: Lot, batch, heat, or serial number.
+      specification_standard:
+        type: string
+        description: Specification or standard referenced.
+      test_results:
+        type: array
+        items:
+          type: object
+          properties:
+            characteristic:
+              type: string
+              description: Tested analyte or characteristic.
+            method:
+              type: string
+              description: Test method.
+            result:
+              type: string
+              description: Reported result.
+            unit:
+              type: string
+              description: Result unit.
+            limit:
+              type: string
+              description: Specification limit.
+        description: Test results with analyte or characteristic, method, result, unit, and limit.
+      manufacture_date:
+        type: date
+        description: Manufacture date.
+        format: date
+      expiration_date:
+        type: date
+        description: Expiration or retest date.
+        format: date
+      authorized_signer:
+        type: string
+        description: Authorized signer.
+      coa_disposition:
+        type: string
+        description: Conforms, accepted, rejected, or other disposition.
+    required:
+      - certificate_number
+      - certificate_date
+      - supplier_name
+      - material_name
+      - lot_number
+      - test_results
+    additionalProperties: false
+  inertSourceMetadata:
+    family: manufacturing_quality
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - certificate_number
+          - certificate_date
+          - supplier_name
+          - material_name
+          - lot_number
+          - test_results
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - test_results
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

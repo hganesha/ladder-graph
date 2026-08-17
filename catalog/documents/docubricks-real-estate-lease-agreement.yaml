@@ -1,0 +1,333 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-real-estate-lease-agreement
+  title: Lease Agreement
+  description: Lease Agreement contract normalized from the DocuBricks Real estate library.
+  version: real_estate_lease_agreement_v1
+  source:
+    system: docubricks
+    sourceId: real_estate/lease_agreement
+    sourcePath: Schemas/real_estate/lease_agreement
+    sourceVersion: real_estate_lease_agreement_v1
+    sourceDigest: f44f315c2f3e63611ed3431dee9af498567994605c377a294cde0557fa3b5145
+spec:
+  documentType: lease_agreement
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - assignment-subletting-terms
+        - cam-or-operating-expense-terms
+        - lease-date
+        - lease-end-date
+        - lease-start-date
+        - renewal-options
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - governing-law
+        - use-clause
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - base-rent-amount
+        - rent-frequency
+        - security-deposit-amount
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - guarantor-names
+        - landlord-name
+        - tenant-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - premises-description
+        - property-address
+  fields:
+    - id: lease-date
+      name: lease_date
+      label: Lease Date
+      description: Date the lease was executed or made effective.
+      dataType: date
+      required: true
+      sourcePath: /fields/lease_date
+    - id: landlord-name
+      name: landlord_name
+      label: Landlord Name
+      description: Landlord or lessor legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/landlord_name
+    - id: tenant-name
+      name: tenant_name
+      label: Tenant Name
+      description: Tenant or lessee legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/tenant_name
+    - id: property-address
+      name: property_address
+      label: Property Address
+      description: Leased property address or premises.
+      dataType: string
+      required: true
+      sourcePath: /fields/property_address
+    - id: premises-description
+      name: premises_description
+      label: Premises Description
+      description: Description of leased premises, suite, floor, or rentable area.
+      dataType: string
+      sourcePath: /fields/premises_description
+    - id: lease-start-date
+      name: lease_start_date
+      label: Lease Start Date
+      description: Lease commencement date.
+      dataType: date
+      required: true
+      sourcePath: /fields/lease_start_date
+    - id: lease-end-date
+      name: lease_end_date
+      label: Lease End Date
+      description: Lease expiration date.
+      dataType: date
+      required: true
+      sourcePath: /fields/lease_end_date
+    - id: base-rent-amount
+      name: base_rent_amount
+      label: Base Rent Amount
+      description: Base rent amount for the stated period.
+      dataType: number
+      required: true
+      sourcePath: /fields/base_rent_amount
+    - id: rent-frequency
+      name: rent_frequency
+      label: Rent Frequency
+      description: Monthly, annual, weekly, or other rent frequency.
+      dataType: string
+      sourcePath: /fields/rent_frequency
+    - id: security-deposit-amount
+      name: security_deposit_amount
+      label: Security Deposit Amount
+      description: Security deposit amount.
+      dataType: number
+      sourcePath: /fields/security_deposit_amount
+    - id: renewal-options
+      name: renewal_options
+      label: Renewal Options
+      description: Renewal options, extension rights, or option terms.
+      dataType: array
+      sourcePath: /fields/renewal_options
+    - id: use-clause
+      name: use_clause
+      label: Use Clause
+      description: Permitted use clause.
+      dataType: string
+      sourcePath: /fields/use_clause
+    - id: cam-or-operating-expense-terms
+      name: cam_or_operating_expense_terms
+      label: Cam Or Operating Expense Terms
+      description: CAM, operating expense, tax, or insurance reimbursement terms.
+      dataType: string
+      sourcePath: /fields/cam_or_operating_expense_terms
+    - id: guarantor-names
+      name: guarantor_names
+      label: Guarantor Names
+      description: Lease guarantors.
+      dataType: array
+      sourcePath: /fields/guarantor_names
+    - id: assignment-subletting-terms
+      name: assignment_subletting_terms
+      label: Assignment Subletting Terms
+      description: Assignment or subletting restrictions.
+      dataType: string
+      sourcePath: /fields/assignment_subletting_terms
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: Governing state or jurisdiction.
+      dataType: string
+      sourcePath: /fields/governing_law
+  validationRules:
+    - id: lease-date-present
+      severity: error
+      description: lease_date is required for Lease Agreement extraction.
+      rule:
+        op: present
+        field: lease_date
+      sourceExpression: lease_date IS NOT NULL AND LENGTH(TRIM(lease_date)) > 0
+      supported: true
+    - id: landlord-name-present
+      severity: error
+      description: landlord_name is required for Lease Agreement extraction.
+      rule:
+        op: present
+        field: landlord_name
+      sourceExpression: landlord_name IS NOT NULL AND LENGTH(TRIM(landlord_name)) > 0
+      supported: true
+    - id: tenant-name-present
+      severity: error
+      description: tenant_name is required for Lease Agreement extraction.
+      rule:
+        op: present
+        field: tenant_name
+      sourceExpression: tenant_name IS NOT NULL AND LENGTH(TRIM(tenant_name)) > 0
+      supported: true
+    - id: property-address-present
+      severity: error
+      description: property_address is required for Lease Agreement extraction.
+      rule:
+        op: present
+        field: property_address
+      sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
+      supported: true
+    - id: lease-start-date-present
+      severity: error
+      description: lease_start_date is required for Lease Agreement extraction.
+      rule:
+        op: present
+        field: lease_start_date
+      sourceExpression: lease_start_date IS NOT NULL AND LENGTH(TRIM(lease_start_date)) > 0
+      supported: true
+    - id: lease-end-date-present
+      severity: error
+      description: lease_end_date is required for Lease Agreement extraction.
+      rule:
+        op: present
+        field: lease_end_date
+      sourceExpression: lease_end_date IS NOT NULL AND LENGTH(TRIM(lease_end_date)) > 0
+      supported: true
+    - id: base-rent-amount-present
+      severity: error
+      description: base_rent_amount is required for Lease Agreement extraction.
+      rule:
+        op: present
+        field: base_rent_amount
+      sourceExpression: base_rent_amount IS NOT NULL AND LENGTH(TRIM(base_rent_amount)) > 0
+      supported: true
+    - id: base-rent-amount-non-negative
+      severity: warning
+      description: base_rent_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: base_rent_amount
+        right:
+          value: 0
+      sourceExpression: base_rent_amount IS NULL OR base_rent_amount >= 0
+      supported: true
+    - id: security-deposit-amount-non-negative
+      severity: warning
+      description: security_deposit_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: security_deposit_amount
+        right:
+          value: 0
+      sourceExpression: security_deposit_amount IS NULL OR security_deposit_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      lease_date:
+        type: date
+        description: Date the lease was executed or made effective.
+        format: date
+      landlord_name:
+        type: string
+        description: Landlord or lessor legal name.
+      tenant_name:
+        type: string
+        description: Tenant or lessee legal name.
+      property_address:
+        type: string
+        description: Leased property address or premises.
+      premises_description:
+        type: string
+        description: Description of leased premises, suite, floor, or rentable area.
+      lease_start_date:
+        type: date
+        description: Lease commencement date.
+        format: date
+      lease_end_date:
+        type: date
+        description: Lease expiration date.
+        format: date
+      base_rent_amount:
+        type: number
+        description: Base rent amount for the stated period.
+      rent_frequency:
+        type: string
+        description: Monthly, annual, weekly, or other rent frequency.
+      security_deposit_amount:
+        type: number
+        description: Security deposit amount.
+      renewal_options:
+        type: array
+        items:
+          type: string
+        description: Renewal options, extension rights, or option terms.
+      use_clause:
+        type: string
+        description: Permitted use clause.
+      cam_or_operating_expense_terms:
+        type: string
+        description: CAM, operating expense, tax, or insurance reimbursement terms.
+      guarantor_names:
+        type: array
+        items:
+          type: string
+        description: Lease guarantors.
+      assignment_subletting_terms:
+        type: string
+        description: Assignment or subletting restrictions.
+      governing_law:
+        type: string
+        description: Governing state or jurisdiction.
+    required:
+      - lease_date
+      - landlord_name
+      - tenant_name
+      - property_address
+      - lease_start_date
+      - lease_end_date
+      - base_rent_amount
+    additionalProperties: false
+  inertSourceMetadata:
+    family: real_estate_transactions
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - lease_date
+          - landlord_name
+          - tenant_name
+          - property_address
+          - lease_start_date
+          - lease_end_date
+          - base_rent_amount
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

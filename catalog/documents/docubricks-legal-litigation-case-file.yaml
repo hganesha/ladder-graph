@@ -1,0 +1,316 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-legal-litigation-case-file
+  title: Litigation Case File
+  description: Litigation Case File contract normalized from the DocuBricks Legal library.
+  version: legal_litigation_case_file_v1
+  source:
+    system: docubricks
+    sourceId: legal/litigation_case_file
+    sourcePath: Schemas/legal/litigation_case_file
+    sourceVersion: legal_litigation_case_file_v1
+    sourceDigest: 40229f80c7250bc19f6201a821df9c51dabbb58ce7d43d13b07de0b2e26cc998
+spec:
+  documentType: litigation_case_file
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - filing-date
+        - hearing-dates
+        - next-deadline-date
+        - next-deadline-description
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - case-number
+        - case-type
+        - claims-or-causes
+        - key-motions
+        - law-firm
+        - matter-id
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - exposure-amount
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - case-name
+        - court-name
+        - defendant-names
+        - lead-counsel-name
+        - plaintiff-names
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - case-status
+        - client-role
+        - discovery-status
+        - settlement-status
+  fields:
+    - id: matter-id
+      name: matter_id
+      label: Matter Id
+      description: Internal matter or case file identifier.
+      dataType: string
+      sourcePath: /fields/matter_id
+    - id: case-name
+      name: case_name
+      label: Case Name
+      description: Case caption or matter name.
+      dataType: string
+      required: true
+      sourcePath: /fields/case_name
+    - id: court-name
+      name: court_name
+      label: Court Name
+      description: Court, arbitration forum, or tribunal.
+      dataType: string
+      sourcePath: /fields/court_name
+    - id: case-number
+      name: case_number
+      label: Case Number
+      description: Court docket or arbitration number.
+      dataType: string
+      sourcePath: /fields/case_number
+    - id: case-type
+      name: case_type
+      label: Case Type
+      description: Commercial, employment, collections, bankruptcy, class action, arbitration, or other.
+      dataType: string
+      sourcePath: /fields/case_type
+    - id: plaintiff-names
+      name: plaintiff_names
+      label: Plaintiff Names
+      description: Plaintiffs, claimants, or petitioners.
+      dataType: array
+      sourcePath: /fields/plaintiff_names
+    - id: defendant-names
+      name: defendant_names
+      label: Defendant Names
+      description: Defendants, respondents, or opposing parties.
+      dataType: array
+      sourcePath: /fields/defendant_names
+    - id: client-role
+      name: client_role
+      label: Client Role
+      description: Plaintiff, defendant, third party, creditor, debtor, witness, or other.
+      dataType: string
+      sourcePath: /fields/client_role
+    - id: lead-counsel-name
+      name: lead_counsel_name
+      label: Lead Counsel Name
+      description: Lead internal or external counsel.
+      dataType: string
+      sourcePath: /fields/lead_counsel_name
+    - id: law-firm
+      name: law_firm
+      label: Law Firm
+      description: Outside counsel firm if present.
+      dataType: string
+      sourcePath: /fields/law_firm
+    - id: filing-date
+      name: filing_date
+      label: Filing Date
+      description: Initial filing or demand date.
+      dataType: date
+      sourcePath: /fields/filing_date
+    - id: next-deadline-date
+      name: next_deadline_date
+      label: Next Deadline Date
+      description: Next upcoming deadline.
+      dataType: date
+      sourcePath: /fields/next_deadline_date
+    - id: next-deadline-description
+      name: next_deadline_description
+      label: Next Deadline Description
+      description: Description of next deadline.
+      dataType: string
+      sourcePath: /fields/next_deadline_description
+    - id: claims-or-causes
+      name: claims_or_causes
+      label: Claims Or Causes
+      description: Claims, causes of action, or legal theories.
+      dataType: array
+      sourcePath: /fields/claims_or_causes
+    - id: key-motions
+      name: key_motions
+      label: Key Motions
+      description: Key pending or decided motions.
+      dataType: array
+      sourcePath: /fields/key_motions
+    - id: discovery-status
+      name: discovery_status
+      label: Discovery Status
+      description: Discovery phase or status.
+      dataType: string
+      sourcePath: /fields/discovery_status
+    - id: hearing-dates
+      name: hearing_dates
+      label: Hearing Dates
+      description: Upcoming hearing, mediation, trial, or conference dates.
+      dataType: array
+      sourcePath: /fields/hearing_dates
+    - id: settlement-status
+      name: settlement_status
+      label: Settlement Status
+      description: Settlement posture or demand status.
+      dataType: string
+      sourcePath: /fields/settlement_status
+    - id: exposure-amount
+      name: exposure_amount
+      label: Exposure Amount
+      description: Claimed damages, reserve, or exposure amount.
+      dataType: number
+      sourcePath: /fields/exposure_amount
+    - id: case-status
+      name: case_status
+      label: Case Status
+      description: Open, stayed, settled, judgment, closed, appealed, or other.
+      dataType: string
+      required: true
+      sourcePath: /fields/case_status
+  validationRules:
+    - id: case-name-present
+      severity: error
+      description: case_name is required for Litigation Case File extraction.
+      rule:
+        op: present
+        field: case_name
+      sourceExpression: case_name IS NOT NULL AND LENGTH(TRIM(case_name)) > 0
+      supported: true
+    - id: case-status-present
+      severity: error
+      description: case_status is required for Litigation Case File extraction.
+      rule:
+        op: present
+        field: case_status
+      sourceExpression: case_status IS NOT NULL AND LENGTH(TRIM(case_status)) > 0
+      supported: true
+    - id: exposure-amount-non-negative
+      severity: warning
+      description: exposure_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: exposure_amount
+        right:
+          value: 0
+      sourceExpression: exposure_amount IS NULL OR exposure_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      matter_id:
+        type: string
+        description: Internal matter or case file identifier.
+      case_name:
+        type: string
+        description: Case caption or matter name.
+      court_name:
+        type: string
+        description: Court, arbitration forum, or tribunal.
+      case_number:
+        type: string
+        description: Court docket or arbitration number.
+      case_type:
+        type: string
+        description: Commercial, employment, collections, bankruptcy, class action, arbitration, or other.
+      plaintiff_names:
+        type: array
+        items:
+          type: string
+        description: Plaintiffs, claimants, or petitioners.
+      defendant_names:
+        type: array
+        items:
+          type: string
+        description: Defendants, respondents, or opposing parties.
+      client_role:
+        type: string
+        description: Plaintiff, defendant, third party, creditor, debtor, witness, or other.
+      lead_counsel_name:
+        type: string
+        description: Lead internal or external counsel.
+      law_firm:
+        type: string
+        description: Outside counsel firm if present.
+      filing_date:
+        type: date
+        description: Initial filing or demand date.
+        format: date
+      next_deadline_date:
+        type: date
+        description: Next upcoming deadline.
+        format: date
+      next_deadline_description:
+        type: string
+        description: Description of next deadline.
+      claims_or_causes:
+        type: array
+        items:
+          type: string
+        description: Claims, causes of action, or legal theories.
+      key_motions:
+        type: array
+        items:
+          type: string
+        description: Key pending or decided motions.
+      discovery_status:
+        type: string
+        description: Discovery phase or status.
+      hearing_dates:
+        type: array
+        items:
+          type: string
+        description: Upcoming hearing, mediation, trial, or conference dates.
+      settlement_status:
+        type: string
+        description: Settlement posture or demand status.
+      exposure_amount:
+        type: number
+        description: Claimed damages, reserve, or exposure amount.
+      case_status:
+        type: string
+        description: Open, stayed, settled, judgment, closed, appealed, or other.
+    required:
+      - case_name
+      - case_status
+    additionalProperties: false
+  inertSourceMetadata:
+    family: litigation_disputes
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - case_name
+          - case_status
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

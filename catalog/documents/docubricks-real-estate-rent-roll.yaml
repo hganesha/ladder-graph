@@ -1,0 +1,316 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-real-estate-rent-roll
+  title: Rent Roll
+  description: Rent Roll contract normalized from the DocuBricks Real estate library.
+  version: real_estate_rent_roll_v1
+  source:
+    system: docubricks
+    sourceId: real_estate/rent_roll
+    sourcePath: Schemas/real_estate/rent_roll
+    sourceVersion: real_estate_rent_roll_v1
+    sourceDigest: 904fbc2d7fd7900809776c0ad75f2120ced29b309a11d230e7c0b61a9c524cdd
+spec:
+  documentType: rent_roll
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - rent-roll-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - occupied-units-or-suites
+        - report-preparer
+        - vacant-units
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - delinquent-amount
+        - monthly-scheduled-rent
+        - occupancy-rate
+        - total-units-or-suites
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - owner-name
+        - property-name
+        - tenant-entries
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - property-address
+  fields:
+    - id: rent-roll-date
+      name: rent_roll_date
+      label: Rent Roll Date
+      description: Date of rent roll.
+      dataType: date
+      required: true
+      sourcePath: /fields/rent_roll_date
+    - id: property-name
+      name: property_name
+      label: Property Name
+      description: Property name.
+      dataType: string
+      sourcePath: /fields/property_name
+    - id: property-address
+      name: property_address
+      label: Property Address
+      description: Property address.
+      dataType: string
+      required: true
+      sourcePath: /fields/property_address
+    - id: owner-name
+      name: owner_name
+      label: Owner Name
+      description: Owner name.
+      dataType: string
+      sourcePath: /fields/owner_name
+    - id: total-units-or-suites
+      name: total_units_or_suites
+      label: Total Units Or Suites
+      description: Total units or suites.
+      dataType: integer
+      sourcePath: /fields/total_units_or_suites
+    - id: occupied-units-or-suites
+      name: occupied_units_or_suites
+      label: Occupied Units Or Suites
+      description: Occupied units or suites.
+      dataType: integer
+      sourcePath: /fields/occupied_units_or_suites
+    - id: occupancy-rate
+      name: occupancy_rate
+      label: Occupancy Rate
+      description: Occupancy rate percentage.
+      dataType: number
+      sourcePath: /fields/occupancy_rate
+    - id: tenant-entries
+      name: tenant_entries
+      label: Tenant Entries
+      description: Tenant rows with unit, tenant, lease dates, area, rent, and arrears.
+      dataType: array
+      required: true
+      sourcePath: /fields/tenant_entries
+    - id: monthly-scheduled-rent
+      name: monthly_scheduled_rent
+      label: Monthly Scheduled Rent
+      description: Total monthly scheduled rent.
+      dataType: number
+      required: true
+      sourcePath: /fields/monthly_scheduled_rent
+    - id: delinquent-amount
+      name: delinquent_amount
+      label: Delinquent Amount
+      description: Total delinquent or past due amount.
+      dataType: number
+      sourcePath: /fields/delinquent_amount
+    - id: vacant-units
+      name: vacant_units
+      label: Vacant Units
+      description: Vacant units or suites.
+      dataType: array
+      sourcePath: /fields/vacant_units
+    - id: report-preparer
+      name: report_preparer
+      label: Report Preparer
+      description: Preparer or property manager.
+      dataType: string
+      sourcePath: /fields/report_preparer
+  validationRules:
+    - id: rent-roll-date-present
+      severity: error
+      description: rent_roll_date is required for Rent Roll extraction.
+      rule:
+        op: present
+        field: rent_roll_date
+      sourceExpression: rent_roll_date IS NOT NULL AND LENGTH(TRIM(rent_roll_date)) > 0
+      supported: true
+    - id: property-address-present
+      severity: error
+      description: property_address is required for Rent Roll extraction.
+      rule:
+        op: present
+        field: property_address
+      sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
+      supported: true
+    - id: tenant-entries-present
+      severity: error
+      description: tenant_entries is required for Rent Roll extraction.
+      sourceExpression: tenant_entries IS NOT NULL AND JSON_ARRAY_LENGTH(tenant_entries) > 0
+      supported: false
+    - id: monthly-scheduled-rent-present
+      severity: error
+      description: monthly_scheduled_rent is required for Rent Roll extraction.
+      rule:
+        op: present
+        field: monthly_scheduled_rent
+      sourceExpression: monthly_scheduled_rent IS NOT NULL AND LENGTH(TRIM(monthly_scheduled_rent)) > 0
+      supported: true
+    - id: total-units-or-suites-non-negative
+      severity: warning
+      description: total_units_or_suites should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: total_units_or_suites
+        right:
+          value: 0
+      sourceExpression: total_units_or_suites IS NULL OR total_units_or_suites >= 0
+      supported: true
+    - id: occupied-units-or-suites-non-negative
+      severity: warning
+      description: occupied_units_or_suites should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: occupied_units_or_suites
+        right:
+          value: 0
+      sourceExpression: occupied_units_or_suites IS NULL OR occupied_units_or_suites >= 0
+      supported: true
+    - id: occupancy-rate-non-negative
+      severity: warning
+      description: occupancy_rate should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: occupancy_rate
+        right:
+          value: 0
+      sourceExpression: occupancy_rate IS NULL OR occupancy_rate >= 0
+      supported: true
+    - id: monthly-scheduled-rent-non-negative
+      severity: warning
+      description: monthly_scheduled_rent should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: monthly_scheduled_rent
+        right:
+          value: 0
+      sourceExpression: monthly_scheduled_rent IS NULL OR monthly_scheduled_rent >= 0
+      supported: true
+    - id: delinquent-amount-non-negative
+      severity: warning
+      description: delinquent_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: delinquent_amount
+        right:
+          value: 0
+      sourceExpression: delinquent_amount IS NULL OR delinquent_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      rent_roll_date:
+        type: date
+        description: Date of rent roll.
+        format: date
+      property_name:
+        type: string
+        description: Property name.
+      property_address:
+        type: string
+        description: Property address.
+      owner_name:
+        type: string
+        description: Owner name.
+      total_units_or_suites:
+        type: integer
+        description: Total units or suites.
+      occupied_units_or_suites:
+        type: integer
+        description: Occupied units or suites.
+      occupancy_rate:
+        type: number
+        description: Occupancy rate percentage.
+      tenant_entries:
+        type: array
+        items:
+          type: object
+          properties:
+            unit_or_suite:
+              type: string
+              description: Unit, suite, space, or apartment identifier.
+            tenant_name:
+              type: string
+              description: Tenant name.
+            lease_start_date:
+              type: date
+              description: Lease start date.
+              format: date
+            lease_end_date:
+              type: date
+              description: Lease end date.
+              format: date
+            area_sq_ft:
+              type: number
+              description: Leased area in square feet.
+            monthly_rent_amount:
+              type: number
+              description: Monthly rent amount.
+            arrears_amount:
+              type: number
+              description: Past-due or delinquent amount.
+            security_deposit_amount:
+              type: number
+              description: Security deposit amount if stated.
+        description: Tenant rows with unit, tenant, lease dates, area, rent, and arrears.
+      monthly_scheduled_rent:
+        type: number
+        description: Total monthly scheduled rent.
+      delinquent_amount:
+        type: number
+        description: Total delinquent or past due amount.
+      vacant_units:
+        type: array
+        items:
+          type: string
+        description: Vacant units or suites.
+      report_preparer:
+        type: string
+        description: Preparer or property manager.
+    required:
+      - rent_roll_date
+      - property_address
+      - tenant_entries
+      - monthly_scheduled_rent
+    additionalProperties: false
+  inertSourceMetadata:
+    family: property_management
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - rent_roll_date
+          - property_address
+          - tenant_entries
+          - monthly_scheduled_rent
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - tenant_entries
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

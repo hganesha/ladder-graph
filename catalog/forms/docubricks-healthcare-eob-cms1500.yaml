@@ -1,0 +1,353 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-healthcare-eob-cms1500
+  title: Eob Cms1500
+  description: Eob Cms1500 contract normalized from the DocuBricks Healthcare library.
+  version: healthcare_eob_cms1500_v1
+  source:
+    system: docubricks
+    sourceId: healthcare/eob_cms1500
+    sourcePath: Schemas/healthcare/eob_cms1500
+    sourceVersion: healthcare_eob_cms1500_v1
+    sourceDigest: fb071356d645b075f92c3c4345ece8fcfbf2501b4947218e2b9e1779b43bd055
+spec:
+  role: completion
+  pages:
+    - id: main
+      title: Eob Cms1500
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: rendering-provider-npi
+              name: rendering_provider_npi
+              label: Rendering Provider Npi
+              description: NPI of the actual rendering/treating provider if different from billing provider
+              dataType: string
+              widget: text
+            - id: date-of-service-from
+              name: date_of_service_from
+              label: Date Of Service From
+              description: Start date of service, format YYYY-MM-DD (CMS-1500 Box 24A From)
+              dataType: string
+              widget: text
+            - id: date-of-service-to
+              name: date_of_service_to
+              label: Date Of Service To
+              description: End date of service, format YYYY-MM-DD (CMS-1500 Box 24A To); same as from if single-day service
+              dataType: string
+              widget: text
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: claim-number
+              name: claim_number
+              label: Claim Number
+              description: Unique claim identifier assigned by payer (X12 835 CLM01 or payer-assigned reference number)
+              dataType: string
+              widget: text
+              required: true
+            - id: patient-dob
+              name: patient_dob
+              label: Patient Dob
+              description: Patient date of birth, format YYYY-MM-DD
+              dataType: string
+              widget: text
+            - id: patient-member-id
+              name: patient_member_id
+              label: Patient Member Id
+              description: Health plan member/subscriber ID number
+              dataType: string
+              widget: text
+            - id: provider-npi
+              name: provider_npi
+              label: Provider Npi
+              description: National Provider Identifier (NPI) of billing provider — 10-digit numeric
+              dataType: string
+              widget: text
+            - id: payer-id
+              name: payer_id
+              label: Payer Id
+              description: Payer's electronic ID or NAIC code
+              dataType: string
+              widget: text
+            - id: group-number
+              name: group_number
+              label: Group Number
+              description: Patient's insurance group number
+              dataType: string
+              widget: text
+            - id: procedure-codes
+              name: procedure_codes
+              label: Procedure Codes
+              description: Array of CPT/HCPCS procedure codes billed (e.g., ["99213", "93000"]). Each entry is a string.
+                Include modifiers as suffix if present (e.g., "99213-25")
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: diagnosis-codes
+              name: diagnosis_codes
+              label: Diagnosis Codes
+              description: Array of ICD-10-CM diagnosis codes (e.g., ["I10", "E11.9"]). Extract all listed diagnosis
+                pointers
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: patient-responsibility
+              name: patient_responsibility
+              label: Patient Responsibility
+              description: Total amount patient owes (copay + coinsurance + deductible) as decimal
+              dataType: string
+              widget: text
+            - id: denial-reason-code
+              name: denial_reason_code
+              label: Denial Reason Code
+              description: ANSI X12 835 Group/Claim Adjustment Reason Code (CARC) if denied or adjusted (e.g., "96", "CO-4",
+                "PR-1"). Null if claim was fully paid
+              dataType: string
+              widget: text
+            - id: remark-codes
+              name: remark_codes
+              label: Remark Codes
+              description: Array of Remittance Advice Remark Codes (RARC) associated with the claim (e.g., ["N130",
+                "MA01"]). Null or empty array if none
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: service-facility-npi
+              name: service_facility_npi
+              label: Service Facility Npi
+              description: NPI of the service facility (CMS-1500 Box 32b)
+              dataType: string
+              widget: text
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: billed-amount
+              name: billed_amount
+              label: Billed Amount
+              description: Total amount billed/charged by provider as decimal (CMS-1500 Box 28 or EOB "Billed" column total)
+              dataType: number
+              widget: number
+              required: true
+            - id: allowed-amount
+              name: allowed_amount
+              label: Allowed Amount
+              description: Payer-allowed/contracted amount as decimal (EOB "Allowed" or "Eligible" amount)
+              dataType: number
+              widget: number
+            - id: paid-amount
+              name: paid_amount
+              label: Paid Amount
+              description: Amount actually paid by payer to provider as decimal (X12 835 BPR02 or EOB "Plan Paid" amount)
+              dataType: number
+              widget: number
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: patient-name
+              name: patient_name
+              label: Patient Name
+              description: Full name of the patient (Last, First Middle or First Last format)
+              dataType: string
+              widget: text
+            - id: provider-name
+              name: provider_name
+              label: Provider Name
+              description: Name of the billing/rendering provider or group practice
+              dataType: string
+              widget: text
+            - id: payer-name
+              name: payer_name
+              label: Payer Name
+              description: Name of the insurance company or health plan paying the claim
+              dataType: string
+              widget: text
+            - id: service-facility-name
+              name: service_facility_name
+              label: Service Facility Name
+              description: Name of the facility where services were rendered (if different from billing provider)
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: claim-status
+              name: claim_status
+              label: Claim Status
+              description: "Adjudication outcome. One of: Paid | Denied | Pending | Adjusted"
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      claim_number:
+        type: string
+        description: Unique claim identifier assigned by payer (X12 835 CLM01 or payer-assigned reference number)
+      patient_name:
+        type: string
+        description: Full name of the patient (Last, First Middle or First Last format)
+      patient_dob:
+        type: string
+        description: Patient date of birth, format YYYY-MM-DD
+      patient_member_id:
+        type: string
+        description: Health plan member/subscriber ID number
+      provider_name:
+        type: string
+        description: Name of the billing/rendering provider or group practice
+      provider_npi:
+        type: string
+        description: National Provider Identifier (NPI) of billing provider — 10-digit numeric
+      rendering_provider_npi:
+        type: string
+        description: NPI of the actual rendering/treating provider if different from billing provider
+      payer_name:
+        type: string
+        description: Name of the insurance company or health plan paying the claim
+      payer_id:
+        type: string
+        description: Payer's electronic ID or NAIC code
+      group_number:
+        type: string
+        description: Patient's insurance group number
+      date_of_service_from:
+        type: string
+        description: Start date of service, format YYYY-MM-DD (CMS-1500 Box 24A From)
+      date_of_service_to:
+        type: string
+        description: End date of service, format YYYY-MM-DD (CMS-1500 Box 24A To); same as from if single-day service
+      procedure_codes:
+        type: array
+        items:
+          type: string
+        description: Array of CPT/HCPCS procedure codes billed (e.g., ["99213", "93000"]). Each entry is a string.
+          Include modifiers as suffix if present (e.g., "99213-25")
+      diagnosis_codes:
+        type: array
+        items:
+          type: string
+        description: Array of ICD-10-CM diagnosis codes (e.g., ["I10", "E11.9"]). Extract all listed diagnosis pointers
+      billed_amount:
+        type: number
+        description: Total amount billed/charged by provider as decimal (CMS-1500 Box 28 or EOB "Billed" column total)
+      allowed_amount:
+        type: number
+        description: Payer-allowed/contracted amount as decimal (EOB "Allowed" or "Eligible" amount)
+      paid_amount:
+        type: number
+        description: Amount actually paid by payer to provider as decimal (X12 835 BPR02 or EOB "Plan Paid" amount)
+      patient_responsibility:
+        type: string
+        description: Total amount patient owes (copay + coinsurance + deductible) as decimal
+      claim_status:
+        type: string
+        description: "Adjudication outcome. One of: Paid | Denied | Pending | Adjusted"
+      denial_reason_code:
+        type: string
+        description: ANSI X12 835 Group/Claim Adjustment Reason Code (CARC) if denied or adjusted (e.g., "96", "CO-4",
+          "PR-1"). Null if claim was fully paid
+      remark_codes:
+        type: array
+        items:
+          type: string
+        description: Array of Remittance Advice Remark Codes (RARC) associated with the claim (e.g., ["N130",
+          "MA01"]). Null or empty array if none
+      service_facility_name:
+        type: string
+        description: Name of the facility where services were rendered (if different from billing provider)
+      service_facility_npi:
+        type: string
+        description: NPI of the service facility (CMS-1500 Box 32b)
+    required:
+      - claim_number
+      - billed_amount
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: claim_number_not_null
+          rule_type: presence
+          fields:
+            - claim_number
+          expression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
+          severity: fail
+          description: Claim number is the primary key for downstream remittance reconciliation and HIPAA 835
+            transaction matching — no valid EOB record without it
+        - name: avg_confidence_minimum
+          rule_type: range
+          fields:
+            - avg_confidence
+          expression: avg_confidence >= 0.65
+          severity: drop
+          description: Overall extraction confidence below 0.65 indicates document quality or format issues too severe
+            for reliable automated processing — route to human review queue
+        - name: claim_status_valid_enum
+          rule_type: presence
+          fields: []
+          expression: claim_status IN ('Paid', 'Denied', 'Pending', 'Adjusted')
+          severity: drop
+          description: Claim status must be a recognized adjudication outcome; invalid values break downstream
+            remittance posting workflows and denial management routing
+        - name: billed_amount_positive
+          rule_type: range
+          fields:
+            - billed_amount
+          expression: billed_amount IS NOT NULL AND billed_amount > 0
+          severity: drop
+          description: Billed amount must be present and positive — zero or null indicates claim header extraction
+            failure; cannot reconcile remittance without charge amount
+        - name: patient_member_id_present
+          rule_type: presence
+          fields:
+            - patient_member_id
+          expression: patient_member_id IS NOT NULL AND LENGTH(TRIM(patient_member_id)) > 0
+          severity: warn
+          description: Member ID is required for eligibility verification and patient account matching; missing value
+            prevents automated posting — flag for manual resolution
+        - name: paid_amount_non_negative
+          rule_type: range
+          fields:
+            - paid_amount
+          expression: paid_amount IS NULL OR paid_amount >= 0
+          severity: warn
+          description: Paid amount cannot be negative; negative value indicates extraction error or overpayment recovery
+            scenario requiring manual review
+        - name: denial_reason_required_for_denied
+          rule_type: presence
+          fields:
+            - denial_reason_code
+          expression: NOT (claim_status = 'Denied' AND denial_reason_code IS NULL)
+          severity: warn
+          description: Denied claims must have a CARC denial reason code for appeals processing and denial management
+            reporting; missing code flags extraction gap
+        - name: provider_npi_format
+          rule_type: format
+          fields:
+            - provider_npi
+          expression: provider_npi IS NULL OR (LENGTH(provider_npi) = 10 AND provider_npi REGEXP '^[0-9]{10}$')
+          severity: warn
+          description: NPI must be exactly 10 numeric digits per HIPAA standard; format violation indicates extraction
+            confusion with Tax ID or other identifiers
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - claim_number
+            - billed_amount
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

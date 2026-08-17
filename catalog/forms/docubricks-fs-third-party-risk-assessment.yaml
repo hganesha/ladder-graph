@@ -1,0 +1,289 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-third-party-risk-assessment
+  title: Third Party Risk Assessment
+  description: Third Party Risk Assessment contract normalized from the DocuBricks Financial services library.
+  version: fs_third_party_risk_assessment_v1
+  source:
+    system: docubricks
+    sourceId: fs/third_party_risk_assessment
+    sourcePath: Schemas/fs/third_party_risk_assessment
+    sourceVersion: fs_third_party_risk_assessment_v1
+    sourceDigest: f0e20c97bbaea63a6714a35757f32e5af9c00ae8378529bd097b336273ab84d3
+spec:
+  role: review
+  pages:
+    - id: main
+      title: Third Party Risk Assessment
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: assessment-date
+              name: assessment_date
+              label: Assessment Date
+              description: Date the assessment was completed.
+              dataType: date
+              widget: date
+              required: true
+            - id: vendor-service-description
+              name: vendor_service_description
+              label: Vendor Service Description
+              description: Description of products or services provided.
+              dataType: string
+              widget: text
+            - id: soc-report-date
+              name: soc_report_date
+              label: Soc Report Date
+              description: Date or period end of SOC report.
+              dataType: date
+              widget: date
+            - id: remediation-due-date
+              name: remediation_due_date
+              label: Remediation Due Date
+              description: Due date for remediation if stated.
+              dataType: date
+              widget: date
+            - id: next-review-date
+              name: next_review_date
+              label: Next Review Date
+              description: Next periodic review date.
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: criticality-tier
+              name: criticality_tier
+              label: Criticality Tier
+              description: Critical, high, medium, low, or other tier.
+              dataType: string
+              widget: text
+            - id: data-access-level
+              name: data_access_level
+              label: Data Access Level
+              description: Customer data, confidential data, payment data, PHI, none, or other.
+              dataType: string
+              widget: text
+            - id: outsourcing-indicator
+              name: outsourcing_indicator
+              label: Outsourcing Indicator
+              description: Whether this is an outsourcing or material service provider.
+              dataType: boolean
+              widget: checkbox
+            - id: subcontractors
+              name: subcontractors
+              label: Subcontractors
+              description: Named material subcontractors or fourth parties.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: soc-report-type
+              name: soc_report_type
+              label: Soc Report Type
+              description: SOC 1, SOC 2, bridge letter, none, or other.
+              dataType: string
+              widget: text
+            - id: open-issues
+              name: open_issues
+              label: Open Issues
+              description: Open issues, findings, or remediation items.
+              dataType: array
+              widget: textarea
+              span: 2
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: inherent-risk-rating
+              name: inherent_risk_rating
+              label: Inherent Risk Rating
+              description: Inherent risk before controls.
+              dataType: string
+              widget: text
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: vendor-name
+              name: vendor_name
+              label: Vendor Name
+              description: Legal or operating name of the vendor.
+              dataType: string
+              widget: text
+              required: true
+            - id: business-owner
+              name: business_owner
+              label: Business Owner
+              description: Internal owner or relationship manager.
+              dataType: string
+              widget: text
+            - id: customer-impact
+              name: customer_impact
+              label: Customer Impact
+              description: Whether vendor failure could materially affect customers.
+              dataType: boolean
+              widget: checkbox
+            - id: approver-name
+              name: approver_name
+              label: Approver Name
+              description: Approver, committee, or risk officer.
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: residual-risk-rating
+              name: residual_risk_rating
+              label: Residual Risk Rating
+              description: Residual risk after controls.
+              dataType: string
+              widget: text
+            - id: information-security-rating
+              name: information_security_rating
+              label: Information Security Rating
+              description: Information security control rating.
+              dataType: string
+              widget: text
+            - id: business-continuity-rating
+              name: business_continuity_rating
+              label: Business Continuity Rating
+              description: BCP/DR control rating.
+              dataType: string
+              widget: text
+            - id: financial-condition-rating
+              name: financial_condition_rating
+              label: Financial Condition Rating
+              description: Financial strength or viability rating.
+              dataType: string
+              widget: text
+            - id: regulatory-compliance-rating
+              name: regulatory_compliance_rating
+              label: Regulatory Compliance Rating
+              description: Compliance control rating.
+              dataType: string
+              widget: text
+            - id: approval-status
+              name: approval_status
+              label: Approval Status
+              description: Approved, conditionally approved, rejected, pending, or other.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      assessment_date:
+        type: date
+        description: Date the assessment was completed.
+        format: date
+      vendor_name:
+        type: string
+        description: Legal or operating name of the vendor.
+      vendor_service_description:
+        type: string
+        description: Description of products or services provided.
+      business_owner:
+        type: string
+        description: Internal owner or relationship manager.
+      criticality_tier:
+        type: string
+        description: Critical, high, medium, low, or other tier.
+      inherent_risk_rating:
+        type: string
+        description: Inherent risk before controls.
+      residual_risk_rating:
+        type: string
+        description: Residual risk after controls.
+      data_access_level:
+        type: string
+        description: Customer data, confidential data, payment data, PHI, none, or other.
+      customer_impact:
+        type: boolean
+        description: Whether vendor failure could materially affect customers.
+      outsourcing_indicator:
+        type: boolean
+        description: Whether this is an outsourcing or material service provider.
+      subcontractors:
+        type: array
+        items:
+          type: string
+        description: Named material subcontractors or fourth parties.
+      soc_report_type:
+        type: string
+        description: SOC 1, SOC 2, bridge letter, none, or other.
+      soc_report_date:
+        type: date
+        description: Date or period end of SOC report.
+        format: date
+      information_security_rating:
+        type: string
+        description: Information security control rating.
+      business_continuity_rating:
+        type: string
+        description: BCP/DR control rating.
+      financial_condition_rating:
+        type: string
+        description: Financial strength or viability rating.
+      regulatory_compliance_rating:
+        type: string
+        description: Compliance control rating.
+      open_issues:
+        type: array
+        items:
+          type: string
+        description: Open issues, findings, or remediation items.
+      remediation_due_date:
+        type: date
+        description: Due date for remediation if stated.
+        format: date
+      approval_status:
+        type: string
+        description: Approved, conditionally approved, rejected, pending, or other.
+      approver_name:
+        type: string
+        description: Approver, committee, or risk officer.
+      next_review_date:
+        type: date
+        description: Next periodic review date.
+        format: date
+    required:
+      - assessment_date
+      - vendor_name
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: vendor_name_present
+          rule_type: presence
+          fields:
+            - vendor_name
+          expression: vendor_name IS NOT NULL AND LENGTH(TRIM(vendor_name)) > 0
+          severity: fail
+          description: vendor_name is required for Third-party Risk Assessment extraction.
+        - name: assessment_date_present
+          rule_type: presence
+          fields:
+            - assessment_date
+          expression: assessment_date IS NOT NULL AND LENGTH(TRIM(assessment_date)) > 0
+          severity: fail
+          description: assessment_date is required for Third-party Risk Assessment extraction.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - assessment_date
+            - vendor_name
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

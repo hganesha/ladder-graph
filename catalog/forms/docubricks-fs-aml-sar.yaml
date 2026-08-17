@@ -1,0 +1,257 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-aml-sar
+  title: Aml Sar
+  description: Aml Sar contract normalized from the DocuBricks Financial services library.
+  version: fs_aml_sar_v1
+  source:
+    system: docubricks
+    sourceId: fs/aml_sar
+    sourcePath: Schemas/fs/aml_sar
+    sourceVersion: fs_aml_sar_v1
+    sourceDigest: 86e5972c040bbf5bf9d8ccecdf041db81aa5ca181d62f3a4803b985ec98dbecb
+spec:
+  role: review
+  pages:
+    - id: main
+      title: Aml Sar
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: filing-date
+              name: filing_date
+              label: Filing Date
+              description: Filing date
+              dataType: date
+              widget: date
+            - id: activity-start-date
+              name: activity_start_date
+              label: Activity Start Date
+              description: Activity start date
+              dataType: date
+              widget: date
+            - id: activity-end-date
+              name: activity_end_date
+              label: Activity End Date
+              description: Activity end date
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: sar-id
+              name: sar_id
+              label: Sar Id
+              description: Sar id
+              dataType: string
+              widget: text
+            - id: subject-account-number-masked
+              name: subject_account_number_masked
+              label: Subject Account Number Masked
+              description: Subject account number masked
+              dataType: string
+              widget: text
+            - id: suspicious-activity-type
+              name: suspicious_activity_type
+              label: Suspicious Activity Type
+              description: Suspicious activity type
+              dataType: string
+              widget: text
+            - id: transaction-count
+              name: transaction_count
+              label: Transaction Count
+              description: Transaction count
+              dataType: integer
+              widget: number
+            - id: currency
+              name: currency
+              label: Currency
+              description: Currency
+              dataType: string
+              widget: text
+            - id: law-enforcement-contacted
+              name: law_enforcement_contacted
+              label: Law Enforcement Contacted
+              description: Law enforcement contacted
+              dataType: string
+              widget: text
+            - id: narrative-summary
+              name: narrative_summary
+              label: Narrative Summary
+              description: Narrative summary
+              dataType: string
+              widget: text
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: subject-tax-id-masked
+              name: subject_tax_id_masked
+              label: Subject Tax Id Masked
+              description: Subject tax id masked
+              dataType: string
+              widget: text
+            - id: amount-involved
+              name: amount_involved
+              label: Amount Involved
+              description: Amount involved
+              dataType: number
+              widget: number
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: filing-institution-name
+              name: filing_institution_name
+              label: Filing Institution Name
+              description: Filing institution name
+              dataType: string
+              widget: text
+            - id: subject-name
+              name: subject_name
+              label: Subject Name
+              description: Subject name
+              dataType: string
+              widget: text
+              required: true
+            - id: investigator-name
+              name: investigator_name
+              label: Investigator Name
+              description: Investigator name
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: subject-address
+              name: subject_address
+              label: Subject Address
+              description: Subject address
+              dataType: string
+              widget: text
+            - id: branch-location
+              name: branch_location
+              label: Branch Location
+              description: Branch location
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      sar_id:
+        type: string
+        description: Sar id
+      filing_institution_name:
+        type: string
+        description: Filing institution name
+      filing_date:
+        type: date
+        description: Filing date
+        format: date
+      subject_name:
+        type: string
+        description: Subject name
+      subject_tax_id_masked:
+        type: string
+        description: Subject tax id masked
+      subject_address:
+        type: string
+        description: Subject address
+      subject_account_number_masked:
+        type: string
+        description: Subject account number masked
+      activity_start_date:
+        type: date
+        description: Activity start date
+        format: date
+      activity_end_date:
+        type: date
+        description: Activity end date
+        format: date
+      suspicious_activity_type:
+        type: string
+        description: Suspicious activity type
+      amount_involved:
+        type: number
+        description: Amount involved
+      transaction_count:
+        type: integer
+        description: Transaction count
+      currency:
+        type: string
+        description: Currency
+      law_enforcement_contacted:
+        type: string
+        description: Law enforcement contacted
+      narrative_summary:
+        type: string
+        description: Narrative summary
+      branch_location:
+        type: string
+        description: Branch location
+      investigator_name:
+        type: string
+        description: Investigator name
+    required:
+      - subject_name
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: subject_name_present
+          rule_type: presence
+          fields:
+            - subject_name
+          expression: subject_name IS NOT NULL AND LENGTH(TRIM(subject_name)) > 0
+          severity: fail
+          description: SAR subject name is required for case investigation and filing.
+        - name: amount_non_negative
+          rule_type: range
+          fields:
+            - amount_involved
+          expression: amount_involved IS NULL OR amount_involved >= 0
+          severity: drop
+          description: Amount involved cannot be negative.
+        - name: transaction_count_positive
+          rule_type: range
+          fields:
+            - transaction_count
+          expression: transaction_count IS NULL OR transaction_count > 0
+          severity: warn
+          description: Transaction count should be positive when present.
+        - name: activity_date_order
+          rule_type: cross_field
+          fields:
+            - activity_start_date
+            - activity_end_date
+          expression: activity_start_date IS NULL OR activity_end_date IS NULL OR activity_start_date <=
+            activity_end_date
+          severity: drop
+          description: SAR activity start date cannot be after activity end date.
+        - name: activity_type_present
+          rule_type: presence
+          fields:
+            - suspicious_activity_type
+          expression: suspicious_activity_type IS NOT NULL
+          severity: warn
+          description: Suspicious activity category should be captured for AML analytics.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - subject_name
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - property_or_asset
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

@@ -1,0 +1,313 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-regulatory-reporting-package
+  title: Regulatory Reporting Package
+  description: Regulatory Reporting Package contract normalized from the DocuBricks Financial services library.
+  version: fs_regulatory_reporting_package_v1
+  source:
+    system: docubricks
+    sourceId: fs/regulatory_reporting_package
+    sourcePath: Schemas/fs/regulatory_reporting_package
+    sourceVersion: fs_regulatory_reporting_package_v1
+    sourceDigest: bafb4588e35ef789689e0d4b6ad8643e5de8bb2034afc524883470d9ea03aae0
+spec:
+  documentType: regulatory_reporting_package
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - amendment-indicator
+        - amendment-reason
+        - reporting-period-end-date
+        - submission-date
+        - submission-due-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - attestation-required
+        - control-signoffs
+        - institution-identifier
+        - key-metrics
+        - report-type
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - evidence-documents
+        - exceptions
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - approver-name
+        - institution-name
+        - preparer-name
+        - regulator-name
+        - report-name
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - filing-status
+  fields:
+    - id: report-name
+      name: report_name
+      label: Report Name
+      description: Name of report package or filing.
+      dataType: string
+      required: true
+      sourcePath: /fields/report_name
+    - id: report-type
+      name: report_type
+      label: Report Type
+      description: Call Report, HMDA, CRA, SAR, CTR, CECL, CCAR, DFAST, liquidity, or other.
+      dataType: string
+      required: true
+      sourcePath: /fields/report_type
+    - id: reporting-period-end-date
+      name: reporting_period_end_date
+      label: Reporting Period End Date
+      description: Reporting period end date.
+      dataType: date
+      required: true
+      sourcePath: /fields/reporting_period_end_date
+    - id: institution-name
+      name: institution_name
+      label: Institution Name
+      description: Reporting institution legal name.
+      dataType: string
+      sourcePath: /fields/institution_name
+    - id: institution-identifier
+      name: institution_identifier
+      label: Institution Identifier
+      description: RSSD, FDIC certificate, LEI, NMLS, or other identifier.
+      dataType: string
+      sourcePath: /fields/institution_identifier
+    - id: regulator-name
+      name: regulator_name
+      label: Regulator Name
+      description: Regulator or filing recipient.
+      dataType: string
+      sourcePath: /fields/regulator_name
+    - id: submission-due-date
+      name: submission_due_date
+      label: Submission Due Date
+      description: Submission due date.
+      dataType: date
+      sourcePath: /fields/submission_due_date
+    - id: submission-date
+      name: submission_date
+      label: Submission Date
+      description: Actual submission date if filed.
+      dataType: date
+      sourcePath: /fields/submission_date
+    - id: filing-status
+      name: filing_status
+      label: Filing Status
+      description: Draft, filed, accepted, rejected, amended, or other.
+      dataType: string
+      sourcePath: /fields/filing_status
+    - id: preparer-name
+      name: preparer_name
+      label: Preparer Name
+      description: Report preparer or owner.
+      dataType: string
+      sourcePath: /fields/preparer_name
+    - id: approver-name
+      name: approver_name
+      label: Approver Name
+      description: Approver or certifying officer.
+      dataType: string
+      sourcePath: /fields/approver_name
+    - id: attestation-required
+      name: attestation_required
+      label: Attestation Required
+      description: Whether certification or attestation is required.
+      dataType: boolean
+      sourcePath: /fields/attestation_required
+    - id: key-metrics
+      name: key_metrics
+      label: Key Metrics
+      description: Material report metrics with name, value, and unit if present.
+      dataType: array
+      sourcePath: /fields/key_metrics
+    - id: exceptions
+      name: exceptions
+      label: Exceptions
+      description: Known exceptions, edits, or validation issues.
+      dataType: array
+      sourcePath: /fields/exceptions
+    - id: amendment-indicator
+      name: amendment_indicator
+      label: Amendment Indicator
+      description: Whether package is an amendment or resubmission.
+      dataType: boolean
+      sourcePath: /fields/amendment_indicator
+    - id: amendment-reason
+      name: amendment_reason
+      label: Amendment Reason
+      description: Reason for amendment or resubmission.
+      dataType: string
+      sourcePath: /fields/amendment_reason
+    - id: evidence-documents
+      name: evidence_documents
+      label: Evidence Documents
+      description: Supporting schedules, reconciliations, or evidence.
+      dataType: array
+      sourcePath: /fields/evidence_documents
+    - id: control-signoffs
+      name: control_signoffs
+      label: Control Signoffs
+      description: Control owners or signoff records.
+      dataType: array
+      sourcePath: /fields/control_signoffs
+  validationRules:
+    - id: report-name-present
+      severity: error
+      description: report_name is required for Regulatory Reporting Package extraction.
+      rule:
+        op: present
+        field: report_name
+      sourceExpression: report_name IS NOT NULL AND LENGTH(TRIM(report_name)) > 0
+      supported: true
+    - id: report-type-present
+      severity: error
+      description: report_type is required for Regulatory Reporting Package extraction.
+      rule:
+        op: present
+        field: report_type
+      sourceExpression: report_type IS NOT NULL AND LENGTH(TRIM(report_type)) > 0
+      supported: true
+    - id: reporting-period-end-date-present
+      severity: error
+      description: reporting_period_end_date is required for Regulatory Reporting Package extraction.
+      rule:
+        op: present
+        field: reporting_period_end_date
+      sourceExpression: reporting_period_end_date IS NOT NULL AND LENGTH(TRIM(reporting_period_end_date)) > 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      report_name:
+        type: string
+        description: Name of report package or filing.
+      report_type:
+        type: string
+        description: Call Report, HMDA, CRA, SAR, CTR, CECL, CCAR, DFAST, liquidity, or other.
+      reporting_period_end_date:
+        type: date
+        description: Reporting period end date.
+        format: date
+      institution_name:
+        type: string
+        description: Reporting institution legal name.
+      institution_identifier:
+        type: string
+        description: RSSD, FDIC certificate, LEI, NMLS, or other identifier.
+      regulator_name:
+        type: string
+        description: Regulator or filing recipient.
+      submission_due_date:
+        type: date
+        description: Submission due date.
+        format: date
+      submission_date:
+        type: date
+        description: Actual submission date if filed.
+        format: date
+      filing_status:
+        type: string
+        description: Draft, filed, accepted, rejected, amended, or other.
+      preparer_name:
+        type: string
+        description: Report preparer or owner.
+      approver_name:
+        type: string
+        description: Approver or certifying officer.
+      attestation_required:
+        type: boolean
+        description: Whether certification or attestation is required.
+      key_metrics:
+        type: array
+        items:
+          type: object
+          properties:
+            key_metric_type:
+              type: string
+              description: Type or class for key_metrics item.
+            key_metric_description:
+              type: string
+              description: Description for key_metrics item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Material report metrics with name, value, and unit if present.
+      exceptions:
+        type: array
+        items:
+          type: string
+        description: Known exceptions, edits, or validation issues.
+      amendment_indicator:
+        type: boolean
+        description: Whether package is an amendment or resubmission.
+      amendment_reason:
+        type: string
+        description: Reason for amendment or resubmission.
+      evidence_documents:
+        type: array
+        items:
+          type: string
+        description: Supporting schedules, reconciliations, or evidence.
+      control_signoffs:
+        type: array
+        items:
+          type: string
+        description: Control owners or signoff records.
+    required:
+      - report_name
+      - report_type
+      - reporting_period_end_date
+    additionalProperties: false
+  inertSourceMetadata:
+    family: regulatory_reporting
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - report_name
+          - report_type
+          - reporting_period_end_date
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - line_items
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - key_metrics
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

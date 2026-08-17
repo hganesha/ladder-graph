@@ -1,0 +1,330 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-healthcare-prior-auth
+  title: Prior Auth
+  description: Prior Auth contract normalized from the DocuBricks Healthcare library.
+  version: healthcare_prior_auth_v1
+  source:
+    system: docubricks
+    sourceId: healthcare/prior_auth
+    sourcePath: Schemas/healthcare/prior_auth
+    sourceVersion: healthcare_prior_auth_v1
+    sourceDigest: 59d5eea838c11df7056b998800e42fad518c15a7b0de7d636c307283943dd7c6
+spec:
+  role: approval
+  pages:
+    - id: main
+      title: Prior Auth
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: request-date
+              name: request_date
+              label: Request Date
+              description: Request date
+              dataType: date
+              widget: date
+            - id: decision-date
+              name: decision_date
+              label: Decision Date
+              description: Decision date
+              dataType: date
+              widget: date
+            - id: expiration-date
+              name: expiration_date
+              label: Expiration Date
+              description: Expiration date
+              dataType: date
+              widget: date
+            - id: appeal-deadline
+              name: appeal_deadline
+              label: Appeal Deadline
+              description: Appeal deadline
+              dataType: string
+              widget: text
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: authorization-id
+              name: authorization_id
+              label: Authorization Id
+              description: Authorization id
+              dataType: string
+              widget: text
+              required: true
+            - id: patient-dob
+              name: patient_dob
+              label: Patient Dob
+              description: Patient dob
+              dataType: string
+              widget: text
+            - id: patient-member-id
+              name: patient_member_id
+              label: Patient Member Id
+              description: Patient member id
+              dataType: string
+              widget: text
+              required: true
+            - id: requesting-provider-npi
+              name: requesting_provider_npi
+              label: Requesting Provider Npi
+              description: Requesting provider npi
+              dataType: string
+              widget: text
+            - id: servicing-provider-npi
+              name: servicing_provider_npi
+              label: Servicing Provider Npi
+              description: Servicing provider npi
+              dataType: string
+              widget: text
+            - id: diagnosis-codes
+              name: diagnosis_codes
+              label: Diagnosis Codes
+              description: Diagnosis codes
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: procedure-codes
+              name: procedure_codes
+              label: Procedure Codes
+              description: Procedure codes
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: service-description
+              name: service_description
+              label: Service Description
+              description: Service description
+              dataType: string
+              widget: text
+            - id: units-requested
+              name: units_requested
+              label: Units Requested
+              description: Units requested
+              dataType: string
+              widget: text
+            - id: units-approved
+              name: units_approved
+              label: Units Approved
+              description: Units approved
+              dataType: string
+              widget: text
+            - id: place-of-service
+              name: place_of_service
+              label: Place Of Service
+              description: Place of service
+              dataType: string
+              widget: text
+            - id: denial-reason-code
+              name: denial_reason_code
+              label: Denial Reason Code
+              description: Denial reason code
+              dataType: string
+              widget: text
+            - id: denial-reason-text
+              name: denial_reason_text
+              label: Denial Reason Text
+              description: Denial reason text
+              dataType: string
+              widget: text
+            - id: clinical-criteria-referenced
+              name: clinical_criteria_referenced
+              label: Clinical Criteria Referenced
+              description: Clinical criteria referenced
+              dataType: string
+              widget: text
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: patient-name
+              name: patient_name
+              label: Patient Name
+              description: Patient name
+              dataType: string
+              widget: text
+            - id: payer-name
+              name: payer_name
+              label: Payer Name
+              description: Payer name
+              dataType: string
+              widget: text
+            - id: plan-name
+              name: plan_name
+              label: Plan Name
+              description: Plan name
+              dataType: string
+              widget: text
+            - id: requesting-provider-name
+              name: requesting_provider_name
+              label: Requesting Provider Name
+              description: Requesting provider name
+              dataType: string
+              widget: text
+            - id: servicing-provider-name
+              name: servicing_provider_name
+              label: Servicing Provider Name
+              description: Servicing provider name
+              dataType: string
+              widget: text
+            - id: medication-name
+              name: medication_name
+              label: Medication Name
+              description: Medication name
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: request-status
+              name: request_status
+              label: Request Status
+              description: Requested | Approved | Denied | Pending | Partially_Approved | Expired
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      authorization_id:
+        type: string
+        description: Authorization id
+      request_status:
+        type: string
+        description: Requested | Approved | Denied | Pending | Partially_Approved | Expired
+      request_date:
+        type: date
+        description: Request date
+        format: date
+      decision_date:
+        type: date
+        description: Decision date
+        format: date
+      expiration_date:
+        type: date
+        description: Expiration date
+        format: date
+      patient_name:
+        type: string
+        description: Patient name
+      patient_dob:
+        type: string
+        description: Patient dob
+      patient_member_id:
+        type: string
+        description: Patient member id
+      payer_name:
+        type: string
+        description: Payer name
+      plan_name:
+        type: string
+        description: Plan name
+      requesting_provider_name:
+        type: string
+        description: Requesting provider name
+      requesting_provider_npi:
+        type: string
+        description: Requesting provider npi
+      servicing_provider_name:
+        type: string
+        description: Servicing provider name
+      servicing_provider_npi:
+        type: string
+        description: Servicing provider npi
+      diagnosis_codes:
+        type: array
+        items:
+          type: string
+        description: Diagnosis codes
+      procedure_codes:
+        type: array
+        items:
+          type: string
+        description: Procedure codes
+      medication_name:
+        type: string
+        description: Medication name
+      service_description:
+        type: string
+        description: Service description
+      units_requested:
+        type: string
+        description: Units requested
+      units_approved:
+        type: string
+        description: Units approved
+      place_of_service:
+        type: string
+        description: Place of service
+      denial_reason_code:
+        type: string
+        description: Denial reason code
+      denial_reason_text:
+        type: string
+        description: Denial reason text
+      appeal_deadline:
+        type: string
+        description: Appeal deadline
+      clinical_criteria_referenced:
+        type: string
+        description: Clinical criteria referenced
+    required:
+      - authorization_id
+      - patient_member_id
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: authorization_id_required
+          rule_type: presence
+          fields:
+            - authorization_id
+          expression: authorization_id IS NOT NULL AND LENGTH(TRIM(authorization_id)) > 0
+          severity: fail
+          description: Authorization ID is the primary key for payer utilization management tracking.
+        - name: request_status_valid
+          rule_type: presence
+          fields: []
+          expression: request_status IN ('Requested', 'Approved', 'Denied', 'Pending', 'Partially_Approved', 'Expired')
+          severity: drop
+          description: Prior authorization workflow routing depends on a recognized request status.
+        - name: member_id_present
+          rule_type: presence
+          fields:
+            - patient_member_id
+          expression: patient_member_id IS NOT NULL AND LENGTH(TRIM(patient_member_id)) > 0
+          severity: fail
+          description: Member ID is required to reconcile the authorization with payer eligibility and claims.
+        - name: provider_npi_format
+          rule_type: format
+          fields:
+            - requesting_provider_npi
+          expression: requesting_provider_npi IS NULL OR requesting_provider_npi REGEXP '^[0-9]{10}$'
+          severity: warn
+          description: Requesting provider NPI should be a ten digit numeric identifier.
+        - name: denial_reason_required_for_denials
+          rule_type: presence
+          fields:
+            - denial_reason_text
+          expression: NOT (request_status = 'Denied' AND denial_reason_text IS NULL)
+          severity: warn
+          description: Denied prior authorizations need denial rationale to support appeals workflow.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - authorization_id
+            - patient_member_id
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

@@ -1,32 +1,65 @@
 apiVersion: ladder.dev/v1alpha1
 kind: DocuBricksClassification
 metadata:
-  name: insurance-pilot
+  name: docubricks-library
   version: 1.0.0
 spec:
-  sourceRoot: Schemas/insurance
+  sourceRoot: Schemas
   entries:
-    - documentType: first_notice_of_loss
-      artifactKind: form
-      rationale: Interactive claim intake is the primary user-authored experience.
-    - documentType: insurance_claim_file
-      artifactKind: document
-      rationale: A claim file is supporting evidence and an extraction contract, not a blank form.
-    - documentType: claims_adjuster_report
-      artifactKind: hybrid
-      rationale: It may be extracted from evidence or completed during a structured review.
-    - documentType: certificate_of_insurance
-      artifactKind: document
-      rationale: It is issued evidence rather than an interaction surface.
-    - documentType: insurance_claim_denial_letter
-      artifactKind: document
-      rationale: It is a generated communication artifact.
-    - documentType: insurance_policy_application
-      artifactKind: form
-      rationale: It is completed by an applicant and can become a first-class form.
-    - documentType: policy_declaration_page
-      artifactKind: document
-      rationale: It is issued policy evidence.
-    - documentType: proof_of_loss
-      artifactKind: hybrid
-      rationale: It can be completed as a form or imported as signed evidence.
+    # Forms are user-authored interactions; documents are extraction/output contracts.
+    # Hybrids retain both uses while choosing the primary Ladder Graph experience explicitly.
+    - { vertical: energy, documentType: daily_drilling_report, artifactKind: document, rationale: Operational report used as evidence. }
+    - { vertical: energy, documentType: field_ticket, artifactKind: hybrid, primaryExperience: form, role: completion, rationale: Field staff complete it and downstream systems retain it as evidence. }
+    - { vertical: energy, documentType: production_report, artifactKind: document, rationale: Periodic operational evidence. }
+    - { vertical: energy, documentType: well_completion_report, artifactKind: document, rationale: Issued well record and extraction contract. }
+    - { vertical: fs, documentType: aml_sar, artifactKind: form, role: review, rationale: Investigator-authored regulatory review. }
+    - { vertical: fs, documentType: collateral_schedule, artifactKind: document, rationale: Supporting credit evidence. }
+    - { vertical: fs, documentType: commercial_credit_memo, artifactKind: document, rationale: Generated decision memorandum. }
+    - { vertical: fs, documentType: commercial_loan_application, artifactKind: form, role: start, rationale: Borrower and lender intake. }
+    - { vertical: fs, documentType: covenant_compliance_certificate, artifactKind: hybrid, primaryExperience: form, role: completion, rationale: Completed certification that becomes evidence. }
+    - { vertical: fs, documentType: guaranty_agreement, artifactKind: document, rationale: Executed legal evidence. }
+    - { vertical: fs, documentType: invoice, artifactKind: document, rationale: Transaction evidence rather than workflow interaction. }
+    - { vertical: fs, documentType: issue_management_record, artifactKind: form, role: exception, rationale: Structured issue intake and remediation tracking. }
+    - { vertical: fs, documentType: kyc_cdd_form, artifactKind: form, role: review, rationale: Analyst-authored due diligence review. }
+    - { vertical: fs, documentType: loan_agreement, artifactKind: document, rationale: Executed lending instrument. }
+    - { vertical: fs, documentType: merchant_onboarding_application, artifactKind: form, role: start, rationale: Merchant onboarding intake. }
+    - { vertical: fs, documentType: mortgage_application, artifactKind: form, role: start, rationale: Borrower application experience. }
+    - { vertical: fs, documentType: regulatory_reporting_package, artifactKind: document, rationale: Compiled regulatory output package. }
+    - { vertical: fs, documentType: security_agreement, artifactKind: document, rationale: Executed collateral instrument. }
+    - { vertical: fs, documentType: syndicated_credit_agreement, artifactKind: document, rationale: Executed multi-lender agreement. }
+    - { vertical: fs, documentType: third_party_risk_assessment, artifactKind: form, role: review, rationale: Reviewer-authored control assessment. }
+    - { vertical: fs, documentType: trust_account_opening_package, artifactKind: form, role: start, rationale: Account opening intake. }
+    - { vertical: fs, documentType: ucc_financing_statement, artifactKind: hybrid, primaryExperience: form, role: completion, rationale: Prepared filing that becomes issued evidence. }
+    - { vertical: healthcare, documentType: clinical_note_soap, artifactKind: document, rationale: Clinical record and extraction contract. }
+    - { vertical: healthcare, documentType: eob_cms1500, artifactKind: hybrid, primaryExperience: form, role: completion, rationale: Structured claim submission and retained evidence. }
+    - { vertical: healthcare, documentType: lab_report, artifactKind: document, rationale: Issued diagnostic evidence. }
+    - { vertical: healthcare, documentType: prior_auth, artifactKind: form, role: approval, rationale: Request and approval interaction. }
+    - { vertical: insurance, documentType: certificate_of_insurance, artifactKind: document, rationale: Issued coverage evidence. }
+    - { vertical: insurance, documentType: claims_adjuster_report, artifactKind: hybrid, primaryExperience: form, role: review, rationale: Adjuster-authored review that may also arrive as evidence. }
+    - { vertical: insurance, documentType: first_notice_of_loss, artifactKind: form, role: start, rationale: Interactive claim intake is the primary user-authored experience. }
+    - { vertical: insurance, documentType: insurance_claim_denial_letter, artifactKind: document, rationale: Generated claim communication. }
+    - { vertical: insurance, documentType: insurance_claim_file, artifactKind: document, rationale: Supporting evidence and extraction contract. }
+    - { vertical: insurance, documentType: insurance_policy_application, artifactKind: form, role: start, rationale: Applicant-authored policy intake. }
+    - { vertical: insurance, documentType: policy_declaration_page, artifactKind: document, rationale: Issued policy evidence. }
+    - { vertical: insurance, documentType: proof_of_loss, artifactKind: hybrid, primaryExperience: form, role: completion, rationale: Claimant completion that may arrive as signed evidence. }
+    - { vertical: legal, documentType: court_filing, artifactKind: hybrid, primaryExperience: document, rationale: Prepared output and filed legal evidence. }
+    - { vertical: legal, documentType: litigation_case_file, artifactKind: document, rationale: Supporting case evidence collection. }
+    - { vertical: legal, documentType: nda_msa, artifactKind: document, rationale: Executed agreement evidence. }
+    - { vertical: legal, documentType: regulatory_submission, artifactKind: hybrid, primaryExperience: form, role: completion, rationale: Structured preparation followed by submitted evidence. }
+    - { vertical: legal, documentType: sow, artifactKind: document, rationale: Contractual scope output. }
+    - { vertical: manufacturing, documentType: bill_of_materials, artifactKind: document, rationale: Controlled product definition evidence. }
+    - { vertical: manufacturing, documentType: certificate_of_analysis, artifactKind: document, rationale: Issued quality evidence. }
+    - { vertical: manufacturing, documentType: corrective_preventive_action, artifactKind: form, role: approval, rationale: Structured CAPA investigation and approval. }
+    - { vertical: manufacturing, documentType: nonconformance_report, artifactKind: form, role: exception, rationale: Quality exception intake and disposition. }
+    - { vertical: manufacturing, documentType: purchase_order, artifactKind: document, rationale: Issued procurement transaction. }
+    - { vertical: manufacturing, documentType: quality_inspection_report, artifactKind: form, role: review, rationale: Inspector-authored quality review. }
+    - { vertical: manufacturing, documentType: receiving_report, artifactKind: form, role: completion, rationale: Receiving interaction that records delivered goods. }
+    - { vertical: manufacturing, documentType: supplier_scorecard, artifactKind: form, role: review, rationale: Reviewer-authored supplier assessment. }
+    - { vertical: real_estate, documentType: closing_statement, artifactKind: document, rationale: Issued transaction settlement evidence. }
+    - { vertical: real_estate, documentType: deed, artifactKind: document, rationale: Recorded title instrument. }
+    - { vertical: real_estate, documentType: lease_agreement, artifactKind: document, rationale: Executed property agreement. }
+    - { vertical: real_estate, documentType: property_management_agreement, artifactKind: document, rationale: Executed management agreement. }
+    - { vertical: real_estate, documentType: purchase_agreement, artifactKind: document, rationale: Executed transaction agreement. }
+    - { vertical: real_estate, documentType: real_estate_transactions_title_commitment, artifactKind: document, rationale: Issued title evidence. }
+    - { vertical: real_estate, documentType: rent_roll, artifactKind: document, rationale: Property operating evidence. }
+    - { vertical: real_estate, documentType: tenant_estoppel_certificate, artifactKind: hybrid, primaryExperience: form, role: completion, rationale: Tenant certification that becomes transaction evidence. }

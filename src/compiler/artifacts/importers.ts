@@ -222,11 +222,11 @@ function docuBricksType(source: string): FormField["dataType"] | undefined {
   return undefined;
 }
 
-function convertRule(rule: DocuBricksRuleSource): DocumentValidationRule {
+function convertRule(rule: DocuBricksRuleSource, fieldNames: Set<string>): DocumentValidationRule {
   const field = rule.field_name ?? rule.fields?.[0];
   let safeRule: SafeRule | undefined;
-  if (rule.rule_type === "presence" && field) safeRule = { op: "present", field };
-  else if (rule.rule_type === "range" && field && />=\s*0/u.test(rule.expression ?? ""))
+  if (rule.rule_type === "presence" && field && fieldNames.has(field)) safeRule = { op: "present", field };
+  else if (rule.rule_type === "range" && field && fieldNames.has(field) && />=\s*0/u.test(rule.expression ?? ""))
     safeRule = { op: "gte", left: { field }, right: { value: 0 } };
   return {
     id: slug(rule.name),
@@ -342,7 +342,7 @@ export function importDocuBricksSchema(
         description: section.description,
         fieldIds: (section.fields ?? []).map(slug),
       })),
-      validationRules: (rules ?? []).map(convertRule),
+      validationRules: (rules ?? []).map((rule) => convertRule(rule, new Set(normalizedFields.map((field) => field.name)))),
       outputSchema: {},
       inertSourceMetadata: { promptId: schema.source_prompt },
     },

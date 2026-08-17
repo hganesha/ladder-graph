@@ -1,0 +1,433 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-healthcare-clinical-note-soap
+  title: Clinical Note Soap
+  description: Clinical Note Soap contract normalized from the DocuBricks Healthcare library.
+  version: healthcare_clinical_note_soap_v1
+  source:
+    system: docubricks
+    sourceId: healthcare/clinical_note_soap
+    sourcePath: Schemas/healthcare/clinical_note_soap
+    sourceVersion: healthcare_clinical_note_soap_v1
+    sourceDigest: fefd213a0b50b40a7b7df436398c2c6241b112e1241a13e3ba833e477be5b385
+spec:
+  documentType: clinical_note_soap
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - note-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - assessment-diagnoses
+        - bp
+        - chief-complaint
+        - department
+        - description
+        - document-id
+        - follow-up-instructions
+        - follow-up-timeframe
+        - hr
+        - icd10-code
+        - medications-mentioned
+        - note-type
+        - objective-vitals
+        - patient-dob
+        - patient-mrn
+        - plan-summary
+        - provider-npi
+        - provider-specialty
+        - rr
+        - spo2
+        - subjective-summary
+        - temp
+        - weight
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - facility-name
+        - patient-name
+        - provider-name
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - status
+  fields:
+    - id: note-date
+      name: note_date
+      label: Note Date
+      description: Date the note was authored/signed, format YYYY-MM-DD
+      dataType: date
+      required: true
+      sourcePath: /fields/note_date
+    - id: note-type
+      name: note_type
+      label: Note Type
+      description: "Type of clinical note. One of: Progress | Discharge | Consultation | Admission"
+      dataType: string
+      sourcePath: /fields/note_type
+    - id: document-id
+      name: document_id
+      label: Document Id
+      description: Electronic Medical Record (EMR) note identifier or encounter number if present
+      dataType: string
+      required: true
+      sourcePath: /fields/document_id
+    - id: provider-name
+      name: provider_name
+      label: Provider Name
+      description: Full name of the clinician authoring the note (e.g., "Dr. Sarah Chen, MD")
+      dataType: string
+      required: true
+      sourcePath: /fields/provider_name
+    - id: provider-npi
+      name: provider_npi
+      label: Provider Npi
+      description: National Provider Identifier (NPI) of the authoring provider — 10-digit numeric; null if not
+        embedded in note
+      dataType: string
+      sourcePath: /fields/provider_npi
+    - id: provider-specialty
+      name: provider_specialty
+      label: Provider Specialty
+      description: Clinical specialty or department of the provider (e.g., "Internal Medicine", "Emergency
+        Medicine", "Orthopedics")
+      dataType: string
+      sourcePath: /fields/provider_specialty
+    - id: patient-name
+      name: patient_name
+      label: Patient Name
+      description: Full name of the patient
+      dataType: string
+      sourcePath: /fields/patient_name
+    - id: patient-dob
+      name: patient_dob
+      label: Patient Dob
+      description: Patient date of birth, format YYYY-MM-DD
+      dataType: string
+      sourcePath: /fields/patient_dob
+    - id: patient-mrn
+      name: patient_mrn
+      label: Patient Mrn
+      description: Medical Record Number (MRN) assigned by the facility
+      dataType: string
+      sourcePath: /fields/patient_mrn
+    - id: facility-name
+      name: facility_name
+      label: Facility Name
+      description: Name of the hospital, clinic, or practice where the note was created
+      dataType: string
+      sourcePath: /fields/facility_name
+    - id: department
+      name: department
+      label: Department
+      description: Clinical department or unit (e.g., "Cardiology Outpatient Clinic", "Emergency Department",
+        "2-North Med/Surg")
+      dataType: string
+      sourcePath: /fields/department
+    - id: chief-complaint
+      name: chief_complaint
+      label: Chief Complaint
+      description: Patient's primary stated reason for visit in their own words or as paraphrased by provider. Free
+        text, maximum 200 characters. Extract the most specific complaint from the "Chief Complaint" or "CC:"
+        label
+      dataType: string
+      sourcePath: /fields/chief_complaint
+    - id: subjective-summary
+      name: subjective_summary
+      label: Subjective Summary
+      description: Summary of the full Subjective section including history of present illness (HPI), review of
+        systems, and relevant history. Free text, maximum 300 characters. Truncate with ellipsis if longer
+      dataType: string
+      sourcePath: /fields/subjective_summary
+    - id: objective-vitals
+      name: objective_vitals
+      label: Objective Vitals
+      description: "Structured object containing vital signs. Extract each of the following sub-fields as a string
+        value (include units). Set to null if not documented:"
+      dataType: string
+      sourcePath: /fields/objective_vitals
+    - id: bp
+      name: bp
+      label: Bp
+      description: Blood pressure (e.g., "138/88 mmHg")
+      dataType: string
+      sourcePath: /fields/bp
+    - id: hr
+      name: hr
+      label: Hr
+      description: Heart rate (e.g., "76 bpm")
+      dataType: string
+      sourcePath: /fields/hr
+    - id: temp
+      name: temp
+      label: Temp
+      description: Temperature (e.g., "98.6°F" or "37.0°C")
+      dataType: string
+      sourcePath: /fields/temp
+    - id: rr
+      name: rr
+      label: Rr
+      description: Respiratory rate (e.g., "16 breaths/min")
+      dataType: string
+      sourcePath: /fields/rr
+    - id: spo2
+      name: spo2
+      label: Spo2
+      description: Oxygen saturation (e.g., "97% on room air")
+      dataType: string
+      sourcePath: /fields/spo2
+    - id: weight
+      name: weight
+      label: Weight
+      description: Body weight (e.g., "185 lbs" or "83.9 kg")
+      dataType: string
+      sourcePath: /fields/weight
+    - id: assessment-diagnoses
+      name: assessment_diagnoses
+      label: Assessment Diagnoses
+      description: "Array of diagnosis objects. For each diagnosis found in the Assessment section, extract:"
+      dataType: array
+      sourcePath: /fields/assessment_diagnoses
+    - id: icd10-code
+      name: icd10_code
+      label: Icd10 Code
+      description: ICD-10-CM code (e.g., "I10", "E11.9"). Null if only described without a code
+      dataType: string
+      sourcePath: /fields/icd10_code
+    - id: description
+      name: description
+      label: Description
+      description: Diagnosis description or name as written in the note
+      dataType: string
+      sourcePath: /fields/description
+    - id: status
+      name: status
+      label: Status
+      description: "One of: Active | Chronic | Resolved | New | Suspected (infer from context if not explicit)"
+      dataType: string
+      sourcePath: /fields/status
+    - id: plan-summary
+      name: plan_summary
+      label: Plan Summary
+      description: Summary of the Plan section including medications prescribed/adjusted, orders placed, referrals,
+        and instructions. Free text, maximum 300 characters. Truncate with ellipsis if longer
+      dataType: string
+      sourcePath: /fields/plan_summary
+    - id: medications-mentioned
+      name: medications_mentioned
+      label: Medications Mentioned
+      description: Array of medication names referenced anywhere in the note (including current medications list,
+        new prescriptions, discontinued medications). Include drug name only — no dosing details
+      dataType: array
+      sourcePath: /fields/medications_mentioned
+    - id: follow-up-instructions
+      name: follow_up_instructions
+      label: Follow Up Instructions
+      description: Specific follow-up instruction text (e.g., "Return to clinic if fever > 101.5°F or worsening symptoms")
+      dataType: string
+      sourcePath: /fields/follow_up_instructions
+    - id: follow-up-timeframe
+      name: follow_up_timeframe
+      label: Follow Up Timeframe
+      description: Time interval for scheduled follow-up (e.g., "2 weeks", "3 months", "as needed")
+      dataType: string
+      sourcePath: /fields/follow_up_timeframe
+  validationRules:
+    - id: document-id-not-null
+      severity: error
+      description: Document/encounter ID is the EMR primary key for note attribution — without it the record cannot
+        be linked to an encounter, clinician, or patient in downstream systems
+      rule:
+        op: present
+        field: document_id
+      sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
+      supported: true
+    - id: avg-confidence-minimum
+      severity: warning
+      description: Overall extraction confidence below 0.60 indicates severe document quality issues (handwriting,
+        fax artifacts, non-SOAP formatting) — route to clinical review queue rather than ingest
+      sourceExpression: avg_confidence >= 0.60
+      supported: false
+    - id: note-date-not-null
+      severity: warning
+      description: Note date is required for clinical timeline integrity, regulatory retention schedules, and
+        quality measure date attribution; undated notes cannot be safely processed
+      rule:
+        op: present
+        field: note_date
+      sourceExpression: note_date IS NOT NULL
+      supported: true
+    - id: provider-name-not-null
+      severity: warning
+      description: Provider name is required for attribution, peer review routing, credentialing verification, and
+        medical-legal documentation; anonymous notes must be quarantined
+      rule:
+        op: present
+        field: provider_name
+      sourceExpression: provider_name IS NOT NULL AND LENGTH(TRIM(provider_name)) > 0
+      supported: true
+    - id: note-type-valid-enum
+      severity: warning
+      description: Note type must be a recognized clinical note category for downstream care management and quality
+        reporting routing; unrecognized types flag for reclassification
+      sourceExpression: note_type IN ('Progress', 'Discharge', 'Consultation', 'Admission')
+      supported: false
+    - id: chief-complaint-present
+      severity: warning
+      description: Chief complaint is a core clinical documentation element; its absence may indicate extraction
+        failure or a structurally incomplete note requiring clinical review
+      rule:
+        op: present
+        field: chief_complaint
+      sourceExpression: chief_complaint IS NOT NULL AND LENGTH(TRIM(chief_complaint)) > 0
+      supported: true
+    - id: assessment-diagnoses-present
+      severity: warning
+      description: At least one diagnosis must be present in the Assessment section for care coordination, billing
+        code mapping, and quality measure attribution; absence flags documentation gap
+      sourceExpression: assessment_diagnoses IS NOT NULL AND ARRAY_SIZE(assessment_diagnoses) > 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      note_date:
+        type: date
+        description: Date the note was authored/signed, format YYYY-MM-DD
+        format: date
+      note_type:
+        type: string
+        description: "Type of clinical note. One of: Progress | Discharge | Consultation | Admission"
+      document_id:
+        type: string
+        description: Electronic Medical Record (EMR) note identifier or encounter number if present
+      provider_name:
+        type: string
+        description: Full name of the clinician authoring the note (e.g., "Dr. Sarah Chen, MD")
+      provider_npi:
+        type: string
+        description: National Provider Identifier (NPI) of the authoring provider — 10-digit numeric; null if not
+          embedded in note
+      provider_specialty:
+        type: string
+        description: Clinical specialty or department of the provider (e.g., "Internal Medicine", "Emergency
+          Medicine", "Orthopedics")
+      patient_name:
+        type: string
+        description: Full name of the patient
+      patient_dob:
+        type: string
+        description: Patient date of birth, format YYYY-MM-DD
+      patient_mrn:
+        type: string
+        description: Medical Record Number (MRN) assigned by the facility
+      facility_name:
+        type: string
+        description: Name of the hospital, clinic, or practice where the note was created
+      department:
+        type: string
+        description: Clinical department or unit (e.g., "Cardiology Outpatient Clinic", "Emergency Department",
+          "2-North Med/Surg")
+      chief_complaint:
+        type: string
+        description: Patient's primary stated reason for visit in their own words or as paraphrased by provider. Free
+          text, maximum 200 characters. Extract the most specific complaint from the "Chief Complaint" or
+          "CC:" label
+      subjective_summary:
+        type: string
+        description: Summary of the full Subjective section including history of present illness (HPI), review of
+          systems, and relevant history. Free text, maximum 300 characters. Truncate with ellipsis if longer
+      objective_vitals:
+        type: string
+        description: "Structured object containing vital signs. Extract each of the following sub-fields as a string
+          value (include units). Set to null if not documented:"
+      bp:
+        type: string
+        description: Blood pressure (e.g., "138/88 mmHg")
+      hr:
+        type: string
+        description: Heart rate (e.g., "76 bpm")
+      temp:
+        type: string
+        description: Temperature (e.g., "98.6°F" or "37.0°C")
+      rr:
+        type: string
+        description: Respiratory rate (e.g., "16 breaths/min")
+      spo2:
+        type: string
+        description: Oxygen saturation (e.g., "97% on room air")
+      weight:
+        type: string
+        description: Body weight (e.g., "185 lbs" or "83.9 kg")
+      assessment_diagnoses:
+        type: array
+        items:
+          type: string
+        description: "Array of diagnosis objects. For each diagnosis found in the Assessment section, extract:"
+      icd10_code:
+        type: string
+        description: ICD-10-CM code (e.g., "I10", "E11.9"). Null if only described without a code
+      description:
+        type: string
+        description: Diagnosis description or name as written in the note
+      status:
+        type: string
+        description: "One of: Active | Chronic | Resolved | New | Suspected (infer from context if not explicit)"
+      plan_summary:
+        type: string
+        description: Summary of the Plan section including medications prescribed/adjusted, orders placed, referrals,
+          and instructions. Free text, maximum 300 characters. Truncate with ellipsis if longer
+      medications_mentioned:
+        type: array
+        items:
+          type: string
+        description: Array of medication names referenced anywhere in the note (including current medications list,
+          new prescriptions, discontinued medications). Include drug name only — no dosing details
+      follow_up_instructions:
+        type: string
+        description: Specific follow-up instruction text (e.g., "Return to clinic if fever > 101.5°F or worsening
+          symptoms")
+      follow_up_timeframe:
+        type: string
+        description: Time interval for scheduled follow-up (e.g., "2 weeks", "3 months", "as needed")
+    required:
+      - note_date
+      - document_id
+      - provider_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: clinical_documents
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - note_date
+          - document_id
+          - provider_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

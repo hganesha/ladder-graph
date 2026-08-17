@@ -1,0 +1,371 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-energy-field-ticket
+  title: Field Ticket
+  description: Field Ticket contract normalized from the DocuBricks Energy library.
+  version: energy_field_ticket_v1
+  source:
+    system: docubricks
+    sourceId: energy/field_ticket
+    sourcePath: Schemas/energy/field_ticket
+    sourceVersion: energy_field_ticket_v1
+    sourceDigest: 3dc39f1e506cdfdc4db6788f29e7488aa2ce7ba7d922560254b98ee717c1ebdc
+spec:
+  role: completion
+  pages:
+    - id: main
+      title: Field Ticket
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: service-date
+              name: service_date
+              label: Service Date
+              description: Date service was performed.
+              dataType: date
+              widget: date
+              required: true
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: ticket-number
+              name: ticket_number
+              label: Ticket Number
+              description: Field ticket number.
+              dataType: string
+              widget: text
+              required: true
+            - id: job-type
+              name: job_type
+              label: Job Type
+              description: Type of service performed.
+              dataType: string
+              widget: text
+              required: true
+            - id: job-description
+              name: job_description
+              label: Job Description
+              description: Narrative description of the work performed.
+              dataType: string
+              widget: text
+            - id: service-supervisor
+              name: service_supervisor
+              label: Service Supervisor
+              description: Service company supervisor.
+              dataType: string
+              widget: text
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: subtotal-amount
+              name: subtotal_amount
+              label: Subtotal Amount
+              description: Subtotal before tax or fees.
+              dataType: number
+              widget: number
+            - id: tax-amount
+              name: tax_amount
+              label: Tax Amount
+              description: Tax amount.
+              dataType: number
+              widget: number
+            - id: total-amount
+              name: total_amount
+              label: Total Amount
+              description: Total field ticket amount.
+              dataType: number
+              widget: number
+              required: true
+        - id: line-items
+          title: Line Items
+          description: Line Items fields extracted from the document.
+          fields:
+            - id: labor-lines
+              name: labor_lines
+              label: Labor Lines
+              description: Labor charges with role, hours, rate, and amount.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: equipment-lines
+              name: equipment_lines
+              label: Equipment Lines
+              description: Equipment charges with unit, hours, rate, and amount.
+              dataType: array
+              widget: textarea
+              span: 2
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: operator-name
+              name: operator_name
+              label: Operator Name
+              description: Customer or operating company.
+              dataType: string
+              widget: text
+              required: true
+            - id: service-company-name
+              name: service_company_name
+              label: Service Company Name
+              description: Service provider issuing the ticket.
+              dataType: string
+              widget: text
+              required: true
+            - id: well-name
+              name: well_name
+              label: Well Name
+              description: Well, pad, lease, or facility serviced.
+              dataType: string
+              widget: text
+            - id: customer-representative
+              name: customer_representative
+              label: Customer Representative
+              description: Customer approver or company representative.
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: location
+              name: location
+              label: Location
+              description: Service location.
+              dataType: string
+              widget: text
+            - id: material-lines
+              name: material_lines
+              label: Material Lines
+              description: Material charges with item, quantity, unit price, and amount.
+              dataType: array
+              widget: textarea
+              span: 2
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: approval-status
+              name: approval_status
+              label: Approval Status
+              description: Signed, pending, disputed, rejected, or other approval status.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      ticket_number:
+        type: string
+        description: Field ticket number.
+      service_date:
+        type: date
+        description: Date service was performed.
+        format: date
+      operator_name:
+        type: string
+        description: Customer or operating company.
+      service_company_name:
+        type: string
+        description: Service provider issuing the ticket.
+      well_name:
+        type: string
+        description: Well, pad, lease, or facility serviced.
+      location:
+        type: string
+        description: Service location.
+      job_type:
+        type: string
+        description: Type of service performed.
+      job_description:
+        type: string
+        description: Narrative description of the work performed.
+      labor_lines:
+        type: array
+        items:
+          type: object
+          properties:
+            labor_line_type:
+              type: string
+              description: Type or class for labor_lines item.
+            labor_line_description:
+              type: string
+              description: Description for labor_lines item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Labor charges with role, hours, rate, and amount.
+      equipment_lines:
+        type: array
+        items:
+          type: object
+          properties:
+            equipment_id:
+              type: string
+              description: Equipment unit, serial, or asset identifier.
+            equipment_type:
+              type: string
+              description: Equipment type.
+            description:
+              type: string
+              description: Equipment or service line description.
+            hours:
+              type: number
+              description: Billable equipment hours.
+            rate:
+              type: number
+              description: Billing rate.
+            amount:
+              type: number
+              description: Line amount.
+        description: Equipment charges with unit, hours, rate, and amount.
+      material_lines:
+        type: array
+        items:
+          type: object
+          properties:
+            material_line_type:
+              type: string
+              description: Type or class for material_lines item.
+            material_line_description:
+              type: string
+              description: Description for material_lines item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Material charges with item, quantity, unit price, and amount.
+      subtotal_amount:
+        type: number
+        description: Subtotal before tax or fees.
+      tax_amount:
+        type: number
+        description: Tax amount.
+      total_amount:
+        type: number
+        description: Total field ticket amount.
+      customer_representative:
+        type: string
+        description: Customer approver or company representative.
+      service_supervisor:
+        type: string
+        description: Service company supervisor.
+      approval_status:
+        type: string
+        description: Signed, pending, disputed, rejected, or other approval status.
+    required:
+      - ticket_number
+      - service_date
+      - operator_name
+      - service_company_name
+      - job_type
+      - total_amount
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: ticket_number_present
+          rule_type: presence
+          fields:
+            - ticket_number
+          expression: ticket_number IS NOT NULL AND LENGTH(TRIM(ticket_number)) > 0
+          severity: fail
+          description: ticket_number is required for Field Ticket extraction.
+        - name: service_date_present
+          rule_type: presence
+          fields:
+            - service_date
+          expression: service_date IS NOT NULL AND LENGTH(TRIM(service_date)) > 0
+          severity: fail
+          description: service_date is required for Field Ticket extraction.
+        - name: operator_name_present
+          rule_type: presence
+          fields:
+            - operator_name
+          expression: operator_name IS NOT NULL AND LENGTH(TRIM(operator_name)) > 0
+          severity: fail
+          description: operator_name is required for Field Ticket extraction.
+        - name: service_company_name_present
+          rule_type: presence
+          fields:
+            - service_company_name
+          expression: service_company_name IS NOT NULL AND LENGTH(TRIM(service_company_name)) > 0
+          severity: fail
+          description: service_company_name is required for Field Ticket extraction.
+        - name: job_type_present
+          rule_type: presence
+          fields:
+            - job_type
+          expression: job_type IS NOT NULL AND LENGTH(TRIM(job_type)) > 0
+          severity: fail
+          description: job_type is required for Field Ticket extraction.
+        - name: total_amount_present
+          rule_type: presence
+          fields:
+            - total_amount
+          expression: total_amount IS NOT NULL AND LENGTH(TRIM(total_amount)) > 0
+          severity: fail
+          description: total_amount is required for Field Ticket extraction.
+        - name: subtotal_amount_non_negative
+          rule_type: range
+          fields:
+            - subtotal_amount
+          expression: subtotal_amount IS NULL OR subtotal_amount >= 0
+          severity: warn
+          description: subtotal_amount should be non-negative when present.
+        - name: tax_amount_non_negative
+          rule_type: range
+          fields:
+            - tax_amount
+          expression: tax_amount IS NULL OR tax_amount >= 0
+          severity: warn
+          description: tax_amount should be non-negative when present.
+        - name: total_amount_non_negative
+          rule_type: range
+          fields:
+            - total_amount
+          expression: total_amount IS NULL OR total_amount >= 0
+          severity: warn
+          description: total_amount should be non-negative when present.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - ticket_number
+            - service_date
+            - operator_name
+            - service_company_name
+            - job_type
+            - total_amount
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - line_items
+            - parties
+            - property_or_asset
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields:
+            - labor_lines
+            - equipment_lines
+            - material_lines

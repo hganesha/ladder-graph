@@ -1,0 +1,276 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-guaranty-agreement
+  title: Guaranty Agreement
+  description: Guaranty Agreement contract normalized from the DocuBricks Financial services library.
+  version: fs_guaranty_agreement_v1
+  source:
+    system: docubricks
+    sourceId: fs/guaranty_agreement
+    sourcePath: Schemas/fs/guaranty_agreement
+    sourceVersion: fs_guaranty_agreement_v1
+    sourceDigest: 4d6176c9c5de5cc93543bdcf87851e16d00a727d8a6f8eca1ac084ccc2abf53e
+spec:
+  documentType: guaranty_agreement
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - agreement-date
+        - termination-rights
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - continuing-guaranty
+        - governing-law
+        - guaranteed-obligations
+        - guarantor-type
+        - guaranty-type
+        - joint-and-several
+        - signature-title
+        - underlying-agreement-reference
+        - waivers
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - maximum-liability-amount
+        - payment-on-demand
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - borrower-name
+        - guarantor-name
+        - lender-name
+        - signature-name
+  fields:
+    - id: agreement-date
+      name: agreement_date
+      label: Agreement Date
+      description: Date of guaranty.
+      dataType: date
+      sourcePath: /fields/agreement_date
+    - id: guarantor-name
+      name: guarantor_name
+      label: Guarantor Name
+      description: Guarantor legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/guarantor_name
+    - id: guarantor-type
+      name: guarantor_type
+      label: Guarantor Type
+      description: Individual, entity, trust, spouse, affiliate, or other.
+      dataType: string
+      sourcePath: /fields/guarantor_type
+    - id: borrower-name
+      name: borrower_name
+      label: Borrower Name
+      description: Borrower whose obligations are guaranteed.
+      dataType: string
+      sourcePath: /fields/borrower_name
+    - id: lender-name
+      name: lender_name
+      label: Lender Name
+      description: Lender or beneficiary.
+      dataType: string
+      sourcePath: /fields/lender_name
+    - id: underlying-agreement-reference
+      name: underlying_agreement_reference
+      label: Underlying Agreement Reference
+      description: Loan agreement or note referenced.
+      dataType: string
+      sourcePath: /fields/underlying_agreement_reference
+    - id: guaranty-type
+      name: guaranty_type
+      label: Guaranty Type
+      description: Unlimited, limited, payment, collection, completion, carve-out, springing, or other.
+      dataType: string
+      sourcePath: /fields/guaranty_type
+    - id: guaranteed-obligations
+      name: guaranteed_obligations
+      label: Guaranteed Obligations
+      description: Description of obligations guaranteed.
+      dataType: string
+      sourcePath: /fields/guaranteed_obligations
+    - id: maximum-liability-amount
+      name: maximum_liability_amount
+      label: Maximum Liability Amount
+      description: Cap or maximum amount if stated.
+      dataType: number
+      sourcePath: /fields/maximum_liability_amount
+    - id: continuing-guaranty
+      name: continuing_guaranty
+      label: Continuing Guaranty
+      description: Whether guaranty is continuing.
+      dataType: boolean
+      sourcePath: /fields/continuing_guaranty
+    - id: joint-and-several
+      name: joint_and_several
+      label: Joint And Several
+      description: Whether liability is joint and several.
+      dataType: boolean
+      sourcePath: /fields/joint_and_several
+    - id: payment-on-demand
+      name: payment_on_demand
+      label: Payment On Demand
+      description: Whether payment is due on demand.
+      dataType: boolean
+      sourcePath: /fields/payment_on_demand
+    - id: waivers
+      name: waivers
+      label: Waivers
+      description: Waivers of notice, presentment, defenses, subrogation, jury trial, etc.
+      dataType: array
+      sourcePath: /fields/waivers
+    - id: termination-rights
+      name: termination_rights
+      label: Termination Rights
+      description: Termination or revocation language.
+      dataType: string
+      sourcePath: /fields/termination_rights
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: Governing law jurisdiction.
+      dataType: string
+      sourcePath: /fields/governing_law
+    - id: signature-name
+      name: signature_name
+      label: Signature Name
+      description: Signer name.
+      dataType: string
+      sourcePath: /fields/signature_name
+    - id: signature-title
+      name: signature_title
+      label: Signature Title
+      description: Signer title if entity guarantor.
+      dataType: string
+      sourcePath: /fields/signature_title
+  validationRules:
+    - id: guarantor-name-present
+      severity: error
+      description: Guaranty agreement must identify the guarantor.
+      rule:
+        op: present
+        field: guarantor_name
+      sourceExpression: guarantor_name IS NOT NULL AND LENGTH(TRIM(guarantor_name)) > 0
+      supported: true
+    - id: borrower-name-present
+      severity: warning
+      description: Borrower should be captured to link guaranty to the obligation.
+      rule:
+        op: present
+        field: borrower_name
+      sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
+      supported: true
+    - id: maximum-liability-positive
+      severity: warning
+      description: Liability cap must be positive when present.
+      sourceExpression: maximum_liability_amount IS NULL OR maximum_liability_amount > 0
+      supported: false
+    - id: waivers-array-valid
+      severity: warning
+      description: Waivers should be represented as an array.
+      sourceExpression: waivers IS NULL OR JSON_ARRAY_LENGTH(waivers) >= 0
+      supported: false
+    - id: governing-law-present
+      severity: warning
+      description: Governing law should be captured for enforceability review.
+      rule:
+        op: present
+        field: governing_law
+      sourceExpression: governing_law IS NOT NULL AND LENGTH(TRIM(governing_law)) > 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      agreement_date:
+        type: date
+        description: Date of guaranty.
+        format: date
+      guarantor_name:
+        type: string
+        description: Guarantor legal name.
+      guarantor_type:
+        type: string
+        description: Individual, entity, trust, spouse, affiliate, or other.
+      borrower_name:
+        type: string
+        description: Borrower whose obligations are guaranteed.
+      lender_name:
+        type: string
+        description: Lender or beneficiary.
+      underlying_agreement_reference:
+        type: string
+        description: Loan agreement or note referenced.
+      guaranty_type:
+        type: string
+        description: Unlimited, limited, payment, collection, completion, carve-out, springing, or other.
+      guaranteed_obligations:
+        type: string
+        description: Description of obligations guaranteed.
+      maximum_liability_amount:
+        type: number
+        description: Cap or maximum amount if stated.
+      continuing_guaranty:
+        type: boolean
+        description: Whether guaranty is continuing.
+      joint_and_several:
+        type: boolean
+        description: Whether liability is joint and several.
+      payment_on_demand:
+        type: boolean
+        description: Whether payment is due on demand.
+      waivers:
+        type: array
+        items:
+          type: string
+        description: Waivers of notice, presentment, defenses, subrogation, jury trial, etc.
+      termination_rights:
+        type: string
+        description: Termination or revocation language.
+      governing_law:
+        type: string
+        description: Governing law jurisdiction.
+      signature_name:
+        type: string
+        description: Signer name.
+      signature_title:
+        type: string
+        description: Signer title if entity guarantor.
+    required:
+      - guarantor_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: commercial_lending
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - guarantor_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

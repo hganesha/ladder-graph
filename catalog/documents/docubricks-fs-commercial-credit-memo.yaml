@@ -1,0 +1,364 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-commercial-credit-memo
+  title: Commercial Credit Memo
+  description: Commercial Credit Memo contract normalized from the DocuBricks Financial services library.
+  version: fs_commercial_credit_memo_v1
+  source:
+    system: docubricks
+    sourceId: fs/commercial_credit_memo
+    sourcePath: Schemas/fs/commercial_credit_memo
+    sourceVersion: fs_commercial_credit_memo_v1
+    sourceDigest: f69aeabef8aa1425f0b55c597a3e7b745d86da93cc719ddb5799f813887b7106
+spec:
+  documentType: commercial_credit_memo
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - memo-date
+        - next-review-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - covenant-summary
+        - facility-type
+        - guarantor-summary
+        - leverage-ratio
+        - liquidity-summary
+        - ltv-percent
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - loan-purpose
+        - proposed-commitment-amount
+        - risk-rating-current
+        - total-exposure-amount
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - policy-exceptions
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - borrower-industry
+        - borrower-name
+        - relationship-manager-name
+        - underwriter-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - collateral-summary
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - approval-authority
+        - approval-conditions
+        - approval-status
+        - debt-service-coverage-ratio
+        - probability-of-default
+        - risk-rating-proposed
+  fields:
+    - id: memo-date
+      name: memo_date
+      label: Memo Date
+      description: Credit memo date.
+      dataType: date
+      sourcePath: /fields/memo_date
+    - id: borrower-name
+      name: borrower_name
+      label: Borrower Name
+      description: Borrower or obligor name.
+      dataType: string
+      required: true
+      sourcePath: /fields/borrower_name
+    - id: borrower-industry
+      name: borrower_industry
+      label: Borrower Industry
+      description: Industry or NAICS description.
+      dataType: string
+      sourcePath: /fields/borrower_industry
+    - id: relationship-manager-name
+      name: relationship_manager_name
+      label: Relationship Manager Name
+      description: RM, banker, or officer.
+      dataType: string
+      sourcePath: /fields/relationship_manager_name
+    - id: underwriter-name
+      name: underwriter_name
+      label: Underwriter Name
+      description: Credit analyst or underwriter.
+      dataType: string
+      sourcePath: /fields/underwriter_name
+    - id: facility-type
+      name: facility_type
+      label: Facility Type
+      description: Term loan, revolver, CRE, equipment, SBA, or other.
+      dataType: string
+      sourcePath: /fields/facility_type
+    - id: proposed-commitment-amount
+      name: proposed_commitment_amount
+      label: Proposed Commitment Amount
+      description: Proposed loan or commitment amount.
+      dataType: number
+      sourcePath: /fields/proposed_commitment_amount
+    - id: total-exposure-amount
+      name: total_exposure_amount
+      label: Total Exposure Amount
+      description: Total borrower relationship exposure after approval.
+      dataType: number
+      sourcePath: /fields/total_exposure_amount
+    - id: loan-purpose
+      name: loan_purpose
+      label: Loan Purpose
+      description: Use of proceeds.
+      dataType: string
+      sourcePath: /fields/loan_purpose
+    - id: collateral-summary
+      name: collateral_summary
+      label: Collateral Summary
+      description: Collateral package summary.
+      dataType: string
+      sourcePath: /fields/collateral_summary
+    - id: guarantor-summary
+      name: guarantor_summary
+      label: Guarantor Summary
+      description: Guarantor support summary.
+      dataType: string
+      sourcePath: /fields/guarantor_summary
+    - id: risk-rating-current
+      name: risk_rating_current
+      label: Risk Rating Current
+      description: Existing risk rating.
+      dataType: string
+      sourcePath: /fields/risk_rating_current
+    - id: risk-rating-proposed
+      name: risk_rating_proposed
+      label: Risk Rating Proposed
+      description: Proposed risk rating.
+      dataType: string
+      sourcePath: /fields/risk_rating_proposed
+    - id: probability-of-default
+      name: probability_of_default
+      label: Probability Of Default
+      description: PD if stated.
+      dataType: number
+      sourcePath: /fields/probability_of_default
+    - id: debt-service-coverage-ratio
+      name: debt_service_coverage_ratio
+      label: Debt Service Coverage Ratio
+      description: DSCR.
+      dataType: number
+      sourcePath: /fields/debt_service_coverage_ratio
+    - id: leverage-ratio
+      name: leverage_ratio
+      label: Leverage Ratio
+      description: Debt/EBITDA, debt/equity, or leverage ratio as stated.
+      dataType: number
+      sourcePath: /fields/leverage_ratio
+    - id: ltv-percent
+      name: ltv_percent
+      label: Ltv Percent
+      description: Loan-to-value percent.
+      dataType: number
+      sourcePath: /fields/ltv_percent
+    - id: liquidity-summary
+      name: liquidity_summary
+      label: Liquidity Summary
+      description: Liquidity or cash flow narrative.
+      dataType: string
+      sourcePath: /fields/liquidity_summary
+    - id: covenant-summary
+      name: covenant_summary
+      label: Covenant Summary
+      description: Financial or reporting covenants.
+      dataType: string
+      sourcePath: /fields/covenant_summary
+    - id: policy-exceptions
+      name: policy_exceptions
+      label: Policy Exceptions
+      description: Credit policy exceptions.
+      dataType: array
+      sourcePath: /fields/policy_exceptions
+    - id: approval-authority
+      name: approval_authority
+      label: Approval Authority
+      description: Committee, officer, or authority approving.
+      dataType: string
+      sourcePath: /fields/approval_authority
+    - id: approval-status
+      name: approval_status
+      label: Approval Status
+      description: Approved, declined, conditional, recommended, or other.
+      dataType: string
+      sourcePath: /fields/approval_status
+    - id: approval-conditions
+      name: approval_conditions
+      label: Approval Conditions
+      description: Conditions to close or fund.
+      dataType: array
+      sourcePath: /fields/approval_conditions
+    - id: next-review-date
+      name: next_review_date
+      label: Next Review Date
+      description: Next annual review or monitoring date.
+      dataType: date
+      sourcePath: /fields/next_review_date
+  validationRules:
+    - id: borrower-name-present
+      severity: error
+      description: Credit memo must identify the borrower.
+      rule:
+        op: present
+        field: borrower_name
+      sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
+      supported: true
+    - id: commitment-amount-positive
+      severity: warning
+      description: Proposed commitment amount cannot be zero or negative when present.
+      sourceExpression: proposed_commitment_amount IS NULL OR proposed_commitment_amount > 0
+      supported: false
+    - id: risk-rating-present
+      severity: warning
+      description: Credit memos should include current or proposed risk rating.
+      rule:
+        op: present
+        field: risk_rating_proposed
+      sourceExpression: risk_rating_proposed IS NOT NULL OR risk_rating_current IS NOT NULL
+      supported: true
+    - id: approval-status-present
+      severity: warning
+      description: Approval status is needed to determine memo outcome.
+      rule:
+        op: present
+        field: approval_status
+      sourceExpression: approval_status IS NOT NULL AND LENGTH(TRIM(approval_status)) > 0
+      supported: true
+    - id: policy-exceptions-array-valid
+      severity: warning
+      description: Policy exceptions should be captured as an array.
+      sourceExpression: policy_exceptions IS NULL OR JSON_ARRAY_LENGTH(policy_exceptions) >= 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      memo_date:
+        type: date
+        description: Credit memo date.
+        format: date
+      borrower_name:
+        type: string
+        description: Borrower or obligor name.
+      borrower_industry:
+        type: string
+        description: Industry or NAICS description.
+      relationship_manager_name:
+        type: string
+        description: RM, banker, or officer.
+      underwriter_name:
+        type: string
+        description: Credit analyst or underwriter.
+      facility_type:
+        type: string
+        description: Term loan, revolver, CRE, equipment, SBA, or other.
+      proposed_commitment_amount:
+        type: number
+        description: Proposed loan or commitment amount.
+      total_exposure_amount:
+        type: number
+        description: Total borrower relationship exposure after approval.
+      loan_purpose:
+        type: string
+        description: Use of proceeds.
+      collateral_summary:
+        type: string
+        description: Collateral package summary.
+      guarantor_summary:
+        type: string
+        description: Guarantor support summary.
+      risk_rating_current:
+        type: string
+        description: Existing risk rating.
+      risk_rating_proposed:
+        type: string
+        description: Proposed risk rating.
+      probability_of_default:
+        type: number
+        description: PD if stated.
+      debt_service_coverage_ratio:
+        type: number
+        description: DSCR.
+      leverage_ratio:
+        type: number
+        description: Debt/EBITDA, debt/equity, or leverage ratio as stated.
+      ltv_percent:
+        type: number
+        description: Loan-to-value percent.
+      liquidity_summary:
+        type: string
+        description: Liquidity or cash flow narrative.
+      covenant_summary:
+        type: string
+        description: Financial or reporting covenants.
+      policy_exceptions:
+        type: array
+        items:
+          type: string
+        description: Credit policy exceptions.
+      approval_authority:
+        type: string
+        description: Committee, officer, or authority approving.
+      approval_status:
+        type: string
+        description: Approved, declined, conditional, recommended, or other.
+      approval_conditions:
+        type: array
+        items:
+          type: string
+        description: Conditions to close or fund.
+      next_review_date:
+        type: date
+        description: Next annual review or monitoring date.
+        format: date
+    required:
+      - borrower_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: commercial_lending
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - borrower_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

@@ -1,0 +1,313 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-kyc-cdd-form
+  title: Kyc Cdd Form
+  description: Kyc Cdd Form contract normalized from the DocuBricks Financial services library.
+  version: fs_kyc_cdd_form_v1
+  source:
+    system: docubricks
+    sourceId: fs/kyc_cdd_form
+    sourcePath: Schemas/fs/kyc_cdd_form
+    sourceVersion: fs_kyc_cdd_form_v1
+    sourceDigest: 3de4cb6c0afdbabac2d41812f9a1af79c94559102e5df02307e9d753425558a8
+spec:
+  role: review
+  pages:
+    - id: main
+      title: Kyc Cdd Form
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: date-of-birth
+              name: date_of_birth
+              label: Date Of Birth
+              description: Date of birth
+              dataType: string
+              widget: text
+            - id: id-expiration-date
+              name: id_expiration_date
+              label: Id Expiration Date
+              description: Id expiration date
+              dataType: date
+              widget: date
+            - id: review-date
+              name: review_date
+              label: Review Date
+              description: Review date
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: city
+              name: city
+              label: City
+              description: City
+              dataType: string
+              widget: text
+            - id: state
+              name: state
+              label: State
+              description: State
+              dataType: string
+              widget: text
+            - id: postal-code
+              name: postal_code
+              label: Postal Code
+              description: Postal code
+              dataType: string
+              widget: text
+            - id: country
+              name: country
+              label: Country
+              description: Country
+              dataType: string
+              widget: text
+            - id: phone
+              name: phone
+              label: Phone
+              description: Phone
+              dataType: string
+              widget: text
+            - id: email
+              name: email
+              label: Email
+              description: Email
+              dataType: string
+              widget: text
+            - id: occupation-or-business
+              name: occupation_or_business
+              label: Occupation Or Business
+              description: Occupation or business
+              dataType: string
+              widget: text
+            - id: source-of-funds
+              name: source_of_funds
+              label: Source Of Funds
+              description: Source of funds
+              dataType: string
+              widget: text
+            - id: expected-monthly-activity
+              name: expected_monthly_activity
+              label: Expected Monthly Activity
+              description: Expected monthly activity
+              dataType: string
+              widget: text
+            - id: id-document-type
+              name: id_document_type
+              label: Id Document Type
+              description: Id document type
+              dataType: string
+              widget: text
+            - id: id-document-number-masked
+              name: id_document_number_masked
+              label: Id Document Number Masked
+              description: Id document number masked
+              dataType: string
+              widget: text
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: tax-id-masked
+              name: tax_id_masked
+              label: Tax Id Masked
+              description: Tax id masked
+              dataType: string
+              widget: text
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: customer-name
+              name: customer_name
+              label: Customer Name
+              description: Customer name
+              dataType: string
+              widget: text
+              required: true
+            - id: customer-type
+              name: customer_type
+              label: Customer Type
+              description: Individual | Business | Trust | Other
+              dataType: string
+              widget: text
+            - id: beneficial-owner-name
+              name: beneficial_owner_name
+              label: Beneficial Owner Name
+              description: Beneficial owner name
+              dataType: string
+              widget: text
+            - id: beneficial-owner-ownership-percent
+              name: beneficial_owner_ownership_percent
+              label: Beneficial Owner Ownership Percent
+              description: Beneficial owner ownership percent
+              dataType: number
+              widget: number
+            - id: reviewer-name
+              name: reviewer_name
+              label: Reviewer Name
+              description: Reviewer name
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: address-line1
+              name: address_line1
+              label: Address Line1
+              description: Address line1
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: risk-rating
+              name: risk_rating
+              label: Risk Rating
+              description: Low | Medium | High
+              dataType: string
+              widget: text
+            - id: pep-status
+              name: pep_status
+              label: Pep Status
+              description: Pep status
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      customer_name:
+        type: string
+        description: Customer name
+      customer_type:
+        type: string
+        description: Individual | Business | Trust | Other
+      date_of_birth:
+        type: string
+        description: Date of birth
+      tax_id_masked:
+        type: string
+        description: Tax id masked
+      address_line1:
+        type: string
+        description: Address line1
+      city:
+        type: string
+        description: City
+      state:
+        type: string
+        description: State
+      postal_code:
+        type: string
+        description: Postal code
+      country:
+        type: string
+        description: Country
+      phone:
+        type: string
+        description: Phone
+      email:
+        type: string
+        description: Email
+      occupation_or_business:
+        type: string
+        description: Occupation or business
+      source_of_funds:
+        type: string
+        description: Source of funds
+      expected_monthly_activity:
+        type: string
+        description: Expected monthly activity
+      risk_rating:
+        type: string
+        description: Low | Medium | High
+      pep_status:
+        type: string
+        description: Pep status
+      beneficial_owner_name:
+        type: string
+        description: Beneficial owner name
+      beneficial_owner_ownership_percent:
+        type: number
+        description: Beneficial owner ownership percent
+      id_document_type:
+        type: string
+        description: Id document type
+      id_document_number_masked:
+        type: string
+        description: Id document number masked
+      id_expiration_date:
+        type: date
+        description: Id expiration date
+        format: date
+      review_date:
+        type: date
+        description: Review date
+        format: date
+      reviewer_name:
+        type: string
+        description: Reviewer name
+    required:
+      - customer_name
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: customer_name_present
+          rule_type: presence
+          fields:
+            - customer_name
+          expression: customer_name IS NOT NULL AND LENGTH(TRIM(customer_name)) > 0
+          severity: fail
+          description: Customer name is required for KYC onboarding and screening.
+        - name: customer_type_valid_enum
+          rule_type: presence
+          fields: []
+          expression: customer_type IN ('Individual', 'Business', 'Trust', 'Other')
+          severity: fail
+          description: Customer type must be a supported onboarding category.
+        - name: risk_rating_valid_enum
+          rule_type: presence
+          fields:
+            - risk_rating
+          expression: risk_rating IS NULL OR risk_rating IN ('Low', 'Medium', 'High')
+          severity: warn
+          description: Risk rating should use the expected CDD categories.
+        - name: beneficial_owner_percent_range
+          rule_type: range
+          fields:
+            - beneficial_owner_ownership_percent
+          expression: beneficial_owner_ownership_percent IS NULL OR (beneficial_owner_ownership_percent > 0 AND
+            beneficial_owner_ownership_percent <= 100)
+          severity: drop
+          description: Ownership percentage must be within 0-100 when present.
+        - name: review_date_present
+          rule_type: presence
+          fields:
+            - review_date
+          expression: review_date IS NOT NULL
+          severity: warn
+          description: CDD records should include review or certification date.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - customer_name
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - property_or_asset
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

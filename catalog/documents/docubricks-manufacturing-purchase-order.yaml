@@ -1,0 +1,354 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-manufacturing-purchase-order
+  title: Purchase Order
+  description: Purchase Order contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_purchase_order_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/purchase_order
+    sourcePath: Schemas/manufacturing/purchase_order
+    sourceVersion: manufacturing_purchase_order_v1
+    sourceDigest: 05c9181fb9b669492c420f15ad673ffd564b3a08e22892febb69c13e732cfb63
+spec:
+  documentType: purchase_order
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - incoterms
+        - payment-terms
+        - po-date
+        - requested-delivery-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - currency
+        - purchase-order-number
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - subtotal-amount
+        - tax-amount
+        - total-amount
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - line-items
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - buyer-contact-name
+        - buyer-name
+        - supplier-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - ship-to-location
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - approval-status
+  fields:
+    - id: purchase-order-number
+      name: purchase_order_number
+      label: Purchase Order Number
+      description: Purchase order number.
+      dataType: string
+      required: true
+      sourcePath: /fields/purchase_order_number
+    - id: po-date
+      name: po_date
+      label: Po Date
+      description: Date the purchase order was issued.
+      dataType: date
+      required: true
+      sourcePath: /fields/po_date
+    - id: buyer-name
+      name: buyer_name
+      label: Buyer Name
+      description: Buying legal entity or plant.
+      dataType: string
+      required: true
+      sourcePath: /fields/buyer_name
+    - id: supplier-name
+      name: supplier_name
+      label: Supplier Name
+      description: Supplier or vendor name.
+      dataType: string
+      required: true
+      sourcePath: /fields/supplier_name
+    - id: ship-to-location
+      name: ship_to_location
+      label: Ship To Location
+      description: Ship-to plant, warehouse, or address.
+      dataType: string
+      sourcePath: /fields/ship_to_location
+    - id: requested-delivery-date
+      name: requested_delivery_date
+      label: Requested Delivery Date
+      description: Requested delivery date.
+      dataType: date
+      sourcePath: /fields/requested_delivery_date
+    - id: currency
+      name: currency
+      label: Currency
+      description: Currency code.
+      dataType: string
+      sourcePath: /fields/currency
+    - id: payment-terms
+      name: payment_terms
+      label: Payment Terms
+      description: Payment terms.
+      dataType: string
+      sourcePath: /fields/payment_terms
+    - id: incoterms
+      name: incoterms
+      label: Incoterms
+      description: Incoterms or freight terms.
+      dataType: string
+      sourcePath: /fields/incoterms
+    - id: line-items
+      name: line_items
+      label: Line Items
+      description: PO line items with part, description, quantity, unit price, and due date.
+      dataType: array
+      required: true
+      sourcePath: /fields/line_items
+    - id: subtotal-amount
+      name: subtotal_amount
+      label: Subtotal Amount
+      description: Subtotal amount.
+      dataType: number
+      sourcePath: /fields/subtotal_amount
+    - id: tax-amount
+      name: tax_amount
+      label: Tax Amount
+      description: Tax amount.
+      dataType: number
+      sourcePath: /fields/tax_amount
+    - id: total-amount
+      name: total_amount
+      label: Total Amount
+      description: Total purchase order amount.
+      dataType: number
+      required: true
+      sourcePath: /fields/total_amount
+    - id: buyer-contact-name
+      name: buyer_contact_name
+      label: Buyer Contact Name
+      description: Buyer contact or purchasing agent.
+      dataType: string
+      sourcePath: /fields/buyer_contact_name
+    - id: approval-status
+      name: approval_status
+      label: Approval Status
+      description: Approved, pending, revised, closed, cancelled, or other status.
+      dataType: string
+      sourcePath: /fields/approval_status
+  validationRules:
+    - id: purchase-order-number-present
+      severity: error
+      description: purchase_order_number is required for Purchase Order extraction.
+      rule:
+        op: present
+        field: purchase_order_number
+      sourceExpression: purchase_order_number IS NOT NULL AND LENGTH(TRIM(purchase_order_number)) > 0
+      supported: true
+    - id: po-date-present
+      severity: error
+      description: po_date is required for Purchase Order extraction.
+      rule:
+        op: present
+        field: po_date
+      sourceExpression: po_date IS NOT NULL AND LENGTH(TRIM(po_date)) > 0
+      supported: true
+    - id: buyer-name-present
+      severity: error
+      description: buyer_name is required for Purchase Order extraction.
+      rule:
+        op: present
+        field: buyer_name
+      sourceExpression: buyer_name IS NOT NULL AND LENGTH(TRIM(buyer_name)) > 0
+      supported: true
+    - id: supplier-name-present
+      severity: error
+      description: supplier_name is required for Purchase Order extraction.
+      rule:
+        op: present
+        field: supplier_name
+      sourceExpression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
+      supported: true
+    - id: line-items-present
+      severity: error
+      description: line_items is required for Purchase Order extraction.
+      sourceExpression: line_items IS NOT NULL AND JSON_ARRAY_LENGTH(line_items) > 0
+      supported: false
+    - id: total-amount-present
+      severity: error
+      description: total_amount is required for Purchase Order extraction.
+      rule:
+        op: present
+        field: total_amount
+      sourceExpression: total_amount IS NOT NULL AND LENGTH(TRIM(total_amount)) > 0
+      supported: true
+    - id: subtotal-amount-non-negative
+      severity: warning
+      description: subtotal_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: subtotal_amount
+        right:
+          value: 0
+      sourceExpression: subtotal_amount IS NULL OR subtotal_amount >= 0
+      supported: true
+    - id: tax-amount-non-negative
+      severity: warning
+      description: tax_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: tax_amount
+        right:
+          value: 0
+      sourceExpression: tax_amount IS NULL OR tax_amount >= 0
+      supported: true
+    - id: total-amount-non-negative
+      severity: warning
+      description: total_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: total_amount
+        right:
+          value: 0
+      sourceExpression: total_amount IS NULL OR total_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      purchase_order_number:
+        type: string
+        description: Purchase order number.
+      po_date:
+        type: date
+        description: Date the purchase order was issued.
+        format: date
+      buyer_name:
+        type: string
+        description: Buying legal entity or plant.
+      supplier_name:
+        type: string
+        description: Supplier or vendor name.
+      ship_to_location:
+        type: string
+        description: Ship-to plant, warehouse, or address.
+      requested_delivery_date:
+        type: date
+        description: Requested delivery date.
+        format: date
+      currency:
+        type: string
+        description: Currency code.
+      payment_terms:
+        type: string
+        description: Payment terms.
+      incoterms:
+        type: string
+        description: Incoterms or freight terms.
+      line_items:
+        type: array
+        items:
+          type: object
+          properties:
+            line_number:
+              type: string
+              description: Purchase order line number.
+            part_number:
+              type: string
+              description: Part, SKU, item, or material number.
+            description:
+              type: string
+              description: Line item description.
+            quantity:
+              type: number
+              description: Ordered quantity.
+            unit:
+              type: string
+              description: Unit of measure.
+            unit_price:
+              type: number
+              description: Unit price.
+            extended_amount:
+              type: number
+              description: Line extended amount.
+            due_date:
+              type: date
+              description: Line requested or promised due date.
+              format: date
+        description: PO line items with part, description, quantity, unit price, and due date.
+      subtotal_amount:
+        type: number
+        description: Subtotal amount.
+      tax_amount:
+        type: number
+        description: Tax amount.
+      total_amount:
+        type: number
+        description: Total purchase order amount.
+      buyer_contact_name:
+        type: string
+        description: Buyer contact or purchasing agent.
+      approval_status:
+        type: string
+        description: Approved, pending, revised, closed, cancelled, or other status.
+    required:
+      - purchase_order_number
+      - po_date
+      - buyer_name
+      - supplier_name
+      - line_items
+      - total_amount
+    additionalProperties: false
+  inertSourceMetadata:
+    family: procurement_supply_chain
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - purchase_order_number
+          - po_date
+          - buyer_name
+          - supplier_name
+          - line_items
+          - total_amount
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - line_items
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

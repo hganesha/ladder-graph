@@ -1,0 +1,325 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-insurance-policy-declaration-page
+  title: Policy Declaration Page
+  description: Policy Declaration Page contract normalized from the DocuBricks Insurance library.
+  version: insurance_policy_declaration_page_v1
+  source:
+    system: docubricks
+    sourceId: insurance/policy_declaration_page
+    sourcePath: Schemas/insurance/policy_declaration_page
+    sourceVersion: insurance_policy_declaration_page_v1
+    sourceDigest: 986ebfb387a2a113932169e7e59c64f319703cca19faa9246ed02f84b432333c
+spec:
+  documentType: policy_declaration_page
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - cancellation-notice-days
+        - forms-and-endorsements
+        - policy-period-end
+        - policy-period-start
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - deductibles
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - premium-total
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - coverage-lines
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - additional-insured-names
+        - carrier-name
+        - loss-payee-names
+        - named-insured
+        - producer-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - covered-property-or-risk
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - coverage-limits
+        - policy-number
+  fields:
+    - id: policy-number
+      name: policy_number
+      label: Policy Number
+      description: Insurance policy number.
+      dataType: string
+      required: true
+      sourcePath: /fields/policy_number
+    - id: named-insured
+      name: named_insured
+      label: Named Insured
+      description: Named insured on the declaration page.
+      dataType: string
+      required: true
+      sourcePath: /fields/named_insured
+    - id: carrier-name
+      name: carrier_name
+      label: Carrier Name
+      description: Insurance carrier or underwriting company.
+      dataType: string
+      required: true
+      sourcePath: /fields/carrier_name
+    - id: producer-name
+      name: producer_name
+      label: Producer Name
+      description: Agent, broker, or producer name.
+      dataType: string
+      sourcePath: /fields/producer_name
+    - id: policy-period-start
+      name: policy_period_start
+      label: Policy Period Start
+      description: Policy period start date.
+      dataType: date
+      sourcePath: /fields/policy_period_start
+    - id: policy-period-end
+      name: policy_period_end
+      label: Policy Period End
+      description: Policy period end date.
+      dataType: date
+      sourcePath: /fields/policy_period_end
+    - id: coverage-lines
+      name: coverage_lines
+      label: Coverage Lines
+      description: Coverage lines shown on the declaration page.
+      dataType: array
+      sourcePath: /fields/coverage_lines
+    - id: covered-property-or-risk
+      name: covered_property_or_risk
+      label: Covered Property Or Risk
+      description: Covered property, vehicle, operation, or risk.
+      dataType: string
+      sourcePath: /fields/covered_property_or_risk
+    - id: coverage-limits
+      name: coverage_limits
+      label: Coverage Limits
+      description: Coverage limit items by line or coverage.
+      dataType: array
+      sourcePath: /fields/coverage_limits
+    - id: deductibles
+      name: deductibles
+      label: Deductibles
+      description: Deductible items by line or coverage.
+      dataType: array
+      sourcePath: /fields/deductibles
+    - id: premium-total
+      name: premium_total
+      label: Premium Total
+      description: Total policy premium.
+      dataType: number
+      sourcePath: /fields/premium_total
+    - id: additional-insured-names
+      name: additional_insured_names
+      label: Additional Insured Names
+      description: Additional insureds shown on the declarations.
+      dataType: array
+      sourcePath: /fields/additional_insured_names
+    - id: loss-payee-names
+      name: loss_payee_names
+      label: Loss Payee Names
+      description: Loss payees, mortgagees, or lender loss payable parties.
+      dataType: array
+      sourcePath: /fields/loss_payee_names
+    - id: forms-and-endorsements
+      name: forms_and_endorsements
+      label: Forms And Endorsements
+      description: Policy forms and endorsements listed.
+      dataType: array
+      sourcePath: /fields/forms_and_endorsements
+    - id: cancellation-notice-days
+      name: cancellation_notice_days
+      label: Cancellation Notice Days
+      description: Number of cancellation notice days if stated.
+      dataType: integer
+      sourcePath: /fields/cancellation_notice_days
+  validationRules:
+    - id: policy-number-present
+      severity: error
+      description: policy_number is required for Policy Declaration Page extraction.
+      rule:
+        op: present
+        field: policy_number
+      sourceExpression: policy_number IS NOT NULL AND LENGTH(TRIM(policy_number)) > 0
+      supported: true
+    - id: named-insured-present
+      severity: error
+      description: named_insured is required for Policy Declaration Page extraction.
+      rule:
+        op: present
+        field: named_insured
+      sourceExpression: named_insured IS NOT NULL AND LENGTH(TRIM(named_insured)) > 0
+      supported: true
+    - id: carrier-name-present
+      severity: error
+      description: carrier_name is required for Policy Declaration Page extraction.
+      rule:
+        op: present
+        field: carrier_name
+      sourceExpression: carrier_name IS NOT NULL AND LENGTH(TRIM(carrier_name)) > 0
+      supported: true
+    - id: premium-total-non-negative
+      severity: warning
+      description: premium_total should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: premium_total
+        right:
+          value: 0
+      sourceExpression: premium_total IS NULL OR premium_total >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      policy_number:
+        type: string
+        description: Insurance policy number.
+      named_insured:
+        type: string
+        description: Named insured on the declaration page.
+      carrier_name:
+        type: string
+        description: Insurance carrier or underwriting company.
+      producer_name:
+        type: string
+        description: Agent, broker, or producer name.
+      policy_period_start:
+        type: date
+        description: Policy period start date.
+        format: date
+      policy_period_end:
+        type: date
+        description: Policy period end date.
+        format: date
+      coverage_lines:
+        type: array
+        items:
+          type: string
+        description: Coverage lines shown on the declaration page.
+      covered_property_or_risk:
+        type: string
+        description: Covered property, vehicle, operation, or risk.
+      coverage_limits:
+        type: array
+        items:
+          type: object
+          properties:
+            coverage_limit_type:
+              type: string
+              description: Type or class for coverage_limits item.
+            coverage_limit_description:
+              type: string
+              description: Description for coverage_limits item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Coverage limit items by line or coverage.
+      deductibles:
+        type: array
+        items:
+          type: object
+          properties:
+            deductible_type:
+              type: string
+              description: Type or class for deductibles item.
+            deductible_description:
+              type: string
+              description: Description for deductibles item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Deductible items by line or coverage.
+      premium_total:
+        type: number
+        description: Total policy premium.
+      additional_insured_names:
+        type: array
+        items:
+          type: string
+        description: Additional insureds shown on the declarations.
+      loss_payee_names:
+        type: array
+        items:
+          type: string
+        description: Loss payees, mortgagees, or lender loss payable parties.
+      forms_and_endorsements:
+        type: array
+        items:
+          type: string
+        description: Policy forms and endorsements listed.
+      cancellation_notice_days:
+        type: integer
+        description: Number of cancellation notice days if stated.
+    required:
+      - policy_number
+      - named_insured
+      - carrier_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: insurance_collateral_protection
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - policy_number
+          - named_insured
+          - carrier_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - coverage_limits
+          - deductibles
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

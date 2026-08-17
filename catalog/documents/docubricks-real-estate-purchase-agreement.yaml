@@ -1,0 +1,301 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-real-estate-purchase-agreement
+  title: Purchase Agreement
+  description: Purchase Agreement contract normalized from the DocuBricks Real estate library.
+  version: real_estate_purchase_agreement_v1
+  source:
+    system: docubricks
+    sourceId: real_estate/purchase_agreement
+    sourcePath: Schemas/real_estate/purchase_agreement
+    sourceVersion: real_estate_purchase_agreement_v1
+    sourceDigest: 948bd5319b3339e7691e4fc6fae2723a30235baa99ac4778c6cc27d5f0c73bdc
+spec:
+  documentType: purchase_agreement
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - agreement-date
+        - closing-date
+        - due-diligence-deadline
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - financing-contingency
+        - governing-law
+        - inspection-contingency
+        - special-conditions
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - earnest-money-deposit
+        - purchase-price
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - buyer-name
+        - seller-name
+        - title-company-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - included-personal-property
+        - legal-description
+        - property-address
+  fields:
+    - id: agreement-date
+      name: agreement_date
+      label: Agreement Date
+      description: Date of purchase agreement.
+      dataType: date
+      required: true
+      sourcePath: /fields/agreement_date
+    - id: buyer-name
+      name: buyer_name
+      label: Buyer Name
+      description: Buyer or purchaser legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/buyer_name
+    - id: seller-name
+      name: seller_name
+      label: Seller Name
+      description: Seller legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/seller_name
+    - id: property-address
+      name: property_address
+      label: Property Address
+      description: Property address.
+      dataType: string
+      required: true
+      sourcePath: /fields/property_address
+    - id: legal-description
+      name: legal_description
+      label: Legal Description
+      description: Legal description or parcel description.
+      dataType: string
+      sourcePath: /fields/legal_description
+    - id: purchase-price
+      name: purchase_price
+      label: Purchase Price
+      description: Purchase price.
+      dataType: number
+      required: true
+      sourcePath: /fields/purchase_price
+    - id: earnest-money-deposit
+      name: earnest_money_deposit
+      label: Earnest Money Deposit
+      description: Earnest money deposit amount.
+      dataType: number
+      sourcePath: /fields/earnest_money_deposit
+    - id: closing-date
+      name: closing_date
+      label: Closing Date
+      description: Scheduled closing date.
+      dataType: date
+      sourcePath: /fields/closing_date
+    - id: due-diligence-deadline
+      name: due_diligence_deadline
+      label: Due Diligence Deadline
+      description: Inspection or due diligence deadline.
+      dataType: date
+      sourcePath: /fields/due_diligence_deadline
+    - id: financing-contingency
+      name: financing_contingency
+      label: Financing Contingency
+      description: Whether financing contingency is stated.
+      dataType: boolean
+      sourcePath: /fields/financing_contingency
+    - id: inspection-contingency
+      name: inspection_contingency
+      label: Inspection Contingency
+      description: Whether inspection contingency is stated.
+      dataType: boolean
+      sourcePath: /fields/inspection_contingency
+    - id: title-company-name
+      name: title_company_name
+      label: Title Company Name
+      description: Escrow agent or title company.
+      dataType: string
+      sourcePath: /fields/title_company_name
+    - id: included-personal-property
+      name: included_personal_property
+      label: Included Personal Property
+      description: Personal property included in sale.
+      dataType: array
+      sourcePath: /fields/included_personal_property
+    - id: special-conditions
+      name: special_conditions
+      label: Special Conditions
+      description: Special conditions or seller obligations.
+      dataType: array
+      sourcePath: /fields/special_conditions
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: Governing state or jurisdiction.
+      dataType: string
+      sourcePath: /fields/governing_law
+  validationRules:
+    - id: agreement-date-present
+      severity: error
+      description: agreement_date is required for Purchase Agreement extraction.
+      rule:
+        op: present
+        field: agreement_date
+      sourceExpression: agreement_date IS NOT NULL AND LENGTH(TRIM(agreement_date)) > 0
+      supported: true
+    - id: buyer-name-present
+      severity: error
+      description: buyer_name is required for Purchase Agreement extraction.
+      rule:
+        op: present
+        field: buyer_name
+      sourceExpression: buyer_name IS NOT NULL AND LENGTH(TRIM(buyer_name)) > 0
+      supported: true
+    - id: seller-name-present
+      severity: error
+      description: seller_name is required for Purchase Agreement extraction.
+      rule:
+        op: present
+        field: seller_name
+      sourceExpression: seller_name IS NOT NULL AND LENGTH(TRIM(seller_name)) > 0
+      supported: true
+    - id: property-address-present
+      severity: error
+      description: property_address is required for Purchase Agreement extraction.
+      rule:
+        op: present
+        field: property_address
+      sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
+      supported: true
+    - id: purchase-price-present
+      severity: error
+      description: purchase_price is required for Purchase Agreement extraction.
+      rule:
+        op: present
+        field: purchase_price
+      sourceExpression: purchase_price IS NOT NULL AND LENGTH(TRIM(purchase_price)) > 0
+      supported: true
+    - id: purchase-price-non-negative
+      severity: warning
+      description: purchase_price should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: purchase_price
+        right:
+          value: 0
+      sourceExpression: purchase_price IS NULL OR purchase_price >= 0
+      supported: true
+    - id: earnest-money-deposit-non-negative
+      severity: warning
+      description: earnest_money_deposit should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: earnest_money_deposit
+        right:
+          value: 0
+      sourceExpression: earnest_money_deposit IS NULL OR earnest_money_deposit >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      agreement_date:
+        type: date
+        description: Date of purchase agreement.
+        format: date
+      buyer_name:
+        type: string
+        description: Buyer or purchaser legal name.
+      seller_name:
+        type: string
+        description: Seller legal name.
+      property_address:
+        type: string
+        description: Property address.
+      legal_description:
+        type: string
+        description: Legal description or parcel description.
+      purchase_price:
+        type: number
+        description: Purchase price.
+      earnest_money_deposit:
+        type: number
+        description: Earnest money deposit amount.
+      closing_date:
+        type: date
+        description: Scheduled closing date.
+        format: date
+      due_diligence_deadline:
+        type: date
+        description: Inspection or due diligence deadline.
+        format: date
+      financing_contingency:
+        type: boolean
+        description: Whether financing contingency is stated.
+      inspection_contingency:
+        type: boolean
+        description: Whether inspection contingency is stated.
+      title_company_name:
+        type: string
+        description: Escrow agent or title company.
+      included_personal_property:
+        type: array
+        items:
+          type: string
+        description: Personal property included in sale.
+      special_conditions:
+        type: array
+        items:
+          type: string
+        description: Special conditions or seller obligations.
+      governing_law:
+        type: string
+        description: Governing state or jurisdiction.
+    required:
+      - agreement_date
+      - buyer_name
+      - seller_name
+      - property_address
+      - purchase_price
+    additionalProperties: false
+  inertSourceMetadata:
+    family: real_estate_transactions
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - agreement_date
+          - buyer_name
+          - seller_name
+          - property_address
+          - purchase_price
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

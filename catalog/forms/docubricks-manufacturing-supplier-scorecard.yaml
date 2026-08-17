@@ -1,0 +1,281 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-manufacturing-supplier-scorecard
+  title: Supplier Scorecard
+  description: Supplier Scorecard contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_supplier_scorecard_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/supplier_scorecard
+    sourcePath: Schemas/manufacturing/supplier_scorecard
+    sourceVersion: manufacturing_supplier_scorecard_v1
+    sourceDigest: 58b543e03bcedb2c53fa2873089ae978ab890dc71cccbd9973bac73e343fd819
+spec:
+  role: review
+  pages:
+    - id: main
+      title: Supplier Scorecard
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: scorecard-period
+              name: scorecard_period
+              label: Scorecard Period
+              description: Reporting period.
+              dataType: string
+              widget: text
+              required: true
+            - id: next-review-date
+              name: next_review_date
+              label: Next Review Date
+              description: Next review date.
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: commodity-category
+              name: commodity_category
+              label: Commodity Category
+              description: Commodity, material group, or category.
+              dataType: string
+              widget: text
+            - id: quality-ppm
+              name: quality_ppm
+              label: Quality Ppm
+              description: Defective parts per million or quality PPM.
+              dataType: number
+              widget: number
+              required: true
+            - id: nonconformance-count
+              name: nonconformance_count
+              label: Nonconformance Count
+              description: Number of nonconformances.
+              dataType: integer
+              widget: number
+            - id: overall-score
+              name: overall_score
+              label: Overall Score
+              description: Overall score.
+              dataType: number
+              widget: number
+              required: true
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: on-time-delivery-rate
+              name: on_time_delivery_rate
+              label: On Time Delivery Rate
+              description: On-time delivery rate percentage.
+              dataType: number
+              widget: number
+              required: true
+            - id: cost-variance-percent
+              name: cost_variance_percent
+              label: Cost Variance Percent
+              description: Cost variance percentage.
+              dataType: number
+              widget: number
+        - id: line-items
+          title: Line Items
+          description: Line Items fields extracted from the document.
+          fields:
+            - id: corrective-actions-open
+              name: corrective_actions_open
+              label: Corrective Actions Open
+              description: Open corrective actions.
+              dataType: array
+              widget: textarea
+              span: 2
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: supplier-name
+              name: supplier_name
+              label: Supplier Name
+              description: Supplier name.
+              dataType: string
+              widget: text
+              required: true
+            - id: supplier-id
+              name: supplier_id
+              label: Supplier Id
+              description: Supplier identifier.
+              dataType: string
+              widget: text
+            - id: supplier-tier
+              name: supplier_tier
+              label: Supplier Tier
+              description: Preferred, approved, conditional, probation, disqualified, or other tier.
+              dataType: string
+              widget: text
+            - id: review-owner
+              name: review_owner
+              label: Review Owner
+              description: Owner of supplier review.
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: responsiveness-rating
+              name: responsiveness_rating
+              label: Responsiveness Rating
+              description: Responsiveness rating.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      scorecard_period:
+        type: string
+        description: Reporting period.
+      supplier_name:
+        type: string
+        description: Supplier name.
+      supplier_id:
+        type: string
+        description: Supplier identifier.
+      commodity_category:
+        type: string
+        description: Commodity, material group, or category.
+      on_time_delivery_rate:
+        type: number
+        description: On-time delivery rate percentage.
+      quality_ppm:
+        type: number
+        description: Defective parts per million or quality PPM.
+      nonconformance_count:
+        type: integer
+        description: Number of nonconformances.
+      cost_variance_percent:
+        type: number
+        description: Cost variance percentage.
+      responsiveness_rating:
+        type: string
+        description: Responsiveness rating.
+      overall_score:
+        type: number
+        description: Overall score.
+      supplier_tier:
+        type: string
+        description: Preferred, approved, conditional, probation, disqualified, or other tier.
+      corrective_actions_open:
+        type: array
+        items:
+          type: string
+        description: Open corrective actions.
+      review_owner:
+        type: string
+        description: Owner of supplier review.
+      next_review_date:
+        type: date
+        description: Next review date.
+        format: date
+    required:
+      - scorecard_period
+      - supplier_name
+      - on_time_delivery_rate
+      - quality_ppm
+      - overall_score
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: scorecard_period_present
+          rule_type: presence
+          fields:
+            - scorecard_period
+          expression: scorecard_period IS NOT NULL AND LENGTH(TRIM(scorecard_period)) > 0
+          severity: fail
+          description: scorecard_period is required for Supplier Scorecard extraction.
+        - name: supplier_name_present
+          rule_type: presence
+          fields:
+            - supplier_name
+          expression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
+          severity: fail
+          description: supplier_name is required for Supplier Scorecard extraction.
+        - name: on_time_delivery_rate_present
+          rule_type: presence
+          fields:
+            - on_time_delivery_rate
+          expression: on_time_delivery_rate IS NOT NULL AND LENGTH(TRIM(on_time_delivery_rate)) > 0
+          severity: fail
+          description: on_time_delivery_rate is required for Supplier Scorecard extraction.
+        - name: quality_ppm_present
+          rule_type: presence
+          fields:
+            - quality_ppm
+          expression: quality_ppm IS NOT NULL AND LENGTH(TRIM(quality_ppm)) > 0
+          severity: fail
+          description: quality_ppm is required for Supplier Scorecard extraction.
+        - name: overall_score_present
+          rule_type: presence
+          fields:
+            - overall_score
+          expression: overall_score IS NOT NULL AND LENGTH(TRIM(overall_score)) > 0
+          severity: fail
+          description: overall_score is required for Supplier Scorecard extraction.
+        - name: on_time_delivery_rate_non_negative
+          rule_type: range
+          fields:
+            - on_time_delivery_rate
+          expression: on_time_delivery_rate IS NULL OR on_time_delivery_rate >= 0
+          severity: warn
+          description: on_time_delivery_rate should be non-negative when present.
+        - name: quality_ppm_non_negative
+          rule_type: range
+          fields:
+            - quality_ppm
+          expression: quality_ppm IS NULL OR quality_ppm >= 0
+          severity: warn
+          description: quality_ppm should be non-negative when present.
+        - name: nonconformance_count_non_negative
+          rule_type: range
+          fields:
+            - nonconformance_count
+          expression: nonconformance_count IS NULL OR nonconformance_count >= 0
+          severity: warn
+          description: nonconformance_count should be non-negative when present.
+        - name: cost_variance_percent_non_negative
+          rule_type: range
+          fields:
+            - cost_variance_percent
+          expression: cost_variance_percent IS NULL OR cost_variance_percent >= 0
+          severity: warn
+          description: cost_variance_percent should be non-negative when present.
+        - name: overall_score_non_negative
+          rule_type: range
+          fields:
+            - overall_score
+          expression: overall_score IS NULL OR overall_score >= 0
+          severity: warn
+          description: overall_score should be non-negative when present.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - scorecard_period
+            - supplier_name
+            - on_time_delivery_rate
+            - quality_ppm
+            - overall_score
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - line_items
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

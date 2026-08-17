@@ -1,6 +1,6 @@
 # Ladder Graph workflow-bundle implementation plan
 
-**Status:** Insurance bundle and first-class form-authoring vertical slices implemented; broader library and ontology studios remain planned
+**Status:** General bundle assembly, persistence/portability, first-class form authoring, and the full DocuBricks starter library are implemented; ontology studio and MCP expansion remain planned
 
 **Companion strategy:** `ladder-graph-feature-expansion.md`
 
@@ -22,12 +22,15 @@ Implemented in the first vertical slice:
 - an experimental bundle map, form preview, ontology preview, and output browser;
 - a first-class structural form studio with outline, canvas, inspector, ontology palette, responsive preview, source synchronization, diagnostics, undo/redo, and portable exports;
 - edited form sources flowing back into bundle validation and deterministic compilation;
+- general bundle assembly across the workflow catalog, attach/remove asset controls, and a visual binding inspector;
+- bundle project persistence, complete-asset revisions, history restore, Recent Projects reopening, and SHA-256-verified `.ladderbundle.json` import/export;
+- a reproducible bulk importer and reviewed classification for all 55 usable DocuBricks schemas, producing 24 forms, 31 documents, 1,043 fields, source digests, and a conversion report;
+- searchable and industry-filtered ontology/form/document starter selection in the bundle workspace;
 - unit, browser, build, and Rust-workspace verification.
 
 Still planned:
 
-- general-purpose bundle asset picking, editing, archive import/export, and revision UI;
-- form persistence/revision recovery and workflow-node attach/create flows beyond the insurance bundle;
+- standalone form-project persistence and workflow-node attach/create flows beyond bundle-owned forms;
 - full graph/tree ontology editing and breaking-change workflows;
 - catalog snapshot v2 and MCP resources for the new artifact kinds;
 - a second industry vertical and complete Rust/TypeScript diagnostic parity fixtures.
@@ -496,6 +499,8 @@ The importer must fail on duplicate IDs, dangling relationships, unsupported dat
 
 ### 7.2 DocuBricks importer
 
+**Implemented:** `scripts/import-docubricks-library.mjs` consumes the reviewed 55-entry classification, emits normalized catalog YAML and manifest entries, and writes `catalog/imports/docubricks-import-report.json`. The snapshot currently contains 24 primary form experiences and 31 document contracts. Hybrid source assets have an explicit primary experience. All 1,043 fields are retained; supported rules become declarative rules and unsupported expressions remain inert metadata.
+
 Add:
 
 ```text
@@ -692,6 +697,8 @@ Gate:
 
 ### Milestone 3 — Bundle workspace
 
+**Status:** Complete for the browser-local experimental workspace, including persistence, complete revision bodies, recovery, and portable archive import/export.
+
 **Relative effort:** Medium
 
 **User-visible:** Yes, experimental
@@ -710,6 +717,8 @@ Gate:
 - existing workflow primary journey remains unchanged.
 
 ### Milestone 4 — First-class form studio
+
+**Status:** Core studio and bundle-owned form editing are complete. Standalone saved form projects and direct workflow-node attach/create remain follow-up work.
 
 **Relative effort:** Extra large
 

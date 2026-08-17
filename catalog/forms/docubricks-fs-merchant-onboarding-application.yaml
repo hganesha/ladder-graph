@@ -1,0 +1,292 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-merchant-onboarding-application
+  title: Merchant Onboarding Application
+  description: Merchant Onboarding Application contract normalized from the DocuBricks Financial services library.
+  version: fs_merchant_onboarding_application_v1
+  source:
+    system: docubricks
+    sourceId: fs/merchant_onboarding_application
+    sourcePath: Schemas/fs/merchant_onboarding_application
+    sourceVersion: fs_merchant_onboarding_application_v1
+    sourceDigest: 5840f45cc820be07618be7a6e2b93cc8d8a51ed6c9d7f2da11b4ba9fda2ec288
+spec:
+  role: start
+  pages:
+    - id: main
+      title: Merchant Onboarding Application
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: application-date
+              name: application_date
+              label: Application Date
+              description: Date the merchant application was submitted.
+              dataType: date
+              widget: date
+            - id: reserve-terms
+              name: reserve_terms
+              label: Reserve Terms
+              description: Reserve amount, percentage, or duration.
+              dataType: string
+              widget: text
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: merchant-category-code
+              name: merchant_category_code
+              label: Merchant Category Code
+              description: MCC if stated.
+              dataType: string
+              widget: text
+            - id: business-type
+              name: business_type
+              label: Business Type
+              description: Retail, ecommerce, restaurant, marketplace, services, or other.
+              dataType: string
+              widget: text
+            - id: website-url
+              name: website_url
+              label: Website Url
+              description: Merchant website or app URL.
+              dataType: string
+              widget: text
+            - id: processing-channels
+              name: processing_channels
+              label: Processing Channels
+              description: Card-present, ecommerce, mobile, keyed, ACH, or other channels.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: estimated-monthly-volume
+              name: estimated_monthly_volume
+              label: Estimated Monthly Volume
+              description: Estimated monthly processing volume.
+              dataType: number
+              widget: number
+              required: true
+            - id: chargeback-history
+              name: chargeback_history
+              label: Chargeback History
+              description: Prior chargeback history or ratio.
+              dataType: string
+              widget: text
+            - id: underwriting-decision
+              name: underwriting_decision
+              label: Underwriting Decision
+              description: Approved, declined, conditional, pending, or other.
+              dataType: string
+              widget: text
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: merchant-tax-id-masked
+              name: merchant_tax_id_masked
+              label: Merchant Tax Id Masked
+              description: Masked EIN or tax identifier.
+              dataType: string
+              widget: text
+            - id: average-ticket-amount
+              name: average_ticket_amount
+              label: Average Ticket Amount
+              description: Average transaction amount.
+              dataType: number
+              widget: number
+            - id: high-ticket-amount
+              name: high_ticket_amount
+              label: High Ticket Amount
+              description: Highest expected transaction amount.
+              dataType: number
+              widget: number
+            - id: reserve-required
+              name: reserve_required
+              label: Reserve Required
+              description: Whether reserve or holdback is required.
+              dataType: boolean
+              widget: checkbox
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: merchant-legal-name
+              name: merchant_legal_name
+              label: Merchant Legal Name
+              description: Merchant legal entity name.
+              dataType: string
+              widget: text
+              required: true
+            - id: merchant-dba-name
+              name: merchant_dba_name
+              label: Merchant Dba Name
+              description: Doing-business-as name.
+              dataType: string
+              widget: text
+            - id: beneficial-owner-names
+              name: beneficial_owner_names
+              label: Beneficial Owner Names
+              description: Beneficial owners listed in application.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: principal-signer-name
+              name: principal_signer_name
+              label: Principal Signer Name
+              description: Principal or authorized signer.
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: refund-policy
+              name: refund_policy
+              label: Refund Policy
+              description: Refund, cancellation, or return policy summary.
+              dataType: string
+              widget: text
+            - id: risk-rating
+              name: risk_rating
+              label: Risk Rating
+              description: Merchant risk rating.
+              dataType: string
+              widget: text
+            - id: approval-conditions
+              name: approval_conditions
+              label: Approval Conditions
+              description: Underwriting conditions.
+              dataType: array
+              widget: textarea
+              span: 2
+  submissionSchema:
+    type: object
+    properties:
+      application_date:
+        type: date
+        description: Date the merchant application was submitted.
+        format: date
+      merchant_legal_name:
+        type: string
+        description: Merchant legal entity name.
+      merchant_dba_name:
+        type: string
+        description: Doing-business-as name.
+      merchant_tax_id_masked:
+        type: string
+        description: Masked EIN or tax identifier.
+      merchant_category_code:
+        type: string
+        description: MCC if stated.
+      business_type:
+        type: string
+        description: Retail, ecommerce, restaurant, marketplace, services, or other.
+      website_url:
+        type: string
+        description: Merchant website or app URL.
+      processing_channels:
+        type: array
+        items:
+          type: string
+        description: Card-present, ecommerce, mobile, keyed, ACH, or other channels.
+      estimated_monthly_volume:
+        type: number
+        description: Estimated monthly processing volume.
+      average_ticket_amount:
+        type: number
+        description: Average transaction amount.
+      high_ticket_amount:
+        type: number
+        description: Highest expected transaction amount.
+      refund_policy:
+        type: string
+        description: Refund, cancellation, or return policy summary.
+      chargeback_history:
+        type: string
+        description: Prior chargeback history or ratio.
+      reserve_required:
+        type: boolean
+        description: Whether reserve or holdback is required.
+      reserve_terms:
+        type: string
+        description: Reserve amount, percentage, or duration.
+      beneficial_owner_names:
+        type: array
+        items:
+          type: string
+        description: Beneficial owners listed in application.
+      principal_signer_name:
+        type: string
+        description: Principal or authorized signer.
+      risk_rating:
+        type: string
+        description: Merchant risk rating.
+      underwriting_decision:
+        type: string
+        description: Approved, declined, conditional, pending, or other.
+      approval_conditions:
+        type: array
+        items:
+          type: string
+        description: Underwriting conditions.
+    required:
+      - merchant_legal_name
+      - estimated_monthly_volume
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: merchant_legal_name_present
+          rule_type: presence
+          fields:
+            - merchant_legal_name
+          expression: merchant_legal_name IS NOT NULL AND LENGTH(TRIM(merchant_legal_name)) > 0
+          severity: fail
+          description: merchant_legal_name is required for Merchant Onboarding Application extraction.
+        - name: estimated_monthly_volume_present
+          rule_type: presence
+          fields:
+            - estimated_monthly_volume
+          expression: estimated_monthly_volume IS NOT NULL AND LENGTH(TRIM(estimated_monthly_volume)) > 0
+          severity: fail
+          description: estimated_monthly_volume is required for Merchant Onboarding Application extraction.
+        - name: estimated_monthly_volume_non_negative
+          rule_type: range
+          fields:
+            - estimated_monthly_volume
+          expression: estimated_monthly_volume IS NULL OR estimated_monthly_volume >= 0
+          severity: warn
+          description: estimated_monthly_volume should be non-negative when present.
+        - name: average_ticket_amount_non_negative
+          rule_type: range
+          fields:
+            - average_ticket_amount
+          expression: average_ticket_amount IS NULL OR average_ticket_amount >= 0
+          severity: warn
+          description: average_ticket_amount should be non-negative when present.
+        - name: high_ticket_amount_non_negative
+          rule_type: range
+          fields:
+            - high_ticket_amount
+          expression: high_ticket_amount IS NULL OR high_ticket_amount >= 0
+          severity: warn
+          description: high_ticket_amount should be non-negative when present.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - merchant_legal_name
+            - estimated_monthly_volume
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

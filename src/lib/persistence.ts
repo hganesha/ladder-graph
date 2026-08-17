@@ -1,7 +1,7 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { ProjectRecord, Target } from "../types";
 
-interface RevisionRecord {
+export interface RevisionRecord {
   id: string;
   projectId: string;
   createdAt: number;
@@ -100,20 +100,45 @@ async function writeOpfs(key: string, content: string) {
   return true;
 }
 
-export async function saveProject(
-  projectId: string | null,
-  name: string,
-  yaml: string,
-  lastValidYaml: string,
-  target: Target,
-  valid: boolean,
-) {
+async function readOpfs(key: string) {
+  try {
+    const root = await opfsRoot();
+    if (!root) return undefined;
+    const revisions = await root.getDirectoryHandle("revisions");
+    const file = await revisions.getFileHandle(`${key}.yaml`);
+    return await (await file.getFile()).text();
+  } catch {
+    return undefined;
+  }
+}
+
+interface SaveArtifactProjectInput {
+  projectId: string | null;
+  name: string;
+  yaml: string;
+  lastValidYaml: string;
+  target: Target;
+  valid: boolean;
+  artifactKind: NonNullable<ProjectRecord["artifactKind"]>;
+  revisionBody?: string;
+}
+
+export async function saveArtifactProject({
+  projectId,
+  name,
+  yaml,
+  lastValidYaml,
+  target,
+  valid,
+  artifactKind,
+  revisionBody,
+}: SaveArtifactProjectInput) {
   const now = Date.now();
   const existing = projectId ? await db.projects.get(projectId) : undefined;
   const project: ProjectRecord = {
     id: existing?.id ?? id(),
     name,
-    artifactKind: existing?.artifactKind ?? "workflow",
+    artifactKind,
     yaml,
     lastValidYaml,
     target,
@@ -123,18 +148,38 @@ export async function saveProject(
   await db.projects.put(project);
   const revisionId = id();
   const storageKey = `${project.id}-${revisionId}`;
-  const storedInOpfs = await writeOpfs(storageKey, yaml);
+  const revisionContent = revisionBody ?? yaml;
+  const storedInOpfs = await writeOpfs(storageKey, revisionContent);
   await db.revisions.put({
     id: revisionId,
     projectId: project.id,
     createdAt: now,
     storageKey,
     valid,
-    body: storedInOpfs ? undefined : yaml,
+    body: storedInOpfs ? undefined : revisionContent,
   });
-  const old = await db.revisions.where("projectId").equals(project.id).reverse().sortBy("createdAt");
+  const old = (await db.revisions.where("projectId").equals(project.id).toArray()).sort((left, right) => right.createdAt - left.createdAt);
   if (old.length > 30) await db.revisions.bulkDelete(old.slice(30).map((item) => item.id));
   return project;
+}
+
+export async function saveProject(
+  projectId: string | null,
+  name: string,
+  yaml: string,
+  lastValidYaml: string,
+  target: Target,
+  valid: boolean,
+) {
+  return saveArtifactProject({
+    projectId,
+    name,
+    yaml,
+    lastValidYaml,
+    target,
+    valid,
+    artifactKind: "workflow",
+  });
 }
 
 export async function saveBundleAssets(projectId: string, assets: BundleAssetRecord[]) {
@@ -146,6 +191,15 @@ export async function saveBundleAssets(projectId: string, assets: BundleAssetRec
 
 export async function listBundleAssets(projectId: string) {
   return db.bundleAssets.where("projectId").equals(projectId).sortBy("ref");
+}
+
+export async function listRevisions(projectId: string) {
+  const revisions = await db.revisions.where("projectId").equals(projectId).toArray();
+  return revisions.toSorted((left, right) => right.createdAt - left.createdAt);
+}
+
+export async function loadRevision(revision: RevisionRecord) {
+  return revision.body ?? (await readOpfs(revision.storageKey));
 }
 
 export async function listProjects() {

@@ -12,6 +12,14 @@
   ],
   "forms": [
     {
+      "id": "claim-review-decision",
+      "path": "insurance/claims/decision",
+      "title": "Claim review decision",
+      "description": "Structured determination and claims-manager approval form.",
+      "file": "forms/claim-review-decision.yaml",
+      "ref": "ladder://forms/builtin/claim-review-decision"
+    },
+    {
       "id": "first-notice-of-loss",
       "path": "insurance/claims/intake",
       "title": "First Notice of Loss",
@@ -20,12 +28,188 @@
       "ref": "ladder://forms/builtin/first-notice-of-loss"
     },
     {
-      "id": "claim-review-decision",
-      "path": "insurance/claims/decision",
-      "title": "Claim review decision",
-      "description": "Structured determination and claims-manager approval form.",
-      "file": "forms/claim-review-decision.yaml",
-      "ref": "ladder://forms/builtin/claim-review-decision"
+      "id": "docubricks-energy-field-ticket",
+      "path": "energy/energy_field_services/field_ticket",
+      "title": "Field Ticket",
+      "description": "Field Ticket contract normalized from the DocuBricks Energy library.",
+      "file": "forms/docubricks-energy-field-ticket.yaml",
+      "ref": "ladder://forms/docubricks/energy/field_ticket"
+    },
+    {
+      "id": "docubricks-fs-aml-sar",
+      "path": "fs/kyc_aml_sanctions/aml_sar",
+      "title": "Aml Sar",
+      "description": "Aml Sar contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-aml-sar.yaml",
+      "ref": "ladder://forms/docubricks/fs/aml_sar"
+    },
+    {
+      "id": "docubricks-fs-commercial-loan-application",
+      "path": "fs/commercial_lending/commercial_loan_application",
+      "title": "Commercial Loan Application",
+      "description": "Commercial Loan Application contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-commercial-loan-application.yaml",
+      "ref": "ladder://forms/docubricks/fs/commercial_loan_application"
+    },
+    {
+      "id": "docubricks-fs-covenant-compliance-certificate",
+      "path": "fs/commercial_lending/covenant_compliance_certificate",
+      "title": "Covenant Compliance Certificate",
+      "description": "Covenant Compliance Certificate contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-covenant-compliance-certificate.yaml",
+      "ref": "ladder://forms/docubricks/fs/covenant_compliance_certificate"
+    },
+    {
+      "id": "docubricks-fs-issue-management-record",
+      "path": "fs/regulatory_exams_audit/issue_management_record",
+      "title": "Issue Management Record",
+      "description": "Issue Management Record contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-issue-management-record.yaml",
+      "ref": "ladder://forms/docubricks/fs/issue_management_record"
+    },
+    {
+      "id": "docubricks-fs-kyc-cdd-form",
+      "path": "fs/kyc_aml_sanctions/kyc_cdd_form",
+      "title": "Kyc Cdd Form",
+      "description": "Kyc Cdd Form contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-kyc-cdd-form.yaml",
+      "ref": "ladder://forms/docubricks/fs/kyc_cdd_form"
+    },
+    {
+      "id": "docubricks-fs-merchant-onboarding-application",
+      "path": "fs/payments_fintech/merchant_onboarding_application",
+      "title": "Merchant Onboarding Application",
+      "description": "Merchant Onboarding Application contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-merchant-onboarding-application.yaml",
+      "ref": "ladder://forms/docubricks/fs/merchant_onboarding_application"
+    },
+    {
+      "id": "docubricks-fs-mortgage-application",
+      "path": "fs/mortgage_real_estate_finance/mortgage_application",
+      "title": "Mortgage Application",
+      "description": "Mortgage Application contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-mortgage-application.yaml",
+      "ref": "ladder://forms/docubricks/fs/mortgage_application"
+    },
+    {
+      "id": "docubricks-fs-third-party-risk-assessment",
+      "path": "fs/regulatory_exams_audit/third_party_risk_assessment",
+      "title": "Third Party Risk Assessment",
+      "description": "Third Party Risk Assessment contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-third-party-risk-assessment.yaml",
+      "ref": "ladder://forms/docubricks/fs/third_party_risk_assessment"
+    },
+    {
+      "id": "docubricks-fs-trust-account-opening-package",
+      "path": "fs/wealth_brokerage_investment/trust_account_opening_package",
+      "title": "Trust Account Opening Package",
+      "description": "Trust Account Opening Package contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-trust-account-opening-package.yaml",
+      "ref": "ladder://forms/docubricks/fs/trust_account_opening_package"
+    },
+    {
+      "id": "docubricks-fs-ucc-financing-statement",
+      "path": "fs/commercial_lending/ucc_financing_statement",
+      "title": "Ucc Financing Statement",
+      "description": "Ucc Financing Statement contract normalized from the DocuBricks Financial services library.",
+      "file": "forms/docubricks-fs-ucc-financing-statement.yaml",
+      "ref": "ladder://forms/docubricks/fs/ucc_financing_statement"
+    },
+    {
+      "id": "docubricks-healthcare-eob-cms1500",
+      "path": "healthcare/healthcare_claims/eob_cms1500",
+      "title": "Eob Cms1500",
+      "description": "Eob Cms1500 contract normalized from the DocuBricks Healthcare library.",
+      "file": "forms/docubricks-healthcare-eob-cms1500.yaml",
+      "ref": "ladder://forms/docubricks/healthcare/eob_cms1500"
+    },
+    {
+      "id": "docubricks-healthcare-prior-auth",
+      "path": "healthcare/healthcare_authorization/prior_auth",
+      "title": "Prior Auth",
+      "description": "Prior Auth contract normalized from the DocuBricks Healthcare library.",
+      "file": "forms/docubricks-healthcare-prior-auth.yaml",
+      "ref": "ladder://forms/docubricks/healthcare/prior_auth"
+    },
+    {
+      "id": "docubricks-insurance-claims-adjuster-report",
+      "path": "insurance/insurance_claims/claims_adjuster_report",
+      "title": "Claims Adjuster Report",
+      "description": "Claims Adjuster Report contract normalized from the DocuBricks Insurance library.",
+      "file": "forms/docubricks-insurance-claims-adjuster-report.yaml",
+      "ref": "ladder://forms/docubricks/insurance/claims_adjuster_report"
+    },
+    {
+      "id": "docubricks-insurance-insurance-policy-application",
+      "path": "insurance/insurance_underwriting/insurance_policy_application",
+      "title": "Insurance Policy Application",
+      "description": "Insurance Policy Application contract normalized from the DocuBricks Insurance library.",
+      "file": "forms/docubricks-insurance-insurance-policy-application.yaml",
+      "ref": "ladder://forms/docubricks/insurance/insurance_policy_application"
+    },
+    {
+      "id": "docubricks-insurance-proof-of-loss",
+      "path": "insurance/insurance_collateral_protection/proof_of_loss",
+      "title": "Proof Of Loss",
+      "description": "Proof Of Loss contract normalized from the DocuBricks Insurance library.",
+      "file": "forms/docubricks-insurance-proof-of-loss.yaml",
+      "ref": "ladder://forms/docubricks/insurance/proof_of_loss"
+    },
+    {
+      "id": "docubricks-legal-regulatory-submission",
+      "path": "legal/regulatory_exams_audit/regulatory_submission",
+      "title": "Regulatory Submission",
+      "description": "Regulatory Submission contract normalized from the DocuBricks Legal library.",
+      "file": "forms/docubricks-legal-regulatory-submission.yaml",
+      "ref": "ladder://forms/docubricks/legal/regulatory_submission"
+    },
+    {
+      "id": "docubricks-manufacturing-corrective-preventive-action",
+      "path": "manufacturing/manufacturing_quality/corrective_preventive_action",
+      "title": "Corrective Preventive Action",
+      "description": "Corrective Preventive Action contract normalized from the DocuBricks Manufacturing library.",
+      "file": "forms/docubricks-manufacturing-corrective-preventive-action.yaml",
+      "ref": "ladder://forms/docubricks/manufacturing/corrective_preventive_action"
+    },
+    {
+      "id": "docubricks-manufacturing-nonconformance-report",
+      "path": "manufacturing/manufacturing_quality/nonconformance_report",
+      "title": "Nonconformance Report",
+      "description": "Nonconformance Report contract normalized from the DocuBricks Manufacturing library.",
+      "file": "forms/docubricks-manufacturing-nonconformance-report.yaml",
+      "ref": "ladder://forms/docubricks/manufacturing/nonconformance_report"
+    },
+    {
+      "id": "docubricks-manufacturing-quality-inspection-report",
+      "path": "manufacturing/manufacturing_quality/quality_inspection_report",
+      "title": "Quality Inspection Report",
+      "description": "Quality Inspection Report contract normalized from the DocuBricks Manufacturing library.",
+      "file": "forms/docubricks-manufacturing-quality-inspection-report.yaml",
+      "ref": "ladder://forms/docubricks/manufacturing/quality_inspection_report"
+    },
+    {
+      "id": "docubricks-manufacturing-receiving-report",
+      "path": "manufacturing/procurement_supply_chain/receiving_report",
+      "title": "Receiving Report",
+      "description": "Receiving Report contract normalized from the DocuBricks Manufacturing library.",
+      "file": "forms/docubricks-manufacturing-receiving-report.yaml",
+      "ref": "ladder://forms/docubricks/manufacturing/receiving_report"
+    },
+    {
+      "id": "docubricks-manufacturing-supplier-scorecard",
+      "path": "manufacturing/procurement_supply_chain/supplier_scorecard",
+      "title": "Supplier Scorecard",
+      "description": "Supplier Scorecard contract normalized from the DocuBricks Manufacturing library.",
+      "file": "forms/docubricks-manufacturing-supplier-scorecard.yaml",
+      "ref": "ladder://forms/docubricks/manufacturing/supplier_scorecard"
+    },
+    {
+      "id": "docubricks-real-estate-tenant-estoppel-certificate",
+      "path": "real_estate/property_management/tenant_estoppel_certificate",
+      "title": "Tenant Estoppel Certificate",
+      "description": "Tenant Estoppel Certificate contract normalized from the DocuBricks Real estate library.",
+      "file": "forms/docubricks-real-estate-tenant-estoppel-certificate.yaml",
+      "ref": "ladder://forms/docubricks/real_estate/tenant_estoppel_certificate"
     }
   ],
   "documents": [
@@ -36,6 +220,246 @@
       "description": "Supporting document contract normalized from DocuBricks.",
       "file": "documents/insurance-claim-file.yaml",
       "ref": "ladder://documents/builtin/insurance-claim-file"
+    },
+    {
+      "id": "docubricks-energy-daily-drilling-report",
+      "path": "energy/energy_upstream_operations/daily_drilling_report",
+      "title": "Daily Drilling Report",
+      "description": "Daily Drilling Report contract normalized from the DocuBricks Energy library.",
+      "file": "documents/docubricks-energy-daily-drilling-report.yaml",
+      "ref": "ladder://documents/docubricks/energy/daily_drilling_report"
+    },
+    {
+      "id": "docubricks-energy-production-report",
+      "path": "energy/energy_production_operations/production_report",
+      "title": "Production Report",
+      "description": "Production Report contract normalized from the DocuBricks Energy library.",
+      "file": "documents/docubricks-energy-production-report.yaml",
+      "ref": "ladder://documents/docubricks/energy/production_report"
+    },
+    {
+      "id": "docubricks-energy-well-completion-report",
+      "path": "energy/energy_upstream_operations/well_completion_report",
+      "title": "Well Completion Report",
+      "description": "Well Completion Report contract normalized from the DocuBricks Energy library.",
+      "file": "documents/docubricks-energy-well-completion-report.yaml",
+      "ref": "ladder://documents/docubricks/energy/well_completion_report"
+    },
+    {
+      "id": "docubricks-fs-collateral-schedule",
+      "path": "fs/commercial_lending/collateral_schedule",
+      "title": "Collateral Schedule",
+      "description": "Collateral Schedule contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-collateral-schedule.yaml",
+      "ref": "ladder://documents/docubricks/fs/collateral_schedule"
+    },
+    {
+      "id": "docubricks-fs-commercial-credit-memo",
+      "path": "fs/commercial_lending/commercial_credit_memo",
+      "title": "Commercial Credit Memo",
+      "description": "Commercial Credit Memo contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-commercial-credit-memo.yaml",
+      "ref": "ladder://documents/docubricks/fs/commercial_credit_memo"
+    },
+    {
+      "id": "docubricks-fs-guaranty-agreement",
+      "path": "fs/commercial_lending/guaranty_agreement",
+      "title": "Guaranty Agreement",
+      "description": "Guaranty Agreement contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-guaranty-agreement.yaml",
+      "ref": "ladder://documents/docubricks/fs/guaranty_agreement"
+    },
+    {
+      "id": "docubricks-fs-invoice",
+      "path": "fs/accounts_payable/invoice",
+      "title": "Invoice",
+      "description": "Invoice contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-invoice.yaml",
+      "ref": "ladder://documents/docubricks/fs/invoice"
+    },
+    {
+      "id": "docubricks-fs-loan-agreement",
+      "path": "fs/commercial_lending/loan_agreement",
+      "title": "Loan Agreement",
+      "description": "Loan Agreement contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-loan-agreement.yaml",
+      "ref": "ladder://documents/docubricks/fs/loan_agreement"
+    },
+    {
+      "id": "docubricks-fs-regulatory-reporting-package",
+      "path": "fs/regulatory_reporting/regulatory_reporting_package",
+      "title": "Regulatory Reporting Package",
+      "description": "Regulatory Reporting Package contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-regulatory-reporting-package.yaml",
+      "ref": "ladder://documents/docubricks/fs/regulatory_reporting_package"
+    },
+    {
+      "id": "docubricks-fs-security-agreement",
+      "path": "fs/commercial_lending/security_agreement",
+      "title": "Security Agreement",
+      "description": "Security Agreement contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-security-agreement.yaml",
+      "ref": "ladder://documents/docubricks/fs/security_agreement"
+    },
+    {
+      "id": "docubricks-fs-syndicated-credit-agreement",
+      "path": "fs/commercial_lending/syndicated_credit_agreement",
+      "title": "Syndicated Credit Agreement",
+      "description": "Syndicated Credit Agreement contract normalized from the DocuBricks Financial services library.",
+      "file": "documents/docubricks-fs-syndicated-credit-agreement.yaml",
+      "ref": "ladder://documents/docubricks/fs/syndicated_credit_agreement"
+    },
+    {
+      "id": "docubricks-healthcare-clinical-note-soap",
+      "path": "healthcare/clinical_documents/clinical_note_soap",
+      "title": "Clinical Note Soap",
+      "description": "Clinical Note Soap contract normalized from the DocuBricks Healthcare library.",
+      "file": "documents/docubricks-healthcare-clinical-note-soap.yaml",
+      "ref": "ladder://documents/docubricks/healthcare/clinical_note_soap"
+    },
+    {
+      "id": "docubricks-healthcare-lab-report",
+      "path": "healthcare/imaging_diagnostics/lab_report",
+      "title": "Lab Report",
+      "description": "Lab Report contract normalized from the DocuBricks Healthcare library.",
+      "file": "documents/docubricks-healthcare-lab-report.yaml",
+      "ref": "ladder://documents/docubricks/healthcare/lab_report"
+    },
+    {
+      "id": "docubricks-insurance-certificate-of-insurance",
+      "path": "insurance/insurance_collateral_protection/certificate_of_insurance",
+      "title": "Certificate Of Insurance",
+      "description": "Certificate Of Insurance contract normalized from the DocuBricks Insurance library.",
+      "file": "documents/docubricks-insurance-certificate-of-insurance.yaml",
+      "ref": "ladder://documents/docubricks/insurance/certificate_of_insurance"
+    },
+    {
+      "id": "docubricks-insurance-insurance-claim-denial-letter",
+      "path": "insurance/insurance_claims/insurance_claim_denial_letter",
+      "title": "Insurance Claim Denial Letter",
+      "description": "Insurance Claim Denial Letter contract normalized from the DocuBricks Insurance library.",
+      "file": "documents/docubricks-insurance-insurance-claim-denial-letter.yaml",
+      "ref": "ladder://documents/docubricks/insurance/insurance_claim_denial_letter"
+    },
+    {
+      "id": "docubricks-insurance-policy-declaration-page",
+      "path": "insurance/insurance_collateral_protection/policy_declaration_page",
+      "title": "Policy Declaration Page",
+      "description": "Policy Declaration Page contract normalized from the DocuBricks Insurance library.",
+      "file": "documents/docubricks-insurance-policy-declaration-page.yaml",
+      "ref": "ladder://documents/docubricks/insurance/policy_declaration_page"
+    },
+    {
+      "id": "docubricks-legal-court-filing",
+      "path": "legal/litigation_disputes/court_filing",
+      "title": "Court Filing",
+      "description": "Court Filing contract normalized from the DocuBricks Legal library.",
+      "file": "documents/docubricks-legal-court-filing.yaml",
+      "ref": "ladder://documents/docubricks/legal/court_filing"
+    },
+    {
+      "id": "docubricks-legal-litigation-case-file",
+      "path": "legal/litigation_disputes/litigation_case_file",
+      "title": "Litigation Case File",
+      "description": "Litigation Case File contract normalized from the DocuBricks Legal library.",
+      "file": "documents/docubricks-legal-litigation-case-file.yaml",
+      "ref": "ladder://documents/docubricks/legal/litigation_case_file"
+    },
+    {
+      "id": "docubricks-legal-nda-msa",
+      "path": "legal/contracts/nda_msa",
+      "title": "Nda Msa",
+      "description": "Nda Msa contract normalized from the DocuBricks Legal library.",
+      "file": "documents/docubricks-legal-nda-msa.yaml",
+      "ref": "ladder://documents/docubricks/legal/nda_msa"
+    },
+    {
+      "id": "docubricks-legal-sow",
+      "path": "legal/contracts/sow",
+      "title": "Sow",
+      "description": "Sow contract normalized from the DocuBricks Legal library.",
+      "file": "documents/docubricks-legal-sow.yaml",
+      "ref": "ladder://documents/docubricks/legal/sow"
+    },
+    {
+      "id": "docubricks-manufacturing-bill-of-materials",
+      "path": "manufacturing/procurement_supply_chain/bill_of_materials",
+      "title": "Bill Of Materials",
+      "description": "Bill Of Materials contract normalized from the DocuBricks Manufacturing library.",
+      "file": "documents/docubricks-manufacturing-bill-of-materials.yaml",
+      "ref": "ladder://documents/docubricks/manufacturing/bill_of_materials"
+    },
+    {
+      "id": "docubricks-manufacturing-certificate-of-analysis",
+      "path": "manufacturing/manufacturing_quality/certificate_of_analysis",
+      "title": "Certificate Of Analysis",
+      "description": "Certificate Of Analysis contract normalized from the DocuBricks Manufacturing library.",
+      "file": "documents/docubricks-manufacturing-certificate-of-analysis.yaml",
+      "ref": "ladder://documents/docubricks/manufacturing/certificate_of_analysis"
+    },
+    {
+      "id": "docubricks-manufacturing-purchase-order",
+      "path": "manufacturing/procurement_supply_chain/purchase_order",
+      "title": "Purchase Order",
+      "description": "Purchase Order contract normalized from the DocuBricks Manufacturing library.",
+      "file": "documents/docubricks-manufacturing-purchase-order.yaml",
+      "ref": "ladder://documents/docubricks/manufacturing/purchase_order"
+    },
+    {
+      "id": "docubricks-real-estate-closing-statement",
+      "path": "real_estate/real_estate_transactions/closing_statement",
+      "title": "Closing Statement",
+      "description": "Closing Statement contract normalized from the DocuBricks Real estate library.",
+      "file": "documents/docubricks-real-estate-closing-statement.yaml",
+      "ref": "ladder://documents/docubricks/real_estate/closing_statement"
+    },
+    {
+      "id": "docubricks-real-estate-deed",
+      "path": "real_estate/real_estate_transactions/deed",
+      "title": "Deed",
+      "description": "Deed contract normalized from the DocuBricks Real estate library.",
+      "file": "documents/docubricks-real-estate-deed.yaml",
+      "ref": "ladder://documents/docubricks/real_estate/deed"
+    },
+    {
+      "id": "docubricks-real-estate-lease-agreement",
+      "path": "real_estate/real_estate_transactions/lease_agreement",
+      "title": "Lease Agreement",
+      "description": "Lease Agreement contract normalized from the DocuBricks Real estate library.",
+      "file": "documents/docubricks-real-estate-lease-agreement.yaml",
+      "ref": "ladder://documents/docubricks/real_estate/lease_agreement"
+    },
+    {
+      "id": "docubricks-real-estate-property-management-agreement",
+      "path": "real_estate/property_management/property_management_agreement",
+      "title": "Property Management Agreement",
+      "description": "Property Management Agreement contract normalized from the DocuBricks Real estate library.",
+      "file": "documents/docubricks-real-estate-property-management-agreement.yaml",
+      "ref": "ladder://documents/docubricks/real_estate/property_management_agreement"
+    },
+    {
+      "id": "docubricks-real-estate-purchase-agreement",
+      "path": "real_estate/real_estate_transactions/purchase_agreement",
+      "title": "Purchase Agreement",
+      "description": "Purchase Agreement contract normalized from the DocuBricks Real estate library.",
+      "file": "documents/docubricks-real-estate-purchase-agreement.yaml",
+      "ref": "ladder://documents/docubricks/real_estate/purchase_agreement"
+    },
+    {
+      "id": "docubricks-real-estate-real-estate-transactions-title-commitment",
+      "path": "real_estate/real_estate_transactions/real_estate_transactions_title_commitment",
+      "title": "Real Estate Transactions Title Commitment",
+      "description": "Real Estate Transactions Title Commitment contract normalized from the DocuBricks Real estate library.",
+      "file": "documents/docubricks-real-estate-real-estate-transactions-title-commitment.yaml",
+      "ref": "ladder://documents/docubricks/real_estate/real_estate_transactions_title_commitment"
+    },
+    {
+      "id": "docubricks-real-estate-rent-roll",
+      "path": "real_estate/property_management/rent_roll",
+      "title": "Rent Roll",
+      "description": "Rent Roll contract normalized from the DocuBricks Real estate library.",
+      "file": "documents/docubricks-real-estate-rent-roll.yaml",
+      "ref": "ladder://documents/docubricks/real_estate/rent_roll"
     }
   ],
   "bundles": [

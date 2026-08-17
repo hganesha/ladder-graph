@@ -1,0 +1,266 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-manufacturing-corrective-preventive-action
+  title: Corrective Preventive Action
+  description: Corrective Preventive Action contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_corrective_preventive_action_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/corrective_preventive_action
+    sourcePath: Schemas/manufacturing/corrective_preventive_action
+    sourceVersion: manufacturing_corrective_preventive_action_v1
+    sourceDigest: 360a7384d08c02a3d82ec6bbe08aeb09f425d395c01b97224e7552166f58e927
+spec:
+  role: approval
+  pages:
+    - id: main
+      title: Corrective Preventive Action
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: opened-date
+              name: opened_date
+              label: Opened Date
+              description: Date CAPA was opened.
+              dataType: date
+              widget: date
+              required: true
+            - id: target-completion-date
+              name: target_completion_date
+              label: Target Completion Date
+              description: Target completion date.
+              dataType: date
+              widget: date
+              required: true
+            - id: effectiveness-due-date
+              name: effectiveness_due_date
+              label: Effectiveness Due Date
+              description: Effectiveness check due date.
+              dataType: date
+              widget: date
+            - id: closure-date
+              name: closure_date
+              label: Closure Date
+              description: Closure date.
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: capa-number
+              name: capa_number
+              label: Capa Number
+              description: CAPA number.
+              dataType: string
+              widget: text
+              required: true
+            - id: source-type
+              name: source_type
+              label: Source Type
+              description: Audit, NCR, customer complaint, supplier issue, trend, or other source.
+              dataType: string
+              widget: text
+            - id: source-reference
+              name: source_reference
+              label: Source Reference
+              description: Source record identifier.
+              dataType: string
+              widget: text
+            - id: problem-statement
+              name: problem_statement
+              label: Problem Statement
+              description: Problem statement.
+              dataType: string
+              widget: text
+              required: true
+            - id: root-cause
+              name: root_cause
+              label: Root Cause
+              description: Root cause.
+              dataType: string
+              widget: text
+              required: true
+            - id: effectiveness-check-plan
+              name: effectiveness_check_plan
+              label: Effectiveness Check Plan
+              description: Effectiveness check plan.
+              dataType: string
+              widget: text
+        - id: line-items
+          title: Line Items
+          description: Line Items fields extracted from the document.
+          fields:
+            - id: corrective-actions
+              name: corrective_actions
+              label: Corrective Actions
+              description: Corrective actions.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: preventive-actions
+              name: preventive_actions
+              label: Preventive Actions
+              description: Preventive actions.
+              dataType: array
+              widget: textarea
+              span: 2
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: owner-name
+              name: owner_name
+              label: Owner Name
+              description: CAPA owner.
+              dataType: string
+              widget: text
+              required: true
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: risk-level
+              name: risk_level
+              label: Risk Level
+              description: Risk level or severity.
+              dataType: string
+              widget: text
+            - id: capa-status
+              name: capa_status
+              label: Capa Status
+              description: Open, implemented, pending effectiveness, closed, overdue, or other status.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      capa_number:
+        type: string
+        description: CAPA number.
+      opened_date:
+        type: date
+        description: Date CAPA was opened.
+        format: date
+      source_type:
+        type: string
+        description: Audit, NCR, customer complaint, supplier issue, trend, or other source.
+      source_reference:
+        type: string
+        description: Source record identifier.
+      problem_statement:
+        type: string
+        description: Problem statement.
+      risk_level:
+        type: string
+        description: Risk level or severity.
+      root_cause:
+        type: string
+        description: Root cause.
+      corrective_actions:
+        type: array
+        items:
+          type: string
+        description: Corrective actions.
+      preventive_actions:
+        type: array
+        items:
+          type: string
+        description: Preventive actions.
+      owner_name:
+        type: string
+        description: CAPA owner.
+      target_completion_date:
+        type: date
+        description: Target completion date.
+        format: date
+      effectiveness_check_plan:
+        type: string
+        description: Effectiveness check plan.
+      effectiveness_due_date:
+        type: date
+        description: Effectiveness check due date.
+        format: date
+      capa_status:
+        type: string
+        description: Open, implemented, pending effectiveness, closed, overdue, or other status.
+      closure_date:
+        type: date
+        description: Closure date.
+        format: date
+    required:
+      - capa_number
+      - opened_date
+      - problem_statement
+      - root_cause
+      - owner_name
+      - target_completion_date
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: capa_number_present
+          rule_type: presence
+          fields:
+            - capa_number
+          expression: capa_number IS NOT NULL AND LENGTH(TRIM(capa_number)) > 0
+          severity: fail
+          description: capa_number is required for Corrective Preventive Action extraction.
+        - name: opened_date_present
+          rule_type: presence
+          fields:
+            - opened_date
+          expression: opened_date IS NOT NULL AND LENGTH(TRIM(opened_date)) > 0
+          severity: fail
+          description: opened_date is required for Corrective Preventive Action extraction.
+        - name: problem_statement_present
+          rule_type: presence
+          fields:
+            - problem_statement
+          expression: problem_statement IS NOT NULL AND LENGTH(TRIM(problem_statement)) > 0
+          severity: fail
+          description: problem_statement is required for Corrective Preventive Action extraction.
+        - name: root_cause_present
+          rule_type: presence
+          fields:
+            - root_cause
+          expression: root_cause IS NOT NULL AND LENGTH(TRIM(root_cause)) > 0
+          severity: fail
+          description: root_cause is required for Corrective Preventive Action extraction.
+        - name: owner_name_present
+          rule_type: presence
+          fields:
+            - owner_name
+          expression: owner_name IS NOT NULL AND LENGTH(TRIM(owner_name)) > 0
+          severity: fail
+          description: owner_name is required for Corrective Preventive Action extraction.
+        - name: target_completion_date_present
+          rule_type: presence
+          fields:
+            - target_completion_date
+          expression: target_completion_date IS NOT NULL AND LENGTH(TRIM(target_completion_date)) > 0
+          severity: fail
+          description: target_completion_date is required for Corrective Preventive Action extraction.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - capa_number
+            - opened_date
+            - problem_statement
+            - root_cause
+            - owner_name
+            - target_completion_date
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - line_items
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

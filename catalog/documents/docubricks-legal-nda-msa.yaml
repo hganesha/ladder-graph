@@ -1,0 +1,365 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-legal-nda-msa
+  title: Nda Msa
+  description: Nda Msa contract normalized from the DocuBricks Legal library.
+  version: legal_nda_msa_v1
+  source:
+    system: docubricks
+    sourceId: legal/nda_msa
+    sourcePath: Schemas/legal/nda_msa
+    sourceVersion: legal_nda_msa_v1
+    sourceDigest: ab8f50dd539d346f33e0f1d3dfcc4926973e036350d12869b143cff112021454
+spec:
+  documentType: nda_msa
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - amendment-number
+        - confidentiality-period-years
+        - effective-date
+        - expiration-date
+        - liquidated-damages-amount
+        - renewal-notice-days
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - agreement-type
+        - arbitration-clause
+        - arbitration-venue
+        - auto-renew
+        - confidentiality-scope
+        - excluded-information
+        - governing-law
+        - non-compete-clause
+        - non-solicitation-clause
+        - permitted-uses
+        - return-or-destroy-obligation
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - party-1-name
+        - party-1-role
+        - party-1-state
+        - party-2-name
+        - party-2-role
+        - party-2-state
+  fields:
+    - id: agreement-type
+      name: agreement_type
+      label: Agreement Type
+      description: "Classification of the agreement. One of: NDA | MSA | MNDA | MOU | LOI | Other"
+      dataType: string
+      sourcePath: /fields/agreement_type
+    - id: effective-date
+      name: effective_date
+      label: Effective Date
+      description: The date the agreement becomes effective, format YYYY-MM-DD
+      dataType: date
+      required: true
+      sourcePath: /fields/effective_date
+    - id: expiration-date
+      name: expiration_date
+      label: Expiration Date
+      description: The date the agreement expires or terminates, format YYYY-MM-DD (null if perpetual or not stated)
+      dataType: date
+      sourcePath: /fields/expiration_date
+    - id: auto-renew
+      name: auto_renew
+      label: Auto Renew
+      description: Boolean — true if the agreement contains an automatic renewal clause
+      dataType: boolean
+      sourcePath: /fields/auto_renew
+    - id: renewal-notice-days
+      name: renewal_notice_days
+      label: Renewal Notice Days
+      description: Number of days' advance notice required to prevent auto-renewal, as integer (null if not applicable)
+      dataType: string
+      sourcePath: /fields/renewal_notice_days
+    - id: amendment-number
+      name: amendment_number
+      label: Amendment Number
+      description: If this document is an amendment or addendum, the amendment number as integer (e.g., 1 for
+        "Amendment No. 1"; null if original agreement)
+      dataType: string
+      sourcePath: /fields/amendment_number
+    - id: party-1-name
+      name: party_1_name
+      label: Party 1 Name
+      description: Full legal name of the first party
+      dataType: string
+      sourcePath: /fields/party_1_name
+    - id: party-1-role
+      name: party_1_role
+      label: Party 1 Role
+      description: "Role of the first party. One of: Disclosing | Receiving | Both (for mutual agreements)"
+      dataType: string
+      sourcePath: /fields/party_1_role
+    - id: party-1-state
+      name: party_1_state
+      label: Party 1 State
+      description: State or jurisdiction of incorporation/organization for party 1 (two-letter state code or country
+        if non-US)
+      dataType: string
+      sourcePath: /fields/party_1_state
+    - id: party-2-name
+      name: party_2_name
+      label: Party 2 Name
+      description: Full legal name of the second party
+      dataType: string
+      sourcePath: /fields/party_2_name
+    - id: party-2-role
+      name: party_2_role
+      label: Party 2 Role
+      description: "Role of the second party. One of: Disclosing | Receiving | Both"
+      dataType: string
+      sourcePath: /fields/party_2_role
+    - id: party-2-state
+      name: party_2_state
+      label: Party 2 State
+      description: State or jurisdiction of incorporation/organization for party 2
+      dataType: string
+      sourcePath: /fields/party_2_state
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: The state or jurisdiction whose laws govern the agreement (e.g., "CA", "NY", "DE", "England and Wales")
+      dataType: string
+      sourcePath: /fields/governing_law
+    - id: confidentiality-period-years
+      name: confidentiality_period_years
+      label: Confidentiality Period Years
+      description: Duration of the confidentiality obligation in years as decimal (null if perpetual or not
+        explicitly stated in years)
+      dataType: string
+      sourcePath: /fields/confidentiality_period_years
+    - id: confidentiality-scope
+      name: confidentiality_scope
+      label: Confidentiality Scope
+      description: Brief description of what information is deemed confidential (up to 200 chars)
+      dataType: string
+      sourcePath: /fields/confidentiality_scope
+    - id: permitted-uses
+      name: permitted_uses
+      label: Permitted Uses
+      description: Array of strings describing the permitted uses of confidential information (e.g., ["Evaluating
+        potential business relationship", "Performing services under the MSA"])
+      dataType: array
+      sourcePath: /fields/permitted_uses
+    - id: excluded-information
+      name: excluded_information
+      label: Excluded Information
+      description: Array of strings listing categories of information excluded from confidentiality obligations
+        (e.g., ["Publicly available information", "Independently developed information", "Information received
+        from third parties without restriction"])
+      dataType: array
+      sourcePath: /fields/excluded_information
+    - id: return-or-destroy-obligation
+      name: return_or_destroy_obligation
+      label: Return Or Destroy Obligation
+      description: Boolean — true if the agreement requires return or destruction of confidential materials upon
+        termination or request
+      dataType: string
+      sourcePath: /fields/return_or_destroy_obligation
+    - id: non-solicitation-clause
+      name: non_solicitation_clause
+      label: Non Solicitation Clause
+      description: Boolean — true if the agreement contains a non-solicitation clause restricting hiring of the
+        other party's employees
+      dataType: boolean
+      sourcePath: /fields/non_solicitation_clause
+    - id: non-compete-clause
+      name: non_compete_clause
+      label: Non Compete Clause
+      description: Boolean — true if the agreement contains a non-compete or non-competition clause
+      dataType: boolean
+      sourcePath: /fields/non_compete_clause
+    - id: liquidated-damages-amount
+      name: liquidated_damages_amount
+      label: Liquidated Damages Amount
+      description: The liquidated damages amount stated in the agreement as decimal (null if not specified)
+      dataType: number
+      sourcePath: /fields/liquidated_damages_amount
+    - id: arbitration-clause
+      name: arbitration_clause
+      label: Arbitration Clause
+      description: Boolean — true if the agreement requires disputes to be resolved by arbitration
+      dataType: boolean
+      sourcePath: /fields/arbitration_clause
+    - id: arbitration-venue
+      name: arbitration_venue
+      label: Arbitration Venue
+      description: City and/or state where arbitration proceedings would be held (null if no arbitration clause)
+      dataType: number
+      sourcePath: /fields/arbitration_venue
+  validationRules:
+    - id: document-id-present
+      severity: error
+      description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
+        audit trail, and deduplication
+      sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
+      supported: false
+    - id: avg-confidence-acceptable
+      severity: warning
+      description: Overall extraction confidence below 0.70 indicates the document is likely illegible, heavily
+        redacted, or in an unsupported format; route to quarantine for human review
+      sourceExpression: avg_confidence >= 0.70
+      supported: false
+    - id: agreement-type-valid-enum
+      severity: warning
+      description: Agreement type must be a recognized enumeration; invalid values break downstream routing to the
+        correct contract management workflow
+      sourceExpression: agreement_type IN ('NDA', 'MSA', 'MNDA', 'MOU', 'LOI', 'Other')
+      supported: false
+    - id: effective-date-not-null
+      severity: warning
+      description: Effective date is essential for contract lifecycle management, renewal monitoring, and obligation
+        tracking; records without it cannot be reliably managed
+      rule:
+        op: present
+        field: effective_date
+      sourceExpression: effective_date IS NOT NULL
+      supported: true
+    - id: governing-law-present
+      severity: warning
+      description: Governing law determines which jurisdiction's rules apply to dispute resolution and enforcement;
+        absence triggers legal review
+      rule:
+        op: present
+        field: governing_law
+      sourceExpression: governing_law IS NOT NULL AND LENGTH(TRIM(governing_law)) > 0
+      supported: true
+    - id: expiration-date-logical
+      severity: warning
+      description: Expiration date must be after effective date if both are present; inversion indicates a date
+        extraction error
+      sourceExpression: expiration_date IS NULL OR effective_date IS NULL OR expiration_date > effective_date
+      supported: false
+    - id: renewal-notice-days-positive
+      severity: warning
+      description: Renewal notice period must be a positive integer if present; zero or negative values indicate an
+        extraction or data entry error
+      sourceExpression: renewal_notice_days IS NULL OR renewal_notice_days > 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      agreement_type:
+        type: string
+        description: "Classification of the agreement. One of: NDA | MSA | MNDA | MOU | LOI | Other"
+      effective_date:
+        type: date
+        description: The date the agreement becomes effective, format YYYY-MM-DD
+        format: date
+      expiration_date:
+        type: date
+        description: The date the agreement expires or terminates, format YYYY-MM-DD (null if perpetual or not stated)
+        format: date
+      auto_renew:
+        type: boolean
+        description: Boolean — true if the agreement contains an automatic renewal clause
+      renewal_notice_days:
+        type: string
+        description: Number of days' advance notice required to prevent auto-renewal, as integer (null if not applicable)
+      amendment_number:
+        type: string
+        description: If this document is an amendment or addendum, the amendment number as integer (e.g., 1 for
+          "Amendment No. 1"; null if original agreement)
+      party_1_name:
+        type: string
+        description: Full legal name of the first party
+      party_1_role:
+        type: string
+        description: "Role of the first party. One of: Disclosing | Receiving | Both (for mutual agreements)"
+      party_1_state:
+        type: string
+        description: State or jurisdiction of incorporation/organization for party 1 (two-letter state code or country
+          if non-US)
+      party_2_name:
+        type: string
+        description: Full legal name of the second party
+      party_2_role:
+        type: string
+        description: "Role of the second party. One of: Disclosing | Receiving | Both"
+      party_2_state:
+        type: string
+        description: State or jurisdiction of incorporation/organization for party 2
+      governing_law:
+        type: string
+        description: The state or jurisdiction whose laws govern the agreement (e.g., "CA", "NY", "DE", "England and
+          Wales")
+      confidentiality_period_years:
+        type: string
+        description: Duration of the confidentiality obligation in years as decimal (null if perpetual or not
+          explicitly stated in years)
+      confidentiality_scope:
+        type: string
+        description: Brief description of what information is deemed confidential (up to 200 chars)
+      permitted_uses:
+        type: array
+        items:
+          type: string
+        description: Array of strings describing the permitted uses of confidential information (e.g., ["Evaluating
+          potential business relationship", "Performing services under the MSA"])
+      excluded_information:
+        type: array
+        items:
+          type: string
+        description: Array of strings listing categories of information excluded from confidentiality obligations
+          (e.g., ["Publicly available information", "Independently developed information", "Information
+          received from third parties without restriction"])
+      return_or_destroy_obligation:
+        type: string
+        description: Boolean — true if the agreement requires return or destruction of confidential materials upon
+          termination or request
+      non_solicitation_clause:
+        type: boolean
+        description: Boolean — true if the agreement contains a non-solicitation clause restricting hiring of the
+          other party's employees
+      non_compete_clause:
+        type: boolean
+        description: Boolean — true if the agreement contains a non-compete or non-competition clause
+      liquidated_damages_amount:
+        type: number
+        description: The liquidated damages amount stated in the agreement as decimal (null if not specified)
+      arbitration_clause:
+        type: boolean
+        description: Boolean — true if the agreement requires disputes to be resolved by arbitration
+      arbitration_venue:
+        type: number
+        description: City and/or state where arbitration proceedings would be held (null if no arbitration clause)
+    required:
+      - effective_date
+    additionalProperties: false
+  inertSourceMetadata:
+    family: contracts
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - effective_date
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

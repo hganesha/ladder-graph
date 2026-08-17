@@ -1,0 +1,306 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-real-estate-property-management-agreement
+  title: Property Management Agreement
+  description: Property Management Agreement contract normalized from the DocuBricks Real estate library.
+  version: real_estate_property_management_agreement_v1
+  source:
+    system: docubricks
+    sourceId: real_estate/property_management_agreement
+    sourcePath: Schemas/real_estate/property_management_agreement
+    sourceVersion: real_estate_property_management_agreement_v1
+    sourceDigest: 915b8e9480abc21c5077d0368ce59f245c40594adecaf7f52b7adf2b77c4b253
+spec:
+  documentType: property_management_agreement
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - agreement-date
+        - leasing-fee-terms
+        - management-end-date
+        - management-fee-terms
+        - management-start-date
+        - termination-notice-days
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - bank-account-control
+        - governing-law
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - authority-to-collect-rent
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - insurance-requirements
+        - reporting-requirements
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - manager-name
+        - owner-name
+        - property-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - property-address
+  fields:
+    - id: agreement-date
+      name: agreement_date
+      label: Agreement Date
+      description: Date of property management agreement.
+      dataType: date
+      required: true
+      sourcePath: /fields/agreement_date
+    - id: owner-name
+      name: owner_name
+      label: Owner Name
+      description: Property owner legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/owner_name
+    - id: manager-name
+      name: manager_name
+      label: Manager Name
+      description: Property manager legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/manager_name
+    - id: property-name
+      name: property_name
+      label: Property Name
+      description: Property name.
+      dataType: string
+      sourcePath: /fields/property_name
+    - id: property-address
+      name: property_address
+      label: Property Address
+      description: Managed property address.
+      dataType: string
+      required: true
+      sourcePath: /fields/property_address
+    - id: management-start-date
+      name: management_start_date
+      label: Management Start Date
+      description: Management start date.
+      dataType: date
+      required: true
+      sourcePath: /fields/management_start_date
+    - id: management-end-date
+      name: management_end_date
+      label: Management End Date
+      description: Management expiration date or initial term end.
+      dataType: date
+      sourcePath: /fields/management_end_date
+    - id: management-fee-terms
+      name: management_fee_terms
+      label: Management Fee Terms
+      description: Management fee percentage, amount, or formula.
+      dataType: string
+      required: true
+      sourcePath: /fields/management_fee_terms
+    - id: leasing-fee-terms
+      name: leasing_fee_terms
+      label: Leasing Fee Terms
+      description: Leasing fee or commission terms.
+      dataType: string
+      sourcePath: /fields/leasing_fee_terms
+    - id: authority-to-collect-rent
+      name: authority_to_collect_rent
+      label: Authority To Collect Rent
+      description: Whether manager is authorized to collect rent.
+      dataType: boolean
+      sourcePath: /fields/authority_to_collect_rent
+    - id: bank-account-control
+      name: bank_account_control
+      label: Bank Account Control
+      description: Operating account, trust account, or cash management terms.
+      dataType: string
+      sourcePath: /fields/bank_account_control
+    - id: termination-notice-days
+      name: termination_notice_days
+      label: Termination Notice Days
+      description: Termination notice period in days.
+      dataType: integer
+      sourcePath: /fields/termination_notice_days
+    - id: insurance-requirements
+      name: insurance_requirements
+      label: Insurance Requirements
+      description: Insurance requirements.
+      dataType: array
+      sourcePath: /fields/insurance_requirements
+    - id: reporting-requirements
+      name: reporting_requirements
+      label: Reporting Requirements
+      description: Owner reporting requirements.
+      dataType: array
+      sourcePath: /fields/reporting_requirements
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: Governing state or jurisdiction.
+      dataType: string
+      sourcePath: /fields/governing_law
+  validationRules:
+    - id: agreement-date-present
+      severity: error
+      description: agreement_date is required for Property Management Agreement extraction.
+      rule:
+        op: present
+        field: agreement_date
+      sourceExpression: agreement_date IS NOT NULL AND LENGTH(TRIM(agreement_date)) > 0
+      supported: true
+    - id: owner-name-present
+      severity: error
+      description: owner_name is required for Property Management Agreement extraction.
+      rule:
+        op: present
+        field: owner_name
+      sourceExpression: owner_name IS NOT NULL AND LENGTH(TRIM(owner_name)) > 0
+      supported: true
+    - id: manager-name-present
+      severity: error
+      description: manager_name is required for Property Management Agreement extraction.
+      rule:
+        op: present
+        field: manager_name
+      sourceExpression: manager_name IS NOT NULL AND LENGTH(TRIM(manager_name)) > 0
+      supported: true
+    - id: property-address-present
+      severity: error
+      description: property_address is required for Property Management Agreement extraction.
+      rule:
+        op: present
+        field: property_address
+      sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
+      supported: true
+    - id: management-start-date-present
+      severity: error
+      description: management_start_date is required for Property Management Agreement extraction.
+      rule:
+        op: present
+        field: management_start_date
+      sourceExpression: management_start_date IS NOT NULL AND LENGTH(TRIM(management_start_date)) > 0
+      supported: true
+    - id: management-fee-terms-present
+      severity: error
+      description: management_fee_terms is required for Property Management Agreement extraction.
+      rule:
+        op: present
+        field: management_fee_terms
+      sourceExpression: management_fee_terms IS NOT NULL AND LENGTH(TRIM(management_fee_terms)) > 0
+      supported: true
+    - id: termination-notice-days-non-negative
+      severity: warning
+      description: termination_notice_days should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: termination_notice_days
+        right:
+          value: 0
+      sourceExpression: termination_notice_days IS NULL OR termination_notice_days >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      agreement_date:
+        type: date
+        description: Date of property management agreement.
+        format: date
+      owner_name:
+        type: string
+        description: Property owner legal name.
+      manager_name:
+        type: string
+        description: Property manager legal name.
+      property_name:
+        type: string
+        description: Property name.
+      property_address:
+        type: string
+        description: Managed property address.
+      management_start_date:
+        type: date
+        description: Management start date.
+        format: date
+      management_end_date:
+        type: date
+        description: Management expiration date or initial term end.
+        format: date
+      management_fee_terms:
+        type: string
+        description: Management fee percentage, amount, or formula.
+      leasing_fee_terms:
+        type: string
+        description: Leasing fee or commission terms.
+      authority_to_collect_rent:
+        type: boolean
+        description: Whether manager is authorized to collect rent.
+      bank_account_control:
+        type: string
+        description: Operating account, trust account, or cash management terms.
+      termination_notice_days:
+        type: integer
+        description: Termination notice period in days.
+      insurance_requirements:
+        type: array
+        items:
+          type: string
+        description: Insurance requirements.
+      reporting_requirements:
+        type: array
+        items:
+          type: string
+        description: Owner reporting requirements.
+      governing_law:
+        type: string
+        description: Governing state or jurisdiction.
+    required:
+      - agreement_date
+      - owner_name
+      - manager_name
+      - property_address
+      - management_start_date
+      - management_fee_terms
+    additionalProperties: false
+  inertSourceMetadata:
+    family: property_management
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - agreement_date
+          - owner_name
+          - manager_name
+          - property_address
+          - management_start_date
+          - management_fee_terms
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

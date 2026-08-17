@@ -1,0 +1,288 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-ucc-financing-statement
+  title: Ucc Financing Statement
+  description: Ucc Financing Statement contract normalized from the DocuBricks Financial services library.
+  version: fs_ucc_financing_statement_v1
+  source:
+    system: docubricks
+    sourceId: fs/ucc_financing_statement
+    sourcePath: Schemas/fs/ucc_financing_statement
+    sourceVersion: fs_ucc_financing_statement_v1
+    sourceDigest: 8ff8955790aea30fd1d81c6d5cba4ad27fdfdc7ea1d983a44c9d1cbba45dde43
+spec:
+  role: completion
+  pages:
+    - id: main
+      title: Ucc Financing Statement
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: filing-date
+              name: filing_date
+              label: Filing Date
+              description: Filing date.
+              dataType: date
+              widget: date
+              required: true
+            - id: lapse-date
+              name: lapse_date
+              label: Lapse Date
+              description: Lapse or continuation deadline if present.
+              dataType: date
+              widget: date
+            - id: termination-indicator
+              name: termination_indicator
+              label: Termination Indicator
+              description: Whether filing terminates a record.
+              dataType: boolean
+              widget: checkbox
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: filing-type
+              name: filing_type
+              label: Filing Type
+              description: Initial financing statement, amendment, continuation, assignment, termination, fixture filing, or
+                other.
+              dataType: string
+              widget: text
+            - id: filing-number
+              name: filing_number
+              label: Filing Number
+              description: State filing or document number.
+              dataType: string
+              widget: text
+              required: true
+            - id: filing-office
+              name: filing_office
+              label: Filing Office
+              description: Secretary of State, county, or filing office.
+              dataType: string
+              widget: text
+            - id: filing-jurisdiction
+              name: filing_jurisdiction
+              label: Filing Jurisdiction
+              description: State or jurisdiction.
+              dataType: string
+              widget: text
+            - id: fixture-filing-indicator
+              name: fixture_filing_indicator
+              label: Fixture Filing Indicator
+              description: Whether fixture filing is indicated.
+              dataType: boolean
+              widget: checkbox
+            - id: transmitting-utility-indicator
+              name: transmitting_utility_indicator
+              label: Transmitting Utility Indicator
+              description: Whether debtor is transmitting utility.
+              dataType: boolean
+              widget: checkbox
+            - id: public-finance-indicator
+              name: public_finance_indicator
+              label: Public Finance Indicator
+              description: Public finance transaction indicator.
+              dataType: boolean
+              widget: checkbox
+            - id: manufactured-home-indicator
+              name: manufactured_home_indicator
+              label: Manufactured Home Indicator
+              description: Manufactured home transaction indicator.
+              dataType: boolean
+              widget: checkbox
+            - id: related-filing-number
+              name: related_filing_number
+              label: Related Filing Number
+              description: Original filing number for amendment, continuation, termination, or assignment.
+              dataType: string
+              widget: text
+            - id: continuation-indicator
+              name: continuation_indicator
+              label: Continuation Indicator
+              description: Whether filing continues a record.
+              dataType: boolean
+              widget: checkbox
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: debtor-names
+              name: debtor_names
+              label: Debtor Names
+              description: Debtor legal names.
+              dataType: array
+              widget: textarea
+              required: true
+              span: 2
+            - id: secured-party-names
+              name: secured_party_names
+              label: Secured Party Names
+              description: Secured party names.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: secured-party-addresses
+              name: secured_party_addresses
+              label: Secured Party Addresses
+              description: Secured party addresses.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: assignee-name
+              name: assignee_name
+              label: Assignee Name
+              description: Assignee if assignment is present.
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: debtor-addresses
+              name: debtor_addresses
+              label: Debtor Addresses
+              description: Debtor addresses.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: collateral-description
+              name: collateral_description
+              label: Collateral Description
+              description: UCC collateral text.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      filing_type:
+        type: string
+        description: Initial financing statement, amendment, continuation, assignment, termination, fixture filing, or
+          other.
+      filing_number:
+        type: string
+        description: State filing or document number.
+      filing_date:
+        type: date
+        description: Filing date.
+        format: date
+      lapse_date:
+        type: date
+        description: Lapse or continuation deadline if present.
+        format: date
+      filing_office:
+        type: string
+        description: Secretary of State, county, or filing office.
+      filing_jurisdiction:
+        type: string
+        description: State or jurisdiction.
+      debtor_names:
+        type: array
+        items:
+          type: string
+        description: Debtor legal names.
+      debtor_addresses:
+        type: array
+        items:
+          type: string
+        description: Debtor addresses.
+      secured_party_names:
+        type: array
+        items:
+          type: string
+        description: Secured party names.
+      secured_party_addresses:
+        type: array
+        items:
+          type: string
+        description: Secured party addresses.
+      collateral_description:
+        type: string
+        description: UCC collateral text.
+      fixture_filing_indicator:
+        type: boolean
+        description: Whether fixture filing is indicated.
+      transmitting_utility_indicator:
+        type: boolean
+        description: Whether debtor is transmitting utility.
+      public_finance_indicator:
+        type: boolean
+        description: Public finance transaction indicator.
+      manufactured_home_indicator:
+        type: boolean
+        description: Manufactured home transaction indicator.
+      related_filing_number:
+        type: string
+        description: Original filing number for amendment, continuation, termination, or assignment.
+      assignee_name:
+        type: string
+        description: Assignee if assignment is present.
+      termination_indicator:
+        type: boolean
+        description: Whether filing terminates a record.
+      continuation_indicator:
+        type: boolean
+        description: Whether filing continues a record.
+    required:
+      - filing_number
+      - filing_date
+      - debtor_names
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: filing_number_present
+          rule_type: presence
+          fields:
+            - filing_number
+          expression: filing_number IS NOT NULL AND LENGTH(TRIM(filing_number)) > 0
+          severity: fail
+          description: UCC filings require a filing number for public-record matching.
+        - name: filing_date_present
+          rule_type: presence
+          fields:
+            - filing_date
+          expression: filing_date IS NOT NULL
+          severity: drop
+          description: Filing date is required for perfection and lapse monitoring.
+        - name: debtor_names_present
+          rule_type: array
+          fields:
+            - debtor_names
+          expression: debtor_names IS NOT NULL AND JSON_ARRAY_LENGTH(debtor_names) > 0
+          severity: fail
+          description: At least one debtor name is required.
+        - name: secured_party_names_present
+          rule_type: array
+          fields:
+            - secured_party_names
+          expression: secured_party_names IS NOT NULL AND JSON_ARRAY_LENGTH(secured_party_names) > 0
+          severity: warn
+          description: Secured party should be present for lien management.
+        - name: lapse_after_filing_date
+          rule_type: cross_field
+          fields:
+            - lapse_date
+            - filing_date
+          expression: lapse_date IS NULL OR filing_date IS NULL OR lapse_date > filing_date
+          severity: warn
+          description: Lapse date should be after filing date.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - filing_number
+            - filing_date
+            - debtor_names
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - parties
+            - property_or_asset
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []
