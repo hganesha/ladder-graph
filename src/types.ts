@@ -28,6 +28,13 @@ export interface Branch {
   when: string;
 }
 
+export interface SubgraphConfig {
+  ref: string;
+  inputMap: Record<string, string>;
+  outputMap: Record<string, string>;
+  checkpointer?: "inherit" | "perInvocation" | "perThread" | "stateless";
+}
+
 export interface NodeConfig {
   operation?: "select" | "rename" | "merge" | "filter" | "deduplicate" | "sort" | "slice" | "";
   expression?: string;
@@ -45,6 +52,11 @@ export interface NodeConfig {
   members?: string[];
   execution?: "sequential" | "parallel" | "";
   exit?: "aggregate" | "serialize" | "";
+  router?: string;
+  defaultBranch?: string;
+  entry?: string;
+  exitNode?: string;
+  subgraph?: SubgraphConfig;
 }
 
 export interface Capabilities {
@@ -82,6 +94,8 @@ export interface LgirEdge {
   kind: EdgeKind;
   contract?: string;
   condition?: string;
+  sourcePath?: string;
+  targetPath?: string;
 }
 
 export interface Workflow {

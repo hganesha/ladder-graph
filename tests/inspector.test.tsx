@@ -135,11 +135,22 @@ describe("edge inspector", () => {
     fireEvent.blur(text);
     expect(patchEdge).toHaveBeenCalledWith(edge.id, { contract: "EditedContract", condition: undefined });
 
+    const sourcePath = screen.getByLabelText("Source JSON Pointer");
+    const targetPath = screen.getByLabelText("Target JSON Pointer");
+    fireEvent.change(sourcePath, { target: { value: "/answer" } });
+    fireEvent.blur(sourcePath);
+    fireEvent.change(targetPath, { target: { value: "/inputs/answer" } });
+    fireEvent.blur(targetPath);
+    expect(patchEdge).toHaveBeenCalledWith(edge.id, { sourcePath: "/answer" });
+    expect(patchEdge).toHaveBeenCalledWith(edge.id, { targetPath: "/inputs/answer" });
+
     fireEvent.change(screen.getByLabelText("Edge type"), { target: { value: "control" } });
     expect(patchEdge).toHaveBeenCalledWith(edge.id, {
       kind: "control",
       contract: undefined,
       condition: "EditedContract",
+      sourcePath: undefined,
+      targetPath: undefined,
     });
     expect(screen.getByLabelText("Condition text")).toHaveValue("EditedContract");
 

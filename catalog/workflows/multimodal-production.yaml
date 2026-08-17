@@ -312,17 +312,17 @@ spec:
       from: modality
       to: image
       kind: control
-      condition: modality == image
+      condition: image
     - id: e5
       from: modality
       to: video
       kind: control
-      condition: modality == video
+      condition: video
     - id: e6
       from: modality
       to: audio
       kind: control
-      condition: modality == audio
+      condition: audio
     - id: e7
       from: image
       to: asset-join

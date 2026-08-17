@@ -143,7 +143,32 @@ pub struct NodeConfig {
     pub execution: String,
     #[serde(default)]
     pub exit: String,
+    #[serde(default)]
+    pub router: String,
+    #[serde(default)]
+    pub default_branch: String,
+    #[serde(default)]
+    pub entry: String,
+    #[serde(default)]
+    pub exit_node: String,
+    #[serde(default)]
+    pub subgraph: Option<SubgraphConfig>,
 }
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubgraphConfig {
+    #[serde(default)]
+    pub r#ref: String,
+    #[serde(default)]
+    pub input_map: BTreeMap<String, String>,
+    #[serde(default)]
+    pub output_map: BTreeMap<String, String>,
+    #[serde(default = "default_subgraph_checkpointer")]
+    pub checkpointer: String,
+}
+
+fn default_subgraph_checkpointer() -> String { "inherit".into() }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -175,6 +200,10 @@ pub struct Edge {
     pub contract: String,
     #[serde(default)]
     pub condition: String,
+    #[serde(default)]
+    pub source_path: String,
+    #[serde(default)]
+    pub target_path: String,
 }
 
 fn default_edge_kind() -> String { "dependency".into() }
@@ -272,6 +301,15 @@ fn node_diag(code: &str, severity: &str, index: usize, node: &Node, message: imp
 fn hash_workflow(workflow: &Workflow) -> String {
     let canonical = serde_json::to_vec(workflow).unwrap_or_default();
     hex::encode(Sha256::digest(canonical))
+}
+
+fn valid_state_path(path: &str) -> bool {
+    path.starts_with('/') && !path.split('/').skip(1).any(|segment| {
+        let bytes = segment.as_bytes();
+        bytes.iter().enumerate().any(|(index, byte)| {
+            *byte == b'~' && bytes.get(index + 1).is_none_or(|next| !matches!(next, b'0' | b'1'))
+        })
+    })
 }
 
 fn parse(source: &str) -> Result<Workflow, Diagnostic> {
@@ -409,6 +447,22 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         if node.kind == "aggregator" && !allowed_aggregations.contains(node.config.aggregation.as_str()) {
             diagnostics.push(node_diag("LG118", "error", index, node, "Aggregation strategy must be collect, merge, concat, or vote."));
         }
+        if node.kind == "condition" {
+            if node.config.branches.is_empty() {
+                diagnostics.push(node_diag("LG160", "error", index, node, "Condition nodes require at least one declared branch token."));
+            }
+            let mut tokens = BTreeSet::new();
+            for branch in &node.config.branches {
+                if branch.label.trim().is_empty() || branch.when.trim().is_empty() {
+                    diagnostics.push(node_diag("LG161", "error", index, node, "Condition branch labels and tokens must be non-empty."));
+                } else if !tokens.insert(branch.when.as_str()) {
+                    diagnostics.push(node_diag("LG161", "error", index, node, format!("Condition branch token '{}' is duplicated.", branch.when)));
+                }
+            }
+            if !node.config.default_branch.is_empty() && !tokens.contains(node.config.default_branch.as_str()) {
+                diagnostics.push(node_diag("LG162", "error", index, node, format!("defaultBranch '{}' must name a declared branch token.", node.config.default_branch)));
+            }
+        }
         if node.kind == "loop" {
             if node.config.max_iterations == 0 || node.config.max_iterations > 100 {
                 let mut d = node_diag("LG120", "error", index, node, "Loop maxIterations must be between 1 and 100.");
@@ -421,10 +475,22 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
             if node.config.body.is_empty() {
                 diagnostics.push(node_diag("LG122", "error", index, node, "Loop body must reference at least one node."));
             }
+            let mut body_ids = BTreeSet::new();
             for body_id in &node.config.body {
                 if !workflow.spec.nodes.iter().any(|candidate| candidate.id == *body_id) {
                     diagnostics.push(node_diag("LG123", "error", index, node, format!("Loop body references missing node '{body_id}'.")));
                 }
+                if body_id == &node.id || !body_ids.insert(body_id) {
+                    diagnostics.push(node_diag("LG170", "error", index, node, "Loop bodies cannot contain the loop node or duplicate member IDs."));
+                }
+            }
+            let entry = if node.config.entry.is_empty() { node.config.body.first() } else { Some(&node.config.entry) };
+            let exit = if node.config.exit_node.is_empty() { node.config.body.last() } else { Some(&node.config.exit_node) };
+            if entry.is_some_and(|id| !body_ids.contains(id)) {
+                diagnostics.push(node_diag("LG171", "error", index, node, "Loop entry must identify a node in the loop body."));
+            }
+            if exit.is_some_and(|id| !body_ids.contains(id)) {
+                diagnostics.push(node_diag("LG172", "error", index, node, "Loop exitNode must identify a node in the loop body."));
             }
         }
         if node.kind == "join" && !["all", "allSettled", "first"].contains(&node.config.join.as_str()) {
@@ -449,6 +515,30 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
                     None => diagnostics.push(node_diag("LG129", "error", index, node, format!("Group references missing member '{member_id}'."))),
                     Some(member) if member.id == node.id || member.kind == "group" => diagnostics.push(node_diag("LG132", "error", index, node, "Groups cannot contain themselves or another group.")),
                     _ => {}
+                }
+            }
+        }
+        if node.kind == "subgraph" {
+            match &node.config.subgraph {
+                None => diagnostics.push(node_diag("LG190", "warning", index, node, "Subgraph has no executable ref or parent/child state mapping.")),
+                Some(subgraph) => {
+                    let valid_ref = subgraph.r#ref.strip_prefix("ladder://").is_some_and(|value| !value.is_empty())
+                        || subgraph.r#ref.strip_prefix("host:").is_some_and(|value| !value.is_empty());
+                    if !valid_ref {
+                        diagnostics.push(node_diag("LG191", "error", index, node, "Subgraph ref must be a non-empty ladder:// or host: reference."));
+                    }
+                    if subgraph.input_map.is_empty() {
+                        diagnostics.push(node_diag("LG192", "error", index, node, "Subgraph inputMap must map at least one child input to a parent state path."));
+                    }
+                    if subgraph.output_map.is_empty() {
+                        diagnostics.push(node_diag("LG193", "error", index, node, "Subgraph outputMap must map at least one child output to a parent state path."));
+                    }
+                    if subgraph.input_map.values().chain(subgraph.output_map.values()).any(|path| !valid_state_path(path)) {
+                        diagnostics.push(node_diag("LG194", "error", index, node, "Subgraph state mappings must use valid JSON Pointer paths."));
+                    }
+                    if !["inherit", "perInvocation", "perThread", "stateless"].contains(&subgraph.checkpointer.as_str()) {
+                        diagnostics.push(node_diag("LG195", "error", index, node, "Subgraph checkpointer must be inherit, perInvocation, perThread, or stateless."));
+                    }
                 }
             }
         }
@@ -505,6 +595,20 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         if !known.contains(&edge.to) { edge_error("LG142", format!("Edge target '{}' does not exist.", edge.to)); }
         if !["data", "dependency", "control"].contains(&edge.kind.as_str()) { edge_error("LG143", format!("Unsupported edge kind '{}'.", edge.kind)); }
         if edge.from == edge.to { edge_error("LG144", "Self edges are not allowed; use a structured loop node.".into()); }
+        let has_source_path = !edge.source_path.is_empty();
+        let has_target_path = !edge.target_path.is_empty();
+        if has_source_path != has_target_path {
+            edge_error("LG183", "Data mappings require both sourcePath and targetPath.".into());
+        }
+        if (has_source_path && !valid_state_path(&edge.source_path)) || (has_target_path && !valid_state_path(&edge.target_path)) {
+            edge_error("LG184", "sourcePath and targetPath must be valid JSON Pointer paths.".into());
+        }
+        if (has_source_path || has_target_path) && edge.kind != "data" {
+            edge_error("LG185", "Only data edges can declare sourcePath and targetPath.".into());
+        }
+        if edge.kind == "control" && edge.condition.trim().is_empty() {
+            edge_error("LG186", "Control edges require a non-empty branch token in condition.".into());
+        }
         let source_group = membership.get(&edge.from);
         let target_group = membership.get(&edge.to);
         if source_group.is_some() && source_group != target_group {
@@ -512,6 +616,57 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         }
         if target_group.is_some() && source_group != target_group {
             diagnostics.push(diag("LG146", "warning", format!("/spec/edges/{index}"), format!("Route external input through group '{}' instead of directly to member '{}'.", target_group.expect("checked"), edge.to)));
+        }
+    }
+    let mut mapped_targets = BTreeSet::new();
+    for (index, edge) in workflow.spec.edges.iter().enumerate().filter(|(_, edge)| edge.kind == "data" && !edge.target_path.is_empty()) {
+        if !mapped_targets.insert((edge.to.as_str(), edge.target_path.as_str())) {
+            let mut d = diag("LG187", "error", format!("/spec/edges/{index}"), format!("Multiple data edges map to targetPath '{}' on node '{}'.", edge.target_path, edge.to));
+            d.edge_id = Some(edge.id.clone());
+            diagnostics.push(d);
+        }
+    }
+    for (index, node) in workflow.spec.nodes.iter().enumerate().filter(|(_, node)| node.kind == "condition") {
+        let branch_tokens: BTreeSet<&str> = node.config.branches.iter().map(|branch| branch.when.as_str()).collect();
+        let outgoing: Vec<&Edge> = workflow.spec.edges.iter().filter(|edge| edge.from == node.id && edge.kind == "control").collect();
+        if outgoing.is_empty() {
+            diagnostics.push(node_diag("LG165", "error", index, node, "Condition requires at least one outgoing control edge."));
+        }
+        let outgoing_tokens: BTreeSet<&str> = outgoing.iter().map(|edge| edge.condition.as_str()).collect();
+        for edge in outgoing {
+            if !branch_tokens.contains(edge.condition.as_str()) {
+                let mut d = node_diag("LG163", "error", index, node, format!("Control edge '{}' uses undeclared branch token '{}'.", edge.id, edge.condition));
+                d.edge_id = Some(edge.id.clone());
+                diagnostics.push(d);
+            }
+        }
+        for token in branch_tokens.difference(&outgoing_tokens) {
+            diagnostics.push(node_diag("LG164", "warning", index, node, format!("Declared branch token '{token}' has no outgoing control edge.")));
+        }
+    }
+    for (index, node) in workflow.spec.nodes.iter().enumerate().filter(|(_, node)| node.kind == "loop") {
+        let outgoing: Vec<&Edge> = workflow.spec.edges.iter().filter(|edge| edge.from == node.id).collect();
+        if outgoing.is_empty() {
+            diagnostics.push(node_diag("LG173", "error", index, node, "Loop requires at least one outgoing exit edge."));
+        } else if !outgoing.iter().any(|edge| edge.condition == "loop_exit") {
+            diagnostics.push(node_diag("LG174", "warning", index, node, "Loop exit edges should use the canonical 'loop_exit' condition token."));
+        }
+        let has_exhausted_edge = outgoing.iter().any(|edge| edge.condition == "loop_exhausted");
+        if ["continue", "warn"].contains(&node.config.on_exhausted.as_str()) && !has_exhausted_edge {
+            diagnostics.push(node_diag("LG175", "error", index, node, "continue and warn exhaustion policies require a 'loop_exhausted' outgoing edge."));
+        }
+        if node.config.on_exhausted == "stop" && has_exhausted_edge {
+            diagnostics.push(node_diag("LG176", "warning", index, node, "A stop exhaustion policy never follows a 'loop_exhausted' edge."));
+        }
+    }
+    for (index, node) in workflow.spec.nodes.iter().enumerate().filter(|(_, node)| node.kind == "join") {
+        let inbound = workflow.spec.edges.iter().filter(|edge| edge.to == node.id && known.contains(&edge.from)).count();
+        let outbound = workflow.spec.edges.iter().filter(|edge| edge.from == node.id && known.contains(&edge.to)).count();
+        if inbound < 2 {
+            diagnostics.push(node_diag("LG180", "error", index, node, "Join nodes require at least two distinct upstream edges."));
+        }
+        if outbound == 0 {
+            diagnostics.push(node_diag("LG181", "error", index, node, "Join nodes require at least one downstream edge."));
         }
     }
     for (index, node) in workflow.spec.nodes.iter().enumerate().filter(|(_, node)| node.kind == "aggregator") {
@@ -1059,5 +1214,44 @@ spec:
         let external = VALID.replace("prompt: Draft the answer.", "outputSchema:\n        $ref: https://example.com/schema.json\n      prompt: Draft the answer.");
         assert_eq!(parse(&alias).unwrap_err().code, "LG004");
         assert_eq!(parse(&external).unwrap_err().code, "LG005");
+    }
+
+    #[test]
+    fn validates_executable_condition_contracts() {
+        let source = VALID.replace(
+            "    - id: output",
+            "    - id: route\n      kind: condition\n      name: Route\n      config:\n        expression: result.status\n        router: host:status-router\n        defaultBranch: default\n        branches:\n          - { label: Pass, when: pass }\n          - { label: Default, when: default }\n    - id: output",
+        ).replace(
+            "from: writer\n      to: output\n      kind: dependency",
+            "from: writer\n      to: route\n      kind: dependency\n    - id: e3\n      from: route\n      to: output\n      kind: control\n      condition: unknown",
+        );
+        let analysis = analyze_inner(&source, None);
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG163" && d.edge_id.as_deref() == Some("e3")));
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG164"));
+    }
+
+    #[test]
+    fn validates_loop_boundaries_and_data_mappings() {
+        let source = VALID.replace(
+            "    - id: output",
+            "    - id: revise\n      kind: loop\n      name: Revise\n      config:\n        body: [writer]\n        entry: missing\n        exitNode: writer\n        exitCondition: score >= 0.8\n        maxIterations: 3\n        onExhausted: warn\n    - id: output",
+        ).replace(
+            "    - id: e2",
+            "    - id: map\n      from: input\n      to: writer\n      kind: data\n      sourcePath: /request\n    - id: loop-exit\n      from: revise\n      to: output\n      kind: control\n      condition: loop_exit\n    - id: e2",
+        );
+        let analysis = analyze_inner(&source, None);
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG171"));
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG175"));
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG183" && d.edge_id.as_deref() == Some("map")));
+    }
+
+    #[test]
+    fn accepts_explicit_subgraph_state_contract() {
+        let source = VALID.replace(
+            "kind: agent\n      name: Writer\n      role: Writer\n      prompt: Draft the answer.",
+            "kind: subgraph\n      name: Writer graph\n      config:\n        subgraph:\n          ref: ladder://workflows/writer\n          inputMap:\n            request: /inputs/request\n          outputMap:\n            result: /results/writer\n          checkpointer: inherit",
+        );
+        let analysis = analyze_inner(&source, None);
+        assert!(!analysis.diagnostics.iter().any(|d| d.code.starts_with("LG19") && d.severity == "error"), "{:?}", analysis.diagnostics);
     }
 }
