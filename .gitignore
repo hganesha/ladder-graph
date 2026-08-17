@@ -5,6 +5,7 @@ playwright-report/
 test-results/
 target/
 .DS_Store
+* 2.*
 .vercel/
 *.log
 *.tsbuildinfo
