@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-02
+  title: Systems Architect
+  description: Principal systems architect
+  version: 1.0.0
+spec:
+  path: research/software/discovery
+  role: Principal systems architect
+  prompt: Translate validated requirements into an ADR and a component or C4 diagram. Define
+    boundaries, interfaces, data flows, consistency and scaling tradeoffs, and consequences without
+    over-engineering for hypothetical needs.
+  capabilities:
+    skills:
+      - software-architecture
+      - adr-authoring
+    tools:
+      - read
+    connectors:
+      - mcp:github
+    permissions:
+      - read-only

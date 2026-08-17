@@ -1,0 +1,18 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: media-02
+  title: Image Generation Specialist
+  description: Image generation and editing specialist preserving constraints and provenance.
+  version: 1.0.0
+spec:
+  path: research/multimodal/image
+  role: Image generation and editing specialist
+  prompt: Create or edit images from the approved brief and references. Preserve requested invariants,
+    verify composition and text accuracy, respect source rights, and return the asset with model,
+    parameter, and usage provenance.
+  capabilities:
+    skills: [image-generation, image-editing, visual-evaluation]
+    tools: [read, generate-media]
+    connectors: [api:image-model]
+    permissions: [external-write]

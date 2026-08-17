@@ -1,0 +1,154 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: implementation-risk-review
+  title: Implementation and risk review
+  description: Fan out implementation and risk analysis, then join them into a decision-ready result.
+  version: 1.0.0
+spec:
+  objective: Produce an implementation plan reviewed for delivery and security risk.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: brief
+      kind: input
+      name: Feature brief
+      summary: Scope, constraints, and desired outcome.
+      position:
+        x: 100
+        y: 210
+    - id: implementer
+      kind: agent
+      name: Implementation lead
+      summary: Design the change and acceptance criteria.
+      role: Senior software engineer
+      prompt: Propose the smallest implementation that satisfies the brief. Include interfaces, file
+        boundaries, edge cases, and verification.
+      capabilities:
+        skills:
+          - architecture
+          - implementation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - approach
+          - acceptanceCriteria
+        properties:
+          approach:
+            type: string
+          acceptanceCriteria:
+            type: array
+            items:
+              type: string
+      position:
+        x: 390
+        y: 90
+    - id: risk-reviewer
+      kind: agent
+      name: Risk reviewer
+      summary: Find trust, failure, and rollout risks.
+      role: Security and reliability reviewer
+      prompt: Review the feature brief independently. Identify abuse paths, data risks, operational
+        failures, and mitigations ranked by severity.
+      capabilities:
+        skills:
+          - threat-modeling
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - risks
+        properties:
+          risks:
+            type: array
+            items:
+              type: object
+      position:
+        x: 390
+        y: 330
+    - id: join
+      kind: join
+      name: Review barrier
+      summary: Wait for both independent branches.
+      config:
+        join: all
+      position:
+        x: 680
+        y: 210
+    - id: decision
+      kind: agent
+      name: Decision synthesis
+      summary: Reconcile implementation and risks.
+      role: Technical product lead
+      prompt: Combine the implementation and risk review. Resolve conflicts explicitly and return a
+        sequenced plan with mitigations and release gates.
+      capabilities:
+        skills:
+          - product-management
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - plan
+          - gates
+        properties:
+          plan:
+            type: array
+            items:
+              type: string
+          gates:
+            type: array
+            items:
+              type: string
+      position:
+        x: 930
+        y: 210
+    - id: output
+      kind: output
+      name: Reviewed plan
+      summary: A decision-ready implementation plan.
+      position:
+        x: 1180
+        y: 210
+  edges:
+    - id: e1
+      from: brief
+      to: implementer
+      kind: data
+      contract: FeatureBrief
+    - id: e2
+      from: brief
+      to: risk-reviewer
+      kind: data
+      contract: FeatureBrief
+    - id: e3
+      from: implementer
+      to: join
+      kind: data
+      contract: ImplementationPlan
+    - id: e4
+      from: risk-reviewer
+      to: join
+      kind: data
+      contract: RiskRegister
+    - id: e5
+      from: join
+      to: decision
+      kind: dependency
+    - id: e6
+      from: decision
+      to: output
+      kind: data
+      contract: ReviewedPlan

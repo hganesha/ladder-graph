@@ -134,6 +134,7 @@ button:disabled {
 /* Welcome */
 .welcome-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   width: 100%;
   height: 100dvh;
@@ -3063,6 +3064,35 @@ button:disabled {
     padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
       max(16px, env(safe-area-inset-left));
   }
+  .welcome-header {
+    min-height: 40px;
+  }
+  .welcome-header .brand {
+    gap: 8px;
+  }
+  .welcome-header .brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+  .welcome-header .brand small,
+  .welcome-help-button span {
+    display: none;
+  }
+  .welcome-help-button {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+  .welcome-header-actions .quiet-button {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+  .welcome-header-actions .quiet-button span {
+    display: none;
+  }
   .welcome-header .theme-toggle {
     width: 40px;
     height: 40px;
@@ -3073,38 +3103,46 @@ button:disabled {
     display: none;
   }
   .gallery-section {
-    padding-top: 20px;
+    padding-top: 14px;
   }
   .section-heading {
     align-items: start;
   }
   .library-heading {
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 14px;
-    padding-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 12px;
   }
   .new-workflow-button {
     align-self: flex-start;
   }
   .library-heading p {
-    font-size: 13px;
+    margin-top: 7px;
+    font-size: 12px;
+    line-height: 1.4;
   }
   .library-heading h1 {
-    font-size: clamp(30px, 10vw, 40px);
+    font-size: clamp(27px, 8vw, 34px);
+  }
+  .subject-area-label {
+    margin-bottom: 7px;
   }
   .workflow-tabs {
     flex-wrap: nowrap;
     overflow-x: auto;
+    gap: 5px;
+    margin-bottom: 10px;
     margin-inline: calc(-1 * max(16px, env(safe-area-inset-left)));
-    padding-inline: max(16px, env(safe-area-inset-left));
+    padding: 0 max(16px, env(safe-area-inset-left)) 7px;
     scroll-padding-inline: max(16px, env(safe-area-inset-left));
     scrollbar-width: none;
   }
   .library-tab-heading {
     align-items: flex-start;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    padding: 10px 0;
   }
   .library-tabs {
     width: 100%;
@@ -3119,22 +3157,115 @@ button:disabled {
   }
   .workflow-tabs button {
     min-height: 44px;
+    padding-inline: 10px;
   }
   .tabbed-template-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .template-card {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 20px;
+    grid-template-rows: auto auto auto;
+    column-gap: 12px;
+    row-gap: 5px;
     min-height: 0;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 12px;
   }
   .topology-art {
-    height: 76px;
+    grid-column: 1;
+    grid-row: 1 / 4;
+    width: 56px;
+    height: 56px;
+    margin: 0;
+    align-self: start;
+    border-radius: 9px;
+  }
+  .topology-art svg {
+    width: 25px;
+    height: 25px;
+  }
+  .topology-art span {
+    width: 4px;
+    height: 4px;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+  .template-meta {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    align-self: end;
+    gap: 8px;
+    font-size: 7px;
+  }
+  .template-card h3 {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.2;
   }
   .template-card p {
+    display: -webkit-box;
+    grid-column: 2 / 4;
+    grid-row: 3;
+    min-height: 0;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .template-card > strong {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: center;
+    justify-self: end;
+    margin: 0;
+    font-size: 0;
+  }
+  .template-card > strong svg {
+    width: 16px;
+    height: 16px;
+  }
+  .agent-template-card {
     min-height: 0;
   }
+  .agent-card-icon {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    width: 56px;
+    height: 56px;
+    margin: 0;
+    align-self: start;
+    border-radius: 9px;
+  }
+  .agent-skill-list {
+    display: none;
+  }
   .workflow-tab-panel {
-    padding: 14px 2px 18px 0;
+    padding: 12px 2px 18px 0;
+  }
+  .workflow-tab-panel .workflow-group-heading {
+    margin-bottom: 11px;
+  }
+  .workflow-group-heading {
+    gap: 9px;
+  }
+  .workflow-group-heading > span {
+    width: 30px;
+    height: 30px;
+  }
+  .workflow-group-heading h2 {
+    margin: 0 0 4px;
+    font-size: 15px;
+  }
+  .workflow-group-heading p {
+    display: -webkit-box;
+    overflow: hidden;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
   .welcome-footer span:first-child {
     display: none;
@@ -3306,9 +3437,6 @@ button:disabled {
 }
 
 @media (max-width: 360px) {
-  .welcome-shell {
-    padding-inline: 13px;
-  }
   .welcome-header .brand strong {
     font-size: 12px;
     letter-spacing: 0.08em;

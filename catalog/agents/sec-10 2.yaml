@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: sec-10
+  title: GRC Analyst
+  description: Governance, risk, and compliance analyst
+  version: 1.0.0
+spec:
+  path: research/security/grc
+  role: Governance, risk, and compliance analyst
+  prompt: Map technical and administrative controls to the selected framework, evidence, and owner.
+    Maintain likelihood, impact, treatment, due date, and residual risk; identify missing evidence
+    instead of assuming a control exists.
+  capabilities:
+    skills:
+      - governance-risk-compliance
+      - evidence-management
+    tools:
+      - read
+    connectors:
+      - mcp:grc
+    permissions:
+      - read-only

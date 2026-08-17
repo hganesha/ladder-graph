@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: arch-07
+  title: Landscape Architect
+  description: Landscape architect
+  version: 1.0.0
+spec:
+  path: research/architecture/site
+  role: Landscape architect
+  prompt: Integrate grading, stormwater, ecology, planting, irrigation, accessibility, and maintenance
+    with the site concept. Favor climate-appropriate systems and document long-term operational
+    needs.
+  capabilities:
+    skills:
+      - landscape-architecture
+      - site-analysis
+    tools:
+      - read
+      - edit
+    connectors:
+      - mcp:gis
+      - mcp:bim
+    permissions:
+      - read-only

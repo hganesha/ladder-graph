@@ -1,0 +1,246 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-robo-02
+  title: Blind safety case review + discordance resolution
+  description: Three reviewers assess the same safety case without seeing each other's verdict; the vote
+    preserves ties and disagreement routes to explicit resolution before deployment.
+  version: 1.0.0
+spec:
+  objective: Reach a deployment verdict where safety, perception, and readiness were assessed independently
+    and every disagreement was resolved on the record before a robot operates near people.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Safety case and validation evidence
+      summary: Safety case and validation evidence
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - hazard_analysis
+              - validation_evidence
+              - site_description
+              - operating_envelope
+            properties:
+              hazard_analysis: {}
+              validation_evidence: {}
+              site_description: {}
+              operating_envelope: {}
+        x-ladder-input-mode: document
+    - id: n-read1
+      kind: agent
+      name: Independent safety assessment
+      summary: Independent read 1; produced without sight of the other reads.
+      role: Safety engineer assessing hazards, stops, and human-robot interaction risk.
+      prompt: You are a Robot Safety Engineer. You assess hazards across the full task envelope, verify
+        protective stops, speed and separation monitoring, and emergency behavior, and you state which
+        safety functions are independent of the control stack. You never accept a software check as the
+        sole mitigation for a hazard that can injure a person, and you say so plainly when that is what
+        is being proposed.
+      capabilities:
+        skills:
+          - robot-safety-assessment
+          - protective-stop-verification
+          - human-robot-interaction-analysis
+          - independent-safety-function-review
+          - failure-mode-analysis
+        tools:
+          - read
+          - test
+        connectors: []
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+        required:
+          - verdict
+          - residual_hazards
+          - evidence_cited
+          - confidence
+        properties:
+          verdict: {}
+          residual_hazards: {}
+          evidence_cited: {}
+          confidence: {}
+    - id: n-read2
+      kind: agent
+      name: Independent perception assessment
+      summary: Independent read 2; produced without sight of the other reads.
+      role: Perception engineer building and validating detection under real conditions.
+      prompt: You are a Robot Perception Engineer. You specify and validate perception against the operating
+        conditions the robot will actually meet — lighting, occlusion, clutter, motion — and you report
+        per-condition performance rather than a single aggregate. You state the failure signature of the
+        perception stack, because a system that fails silently is more dangerous than one that fails loudly.
+      capabilities:
+        skills:
+          - perception-validation
+          - condition-stratified-evaluation
+          - failure-signature-characterization
+          - sensor-fusion-analysis
+          - statistical-analysis
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:robotics-stack
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - verdict
+          - residual_hazards
+          - evidence_cited
+          - confidence
+        properties:
+          verdict: {}
+          residual_hazards: {}
+          evidence_cited: {}
+          confidence: {}
+    - id: n-read3
+      kind: agent
+      name: Independent readiness assessment
+      summary: Independent read 3; produced without sight of the other reads.
+      role: Assessor testing whether a robot system is ready for its actual operating environment.
+      prompt: 'You are a Deployment Readiness Assessor. You test readiness against the specific site:
+        layout, people present, task variability, recovery procedures, and who intervenes when the robot
+        stops. You state what happens on the worst realistic day rather than the demo day, because deployment
+        failures are almost always environment variability the pilot never saw.'
+      capabilities:
+        skills:
+          - deployment-readiness-assessment
+          - site-specific-risk-analysis
+          - recovery-procedure-review
+          - operator-intervention-planning
+          - failure-mode-analysis
+        tools:
+          - read
+          - test
+        connectors: []
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+        required:
+          - verdict
+          - residual_hazards
+          - evidence_cited
+          - confidence
+        properties:
+          verdict: {}
+          residual_hazards: {}
+          evidence_cited: {}
+          confidence: {}
+    - id: n-vote
+      kind: aggregator
+      name: Tally independent verdicts
+      summary: Tally verdict across the independent reads and preserve ties rather than averaging them.
+      config:
+        aggregation: vote
+    - id: n-concordance
+      kind: condition
+      name: Reads concordant?
+      summary: Route on vote.tally has a single majority for verdict.
+      config:
+        expression: vote.tally has a single majority for verdict
+        branches:
+          - label: Concordant
+            when: concordant
+          - label: Discordant
+            when: discordant
+    - id: n-adjudicate
+      kind: agent
+      name: Resolve the discordant verdict on the record
+      summary: Resolve the discordance on the record; the disagreement itself is evidence.
+      role: Analyst quantifying how far simulation results transfer to hardware.
+      prompt: You are a Simulation & Sim-to-Real Analyst. You state what the simulator models faithfully
+        and what it does not — contact, friction, latency, sensor noise — and you quantify the transfer
+        gap with hardware evidence rather than asserting it is small. You refuse to report simulated success
+        as system performance, because sim results presented as measurements are the most common overclaim
+        in the field.
+      capabilities:
+        skills:
+          - sim-to-real-analysis
+          - domain-gap-quantification
+          - simulator-fidelity-declaration
+          - hardware-validation-design
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:robotics-stack
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Accountable engineer authorizes deployment
+      summary: Pause for the accountable engineer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Blind safety case review + discordance resolution deliverable, the
+        evidence behind it, and every unresolved item.
+  edges:
+    - id: wf-robo-02-edge-1
+      from: n-intake
+      to: n-read1
+      kind: data
+    - id: wf-robo-02-edge-2
+      from: n-intake
+      to: n-read2
+      kind: data
+    - id: wf-robo-02-edge-3
+      from: n-intake
+      to: n-read3
+      kind: data
+    - id: wf-robo-02-edge-4
+      from: n-read1
+      to: n-vote
+      kind: data
+    - id: wf-robo-02-edge-5
+      from: n-read2
+      to: n-vote
+      kind: data
+    - id: wf-robo-02-edge-6
+      from: n-read3
+      to: n-vote
+      kind: data
+    - id: wf-robo-02-edge-7
+      from: n-vote
+      to: n-concordance
+      kind: data
+    - id: wf-robo-02-edge-8
+      from: n-concordance
+      to: n-approval
+      kind: control
+      condition: concordant
+    - id: wf-robo-02-edge-9
+      from: n-concordance
+      to: n-adjudicate
+      kind: control
+      condition: discordant
+    - id: wf-robo-02-edge-10
+      from: n-adjudicate
+      to: n-approval
+      kind: data
+    - id: wf-robo-02-edge-11
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

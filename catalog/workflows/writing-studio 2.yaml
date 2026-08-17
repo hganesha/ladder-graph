@@ -1,0 +1,206 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: manuscript-development-studio
+  title: Manuscript development + editorial gate
+  description: Review structure and reader experience independently before producing a
+    voice-preserving revision plan.
+  version: 1.0.0
+spec:
+  objective: Produce a staged editorial plan that fixes the manuscript's largest problems before line polish.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: brief
+      kind: input
+      name: Manuscript brief
+      summary: Draft, genre, intended reader, writer's goals, constraints, and requested editorial depth.
+      position:
+        x: 100
+        y: 220
+    - id: perspective-a
+      kind: agent
+      name: Structural edit
+      summary: Assess thesis or arc, organization, pacing, and point of view.
+      role: Developmental editor
+      prompt: Diagnose manuscript-level problems and propose concrete restructuring options. Defer
+        sentence polish until the argument or narrative shape is sound.
+      capabilities:
+        skills:
+          - developmental-editing
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - evidence
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 90
+    - id: perspective-b
+      kind: agent
+      name: Reader and voice review
+      summary: Test clarity, audience fit, voice consistency, and disclosure boundaries.
+      role: Voice-preserving writing coach
+      prompt: Identify where the draft loses its intended reader or departs from its established voice.
+        Preserve intentional style and distinguish reader-facing craft from private processing.
+      capabilities:
+        skills:
+          - voice-preservation
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - risks
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 350
+    - id: join
+      kind: join
+      name: Perspective barrier
+      summary: Wait for both independent perspectives.
+      config:
+        join: all
+      position:
+        x: 660
+        y: 220
+    - id: synthesis
+      kind: agent
+      name: Editorial letter
+      summary: Prioritize revisions and supply representative examples.
+      role: Senior manuscript editor
+      prompt: Write an actionable editorial letter with preserved strengths, priority order, structural
+        moves, representative examples, and a separate later line-edit pass.
+      capabilities:
+        skills:
+          - developmental-editing
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - recommendation
+          - actions
+          - openQuestions
+        properties:
+          recommendation:
+            type: string
+          actions:
+            type: array
+            items:
+              type: string
+          openQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 150
+    - id: evaluation
+      kind: evaluate
+      name: Editorial integrity gate
+      summary: Check the recommendation against its evidence and contract.
+      role: Independent editorial reviewer
+      prompt: Pass only when recommendations serve the writer's stated goal, trace to manuscript evidence,
+        preserve voice, and separate structural revision from line editing.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+      position:
+        x: 900
+        y: 330
+    - id: output
+      kind: output
+      name: Staged revision plan
+      summary: Editorial letter, structural map, priority revisions, examples, and later line-edit
+        checklist.
+      position:
+        x: 1180
+        y: 220
+  edges:
+    - id: e1
+      from: brief
+      to: perspective-a
+      kind: data
+      contract: Brief
+    - id: e2
+      from: brief
+      to: perspective-b
+      kind: data
+      contract: Brief
+    - id: e3
+      from: perspective-a
+      to: join
+      kind: data
+      contract: EvidenceSet
+    - id: e4
+      from: perspective-b
+      to: join
+      kind: data
+      contract: RiskSet
+    - id: e5
+      from: join
+      to: synthesis
+      kind: dependency
+    - id: e6
+      from: synthesis
+      to: evaluation
+      kind: data
+      contract: Recommendation
+    - id: e7
+      from: evaluation
+      to: output
+      kind: control
+      condition: passed == true

@@ -1,0 +1,250 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-ling-01
+  title: Documentation claim verification gate
+  description: Deduplicate the analytical claims in a description, verify each against attested tokens,
+    corpus evidence, and variation data, and block archiving while any is unverified.
+  version: 1.0.0
+spec:
+  objective: Archive a language description in which every generalization cites an attested form, and
+    unattested paradigm cells are marked rather than filled by analogy.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Draft description and recorded material
+      summary: Draft description and recorded material
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - draft_generalizations
+              - recorded_tokens
+              - corpus
+              - consent_and_access_terms
+            properties:
+              draft_generalizations: {}
+              recorded_tokens: {}
+              corpus: {}
+              consent_and_access_terms: {}
+        x-ladder-input-mode: document
+    - id: n-dedupe
+      kind: transform
+      name: Deduplicate claim set
+      summary: deduplicate draft_generalizations by normalized claim so each is verified once
+      config:
+        operation: deduplicate
+        expression: deduplicate draft_generalizations by normalized claim so each is verified once
+    - id: n-verify1
+      kind: agent
+      name: Verify against attested tokens
+      summary: 'Verification pass 1: verify against attested tokens.'
+      role: Analyst building phonological and morphological descriptions from attested data.
+      prompt: You are a Phonological & Morphological Analyst. You build descriptions from attested forms,
+        cite the token behind every generalization, and mark a paradigm cell unattested rather than filling
+        it by analogy. You distinguish a rule the data supports from a pattern you expect from related
+        languages, because the second is how a described language quietly becomes a copy of its neighbour.
+      capabilities:
+        skills:
+          - phonological-analysis
+          - morphological-analysis
+          - attestation-tracking
+          - paradigm-gap-marking
+          - citation-verification
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - verified
+          - unverified
+          - evidence
+        properties:
+          verified: {}
+          unverified: {}
+          evidence: {}
+    - id: n-verify2
+      kind: agent
+      name: Verify against corpus frequency and citation
+      summary: 'Verification pass 2: verify against corpus frequency and citation.'
+      role: Specialist building corpora and dictionary entries that stay checkable.
+      prompt: You are a Corpus & Lexicography Specialist. You build corpora with documented sampling and
+        annotation guidelines, and you write dictionary entries where each sense is supported by citations
+        from the corpus. You record frequency and register honestly, including where the corpus is too
+        small to support a claim about either.
+      capabilities:
+        skills:
+          - corpus-construction
+          - lexicographic-entry-writing
+          - sense-citation-linking
+          - sampling-documentation
+          - statistical-analysis
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:archive
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - verified
+          - unverified
+          - evidence
+        properties:
+          verified: {}
+          unverified: {}
+          evidence: {}
+    - id: n-verify3
+      kind: agent
+      name: Verify against variation across speakers
+      summary: 'Verification pass 3: verify against variation across speakers.'
+      role: Analyst describing variation without treating one variety as the standard.
+      prompt: You are a Dialect & Variation Analyst. You describe variation across region, community,
+        and register using attested data and explicit social variables, and you avoid framing any variety
+        as a deviation from a standard. You state sample sizes per variety, because claims about a community
+        based on a handful of speakers are sociolinguistically and ethically fragile.
+      capabilities:
+        skills:
+          - variation-analysis
+          - sociolinguistic-variable-coding
+          - sample-adequacy-reporting
+          - standard-language-neutrality
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - verified
+          - unverified
+          - evidence
+        properties:
+          verified: {}
+          unverified: {}
+          evidence: {}
+    - id: n-collect
+      kind: aggregator
+      name: Collect verification results
+      summary: Source-tag every verification result so an unverified item stays attributable.
+      config:
+        aggregation: collect
+    - id: n-unresolved
+      kind: condition
+      name: Any unverified items?
+      summary: Route on collected.unverified is empty.
+      config:
+        expression: collected.unverified is empty
+        branches:
+          - label: Clear
+            when: clear
+          - label: Unverified remain
+            when: unverified
+    - id: n-resolve
+      kind: agent
+      name: Mark unattested claims or withdraw them
+      summary: Close, replace, or explicitly withdraw each unverified item.
+      role: Field linguist documenting a language with speaker consent and archival standards.
+      prompt: You are a Field Documentation Linguist. You produce recordings, transcriptions, and metadata
+        to archival standard with speaker consent, access conditions, and provenance recorded for every
+        item. You document what speakers actually say rather than normalizing it toward a prestige variety,
+        and you keep the community's stated access restrictions attached to the material permanently.
+      capabilities:
+        skills:
+          - language-documentation
+          - archival-metadata-standards
+          - consent-and-access-recording
+          - transcription-fidelity
+          - de-identification
+        tools:
+          - read
+          - write
+        connectors:
+          - mcp:archive
+        permissions:
+          - read-only
+          - pii-restricted
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Community representative and archive lead approve deposit
+      summary: Pause for the community representative and archive lead; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Documentation claim verification gate deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-ling-01-edge-1
+      from: n-intake
+      to: n-dedupe
+      kind: data
+    - id: wf-ling-01-edge-2
+      from: n-dedupe
+      to: n-verify1
+      kind: data
+    - id: wf-ling-01-edge-3
+      from: n-dedupe
+      to: n-verify2
+      kind: data
+    - id: wf-ling-01-edge-4
+      from: n-dedupe
+      to: n-verify3
+      kind: data
+    - id: wf-ling-01-edge-5
+      from: n-verify1
+      to: n-collect
+      kind: data
+    - id: wf-ling-01-edge-6
+      from: n-verify2
+      to: n-collect
+      kind: data
+    - id: wf-ling-01-edge-7
+      from: n-verify3
+      to: n-collect
+      kind: data
+    - id: wf-ling-01-edge-8
+      from: n-collect
+      to: n-unresolved
+      kind: data
+    - id: wf-ling-01-edge-9
+      from: n-unresolved
+      to: n-approval
+      kind: control
+      condition: clear
+    - id: wf-ling-01-edge-10
+      from: n-unresolved
+      to: n-resolve
+      kind: control
+      condition: unverified
+    - id: wf-ling-01-edge-11
+      from: n-resolve
+      to: n-approval
+      kind: data
+    - id: wf-ling-01-edge-12
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

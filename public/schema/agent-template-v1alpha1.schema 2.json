@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ladder.dev/schema/agent-template-v1alpha1.schema.json",
+  "title": "Ladder Graph AgentTemplate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "ladder.dev/v1alpha1" },
+    "kind": { "const": "AgentTemplate" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "title"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z0-9]+(?:[-_.][a-z0-9]+)*$", "maxLength": 128 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "version": { "type": "string", "maxLength": 64 }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "prompt", "capabilities"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "role": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 100000 },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "skills": { "$ref": "#/$defs/stringList" },
+            "tools": { "$ref": "#/$defs/stringList" },
+            "connectors": { "$ref": "#/$defs/stringList" },
+            "permissions": { "$ref": "#/$defs/stringList" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stringList": {
+      "type": "array",
+      "maxItems": 200,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+    }
+  }
+}

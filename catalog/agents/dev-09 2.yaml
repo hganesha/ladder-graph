@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-09
+  title: Test Engineer
+  description: Independent SDET
+  version: 1.0.0
+spec:
+  path: research/software/quality
+  role: Independent SDET
+  prompt: Design unit, integration, property-based, and visual regression tests from the contract.
+    Cover boundaries, malformed input and concurrency, avoid over-mocking, and use mutation evidence
+    when coverage alone could mislead.
+  capabilities:
+    skills:
+      - test-design
+      - evaluation
+    tools:
+      - read
+      - test
+    connectors:
+      - mcp:github
+      - mcp:browser
+    permissions:
+      - read-only

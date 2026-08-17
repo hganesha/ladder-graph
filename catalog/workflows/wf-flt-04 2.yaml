@@ -1,0 +1,245 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-flt-04
+  title: Deferral and maintenance release authority chain
+  description: Prepare the deferral evidence in order, check for conflicting work on the aircraft, and
+    route it through an authority chain that cannot be reordered or skipped.
+  version: 1.0.0
+spec:
+  objective: Defer a defect only after the MEL category, required procedures, and operational penalty
+    are established, with each authority signing in the order the procedure requires.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-authority-1
+      - n-authority-2
+      - n-authority-3
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Defect report and aircraft state
+      summary: Defect report and aircraft state
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - defect_report
+              - aircraft_configuration
+              - planned_sectors
+              - open_deferrals
+            properties:
+              defect_report: {}
+              aircraft_configuration: {}
+              planned_sectors: {}
+              open_deferrals: {}
+        x-ladder-input-mode: document
+    - id: n-scope
+      kind: transform
+      name: Select the defect and affected systems
+      summary: select the defect, the affected systems, and the sectors the deferral would apply to
+      config:
+        operation: select
+        expression: select the defect, the affected systems, and the sectors the deferral would apply
+          to
+    - id: n-prep1
+      kind: agent
+      name: MEL category and repair interval determination
+      summary: 'Preparation step 1: mel category and repair interval determination.'
+      role: Controller determining dispatch legality with inoperative items and open maintenance.
+      prompt: You are a MEL & Airworthiness Controller. You determine whether the aircraft is airworthy
+        for the intended operation with its open items, applying the minimum equipment list category,
+        repair interval, and every operational and maintenance procedure the deferral requires. You state
+        the operational penalty each deferral carries and refuse a deferral whose required procedure has
+        not actually been performed, because an MEL item without its (M) procedure is an unairworthy aircraft
+        with paperwork.
+      capabilities:
+        skills:
+          - mel-application
+          - airworthiness-determination
+          - deferral-procedure-verification
+          - repair-interval-tracking
+          - regulatory-mapping
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:maintenance-system
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-prep2
+      kind: agent
+      name: Operational penalty and performance effect
+      summary: 'Preparation step 2: operational penalty and performance effect.'
+      role: Performance specialist computing takeoff, landing, and weight-and-balance limits for the actual
+        conditions.
+      prompt: You are an Aircraft Performance Engineer. You compute takeoff and landing performance and
+        the weight and balance envelope for the actual runway, contamination state, temperature, pressure,
+        obstacle environment, and aircraft configuration, and you name the limiting factor for each figure.
+        You never apply a performance credit the configuration does not support — an inoperative system,
+        a contaminated surface, or an unverified braking action changes the number, and reporting the
+        clean-runway figure is how an overrun is planned.
+      capabilities:
+        skills:
+          - performance-calculation
+          - weight-and-balance-analysis
+          - contaminated-runway-assessment
+          - limiting-factor-identification
+          - numeric-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:performance-tool
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-prep3
+      kind: agent
+      name: Dispatch effect on the planned sectors
+      summary: 'Preparation step 3: dispatch effect on the planned sectors.'
+      role: Licensed dispatcher holding joint responsibility with the captain for the safe conduct of
+        a flight.
+      prompt: You are a Flight Dispatcher. You assemble the operational flight plan, fuel figure, alternates,
+        and dispatch release, and you hold joint responsibility with the captain — a release you would
+        not defend is a release you do not issue. You state the specific regulation, operations specification,
+        or company minimum behind every dispatch condition, and you never release a flight on an assumption
+        about weather, airworthiness, or crew legality that has not been verified by the person accountable
+        for it.
+      capabilities:
+        skills:
+          - flight-dispatch
+          - dispatch-release-authority
+          - regulatory-minima-citation
+          - operational-control-discipline
+          - failure-mode-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:flight-planning
+          - mcp:ops-control
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-preparation
+      kind: group
+      name: Deferral evidence sequence
+      summary: Each preparation step consumes the previous one; the group exits only after the whole sequence
+        has been serialized in the order the permit requires.
+      config:
+        members:
+          - n-prep1
+          - n-prep2
+          - n-prep3
+        execution: sequential
+        exit: serialize
+    - id: n-conflict
+      kind: condition
+      name: Simultaneous operations conflict?
+      summary: Route on the deferral interacts with another open deferral or with maintenance in progress.
+      config:
+        expression: the deferral interacts with another open deferral or with maintenance in progress
+        branches:
+          - label: Clear
+            when: clear
+          - label: Conflict
+            when: conflict
+    - id: n-deconflict
+      kind: agent
+      name: Resolve the interacting work before any signature
+      summary: Resolve the conflicting activity before any authority signs.
+      role: Controller determining dispatch legality with inoperative items and open maintenance.
+      prompt: You are a MEL & Airworthiness Controller. You determine whether the aircraft is airworthy
+        for the intended operation with its open items, applying the minimum equipment list category,
+        repair interval, and every operational and maintenance procedure the deferral requires. You state
+        the operational penalty each deferral carries and refuse a deferral whose required procedure has
+        not actually been performed, because an MEL item without its (M) procedure is an unairworthy aircraft
+        with paperwork.
+      capabilities:
+        skills:
+          - mel-application
+          - airworthiness-determination
+          - deferral-procedure-verification
+          - repair-interval-tracking
+          - regulatory-mapping
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:maintenance-system
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-authority-1
+      kind: approval
+      name: Certifying engineer signs the deferral
+      summary: Pause for the certifying engineer; on timeout, escalate.
+    - id: n-authority-2
+      kind: approval
+      name: Maintenance control accepts the deferral
+      summary: Pause for maintenance control; on timeout, escalate.
+    - id: n-authority-3
+      kind: approval
+      name: Dispatcher accepts the aircraft for the planned sectors
+      summary: Pause for the licensed flight dispatcher; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Deferral and maintenance release authority chain deliverable, the
+        evidence behind it, and every unresolved item.
+  edges:
+    - id: wf-flt-04-edge-1
+      from: n-intake
+      to: n-scope
+      kind: data
+    - id: wf-flt-04-edge-2
+      from: n-scope
+      to: n-preparation
+      kind: data
+    - id: wf-flt-04-edge-3
+      from: n-preparation
+      to: n-conflict
+      kind: data
+    - id: wf-flt-04-edge-4
+      from: n-conflict
+      to: n-authority-1
+      kind: control
+      condition: clear
+    - id: wf-flt-04-edge-5
+      from: n-conflict
+      to: n-deconflict
+      kind: control
+      condition: conflict
+    - id: wf-flt-04-edge-6
+      from: n-deconflict
+      to: n-authority-1
+      kind: data
+    - id: wf-flt-04-edge-7
+      from: n-authority-1
+      to: n-authority-2
+      kind: control
+      condition: approved
+    - id: wf-flt-04-edge-8
+      from: n-authority-2
+      to: n-authority-3
+      kind: control
+      condition: approved
+    - id: wf-flt-04-edge-9
+      from: n-authority-3
+      to: workflow-output
+      kind: dependency
+      condition: approved

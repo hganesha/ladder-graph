@@ -1,0 +1,231 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-insr-02
+  title: Alert triage + investigation routing
+  description: Score fraud and exception alerts on evidenced indicators, cut a queue that fits the investigation
+    capacity, and route the strongest to a full investigation.
+  version: 1.0.0
+spec:
+  objective: Turn an alert feed into a ranked, capacity-sized investigation queue where every referral
+    names the indicators behind it and no proxy for a protected characteristic is used.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Alert feed and case context
+      summary: Alert feed and case context
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - alerts
+              - claim_records
+              - investigator_capacity
+              - indicator_definitions
+            properties:
+              alerts: {}
+              claim_records: {}
+              investigator_capacity: {}
+              indicator_definitions: {}
+        x-ladder-input-mode: text
+    - id: n-classify
+      kind: agent
+      name: Score alerts on evidenced indicators
+      summary: Score and label every incoming item before anything is queued.
+      role: Fraud analyst investigating indicators without prejudging the claimant.
+      prompt: You are a Fraud Detection Analyst. You investigate specific indicators — inconsistency between
+        accounts, documentary anomalies, network relationships — and you state what each indicator does
+        and does not support. You distinguish an indicator from a conclusion and never treat demographic
+        or geographic proxies as evidence, because a referral built on those is both wrong and actionable
+        against the insurer.
+      capabilities:
+        skills:
+          - fraud-indicator-analysis
+          - document-anomaly-detection
+          - network-relationship-analysis
+          - evidence-standards
+          - de-identification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:claims-system
+        permissions:
+          - read-only
+          - pii-restricted
+      outputSchema:
+        type: object
+        required:
+          - label
+          - severity
+          - confidence
+          - rationale
+        properties:
+          label: {}
+          severity: {}
+          confidence: {}
+          rationale: {}
+    - id: n-filter
+      kind: transform
+      name: Drop out-of-scope items
+      summary: keep alerts supported by at least one documented indicator and drop any resting on a protected-characteristic
+        proxy
+      config:
+        operation: filter
+        expression: keep alerts supported by at least one documented indicator and drop any resting on
+          a protected-characteristic proxy
+    - id: n-rank
+      kind: transform
+      name: Rank by urgency
+      summary: sort by indicator_strength descending, then by exposure_amount descending
+      config:
+        operation: sort
+        expression: sort by indicator_strength descending, then by exposure_amount descending
+    - id: n-queue
+      kind: transform
+      name: Cut the actionable queue
+      summary: take the first investigator_capacity alerts as the investigation queue
+      config:
+        operation: slice
+        expression: take the first investigator_capacity alerts as the investigation queue
+    - id: n-severity
+      kind: condition
+      name: Severity routing
+      summary: Route on alert.indicator_strength selects one declared branch.
+      config:
+        expression: alert.indicator_strength selects one declared branch
+        branches:
+          - label: Escalate
+            when: escalate
+          - label: Standard
+            when: standard
+          - label: Default
+            when: default
+    - id: n-escalate
+      kind: agent
+      name: Full investigation of the strongest alerts
+      summary: Escalation path for the top band.
+      role: Fraud analyst investigating indicators without prejudging the claimant.
+      prompt: You are a Fraud Detection Analyst. You investigate specific indicators — inconsistency between
+        accounts, documentary anomalies, network relationships — and you state what each indicator does
+        and does not support. You distinguish an indicator from a conclusion and never treat demographic
+        or geographic proxies as evidence, because a referral built on those is both wrong and actionable
+        against the insurer.
+      capabilities:
+        skills:
+          - fraud-indicator-analysis
+          - document-anomaly-detection
+          - network-relationship-analysis
+          - evidence-standards
+          - de-identification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:claims-system
+        permissions:
+          - read-only
+          - pii-restricted
+      outputSchema:
+        type: object
+    - id: n-handle
+      kind: agent
+      name: Standard adjustment with documented findings
+      summary: Standard resolution path.
+      role: Adjuster establishing coverage, causation, and quantum from the evidence on file.
+      prompt: You are a Claims Adjuster. You establish coverage under the policy as written, causation
+        from the evidence, and quantum from documented loss, keeping those three determinations separate.
+        You state which element is unsupported rather than declining a claim on a general impression,
+        because a denial that cannot name its policy provision and its evidence will not survive review.
+      capabilities:
+        skills:
+          - claims-adjudication
+          - coverage-determination
+          - causation-analysis
+          - quantum-documentation
+          - citation-verification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:claims-system
+        permissions:
+          - read-only
+          - pii-restricted
+      outputSchema:
+        type: object
+    - id: n-rejoin
+      kind: join
+      name: Reconverge after routing
+      summary: Release whichever routed path completed.
+      config:
+        join: first
+    - id: n-approval
+      kind: approval
+      name: SIU manager approves referrals and adverse actions
+      summary: Pause for the special investigations manager; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Alert triage + investigation routing deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-insr-02-edge-1
+      from: n-intake
+      to: n-classify
+      kind: data
+    - id: wf-insr-02-edge-2
+      from: n-classify
+      to: n-filter
+      kind: data
+    - id: wf-insr-02-edge-3
+      from: n-filter
+      to: n-rank
+      kind: data
+    - id: wf-insr-02-edge-4
+      from: n-rank
+      to: n-queue
+      kind: data
+    - id: wf-insr-02-edge-5
+      from: n-queue
+      to: n-severity
+      kind: data
+    - id: wf-insr-02-edge-6
+      from: n-severity
+      to: n-escalate
+      kind: control
+      condition: escalate
+    - id: wf-insr-02-edge-7
+      from: n-severity
+      to: n-handle
+      kind: control
+      condition: standard
+    - id: wf-insr-02-edge-8
+      from: n-escalate
+      to: n-rejoin
+      kind: data
+    - id: wf-insr-02-edge-9
+      from: n-handle
+      to: n-rejoin
+      kind: data
+    - id: wf-insr-02-edge-10
+      from: n-rejoin
+      to: n-approval
+      kind: data
+    - id: wf-insr-02-edge-11
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved
