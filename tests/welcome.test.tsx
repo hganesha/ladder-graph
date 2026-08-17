@@ -55,6 +55,23 @@ describe("welcome gallery", () => {
     expect(screen.getByText(/never runs agents/i)).toBeInTheDocument();
   });
 
+  it("collapses the subject-area chooser without losing the selection", () => {
+    render(<Welcome onBlank={() => undefined} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Software engineering" }));
+    const toggle = screen.getByRole("button", { name: "Choose a subject area, selected Software engineering" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(document.getElementById("subject-area-selector")).not.toBeVisible();
+    expect(screen.getByRole("button", { name: /open implementation \+ risk review in studio/i })).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("group", { name: "Subject areas" })).toBeVisible();
+  });
+
   it("opens the intro and help from the gallery", async () => {
     render(<Welcome onBlank={() => undefined} />);
 

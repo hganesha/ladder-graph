@@ -8,6 +8,7 @@ import {
   Building2,
   Cable,
   Calculator,
+  ChevronDown,
   CircleHelp,
   Code2,
   Feather,
@@ -245,6 +246,7 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
   const [activeLibraryTab, setActiveLibraryTab] = useState<LibraryTab>("workflows");
+  const [areaChooserOpen, setAreaChooserOpen] = useState(true);
   const areaRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
@@ -299,10 +301,22 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
             New workflow <ArrowRight size={15} />
           </button>
         </div>
-        <div className="subject-area-label">
+        <button
+          aria-controls="subject-area-selector"
+          aria-expanded={areaChooserOpen}
+          aria-label={`Choose a subject area, selected ${selectedArea.name}`}
+          className="subject-area-toggle"
+          onClick={() => setAreaChooserOpen((open) => !open)}
+          type="button"
+        >
           <span className="eyebrow">1 · Choose a subject area</span>
-        </div>
-        <fieldset className="workflow-tabs subject-area-selector">
+          <span className="subject-area-toggle-selection">
+            <SelectedAreaIcon size={14} aria-hidden="true" />
+            <span>{selectedArea.name}</span>
+            <ChevronDown className={areaChooserOpen ? "expanded" : undefined} size={14} aria-hidden="true" />
+          </span>
+        </button>
+        <fieldset className="workflow-tabs subject-area-selector" hidden={!areaChooserOpen} id="subject-area-selector">
           <legend className="sr-only">Subject areas</legend>
           {WORKFLOW_AREAS.map((area, index) => {
             const AreaIcon = area.icon;
