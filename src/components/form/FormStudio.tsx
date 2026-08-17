@@ -25,11 +25,15 @@ export default function FormStudio({
   ontologySource,
   onBack,
   onSave,
+  contextLabel = "First-class form artifact",
+  saveLabel = "Apply to bundle",
 }: {
   initialSource: string;
   ontologySource?: string;
   onBack: () => void;
   onSave: (source: string) => void;
+  contextLabel?: string;
+  saveLabel?: string;
 }) {
   const source = useFormStore((state) => state.source);
   const form = useFormStore((state) => state.form);
@@ -74,14 +78,14 @@ export default function FormStudio({
     <main className="form-studio">
       <header className="form-studio-header">
         <div>
-          <button aria-label="Back to workflow bundle" className="icon-button" onClick={onBack} type="button">
+          <button aria-label="Back" className="icon-button" onClick={onBack} type="button">
             <ArrowLeft size={16} />
           </button>
           <Brand compact />
           <span className="header-divider" />
           <div>
             <strong>{form?.metadata.title ?? "Form studio"}</strong>
-            <small>{dirty ? "Unapplied bundle changes" : "First-class form artifact"}</small>
+            <small>{dirty ? "Unsaved form changes" : contextLabel}</small>
           </div>
         </div>
         <div>
@@ -104,7 +108,7 @@ export default function FormStudio({
             <Download size={14} /> Export outputs
           </button>
           <button className="compile-button" disabled={busy || Boolean(errorCount)} onClick={() => onSave(source)} type="button">
-            <Save size={14} /> Apply to bundle
+            <Save size={14} /> {saveLabel}
           </button>
         </div>
       </header>

@@ -1,0 +1,2587 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Ontology
+metadata:
+  name: financial-services
+  title: Financial Services Ontology
+  description: Fundamental entities and relationships shared across Financial Services decision contracts.
+  version: 0.1.0
+  source:
+    system: lattice
+    sourceId: financial-services-ontology
+    sourceVersion: 0.1.0
+    sourceDigest: sha256:4369408a56aee642f3815bf2cc0d4f4ab8f7fc06d49a4e9ad74058c0a4f8d9c3
+spec:
+  types:
+    - id: counterparty
+      label: Counterparty
+      description: A party against which the enterprise carries financial or contractual exposure.
+      sourcePath: /ontology/entityTypes/0
+      properties:
+        - id: counterparty.lei
+          label: Legal entity identifier
+          description: ISO 17442 legal entity identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/0/properties/0
+        - id: counterparty.rating
+          label: Internal credit rating
+          description: Current approved internal credit grade.
+          dataType: string
+          sourcePath: /ontology/entityTypes/0/properties/1
+        - id: counterparty.sector
+          label: Industry sector
+          description: Governed industry classification.
+          dataType: string
+          sourcePath: /ontology/entityTypes/0/properties/2
+    - id: legal_entity
+      label: Legal Entity
+      description: A legally incorporated entity that enters transactions and owns exposure.
+      sourcePath: /ontology/entityTypes/1
+      properties:
+        - id: legal_entity.jurisdiction
+          label: Jurisdiction
+          description: Primary legal jurisdiction.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/1/properties/0
+    - id: instrument
+      label: Instrument
+      description: A contract or security that creates financial rights and obligations.
+      sourcePath: /ontology/entityTypes/2
+      properties: []
+    - id: position
+      label: Position
+      description: An owned or owed quantity of an instrument at a point in time.
+      sourcePath: /ontology/entityTypes/3
+      properties:
+        - id: position.notional
+          label: Notional amount
+          description: Contractual amount used to calculate cash flows.
+          dataType: decimal
+          required: true
+          sourcePath: /ontology/entityTypes/3/properties/0
+        - id: position.currency
+          label: Currency
+          description: ISO 4217 notional currency.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/3/properties/1
+    - id: portfolio
+      label: Portfolio
+      description: A governed collection of positions used for risk and performance aggregation.
+      sourcePath: /ontology/entityTypes/4
+      properties: []
+    - id: netting_agreement
+      label: Netting Agreement
+      description: An enforceable agreement that determines which obligations may be netted.
+      sourcePath: /ontology/entityTypes/5
+      properties: []
+    - id: collateral
+      label: Collateral
+      description: Assets pledged to mitigate an exposure under an agreement.
+      sourcePath: /ontology/entityTypes/6
+      properties:
+        - id: collateral.market_value
+          label: Market value
+          description: Current governed collateral valuation.
+          dataType: decimal
+          required: true
+          sourcePath: /ontology/entityTypes/6/properties/0
+    - id: credit_limit
+      label: Credit Limit
+      description: The approved maximum exposure for a governed scope.
+      sourcePath: /ontology/entityTypes/7
+      properties:
+        - id: credit_limit.amount
+          label: Approved amount
+          description: Maximum approved exposure for the limit scope.
+          dataType: decimal
+          required: true
+          sourcePath: /ontology/entityTypes/7/properties/0
+    - id: regulatory_report
+      label: Regulatory Report
+      description: A governed submission containing exposure and capital disclosures.
+      sourcePath: /ontology/entityTypes/8
+      properties: []
+    - id: customer_party
+      label: Customer Party
+      description: A person or organization receiving financial services.
+      sourcePath: /ontology/entityTypes/9
+      properties:
+        - id: customer_party.applicant_legal_name
+          label: Applicant Legal Name
+          description: Legal name of the borrowing business.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/0
+        - id: customer_party.borrower_last_name
+          label: Borrower Last Name
+          description: Primary borrower last name
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/1
+        - id: customer_party.subject_name
+          label: Subject Name
+          description: Subject name
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/2
+        - id: customer_party.borrower_name
+          label: Borrower Name
+          description: Borrower or owner of collateral.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/3
+        - id: customer_party.customer_name
+          label: Customer Name
+          description: Customer name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/4
+        - id: customer_party.address_line1
+          label: Address Line1
+          description: Address line1
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/5
+        - id: customer_party.applicant_address
+          label: Applicant Address
+          description: Principal business address.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/6
+        - id: customer_party.applicant_dba_name
+          label: Applicant Dba Name
+          description: DBA or trade name.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/7
+        - id: customer_party.applicant_entity_type
+          label: Applicant Entity Type
+          description: Corporation, LLC, partnership, sole proprietorship, nonprofit, trust, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/8
+        - id: customer_party.applicant_industry
+          label: Applicant Industry
+          description: Industry or business description.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/9
+        - id: customer_party.applicant_naics_code
+          label: Applicant Naics Code
+          description: NAICS code if present.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/10
+        - id: customer_party.applicant_tax_id_masked
+          label: Applicant Tax Id Masked
+          description: Masked EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/11
+        - id: customer_party.beneficial_owner_count
+          label: Beneficial Owner Count
+          description: Count of beneficial owners listed.
+          dataType: integer
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/12
+        - id: customer_party.beneficial_owner_name
+          label: Beneficial Owner Name
+          description: Beneficial owner name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/13
+        - id: customer_party.beneficial_owner_names
+          label: Beneficial Owner Names
+          description: Beneficial owners listed in application.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/14
+        - id: customer_party.beneficial_owner_ownership_percent
+          label: Beneficial Owner Ownership Percent
+          description: Beneficial owner ownership percent
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/15
+        - id: customer_party.borrower_citizenship
+          label: Borrower Citizenship
+          description: "One of: USCitizen | PermanentResidentAlien | NonPermanentResidentAlien | ForeignNational | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/16
+        - id: customer_party.borrower_dependents_count
+          label: Borrower Dependents Count
+          description: Number of dependents as integer
+          dataType: integer
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/17
+        - id: customer_party.borrower_dob
+          label: Borrower Dob
+          description: Date of birth, format YYYY-MM-DD
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/18
+        - id: customer_party.borrower_email
+          label: Borrower Email
+          description: Email address if present
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/19
+        - id: customer_party.borrower_first_name
+          label: Borrower First Name
+          description: Primary borrower first name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/20
+        - id: customer_party.borrower_industry
+          label: Borrower Industry
+          description: Industry or NAICS description.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/21
+        - id: customer_party.borrower_marital_status
+          label: Borrower Marital Status
+          description: "One of: Married | Separated | Unmarried | Unknown"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/22
+        - id: customer_party.borrower_middle_name
+          label: Borrower Middle Name
+          description: Middle name or initial
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/23
+        - id: customer_party.borrower_phone
+          label: Borrower Phone
+          description: Primary phone number
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/24
+        - id: customer_party.borrower_ssn_masked
+          label: Borrower Ssn Masked
+          description: Last 4 digits only, format XXX-XX-NNNN
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/25
+        - id: customer_party.borrower_suffix
+          label: Borrower Suffix
+          description: Name suffix (Jr., Sr., III, etc.)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/26
+        - id: customer_party.contact_email
+          label: Contact Email
+          description: Email address.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/27
+        - id: customer_party.contact_name
+          label: Contact Name
+          description: Primary contact or authorized representative.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/28
+        - id: customer_party.contact_phone
+          label: Contact Phone
+          description: Phone number.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/29
+        - id: customer_party.customer_address
+          label: Customer Address
+          description: Customer address
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/30
+        - id: customer_party.customer_impact
+          label: Customer Impact
+          description: Whether vendor failure could materially affect customers.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/31
+        - id: customer_party.customer_type
+          label: Customer Type
+          description: Individual | Business | Trust | Other
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/32
+        - id: customer_party.employer_address
+          label: Employer Address
+          description: Employer street address
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/33
+        - id: customer_party.merchant_tax_id_masked
+          label: Merchant Tax Id Masked
+          description: Masked EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/34
+        - id: customer_party.subject_account_number_masked
+          label: Subject Account Number Masked
+          description: Subject account number masked
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/35
+        - id: customer_party.subject_address
+          label: Subject Address
+          description: Subject address
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/36
+        - id: customer_party.subject_tax_id_masked
+          label: Subject Tax Id Masked
+          description: Subject tax id masked
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/37
+        - id: customer_party.tax_id_masked
+          label: Tax Id Masked
+          description: Tax id masked
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/38
+        - id: customer_party.trust_tax_id_masked
+          label: Trust Tax Id Masked
+          description: Masked trust EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/9/properties/39
+    - id: financial_institution
+      label: Financial Institution
+      description: A lender, filing institution, bank, or relationship owner.
+      sourcePath: /ontology/entityTypes/10
+      properties:
+        - id: financial_institution.lender_name
+          label: Lender Name
+          description: Secured party or lender.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/0
+        - id: financial_institution.relationship_manager_name
+          label: Relationship Manager Name
+          description: RM, banker, or officer.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/1
+        - id: financial_institution.branch_location
+          label: Branch Location
+          description: Branch location
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/2
+        - id: financial_institution.filing_institution_name
+          label: Filing Institution Name
+          description: Filing institution name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/3
+        - id: financial_institution.institution_identifier
+          label: Institution Identifier
+          description: RSSD, FDIC certificate, LEI, NMLS, or other identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/4
+        - id: financial_institution.institution_name
+          label: Institution Name
+          description: Reporting institution legal name.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/5
+        - id: financial_institution.investigator_name
+          label: Investigator Name
+          description: Investigator name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/6
+        - id: financial_institution.lender_names
+          label: Lender Names
+          description: Named lenders or lender groups.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/7
+        - id: financial_institution.required_lender_threshold
+          label: Required Lender Threshold
+          description: Required lender voting threshold.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/8
+        - id: financial_institution.underwriter_name
+          label: Underwriter Name
+          description: Credit analyst or underwriter.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/10/properties/9
+    - id: loan_facility
+      label: Loan or Credit Facility
+      description: A governed extension or proposed extension of credit.
+      sourcePath: /ontology/entityTypes/11
+      properties:
+        - id: loan_facility.loan_amount
+          label: Loan Amount
+          description: Requested loan amount as decimal (e.g., 450000.00)
+          dataType: decimal
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/0
+        - id: loan_facility.requested_loan_amount
+          label: Requested Loan Amount
+          description: Requested credit amount.
+          dataType: decimal
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/1
+        - id: loan_facility.total_commitment_amount
+          label: Total Commitment Amount
+          description: Total commitments across all tranches.
+          dataType: decimal
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/2
+        - id: loan_facility.approval_status
+          label: Approval Status
+          description: Approved, declined, conditional, recommended, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/3
+        - id: loan_facility.facility_type
+          label: Facility Type
+          description: Term loan, revolver, CRE, equipment, SBA, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/4
+        - id: loan_facility.loan_purpose
+          label: Loan Purpose
+          description: Use of proceeds.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/5
+        - id: loan_facility.approval_conditions
+          label: Approval Conditions
+          description: Conditions to close or fund.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/6
+        - id: loan_facility.risk_rating
+          label: Risk Rating
+          description: Low | Medium | High
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/7
+        - id: loan_facility.approval_authority
+          label: Approval Authority
+          description: Committee, officer, or authority approving.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/8
+        - id: loan_facility.auto_loan_payment
+          label: Auto Loan Payment
+          description: Monthly auto loan payment(s) as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/9
+        - id: loan_facility.commitment_amount
+          label: Commitment Amount
+          description: Principal commitment amount.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/10
+        - id: loan_facility.commitment_fee
+          label: Commitment Fee
+          description: Unused commitment fee percentage if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/11
+        - id: loan_facility.covenant_summary
+          label: Covenant Summary
+          description: Financial or reporting covenants.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/12
+        - id: loan_facility.dscr_actual
+          label: Dscr Actual
+          description: Actual DSCR.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/13
+        - id: loan_facility.dscr_required
+          label: Dscr Required
+          description: Required debt service coverage ratio.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/14
+        - id: loan_facility.inherent_risk_rating
+          label: Inherent Risk Rating
+          description: Inherent risk before controls.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/15
+        - id: loan_facility.leverage_actual
+          label: Leverage Actual
+          description: Actual leverage ratio.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/16
+        - id: loan_facility.leverage_ratio
+          label: Leverage Ratio
+          description: Debt/EBITDA, debt/equity, or leverage ratio as stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/17
+        - id: loan_facility.leverage_required
+          label: Leverage Required
+          description: Required maximum leverage ratio.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/18
+        - id: loan_facility.liquidity_actual
+          label: Liquidity Actual
+          description: Actual liquidity.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/19
+        - id: loan_facility.liquidity_required
+          label: Liquidity Required
+          description: Required minimum liquidity.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/20
+        - id: loan_facility.liquidity_summary
+          label: Liquidity Summary
+          description: Liquidity or cash flow narrative.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/21
+        - id: loan_facility.loan_officer_name
+          label: Loan Officer Name
+          description: Loan officer name if present
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/22
+        - id: loan_facility.loan_term_months
+          label: Loan Term Months
+          description: Loan term in months as integer (e.g., 360 for 30-year)
+          dataType: integer
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/23
+        - id: loan_facility.loan_type
+          label: Loan Type
+          description: "One of: Conventional | FHA | VA | USDA | Jumbo | Portfolio | NonQM | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/24
+        - id: loan_facility.probability_of_default
+          label: Probability Of Default
+          description: PD if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/25
+        - id: loan_facility.proposed_commitment_amount
+          label: Proposed Commitment Amount
+          description: Proposed loan or commitment amount.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/26
+        - id: loan_facility.regulatory_commitment
+          label: Regulatory Commitment
+          description: Whether issue is tied to a regulatory commitment.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/27
+        - id: loan_facility.requested_facility_type
+          label: Requested Facility Type
+          description: Term loan, revolving line, equipment loan, CRE loan, SBA loan, construction loan, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/28
+        - id: loan_facility.requested_term_months
+          label: Requested Term Months
+          description: Requested maturity or amortization in months.
+          dataType: integer
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/29
+        - id: loan_facility.residual_risk_rating
+          label: Residual Risk Rating
+          description: Residual risk after controls.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/30
+        - id: loan_facility.risk_rating_current
+          label: Risk Rating Current
+          description: Existing risk rating.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/31
+        - id: loan_facility.risk_rating_proposed
+          label: Risk Rating Proposed
+          description: Proposed risk rating.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/32
+        - id: loan_facility.student_loan_payment
+          label: Student Loan Payment
+          description: Monthly student loan payment(s) as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/33
+        - id: loan_facility.total_exposure_amount
+          label: Total Exposure Amount
+          description: Total borrower relationship exposure after approval.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/11/properties/34
+    - id: guaranty
+      label: Guaranty
+      description: A commitment by a guarantor to satisfy governed obligations.
+      sourcePath: /ontology/entityTypes/12
+      properties:
+        - id: guaranty.guarantor_name
+          label: Guarantor Name
+          description: Guarantor legal name.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/0
+        - id: guaranty.guarantor_names
+          label: Guarantor Names
+          description: Individual or entity guarantors.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/1
+        - id: guaranty.continuing_guaranty
+          label: Continuing Guaranty
+          description: Whether guaranty is continuing.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/2
+        - id: guaranty.guaranteed_obligations
+          label: Guaranteed Obligations
+          description: Description of obligations guaranteed.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/3
+        - id: guaranty.guarantor_summary
+          label: Guarantor Summary
+          description: Guarantor support summary.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/4
+        - id: guaranty.guarantor_type
+          label: Guarantor Type
+          description: Individual, entity, trust, spouse, affiliate, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/5
+        - id: guaranty.guaranty_type
+          label: Guaranty Type
+          description: Unlimited, limited, payment, collection, completion, carve-out, springing, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/6
+        - id: guaranty.joint_and_several
+          label: Joint And Several
+          description: Whether liability is joint and several.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/7
+        - id: guaranty.jury_trial_waiver
+          label: Jury Trial Waiver
+          description: Whether a jury trial waiver appears.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/8
+        - id: guaranty.maximum_liability_amount
+          label: Maximum Liability Amount
+          description: Cap or maximum amount if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/9
+        - id: guaranty.payment_on_demand
+          label: Payment On Demand
+          description: Whether payment is due on demand.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/10
+        - id: guaranty.termination_indicator
+          label: Termination Indicator
+          description: Whether filing terminates a record.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/11
+        - id: guaranty.termination_rights
+          label: Termination Rights
+          description: Termination or revocation language.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/12/properties/12
+    - id: financial_account
+      label: Financial Account
+      description: A governed account or trust relationship.
+      sourcePath: /ontology/entityTypes/13
+      properties:
+        - id: financial_account.trust_name
+          label: Trust Name
+          description: Legal name of trust or estate.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/0
+        - id: financial_account.signature_name
+          label: Signature Name
+          description: Signer name.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/1
+        - id: financial_account.signature_title
+          label: Signature Title
+          description: Signer title.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/2
+        - id: financial_account.account_type_requested
+          label: Account Type Requested
+          description: Trust brokerage, fiduciary checking, estate account, managed account, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/3
+        - id: financial_account.authorized_signer_names
+          label: Authorized Signer Names
+          description: Authorized account signers.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/4
+        - id: financial_account.beneficial_owner_ownership_percent
+          label: Beneficial Owner Ownership Percent
+          description: Beneficial owner ownership percent
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/5
+        - id: financial_account.beneficial_ownership_required
+          label: Beneficial Ownership Required
+          description: Whether beneficial ownership certification is required or referenced.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/6
+        - id: financial_account.ownership_summary
+          label: Ownership Summary
+          description: Concise ownership description.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/7
+        - id: financial_account.principal_signer_name
+          label: Principal Signer Name
+          description: Principal or authorized signer.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/8
+        - id: financial_account.signer_name
+          label: Signer Name
+          description: Authorized signer.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/9
+        - id: financial_account.signer_title
+          label: Signer Title
+          description: Signer title.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/10
+        - id: financial_account.subject_account_number_masked
+          label: Subject Account Number Masked
+          description: Subject account number masked
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/11
+        - id: financial_account.trust_tax_id_masked
+          label: Trust Tax Id Masked
+          description: Masked trust EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/12
+        - id: financial_account.trust_type
+          label: Trust Type
+          description: Revocable, irrevocable, testamentary, estate, charitable, special needs, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/13/properties/13
+    - id: compliance_case
+      label: Compliance Case
+      description: A KYC, AML, suspicious activity, issue, or third-party risk case.
+      sourcePath: /ontology/entityTypes/14
+      properties:
+        - id: compliance_case.issue_id
+          label: Issue Id
+          description: Internal issue, MRA, MRIA, or audit finding identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/14/properties/0
+        - id: compliance_case.issue_title
+          label: Issue Title
+          description: Short issue title.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/1
+        - id: compliance_case.activity_end_date
+          label: Activity End Date
+          description: Activity end date
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/2
+        - id: compliance_case.activity_start_date
+          label: Activity Start Date
+          description: Activity start date
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/3
+        - id: compliance_case.compliance_status
+          label: Compliance Status
+          description: In compliance, not in compliance, default, waiver requested, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/4
+        - id: compliance_case.expected_monthly_activity
+          label: Expected Monthly Activity
+          description: Expected monthly activity
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/5
+        - id: compliance_case.issue_description
+          label: Issue Description
+          description: Detailed issue or finding description.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/6
+        - id: compliance_case.law_enforcement_contacted
+          label: Law Enforcement Contacted
+          description: Law enforcement contacted
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/7
+        - id: compliance_case.regulatory_compliance_rating
+          label: Regulatory Compliance Rating
+          description: Compliance control rating.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/8
+        - id: compliance_case.sar_id
+          label: Sar Id
+          description: Sar id
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/14/properties/9
+        - id: compliance_case.suspicious_activity_type
+          label: Suspicious Activity Type
+          description: Suspicious activity type
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/14/properties/10
+    - id: payment_obligation
+      label: Payment Obligation
+      description: An invoice or payment amount owed between parties.
+      sourcePath: /ontology/entityTypes/15
+      properties:
+        - id: payment_obligation.vendor_name
+          label: Vendor Name
+          description: Vendor name
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/0
+        - id: payment_obligation.invoice_number
+          label: Invoice Number
+          description: Invoice number
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/15/properties/1
+        - id: payment_obligation.total_amount
+          label: Total Amount
+          description: Total amount
+          dataType: decimal
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/2
+        - id: payment_obligation.total_commitment_amount
+          label: Total Commitment Amount
+          description: Total commitments across all tranches.
+          dataType: decimal
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/3
+        - id: payment_obligation.currency
+          label: Currency
+          description: Currency
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/4
+        - id: payment_obligation.total_assets
+          label: Total Assets
+          description: Total business assets if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/5
+        - id: payment_obligation.applicant_tax_id_masked
+          label: Applicant Tax Id Masked
+          description: Masked EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/6
+        - id: payment_obligation.discount_amount
+          label: Discount Amount
+          description: Discount amount
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/7
+        - id: payment_obligation.due_date
+          label: Due Date
+          description: Due date
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/8
+        - id: payment_obligation.invoice_date
+          label: Invoice Date
+          description: Invoice date
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/9
+        - id: payment_obligation.merchant_tax_id_masked
+          label: Merchant Tax Id Masked
+          description: Masked EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/10
+        - id: payment_obligation.proposed_total_housing_payment
+          label: Proposed Total Housing Payment
+          description: Proposed total monthly housing expense as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/11
+        - id: payment_obligation.purchase_order_number
+          label: Purchase Order Number
+          description: Purchase order number
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/15/properties/12
+        - id: payment_obligation.remediation_due_date
+          label: Remediation Due Date
+          description: Due date for remediation if stated.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/13
+        - id: payment_obligation.shipping_amount
+          label: Shipping Amount
+          description: Shipping amount
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/14
+        - id: payment_obligation.subject_tax_id_masked
+          label: Subject Tax Id Masked
+          description: Subject tax id masked
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/15
+        - id: payment_obligation.submission_due_date
+          label: Submission Due Date
+          description: Submission due date.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/16
+        - id: payment_obligation.subtotal
+          label: Subtotal
+          description: Subtotal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/17
+        - id: payment_obligation.tax_amount
+          label: Tax Amount
+          description: Tax amount
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/18
+        - id: payment_obligation.tax_certification_status
+          label: Tax Certification Status
+          description: W-9, W-8, exempt, missing, or other tax certification status.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/19
+        - id: payment_obligation.tax_id_masked
+          label: Tax Id Masked
+          description: Tax id masked
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/20
+        - id: payment_obligation.total_collateral_value
+          label: Total Collateral Value
+          description: Total stated value.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/21
+        - id: payment_obligation.total_exposure_amount
+          label: Total Exposure Amount
+          description: Total borrower relationship exposure after approval.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/22
+        - id: payment_obligation.total_liabilities
+          label: Total Liabilities
+          description: Total business liabilities if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/23
+        - id: payment_obligation.total_monthly_debt_payments
+          label: Total Monthly Debt Payments
+          description: Sum of all monthly debt payments as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/24
+        - id: payment_obligation.total_monthly_income
+          label: Total Monthly Income
+          description: Total gross monthly income as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/25
+        - id: payment_obligation.trust_tax_id_masked
+          label: Trust Tax Id Masked
+          description: Masked trust EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/26
+        - id: payment_obligation.vendor_address
+          label: Vendor Address
+          description: Vendor address
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/27
+        - id: payment_obligation.vendor_service_description
+          label: Vendor Service Description
+          description: Description of products or services provided.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/28
+        - id: payment_obligation.vendor_tax_id_masked
+          label: Vendor Tax Id Masked
+          description: Vendor tax id masked
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/15/properties/29
+    - id: mortgage_property
+      label: Mortgage Property
+      description: Real property and valuation context securing mortgage credit.
+      sourcePath: /ontology/entityTypes/16
+      properties:
+        - id: mortgage_property.ltv_percent
+          label: Ltv Percent
+          description: Loan-to-value percent.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/0
+        - id: mortgage_property.borrowed_down_payment
+          label: Borrowed Down Payment
+          description: Boolean
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/1
+        - id: mortgage_property.down_payment_amount
+          label: Down Payment Amount
+          description: Down payment amount as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/2
+        - id: mortgage_property.down_payment_source
+          label: Down Payment Source
+          description: Primary source of down payment
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/3
+        - id: mortgage_property.mortgage_type
+          label: Mortgage Type
+          description: "One of: FixedRate | AdjustableRate | Balloon | InterestOnly | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/4
+        - id: mortgage_property.occupancy_type
+          label: Occupancy Type
+          description: "One of: PrimaryResidence | SecondHome | InvestmentProperty"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/5
+        - id: mortgage_property.property_city
+          label: Property City
+          description: City
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/6
+        - id: mortgage_property.property_county
+          label: Property County
+          description: County name if present
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/7
+        - id: mortgage_property.property_state
+          label: Property State
+          description: Two-letter state code
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/8
+        - id: mortgage_property.property_street
+          label: Property Street
+          description: Street address of subject property
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/9
+        - id: mortgage_property.property_type
+          label: Property Type
+          description: "One of: SingleFamily | Condo | Cooperative | TwoToFourUnit | ManufacturedHome |
+            PlannedUnitDevelopment | MixedUse | Multifamily | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/10
+        - id: mortgage_property.property_zip
+          label: Property Zip
+          description: ZIP code
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/11
+        - id: mortgage_property.purchase_price
+          label: Purchase Price
+          description: Purchase price as decimal (for purchase transactions)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/16/properties/12
+    - id: credit_agreement
+      label: Credit Agreement
+      description: The governed terms, covenants, pricing, defaults, and remedies of a credit arrangement.
+      sourcePath: /ontology/entityTypes/17
+      properties:
+        - id: credit_agreement.agreement_date
+          label: Agreement Date
+          description: Date of guaranty.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/0
+        - id: credit_agreement.governing_law
+          label: Governing Law
+          description: Governing law jurisdiction.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/1
+        - id: credit_agreement.agreement_reference
+          label: Agreement Reference
+          description: Loan/security agreement referenced.
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/17/properties/2
+        - id: credit_agreement.benchmark_rate
+          label: Benchmark Rate
+          description: SOFR, Term SOFR, Prime, Base Rate, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/3
+        - id: credit_agreement.events_of_default
+          label: Events Of Default
+          description: Events of default.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/4
+        - id: credit_agreement.maturity_date
+          label: Maturity Date
+          description: Final maturity date.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/5
+        - id: credit_agreement.amortization_terms
+          label: Amortization Terms
+          description: Payment/amortization description.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/6
+        - id: credit_agreement.amortization_type
+          label: Amortization Type
+          description: "One of: Fixed | ARM | Balloon | InterestOnly | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/7
+        - id: credit_agreement.assignment_clause_present
+          label: Assignment Clause Present
+          description: Whether assignments/transfers are addressed.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/8
+        - id: credit_agreement.assignment_minimum_amount
+          label: Assignment Minimum Amount
+          description: Minimum assignment amount if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/9
+        - id: credit_agreement.covenant_summary
+          label: Covenant Summary
+          description: Financial or reporting covenants.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/10
+        - id: credit_agreement.default_declared
+          label: Default Declared
+          description: Whether a default or event of default is disclosed.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/11
+        - id: credit_agreement.default_rate_margin
+          label: Default Rate Margin
+          description: Additional default interest margin.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/12
+        - id: credit_agreement.interest_rate_margin
+          label: Interest Rate Margin
+          description: Margin/spread as percent if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/13
+        - id: credit_agreement.interest_rate_percent
+          label: Interest Rate Percent
+          description: Note rate as decimal percent (e.g., 6.875)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/14
+        - id: credit_agreement.interest_rate_type
+          label: Interest Rate Type
+          description: Fixed, floating, SOFR, prime, base rate, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/15
+        - id: credit_agreement.jury_trial_waiver
+          label: Jury Trial Waiver
+          description: Whether a jury trial waiver appears.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/16
+        - id: credit_agreement.mandatory_prepayment_events
+          label: Mandatory Prepayment Events
+          description: Asset sale, debt issuance, excess cash flow, or other prepayment triggers.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/17
+        - id: credit_agreement.pricing_grid
+          label: Pricing Grid
+          description: Pricing grid or spread mechanics.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/18
+        - id: credit_agreement.probability_of_default
+          label: Probability Of Default
+          description: PD if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/19
+        - id: credit_agreement.proposed_principal_interest
+          label: Proposed Principal Interest
+          description: Proposed P&I payment as decimal
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/20
+        - id: credit_agreement.remedies
+          label: Remedies
+          description: Remedies available to secured party.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/21
+        - id: credit_agreement.reserve_required
+          label: Reserve Required
+          description: Whether reserve or holdback is required.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/22
+        - id: credit_agreement.reserve_terms
+          label: Reserve Terms
+          description: Reserve amount, percentage, or duration.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/23
+        - id: credit_agreement.schedule_date
+          label: Schedule Date
+          description: Date of schedule.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/17/properties/24
+        - id: credit_agreement.underlying_agreement_reference
+          label: Underlying Agreement Reference
+          description: Loan agreement or note referenced.
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/17/properties/25
+    - id: applicant_financial_profile
+      label: Applicant Financial Profile
+      description: Employment, income, debt, assets, housing, and demographic context used in underwriting.
+      sourcePath: /ontology/entityTypes/18
+      properties:
+        - id: applicant_financial_profile.total_assets
+          label: Total Assets
+          description: Total business assets if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/0
+        - id: applicant_financial_profile.all_assets_clause
+          label: All Assets Clause
+          description: Whether agreement grants all assets or substantially all assets.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/1
+        - id: applicant_financial_profile.bankruptcy
+          label: Bankruptcy
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/2
+        - id: applicant_financial_profile.base_monthly_income
+          label: Base Monthly Income
+          description: Base gross monthly income as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/3
+        - id: applicant_financial_profile.bonus_monthly_income
+          label: Bonus Monthly Income
+          description: Bonus monthly income as decimal (null if none)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/4
+        - id: applicant_financial_profile.coborrower_dob
+          label: Coborrower Dob
+          description: Date of birth, format YYYY-MM-DD
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/5
+        - id: applicant_financial_profile.coborrower_first_name
+          label: Coborrower First Name
+          description: Co-borrower first name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/6
+        - id: applicant_financial_profile.coborrower_last_name
+          label: Coborrower Last Name
+          description: Co-borrower last name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/7
+        - id: applicant_financial_profile.coborrower_ssn_masked
+          label: Coborrower Ssn Masked
+          description: Last 4 digits only
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/8
+        - id: applicant_financial_profile.commission_monthly_income
+          label: Commission Monthly Income
+          description: Commission monthly income as decimal (null if none)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/9
+        - id: applicant_financial_profile.debt_service_coverage_ratio
+          label: Debt Service Coverage Ratio
+          description: DSCR.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/10
+        - id: applicant_financial_profile.debt_to_income_ratio
+          label: Debt To Income Ratio
+          description: Back-end DTI as decimal percent (e.g., 43.5)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/11
+        - id: applicant_financial_profile.delinquent_on_debt
+          label: Delinquent On Debt
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/12
+        - id: applicant_financial_profile.employer_address
+          label: Employer Address
+          description: Employer street address
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/13
+        - id: applicant_financial_profile.employer_name
+          label: Employer Name
+          description: Current primary employer name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/14
+        - id: applicant_financial_profile.employer_phone
+          label: Employer Phone
+          description: Employer phone
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/15
+        - id: applicant_financial_profile.employment_start_date
+          label: Employment Start Date
+          description: Start date with employer, format YYYY-MM-DD
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/16
+        - id: applicant_financial_profile.ethnicity_hispanic
+          label: Ethnicity Hispanic
+          description: Boolean — is applicant Hispanic or Latino
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/17
+        - id: applicant_financial_profile.foreclosure
+          label: Foreclosure
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/18
+        - id: applicant_financial_profile.housing_expense_ratio
+          label: Housing Expense Ratio
+          description: Front-end ratio as decimal percent
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/19
+        - id: applicant_financial_profile.net_worth
+          label: Net Worth
+          description: Net worth if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/20
+        - id: applicant_financial_profile.net_worth_actual
+          label: Net Worth Actual
+          description: Actual net worth.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/21
+        - id: applicant_financial_profile.net_worth_required
+          label: Net Worth Required
+          description: Required minimum net worth.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/22
+        - id: applicant_financial_profile.other_debt_payments
+          label: Other Debt Payments
+          description: Other monthly debt as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/23
+        - id: applicant_financial_profile.other_monthly_income
+          label: Other Monthly Income
+          description: Other monthly income as decimal (null if none)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/24
+        - id: applicant_financial_profile.overtime_monthly_income
+          label: Overtime Monthly Income
+          description: Overtime monthly income as decimal (null if none)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/25
+        - id: applicant_financial_profile.present_housing_payment
+          label: Present Housing Payment
+          description: Current monthly housing payment as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/26
+        - id: applicant_financial_profile.proposed_total_housing_payment
+          label: Proposed Total Housing Payment
+          description: Proposed total monthly housing expense as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/27
+        - id: applicant_financial_profile.race_asian
+          label: Race Asian
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/28
+        - id: applicant_financial_profile.race_black
+          label: Race Black
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/29
+        - id: applicant_financial_profile.race_white
+          label: Race White
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/30
+        - id: applicant_financial_profile.retirement_assets
+          label: Retirement Assets
+          description: Retirement account balance as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/31
+        - id: applicant_financial_profile.self_employed
+          label: Self Employed
+          description: Boolean — true if self-employed indicator is checked
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/32
+        - id: applicant_financial_profile.sex_female
+          label: Sex Female
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/33
+        - id: applicant_financial_profile.sex_male
+          label: Sex Male
+          description: Boolean
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/34
+        - id: applicant_financial_profile.total_liabilities
+          label: Total Liabilities
+          description: Total business liabilities if stated.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/35
+        - id: applicant_financial_profile.total_monthly_debt_payments
+          label: Total Monthly Debt Payments
+          description: Sum of all monthly debt payments as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/36
+        - id: applicant_financial_profile.total_monthly_income
+          label: Total Monthly Income
+          description: Total gross monthly income as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/37
+        - id: applicant_financial_profile.years_on_job
+          label: Years On Job
+          description: Years at current employer as decimal
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/18/properties/38
+    - id: regulatory_filing
+      label: Regulatory Filing
+      description: A governed filing, reporting package, submission, and validation record.
+      sourcePath: /ontology/entityTypes/19
+      properties:
+        - id: regulatory_filing.reporting_period_end_date
+          label: Reporting Period End Date
+          description: Financial reporting period end.
+          dataType: date
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/0
+        - id: regulatory_filing.filing_number
+          label: Filing Number
+          description: State filing or document number.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/19/properties/1
+        - id: regulatory_filing.report_name
+          label: Report Name
+          description: Name of report package or filing.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/2
+        - id: regulatory_filing.report_type
+          label: Report Type
+          description: Call Report, HMDA, CRA, SAR, CTR, CECL, CCAR, DFAST, liquidity, or other.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/3
+        - id: regulatory_filing.filing_date
+          label: Filing Date
+          description: Filing date
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/4
+        - id: regulatory_filing.next_review_date
+          label: Next Review Date
+          description: Next annual review or monitoring date.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/5
+        - id: regulatory_filing.attestation_required
+          label: Attestation Required
+          description: Whether certification or attestation is required.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/6
+        - id: regulatory_filing.filing_institution_name
+          label: Filing Institution Name
+          description: Filing institution name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/7
+        - id: regulatory_filing.filing_jurisdiction
+          label: Filing Jurisdiction
+          description: State or jurisdiction.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/8
+        - id: regulatory_filing.filing_office
+          label: Filing Office
+          description: Secretary of State, county, or filing office.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/9
+        - id: regulatory_filing.filing_status
+          label: Filing Status
+          description: Draft, filed, accepted, rejected, amended, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/10
+        - id: regulatory_filing.filing_type
+          label: Filing Type
+          description: Initial financing statement, amendment, continuation, assignment, termination, fixture filing, or
+            other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/11
+        - id: regulatory_filing.fixture_filing_indicator
+          label: Fixture Filing Indicator
+          description: Whether fixture filing is indicated.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/12
+        - id: regulatory_filing.preparer_name
+          label: Preparer Name
+          description: Report preparer or owner.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/13
+        - id: regulatory_filing.regulator_name
+          label: Regulator Name
+          description: Regulator or filing recipient.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/14
+        - id: regulatory_filing.related_filing_number
+          label: Related Filing Number
+          description: Original filing number for amendment, continuation, termination, or assignment.
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/19/properties/15
+        - id: regulatory_filing.reporting_requirements
+          label: Reporting Requirements
+          description: Financial statements, certificates, borrowing base reports, or other reporting.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/16
+        - id: regulatory_filing.review_date
+          label: Review Date
+          description: Review date
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/17
+        - id: regulatory_filing.reviewer_name
+          label: Reviewer Name
+          description: Reviewer name
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/18
+        - id: regulatory_filing.soc_report_date
+          label: Soc Report Date
+          description: Date or period end of SOC report.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/19
+        - id: regulatory_filing.soc_report_type
+          label: Soc Report Type
+          description: SOC 1, SOC 2, bridge letter, none, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/20
+        - id: regulatory_filing.submission_date
+          label: Submission Date
+          description: Actual submission date if filed.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/21
+        - id: regulatory_filing.submission_due_date
+          label: Submission Due Date
+          description: Submission due date.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/22
+        - id: regulatory_filing.validation_owner
+          label: Validation Owner
+          description: Independent validation owner or function.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/23
+        - id: regulatory_filing.validation_status
+          label: Validation Status
+          description: Not started, in progress, passed, failed, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/19/properties/24
+    - id: third_party_risk
+      label: Third Party Risk Profile
+      description: A governed assessment of third-party criticality, controls, evidence, and remediation.
+      sourcePath: /ontology/entityTypes/20
+      properties:
+        - id: third_party_risk.business_continuity_rating
+          label: Business Continuity Rating
+          description: BCP/DR control rating.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/0
+        - id: third_party_risk.control_signoffs
+          label: Control Signoffs
+          description: Control owners or signoff records.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/1
+        - id: third_party_risk.corrective_action_plan
+          label: Corrective Action Plan
+          description: Summary of remediation plan.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/2
+        - id: third_party_risk.criticality_tier
+          label: Criticality Tier
+          description: Critical, high, medium, low, or other tier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/3
+        - id: third_party_risk.data_access_level
+          label: Data Access Level
+          description: Customer data, confidential data, payment data, PHI, none, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/4
+        - id: third_party_risk.evidence_documents
+          label: Evidence Documents
+          description: Supporting schedules, reconciliations, or evidence.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/5
+        - id: third_party_risk.evidence_required
+          label: Evidence Required
+          description: Evidence expected for closure.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/6
+        - id: third_party_risk.information_security_rating
+          label: Information Security Rating
+          description: Information security control rating.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/7
+        - id: third_party_risk.outsourcing_indicator
+          label: Outsourcing Indicator
+          description: Whether this is an outsourcing or material service provider.
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/8
+        - id: third_party_risk.risk_domain
+          label: Risk Domain
+          description: Compliance, credit, operational, model, cyber, liquidity, or other domain.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/9
+        - id: third_party_risk.severity
+          label: Severity
+          description: Critical, high, medium, low, MRA, MRIA, or other severity.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/10
+        - id: third_party_risk.soc_report_date
+          label: Soc Report Date
+          description: Date or period end of SOC report.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/11
+        - id: third_party_risk.soc_report_type
+          label: Soc Report Type
+          description: SOC 1, SOC 2, bridge letter, none, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/20/properties/12
+    - id: merchant_profile
+      label: Merchant Profile
+      description: A merchant onboarding, volume, channel, and chargeback risk profile.
+      sourcePath: /ontology/entityTypes/21
+      properties:
+        - id: merchant_profile.estimated_monthly_volume
+          label: Estimated Monthly Volume
+          description: Estimated monthly processing volume.
+          dataType: decimal
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/0
+        - id: merchant_profile.merchant_legal_name
+          label: Merchant Legal Name
+          description: Merchant legal entity name.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/1
+        - id: merchant_profile.average_ticket_amount
+          label: Average Ticket Amount
+          description: Average transaction amount.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/2
+        - id: merchant_profile.business_type
+          label: Business Type
+          description: Retail, ecommerce, restaurant, marketplace, services, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/3
+        - id: merchant_profile.chargeback_history
+          label: Chargeback History
+          description: Prior chargeback history or ratio.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/4
+        - id: merchant_profile.collateral_category
+          label: Collateral Category
+          description: Accounts receivable, inventory, equipment, real estate, deposit accounts, securities, vehicles,
+            mixed, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/5
+        - id: merchant_profile.high_ticket_amount
+          label: High Ticket Amount
+          description: Highest expected transaction amount.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/6
+        - id: merchant_profile.merchant_category_code
+          label: Merchant Category Code
+          description: MCC if stated.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/7
+        - id: merchant_profile.merchant_dba_name
+          label: Merchant Dba Name
+          description: Doing-business-as name.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/8
+        - id: merchant_profile.merchant_tax_id_masked
+          label: Merchant Tax Id Masked
+          description: Masked EIN or tax identifier.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/9
+        - id: merchant_profile.processing_channels
+          label: Processing Channels
+          description: Card-present, ecommerce, mobile, keyed, ACH, or other channels.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/10
+        - id: merchant_profile.refund_policy
+          label: Refund Policy
+          description: Refund, cancellation, or return policy summary.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/11
+        - id: merchant_profile.website_url
+          label: Website Url
+          description: Merchant website or app URL.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/12
+        - id: merchant_profile.years_in_business
+          label: Years In Business
+          description: Years operating.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/21/properties/13
+    - id: investment_profile
+      label: Investment Profile
+      description: A governed investment objective, risk, source-of-funds, and fiduciary profile.
+      sourcePath: /ontology/entityTypes/22
+      properties:
+        - id: investment_profile.trustee_names
+          label: Trustee Names
+          description: Trustees or personal representatives.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/22/properties/0
+        - id: investment_profile.source_of_funds
+          label: Source Of Funds
+          description: Source of funds
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/22/properties/1
+        - id: investment_profile.beneficiary_names
+          label: Beneficiary Names
+          description: Named beneficiaries when present.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/22/properties/2
+        - id: investment_profile.fiduciary_powers
+          label: Fiduciary Powers
+          description: Investment, distribution, borrowing, pledge, or other powers.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/22/properties/3
+        - id: investment_profile.investment_objective
+          label: Investment Objective
+          description: Investment objective or account purpose.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/22/properties/4
+        - id: investment_profile.retirement_assets
+          label: Retirement Assets
+          description: Retirement account balance as decimal
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/22/properties/5
+        - id: investment_profile.risk_tolerance
+          label: Risk Tolerance
+          description: Conservative, moderate, aggressive, or stated risk profile.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/22/properties/6
+    - id: person
+      label: Person
+      description: A human being identified in a governed business context.
+      sourcePath: /ontology/entityTypes/23
+      properties:
+        - id: person.person_id
+          label: Person identifier
+          description: Stable governed identifier for the person.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/23/properties/0
+        - id: person.display_name
+          label: Display name
+          description: Preferred name used in governed interfaces.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/23/properties/1
+        - id: person.effective_from
+          label: Effective from
+          description: Time from which this person record is valid.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/23/properties/2
+    - id: organization
+      label: Organization
+      description: A governed legal, public, or operating organization.
+      sourcePath: /ontology/entityTypes/24
+      properties:
+        - id: organization.organization_id
+          label: Organization identifier
+          description: Stable governed identifier for the organization.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/24/properties/0
+        - id: organization.legal_name
+          label: Legal name
+          description: Registered or otherwise authoritative organization name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/24/properties/1
+        - id: organization.organization_type
+          label: Organization type
+          description: Governed classification of the organization.
+          dataType: string
+          sourcePath: /ontology/entityTypes/24/properties/2
+    - id: agent
+      label: Agent
+      description: A human or software actor authorized to perform governed activity.
+      sourcePath: /ontology/entityTypes/25
+      properties:
+        - id: agent.agent_id
+          label: Agent identifier
+          description: Stable governed identifier for the actor.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/25/properties/0
+        - id: agent.agent_type
+          label: Agent type
+          description: Whether the actor is human, service, or automated.
+          dataType: string
+          sourcePath: /ontology/entityTypes/25/properties/1
+        - id: agent.active
+          label: Active
+          description: Whether the agent is currently authorized.
+          dataType: boolean
+          sourcePath: /ontology/entityTypes/25/properties/2
+    - id: location
+      label: Location
+      description: A physical, administrative, or virtual place relevant to governed activity.
+      sourcePath: /ontology/entityTypes/26
+      properties:
+        - id: location.location_id
+          label: Location identifier
+          description: Stable governed identifier for the location.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/26/properties/0
+        - id: location.name
+          label: Location name
+          description: Human-readable location name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/26/properties/1
+        - id: location.country_code
+          label: Country code
+          description: ISO country code when applicable.
+          dataType: string
+          sourcePath: /ontology/entityTypes/26/properties/2
+    - id: document
+      label: Document
+      description: A governed information artifact with identity, version, and provenance.
+      sourcePath: /ontology/entityTypes/27
+      properties:
+        - id: document.document_id
+          label: Document identifier
+          description: Stable governed identifier for the document.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/27/properties/0
+        - id: document.title
+          label: Title
+          description: Authoritative document title.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/27/properties/1
+        - id: document.version
+          label: Version
+          description: Document version or revision.
+          dataType: string
+          sourcePath: /ontology/entityTypes/27/properties/2
+        - id: document.issued_at
+          label: Issued at
+          description: Time at which the document was issued.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/27/properties/3
+    - id: event
+      label: Event
+      description: A governed occurrence bounded by time and business meaning.
+      sourcePath: /ontology/entityTypes/28
+      properties:
+        - id: event.event_id
+          label: Event identifier
+          description: Stable governed identifier for the event.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/28/properties/0
+        - id: event.event_type
+          label: Event type
+          description: Governed classification of the event.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/28/properties/1
+        - id: event.occurred_at
+          label: Occurred at
+          description: Time at which the event occurred.
+          dataType: datetime
+          required: true
+          sourcePath: /ontology/entityTypes/28/properties/2
+    - id: asset
+      label: Asset
+      description: A governed physical, digital, or financial resource.
+      sourcePath: /ontology/entityTypes/29
+      properties:
+        - id: asset.asset_id
+          label: Asset identifier
+          description: Stable governed identifier for the asset.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/29/properties/0
+        - id: asset.name
+          label: Asset name
+          description: Human-readable asset name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/29/properties/1
+        - id: asset.asset_type
+          label: Asset type
+          description: Governed classification of the asset.
+          dataType: string
+          sourcePath: /ontology/entityTypes/29/properties/2
+    - id: policy
+      label: Policy
+      description: A versioned rule or standard governing decisions and actions.
+      sourcePath: /ontology/entityTypes/30
+      properties:
+        - id: policy.policy_id
+          label: Policy identifier
+          description: Stable governed identifier for the policy.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/30/properties/0
+        - id: policy.title
+          label: Policy title
+          description: Authoritative policy title.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/30/properties/1
+        - id: policy.version
+          label: Version
+          description: Approved policy version.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/30/properties/2
+        - id: policy.effective_from
+          label: Effective from
+          description: Time from which the policy applies.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/30/properties/3
+  relationships:
+    - id: trades_with
+      label: TRADES_WITH
+      description: A legal entity has executed trades with a counterparty.
+      sourceTypeId: legal_entity
+      targetTypeId: counterparty
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/0
+    - id: references
+      label: REFERENCES
+      description: A position references an instrument.
+      sourceTypeId: position
+      targetTypeId: instrument
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/1
+    - id: held_in
+      label: HELD_IN
+      description: A position is aggregated into a portfolio.
+      sourceTypeId: position
+      targetTypeId: portfolio
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/2
+    - id: governed_by
+      label: GOVERNED_BY
+      description: A position is governed by an enforceable agreement.
+      sourceTypeId: position
+      targetTypeId: netting_agreement
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/3
+    - id: secured_by
+      label: SECURED_BY
+      description: An agreement is secured by a collateral pool.
+      sourceTypeId: netting_agreement
+      targetTypeId: collateral
+      cardinality: one-to-many
+      sourcePath: /ontology/relationshipTypes/4
+    - id: constrained_by
+      label: CONSTRAINED_BY
+      description: A counterparty exposure is constrained by an approved limit.
+      sourceTypeId: counterparty
+      targetTypeId: credit_limit
+      cardinality: one-to-many
+      sourcePath: /ontology/relationshipTypes/5
+    - id: reported_in
+      label: REPORTED_IN
+      description: A counterparty exposure contributes to a regulatory report.
+      sourceTypeId: counterparty
+      targetTypeId: regulatory_report
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/6
+    - id: borrows_from
+      label: BORROWS_FROM
+      description: Customer Party borrows from Financial Institution.
+      sourceTypeId: customer_party
+      targetTypeId: financial_institution
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/7
+    - id: obligated_under
+      label: OBLIGATED_UNDER
+      description: Customer Party obligated under Loan Facility.
+      sourceTypeId: customer_party
+      targetTypeId: loan_facility
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/8
+    - id: supported_by
+      label: SUPPORTED_BY
+      description: Loan Facility supported by Guaranty.
+      sourceTypeId: loan_facility
+      targetTypeId: guaranty
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/9
+    - id: holds
+      label: HOLDS
+      description: Customer Party holds Financial Account.
+      sourceTypeId: customer_party
+      targetTypeId: financial_account
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/10
+    - id: subject_of
+      label: SUBJECT_OF
+      description: Customer Party subject of Compliance Case.
+      sourceTypeId: customer_party
+      targetTypeId: compliance_case
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/11
+    - id: owes
+      label: OWES
+      description: Customer Party owes Payment Obligation.
+      sourceTypeId: customer_party
+      targetTypeId: payment_obligation
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/12
+    - id: secured_by_property
+      label: SECURED_BY_PROPERTY
+      description: Loan Facility secured by property Mortgage Property.
+      sourceTypeId: loan_facility
+      targetTypeId: mortgage_property
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/13
+    - id: underwritten_with
+      label: UNDERWRITTEN_WITH
+      description: Customer Party underwritten with Applicant Financial Profile.
+      sourceTypeId: customer_party
+      targetTypeId: applicant_financial_profile
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/14
+    - id: reported_through
+      label: REPORTED_THROUGH
+      description: Financial Institution reported through Regulatory Filing.
+      sourceTypeId: financial_institution
+      targetTypeId: regulatory_filing
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/15
+    - id: evaluates
+      label: EVALUATES
+      description: Third Party Risk evaluates Customer Party.
+      sourceTypeId: third_party_risk
+      targetTypeId: customer_party
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/16
+    - id: onboards
+      label: ONBOARDS
+      description: Financial Institution onboards Merchant Profile.
+      sourceTypeId: financial_institution
+      targetTypeId: merchant_profile
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/17
+    - id: advises_with
+      label: ADVISES_WITH
+      description: Customer Party advises with Investment Profile.
+      sourceTypeId: customer_party
+      targetTypeId: investment_profile
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/18
+    - id: member_of
+      label: MEMBER_OF
+      description: A person is affiliated with an organization.
+      sourceTypeId: person
+      targetTypeId: organization
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/19
+    - id: acts_for
+      label: ACTS_FOR
+      description: An agent acts on behalf of an organization.
+      sourceTypeId: agent
+      targetTypeId: organization
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/20
+    - id: located_at
+      label: LOCATED_AT
+      description: An organization operates at a location.
+      sourceTypeId: organization
+      targetTypeId: location
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/21
+    - id: documents
+      label: DOCUMENTS
+      description: A document records or describes an event.
+      sourceTypeId: document
+      targetTypeId: event
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/22
+    - id: involves_asset
+      label: INVOLVES_ASSET
+      description: An event involves a governed asset.
+      sourceTypeId: event
+      targetTypeId: asset
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/23
+    - id: governed_by_policy
+      label: GOVERNED_BY_POLICY
+      description: An event is governed by an applicable policy.
+      sourceTypeId: event
+      targetTypeId: policy
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/24
+    - id: owned_by_organization
+      label: OWNED_BY_ORGANIZATION
+      description: An asset is owned or stewarded by an organization.
+      sourceTypeId: asset
+      targetTypeId: organization
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/25

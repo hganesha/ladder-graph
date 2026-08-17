@@ -56,7 +56,7 @@
     {
       "includes": ["src/generated/catalog.ts"],
       "files": {
-        "maxSize": 2097152
+        "maxSize": 4194304
       }
     }
   ]

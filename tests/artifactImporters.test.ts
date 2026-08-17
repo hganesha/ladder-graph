@@ -46,6 +46,27 @@ describe("portable artifact importers", () => {
     expect(JSON.stringify(result.artifact)).not.toContain("releaseStatus");
   });
 
+  it("normalizes Lattice enum properties to portable string semantics", () => {
+    const result = importLatticeOntology(
+      JSON.stringify({
+        ontology: {
+          id: "operations-ontology",
+          name: "Operations Ontology",
+          entityTypes: [
+            {
+              id: "agent",
+              label: "Agent",
+              properties: [{ id: "agent.agent_type", name: "Agent type", dataType: "enum" }],
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.artifact?.spec.types[0].properties[0].dataType).toBe("string");
+  });
+
   it("requires an explicit experience for hybrid DocuBricks assets", () => {
     const source = JSON.stringify({ document_type: "proof_of_loss", fields: [] });
     const result = importDocuBricksSchema(source, undefined, { artifactKind: "hybrid" });

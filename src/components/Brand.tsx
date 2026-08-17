@@ -1,10 +1,9 @@
-import { Network } from "lucide-react";
-
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="brand">
-      <span className="brand-mark">
-        <Network size={compact ? 17 : 20} aria-hidden="true" />
+      <span className="brand-mark" aria-hidden="true">
+        <img className="brand-logo brand-logo-dark" src="/icon-dark.png" alt="" />
+        <img className="brand-logo brand-logo-light" src="/icon-light.png" alt="" />
       </span>
       <span>
         <strong>Ladder Graph</strong>

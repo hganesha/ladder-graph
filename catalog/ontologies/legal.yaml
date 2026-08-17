@@ -1,0 +1,860 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Ontology
+metadata:
+  name: legal
+  title: Legal Ontology
+  description: Shared agreement, party, matter, filing, regulatory, and statement-of-work semantics.
+  version: 0.1.0
+  source:
+    system: lattice
+    sourceId: legal-ontology
+    sourceVersion: 0.1.0
+    sourceDigest: sha256:4ef4fd96a56fa6717e72de9f1d25668c6a0676a469635143f9776735b2422392
+spec:
+  types:
+    - id: legal_party
+      label: Legal Party
+      description: A person or organization participating in a legal obligation or matter.
+      sourcePath: /ontology/entityTypes/0
+      properties:
+        - id: legal_party.submitting_entity_name
+          label: Submitting Entity Name
+          description: Full legal name of the entity filing the submission
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/0
+        - id: legal_party.law_firm
+          label: Law Firm
+          description: Name of the law firm representing the filing party (null if in-house or pro se)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/1
+        - id: legal_party.attorney_email
+          label: Attorney Email
+          description: Email address of the filing attorney (null if not provided)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/2
+        - id: legal_party.attorney_name
+          label: Attorney Name
+          description: Full name of the attorney signing or filing the document
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/3
+        - id: legal_party.client_contact
+          label: Client Contact
+          description: Name of the primary client contact person (project manager, sponsor, or signatory)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/4
+        - id: legal_party.client_name
+          label: Client Name
+          description: Full legal name of the client organization
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/5
+        - id: legal_party.client_po_number
+          label: Client Po Number
+          description: Client's Purchase Order number referenced in the SOW (null if not present)
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/0/properties/6
+        - id: legal_party.client_role
+          label: Client Role
+          description: Plaintiff, defendant, third party, creditor, debtor, witness, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/7
+        - id: legal_party.defendant_name
+          label: Defendant Name
+          description: Full name of the defendant(s); if multiple, concatenate with "; " separator
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/8
+        - id: legal_party.defendant_names
+          label: Defendant Names
+          description: Defendants, respondents, or opposing parties.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/9
+        - id: legal_party.filing_party
+          label: Filing Party
+          description: "Which party filed this document. One of: Plaintiff | Defendant | Third_Party | Court | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/10
+        - id: legal_party.party_1_name
+          label: Party 1 Name
+          description: Full legal name of the first party
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/11
+        - id: legal_party.party_1_role
+          label: Party 1 Role
+          description: "Role of the first party. One of: Disclosing | Receiving | Both (for mutual agreements)"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/12
+        - id: legal_party.party_1_state
+          label: Party 1 State
+          description: State or jurisdiction of incorporation/organization for party 1 (two-letter state code or country
+            if non-US)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/13
+        - id: legal_party.party_2_name
+          label: Party 2 Name
+          description: Full legal name of the second party
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/14
+        - id: legal_party.party_2_role
+          label: Party 2 Role
+          description: "Role of the second party. One of: Disclosing | Receiving | Both"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/15
+        - id: legal_party.party_2_state
+          label: Party 2 State
+          description: State or jurisdiction of incorporation/organization for party 2
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/16
+        - id: legal_party.plaintiff_name
+          label: Plaintiff Name
+          description: Full name of the plaintiff(s); if multiple, concatenate with "; " separator
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/17
+        - id: legal_party.plaintiff_names
+          label: Plaintiff Names
+          description: Plaintiffs, claimants, or petitioners.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/18
+        - id: legal_party.submitting_entity_id
+          label: Submitting Entity Id
+          description: The primary regulatory identifier for the submitting entity. This may be a CIK (SEC), LEI, EIN,
+            FDA Establishment Identifier, or other ID
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/0/properties/19
+        - id: legal_party.vendor_contact
+          label: Vendor Contact
+          description: Name of the primary vendor contact person (project manager or account manager)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/20
+        - id: legal_party.vendor_name
+          label: Vendor Name
+          description: Full legal name of the vendor / service provider organization
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/21
+    - id: agreement
+      label: Agreement
+      description: A governed legal agreement and its operative terms.
+      sourcePath: /ontology/entityTypes/1
+      properties:
+        - id: agreement.effective_date
+          label: Effective Date
+          description: The date the agreement becomes effective, format YYYY-MM-DD
+          dataType: date
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/0
+        - id: agreement.amendment_number
+          label: Amendment Number
+          description: If this document is an amendment or addendum, the amendment number as integer (e.g., 1 for
+            "Amendment No. 1"; null if original agreement)
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/1/properties/1
+        - id: agreement.governing_law
+          label: Governing Law
+          description: The state or jurisdiction whose laws govern the agreement (e.g., "CA", "NY", "DE", "England and
+            Wales")
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/2
+        - id: agreement.agreement_type
+          label: Agreement Type
+          description: "Classification of the agreement. One of: NDA | MSA | MNDA | MOU | LOI | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/3
+        - id: agreement.arbitration_clause
+          label: Arbitration Clause
+          description: Boolean — true if the agreement requires disputes to be resolved by arbitration
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/4
+        - id: agreement.arbitration_venue
+          label: Arbitration Venue
+          description: City and/or state where arbitration proceedings would be held (null if no arbitration clause)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/5
+        - id: agreement.confidentiality_period_years
+          label: Confidentiality Period Years
+          description: Duration of the confidentiality obligation in years as decimal (null if perpetual or not
+            explicitly stated in years)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/6
+        - id: agreement.confidentiality_request
+          label: Confidentiality Request
+          description: Boolean — true if the submitting entity has requested confidential treatment of all or part of
+            the submission
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/7
+        - id: agreement.confidentiality_scope
+          label: Confidentiality Scope
+          description: Brief description of what information is deemed confidential (up to 200 chars)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/8
+        - id: agreement.expiration_date
+          label: Expiration Date
+          description: The date the agreement expires or terminates, format YYYY-MM-DD (null if perpetual or not stated)
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/9
+        - id: agreement.renewal_notice_days
+          label: Renewal Notice Days
+          description: Number of days' advance notice required to prevent auto-renewal, as integer (null if not
+            applicable)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/10
+        - id: agreement.return_or_destroy_obligation
+          label: Return Or Destroy Obligation
+          description: Boolean — true if the agreement requires return or destruction of confidential materials upon
+            termination or request
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/11
+    - id: legal_matter
+      label: Legal Matter
+      description: A governed dispute, case, or legal engagement.
+      sourcePath: /ontology/entityTypes/2
+      properties:
+        - id: legal_matter.case_status
+          label: Case Status
+          description: Open, stayed, settled, judgment, closed, appealed, or other.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/0
+        - id: legal_matter.case_name
+          label: Case Name
+          description: The case caption name (e.g., "Apex Corp. v. Meridian Technologies, Inc.")
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/1
+        - id: legal_matter.case_number
+          label: Case Number
+          description: The official docket or case number assigned by the court (e.g., "1:25-cv-04812-LTS", "Case No.
+            BC712345")
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/2/properties/2
+        - id: legal_matter.case_type
+          label: Case Type
+          description: Commercial, employment, collections, bankruptcy, class action, arbitration, or other.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/3
+        - id: legal_matter.discovery_status
+          label: Discovery Status
+          description: Discovery phase or status.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/4
+        - id: legal_matter.exposure_amount
+          label: Exposure Amount
+          description: Claimed damages, reserve, or exposure amount.
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/5
+        - id: legal_matter.matter_id
+          label: Matter Id
+          description: Internal matter or case file identifier.
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/2/properties/6
+        - id: legal_matter.settlement_status
+          label: Settlement Status
+          description: Settlement posture or demand status.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/7
+    - id: court_filing
+      label: Court Filing
+      description: A document formally submitted in a court proceeding.
+      sourcePath: /ontology/entityTypes/3
+      properties:
+        - id: court_filing.court_name
+          label: Court Name
+          description: Full official name of the court (e.g., "United States District Court for the Southern District of
+            New York", "Superior Court of the State of California, County of Los Angeles")
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/0
+        - id: court_filing.filing_date
+          label: Filing Date
+          description: Date the document was filed with the court, format YYYY-MM-DD
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/1
+        - id: court_filing.court_level
+          label: Court Level
+          description: "The level of the court. One of: Federal | State | Appellate | Administrative | Tribal | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/2
+        - id: court_filing.filing_party
+          label: Filing Party
+          description: "Which party filed this document. One of: Plaintiff | Defendant | Third_Party | Court | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/3
+        - id: court_filing.filing_period_from
+          label: Filing Period From
+          description: Start date of the filing period (e.g., fiscal year start for 10-K, quarter start for 10-Q),
+            format YYYY-MM-DD
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/4
+        - id: court_filing.filing_period_to
+          label: Filing Period To
+          description: End date of the filing period (e.g., fiscal year end for 10-K), format YYYY-MM-DD
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/5
+        - id: court_filing.filing_type
+          label: Filing Type
+          description: "The type of court document. One of: Complaint | Answer | Motion | Brief | Opposition | Reply |
+            Order | Judgment | Stipulation | Subpoena | Notice | Declaration | Deposition | Petition | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/6
+        - id: court_filing.hearing_date
+          label: Hearing Date
+          description: Date of any associated hearing, trial, or oral argument, format YYYY-MM-DD (null if not scheduled
+            or not stated)
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/7
+        - id: court_filing.hearing_dates
+          label: Hearing Dates
+          description: Upcoming hearing, mediation, trial, or conference dates.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/8
+        - id: court_filing.judge_name
+          label: Judge Name
+          description: Name of the presiding judge or magistrate (null if not yet assigned or not stated)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/9
+        - id: court_filing.jury_demand
+          label: Jury Demand
+          description: Boolean — true if the filing includes a demand for trial by jury
+          dataType: boolean
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/10
+        - id: court_filing.pages
+          label: Pages
+          description: Total number of pages in the filed document as integer (null if not stated)
+          dataType: integer
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/11
+        - id: court_filing.relief_requested
+          label: Relief Requested
+          description: Summary of the relief sought in this filing (up to 300 chars)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/12
+    - id: regulatory_submission
+      label: Regulatory Submission
+      description: A governed submission to a regulator and its disposition.
+      sourcePath: /ontology/entityTypes/4
+      properties:
+        - id: regulatory_submission.submission_type
+          label: Submission Type
+          description: "The specific type of regulatory submission. Examples:"
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/0
+        - id: regulatory_submission.acceptance_criteria_described
+          label: Acceptance Criteria Described
+          description: Boolean — true if the SOW contains defined acceptance criteria for deliverables
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/1
+        - id: regulatory_submission.acceptance_date
+          label: Acceptance Date
+          description: Date the regulator formally accepted the submission for review, format YYYY-MM-DD (null if not
+            stated)
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/2
+        - id: regulatory_submission.material_change_described
+          label: Material Change Described
+          description: Boolean — true if the submission discloses or describes a material change, event, or condition
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/3
+        - id: regulatory_submission.regulator
+          label: Regulator
+          description: "The regulatory body receiving the submission. One of: FDA | SEC | FinCEN | CFTC | FINRA | FTC |
+            CFPB | State | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/4
+        - id: regulatory_submission.review_division
+          label: Review Division
+          description: The specific division, branch, or office within the regulator that reviews this submission (null
+            if not applicable or not stated)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/5
+        - id: regulatory_submission.subject_of_submission
+          label: Subject Of Submission
+          description: Brief description of the subject matter of the filing (up to 300 chars)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/6
+        - id: regulatory_submission.submission_date
+          label: Submission Date
+          description: Date the submission was filed or submitted, format YYYY-MM-DD
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/7
+        - id: regulatory_submission.submission_id
+          label: Submission Id
+          description: The unique identifier assigned to the submission. This may be a docket number (FDA), accession
+            number (SEC EDGAR), CTR/SAR reference number (FinCEN), or other regulatory reference ID
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/4/properties/8
+        - id: regulatory_submission.submission_status
+          label: Submission Status
+          description: "Current status of the submission. One of: Accepted | Under_Review | Approved | Refused |
+            Withdrawn | Pending | Deficient | null"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/9
+    - id: statement_of_work
+      label: Statement of Work
+      description: A governed definition of project scope, deliverables, price, and acceptance.
+      sourcePath: /ontology/entityTypes/5
+      properties:
+        - id: statement_of_work.acceptance_criteria_described
+          label: Acceptance Criteria Described
+          description: Boolean — true if the SOW contains defined acceptance criteria for deliverables
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/0
+        - id: statement_of_work.change_order_process_described
+          label: Change Order Process Described
+          description: Boolean — true if the SOW describes a change order or change control process
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/1
+        - id: statement_of_work.ip_ownership
+          label: Ip Ownership
+          description: "Who owns intellectual property created under this SOW. One of: Client | Vendor | Joint | null"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/2
+        - id: statement_of_work.payment_schedule
+          label: Payment Schedule
+          description: Description of the payment schedule or milestones for billing (up to 200 chars)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/3
+        - id: statement_of_work.pricing_model
+          label: Pricing Model
+          description: "The pricing structure. One of: Fixed | T&M | Retainer | Milestone | Other"
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/4
+        - id: statement_of_work.project_description
+          label: Project Description
+          description: Brief description of the project or engagement scope (up to 300 characters)
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/5
+        - id: statement_of_work.sow_number
+          label: Sow Number
+          description: 'The unique SOW identifier or reference number (e.g., "SOW-2025-007", "SOW #3")'
+          dataType: string
+          required: false
+          identifier: true
+          sourcePath: /ontology/entityTypes/5/properties/6
+        - id: statement_of_work.sow_title
+          label: Sow Title
+          description: Descriptive title of the statement of work
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/7
+        - id: statement_of_work.total_contract_value
+          label: Total Contract Value
+          description: Total value of the SOW as decimal (null if T&M with no cap, or retainer with no stated total)
+          dataType: decimal
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/8
+    - id: person
+      label: Person
+      description: A human being identified in a governed business context.
+      sourcePath: /ontology/entityTypes/6
+      properties:
+        - id: person.person_id
+          label: Person identifier
+          description: Stable governed identifier for the person.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/6/properties/0
+        - id: person.display_name
+          label: Display name
+          description: Preferred name used in governed interfaces.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/6/properties/1
+        - id: person.effective_from
+          label: Effective from
+          description: Time from which this person record is valid.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/6/properties/2
+    - id: organization
+      label: Organization
+      description: A governed legal, public, or operating organization.
+      sourcePath: /ontology/entityTypes/7
+      properties:
+        - id: organization.organization_id
+          label: Organization identifier
+          description: Stable governed identifier for the organization.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/7/properties/0
+        - id: organization.legal_name
+          label: Legal name
+          description: Registered or otherwise authoritative organization name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/7/properties/1
+        - id: organization.organization_type
+          label: Organization type
+          description: Governed classification of the organization.
+          dataType: string
+          sourcePath: /ontology/entityTypes/7/properties/2
+    - id: agent
+      label: Agent
+      description: A human or software actor authorized to perform governed activity.
+      sourcePath: /ontology/entityTypes/8
+      properties:
+        - id: agent.agent_id
+          label: Agent identifier
+          description: Stable governed identifier for the actor.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/8/properties/0
+        - id: agent.agent_type
+          label: Agent type
+          description: Whether the actor is human, service, or automated.
+          dataType: string
+          sourcePath: /ontology/entityTypes/8/properties/1
+        - id: agent.active
+          label: Active
+          description: Whether the agent is currently authorized.
+          dataType: boolean
+          sourcePath: /ontology/entityTypes/8/properties/2
+    - id: location
+      label: Location
+      description: A physical, administrative, or virtual place relevant to governed activity.
+      sourcePath: /ontology/entityTypes/9
+      properties:
+        - id: location.location_id
+          label: Location identifier
+          description: Stable governed identifier for the location.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/9/properties/0
+        - id: location.name
+          label: Location name
+          description: Human-readable location name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/9/properties/1
+        - id: location.country_code
+          label: Country code
+          description: ISO country code when applicable.
+          dataType: string
+          sourcePath: /ontology/entityTypes/9/properties/2
+    - id: document
+      label: Document
+      description: A governed information artifact with identity, version, and provenance.
+      sourcePath: /ontology/entityTypes/10
+      properties:
+        - id: document.document_id
+          label: Document identifier
+          description: Stable governed identifier for the document.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/10/properties/0
+        - id: document.title
+          label: Title
+          description: Authoritative document title.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/10/properties/1
+        - id: document.version
+          label: Version
+          description: Document version or revision.
+          dataType: string
+          sourcePath: /ontology/entityTypes/10/properties/2
+        - id: document.issued_at
+          label: Issued at
+          description: Time at which the document was issued.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/10/properties/3
+    - id: event
+      label: Event
+      description: A governed occurrence bounded by time and business meaning.
+      sourcePath: /ontology/entityTypes/11
+      properties:
+        - id: event.event_id
+          label: Event identifier
+          description: Stable governed identifier for the event.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/11/properties/0
+        - id: event.event_type
+          label: Event type
+          description: Governed classification of the event.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/11/properties/1
+        - id: event.occurred_at
+          label: Occurred at
+          description: Time at which the event occurred.
+          dataType: datetime
+          required: true
+          sourcePath: /ontology/entityTypes/11/properties/2
+    - id: asset
+      label: Asset
+      description: A governed physical, digital, or financial resource.
+      sourcePath: /ontology/entityTypes/12
+      properties:
+        - id: asset.asset_id
+          label: Asset identifier
+          description: Stable governed identifier for the asset.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/12/properties/0
+        - id: asset.name
+          label: Asset name
+          description: Human-readable asset name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/12/properties/1
+        - id: asset.asset_type
+          label: Asset type
+          description: Governed classification of the asset.
+          dataType: string
+          sourcePath: /ontology/entityTypes/12/properties/2
+    - id: policy
+      label: Policy
+      description: A versioned rule or standard governing decisions and actions.
+      sourcePath: /ontology/entityTypes/13
+      properties:
+        - id: policy.policy_id
+          label: Policy identifier
+          description: Stable governed identifier for the policy.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/13/properties/0
+        - id: policy.title
+          label: Policy title
+          description: Authoritative policy title.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/13/properties/1
+        - id: policy.version
+          label: Version
+          description: Approved policy version.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/13/properties/2
+        - id: policy.effective_from
+          label: Effective from
+          description: Time from which the policy applies.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/13/properties/3
+  relationships:
+    - id: has_party
+      label: HAS_PARTY
+      description: Agreement has party Legal Party.
+      sourceTypeId: agreement
+      targetTypeId: legal_party
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/0
+    - id: involves
+      label: INVOLVES
+      description: Legal Matter involves Legal Party.
+      sourceTypeId: legal_matter
+      targetTypeId: legal_party
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/1
+    - id: contains
+      label: CONTAINS
+      description: Legal Matter contains Court Filing.
+      sourceTypeId: legal_matter
+      targetTypeId: court_filing
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/2
+    - id: submitted_by
+      label: SUBMITTED_BY
+      description: Regulatory Submission submitted by Legal Party.
+      sourceTypeId: regulatory_submission
+      targetTypeId: legal_party
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/3
+    - id: governed_by
+      label: GOVERNED_BY
+      description: Statement Of Work governed by Agreement.
+      sourceTypeId: statement_of_work
+      targetTypeId: agreement
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/4
+    - id: member_of
+      label: MEMBER_OF
+      description: A person is affiliated with an organization.
+      sourceTypeId: person
+      targetTypeId: organization
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/5
+    - id: acts_for
+      label: ACTS_FOR
+      description: An agent acts on behalf of an organization.
+      sourceTypeId: agent
+      targetTypeId: organization
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/6
+    - id: located_at
+      label: LOCATED_AT
+      description: An organization operates at a location.
+      sourceTypeId: organization
+      targetTypeId: location
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/7
+    - id: documents
+      label: DOCUMENTS
+      description: A document records or describes an event.
+      sourceTypeId: document
+      targetTypeId: event
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/8
+    - id: involves_asset
+      label: INVOLVES_ASSET
+      description: An event involves a governed asset.
+      sourceTypeId: event
+      targetTypeId: asset
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/9
+    - id: governed_by_policy
+      label: GOVERNED_BY_POLICY
+      description: An event is governed by an applicable policy.
+      sourceTypeId: event
+      targetTypeId: policy
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/10
+    - id: owned_by_organization
+      label: OWNED_BY_ORGANIZATION
+      description: An asset is owned or stewarded by an organization.
+      sourceTypeId: asset
+      targetTypeId: organization
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/11

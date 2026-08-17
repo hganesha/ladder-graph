@@ -12,6 +12,7 @@ import {
   CircleHelp,
   Code2,
   Feather,
+  FileText,
   HardHat,
   Images,
   Megaphone,
@@ -25,6 +26,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ARTIFACT_TEMPLATES } from "../generated/catalog";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
 import { listProjects } from "../lib/persistence";
 import { roleSubcategory } from "../lib/roleCategories";
@@ -249,11 +251,36 @@ const WORKFLOW_AREAS = [
     })),
 ];
 
-type LibraryTab = "workflows" | "agents";
+type LibraryTab = "workflows" | "agents" | "forms" | "documents" | "ontologies";
 type ModalityFilter = "all" | InputModality;
 type GalleryView = "starters" | "recent";
+const BUNDLE_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "workflow-bundle");
+const FORM_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "form");
+const DOCUMENT_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "document");
+const ONTOLOGY_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "ontology");
+const FORM_INDUSTRY_BY_AREA: Record<string, string> = {
+  "Energy & utilities": "energy",
+  "Finance & risk": "fs",
+  "Clinical & health sciences": "healthcare",
+  "Insurance & underwriting": "insurance",
+  "Legal & contracts": "legal",
+  "Manufacturing & industrial operations": "manufacturing",
+  "Real estate & construction": "real_estate",
+};
 
-export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () => void; onBundle?: (project?: ProjectRecord) => void }) {
+export function Welcome({
+  onBlank,
+  onBundle = () => undefined,
+  onForm = () => undefined,
+  onDocument = () => undefined,
+  onOntology = () => undefined,
+}: {
+  onBlank: () => void;
+  onBundle?: (project?: ProjectRecord, templateId?: string) => void;
+  onForm?: (project?: ProjectRecord, templateId?: string) => void;
+  onDocument?: (project?: ProjectRecord, templateId?: string) => void;
+  onOntology?: (project?: ProjectRecord, templateId?: string) => void;
+}) {
   const openTemplate = useStudioStore((state) => state.openTemplate);
   const openAgentTemplate = useStudioStore((state) => state.openAgentTemplate);
   const openProject = useStudioStore((state) => state.openProject);
@@ -271,6 +298,14 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
   );
   const selectedAgents = roleTemplatesForSubject(selectedArea.name).filter(
     (agent) => modality === "all" || agent.modalities.includes(modality),
+  );
+  const selectedFormIndustry = FORM_INDUSTRY_BY_AREA[selectedArea.name];
+  const selectedForms = FORM_TEMPLATES.filter((template) => !selectedFormIndustry || template.path.startsWith(`${selectedFormIndustry}/`));
+  const selectedDocuments = DOCUMENT_TEMPLATES.filter(
+    (template) => !selectedFormIndustry || template.path.startsWith(`${selectedFormIndustry}/`),
+  );
+  const selectedOntologies = ONTOLOGY_TEMPLATES.filter(
+    (template) => !selectedFormIndustry || template.path.startsWith(`${selectedFormIndustry}/`),
   );
   const SelectedAreaIcon = selectedArea.icon;
 
@@ -395,6 +430,45 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
                     <Workflow size={15} aria-hidden="true" /> Workflows <small>{selectedTemplates.length}</small>
                   </button>
                   <button
+                    aria-label="Forms"
+                    aria-controls="library-panel"
+                    aria-selected={activeLibraryTab === "forms"}
+                    className={activeLibraryTab === "forms" ? "active" : undefined}
+                    id="library-tab-forms"
+                    onClick={() => setActiveLibraryTab("forms")}
+                    role="tab"
+                    tabIndex={activeLibraryTab === "forms" ? 0 : -1}
+                    type="button"
+                  >
+                    <FileText size={15} aria-hidden="true" /> Forms <small>{selectedForms.length}</small>
+                  </button>
+                  <button
+                    aria-label="Documents"
+                    aria-controls="library-panel"
+                    aria-selected={activeLibraryTab === "documents"}
+                    className={activeLibraryTab === "documents" ? "active" : undefined}
+                    id="library-tab-documents"
+                    onClick={() => setActiveLibraryTab("documents")}
+                    role="tab"
+                    tabIndex={activeLibraryTab === "documents" ? 0 : -1}
+                    type="button"
+                  >
+                    <BookOpen size={15} aria-hidden="true" /> Documents <small>{selectedDocuments.length}</small>
+                  </button>
+                  <button
+                    aria-label="Ontologies"
+                    aria-controls="library-panel"
+                    aria-selected={activeLibraryTab === "ontologies"}
+                    className={activeLibraryTab === "ontologies" ? "active" : undefined}
+                    id="library-tab-ontologies"
+                    onClick={() => setActiveLibraryTab("ontologies")}
+                    role="tab"
+                    tabIndex={activeLibraryTab === "ontologies" ? 0 : -1}
+                    type="button"
+                  >
+                    <Boxes size={15} aria-hidden="true" /> Ontologies <small>{selectedOntologies.length}</small>
+                  </button>
+                  <button
                     aria-label="Agents"
                     aria-controls="library-panel"
                     aria-selected={activeLibraryTab === "agents"}
@@ -465,21 +539,40 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
                     ))}
                     {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
                   </div>
-                  <button className="bundle-launch-card" onClick={() => onBundle()} type="button">
-                    <span className="bundle-launch-icon" aria-hidden="true">
-                      <PackageOpen size={22} />
-                    </span>
-                    <span>
-                      <small>Experimental workflow bundle</small>
-                      <strong>Insurance claim review</strong>
-                      <span>Workflow + first-class forms + supporting document + ontology sliver</span>
-                    </span>
-                    <span className="bundle-launch-action">
-                      Open bundle workspace <ArrowRight size={15} />
-                    </span>
-                  </button>
+                  <section className="curated-bundles" aria-labelledby="curated-bundles-title">
+                    <header>
+                      <div>
+                        <span className="eyebrow">Portable solution contracts</span>
+                        <h3 id="curated-bundles-title">Curated workflow bundles</h3>
+                      </div>
+                      <span>{BUNDLE_TEMPLATES.length} bundles</span>
+                    </header>
+                    <div className="bundle-launch-grid">
+                      {BUNDLE_TEMPLATES.map((template) => (
+                        <button
+                          aria-label={`Open ${template.title}`}
+                          className="bundle-launch-card"
+                          key={template.id}
+                          onClick={() => onBundle(undefined, template.id)}
+                          type="button"
+                        >
+                          <span className="bundle-launch-icon" aria-hidden="true">
+                            <PackageOpen size={22} />
+                          </span>
+                          <span>
+                            <small>{template.path.split("/")[0].replaceAll("_", " ")} · curated bundle</small>
+                            <strong>{template.title}</strong>
+                            <span>{template.description}</span>
+                          </span>
+                          <span className="bundle-launch-action">
+                            Open <ArrowRight size={15} />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
                 </>
-              ) : (
+              ) : activeLibraryTab === "agents" ? (
                 <div className="template-grid tabbed-template-grid agent-template-grid">
                   {selectedAgents.map((agent) => (
                     <button
@@ -510,6 +603,80 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
                   ))}
                   {selectedAgents.length === 0 && <p className="library-empty">No agents match this modality.</p>}
                 </div>
+              ) : activeLibraryTab === "forms" ? (
+                <div className="template-grid tabbed-template-grid form-template-grid">
+                  {selectedForms.map((form) => (
+                    <button
+                      aria-label={`Open ${form.title} form`}
+                      className="template-card form-template-card"
+                      key={form.id}
+                      onClick={() => onForm(undefined, form.id)}
+                    >
+                      <div className="agent-card-icon" aria-hidden="true">
+                        <FileText />
+                      </div>
+                      <div className="template-meta">
+                        <span>{form.path.split("/")[0].replaceAll("_", " ")}</span>
+                        <span>Portable form</span>
+                      </div>
+                      <h3>{form.title}</h3>
+                      <p>{form.description}</p>
+                      <strong>
+                        Open form studio <ArrowRight size={14} />
+                      </strong>
+                    </button>
+                  ))}
+                </div>
+              ) : activeLibraryTab === "documents" ? (
+                <div className="template-grid tabbed-template-grid form-template-grid">
+                  {selectedDocuments.map((document) => (
+                    <button
+                      aria-label={`Open ${document.title} document`}
+                      className="template-card form-template-card"
+                      key={document.id}
+                      onClick={() => onDocument(undefined, document.id)}
+                    >
+                      <div className="agent-card-icon" aria-hidden="true">
+                        <BookOpen />
+                      </div>
+                      <div className="template-meta">
+                        <span>{document.path.split("/")[0].replaceAll("_", " ")}</span>
+                        <span>Document contract</span>
+                      </div>
+                      <h3>{document.title}</h3>
+                      <p>{document.description}</p>
+                      <strong>
+                        Inspect document schema <ArrowRight size={14} />
+                      </strong>
+                    </button>
+                  ))}
+                  {selectedDocuments.length === 0 && <p className="library-empty">No document contracts for this subject area.</p>}
+                </div>
+              ) : (
+                <div className="template-grid tabbed-template-grid form-template-grid">
+                  {selectedOntologies.map((ontology) => (
+                    <button
+                      aria-label={`Open ${ontology.title} ontology`}
+                      className="template-card form-template-card"
+                      key={ontology.id}
+                      onClick={() => onOntology(undefined, ontology.id)}
+                    >
+                      <div className="agent-card-icon" aria-hidden="true">
+                        <Boxes />
+                      </div>
+                      <div className="template-meta">
+                        <span>{ontology.path.split("/")[0].replaceAll("_", " ")}</span>
+                        <span>Semantic contract</span>
+                      </div>
+                      <h3>{ontology.title}</h3>
+                      <p>{ontology.description}</p>
+                      <strong>
+                        Explore ontology <ArrowRight size={14} />
+                      </strong>
+                    </button>
+                  ))}
+                  {selectedOntologies.length === 0 && <p className="library-empty">No ontology for this subject area.</p>}
+                </div>
               )}
             </section>
           </section>
@@ -530,7 +697,20 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
             {projects.length > 0 ? (
               <div className="recent-list">
                 {projects.map((project) => (
-                  <button key={project.id} onClick={() => void openProject(project)}>
+                  <button
+                    key={project.id}
+                    onClick={() =>
+                      project.artifactKind === "workflow-bundle"
+                        ? onBundle(project)
+                        : project.artifactKind === "form"
+                          ? onForm(project)
+                          : project.artifactKind === "document"
+                            ? onDocument(project)
+                            : project.artifactKind === "ontology"
+                              ? onOntology(project)
+                              : void openProject(project)
+                    }
+                  >
                     <span>
                       <strong>{project.name}</strong>
                       <small>{new Date(project.updatedAt).toLocaleString()}</small>

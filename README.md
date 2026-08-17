@@ -4,7 +4,7 @@ Design agent workflows visually. Validate the hard parts. Compile prompts or det
 
 Ladder Graph is an open-source, offline-first visual compiler for agent workflows. It provides a synchronized graph and LGIR YAML editor, structured loops, sequential or parallel execution groups, typed dependencies, diagnostics, local templates, deterministic Markdown adapters for Codex, Claude, and Hermes Agent, and deterministic data modules for Python and TypeScript. It does not run agents or contact model providers.
 
-Ladder Graph also includes an experimental workflow-bundle vertical slice. Open **Insurance claim review** from the gallery to combine an existing workflow with first-class forms, a supporting document contract, and either a complete ontology or a deterministic workflow-specific ontology sliver.
+Ladder Graph also compiles portable workflow bundles. The gallery includes curated insurance, manufacturing, legal, and commercial-credit bundles that combine an existing workflow with first-class forms, supporting document contracts, and either a complete ontology or a deterministic workflow-specific ontology sliver. Forms, documents, and ontologies can also be opened and saved as standalone projects.
 
 ## Run locally
 
@@ -55,7 +55,7 @@ Configure the stdio MCP server in your chat client:
 
 The chat client starts the binary, and the same process starts its loopback browser bridge automatically. Open **MCP** in Ladder Graph and the browser connects using its anonymous local installation ID—there is no server command or pairing code to copy. Choose **Publish saved library** to expose custom workflows and templates to MCP clients.
 
-It exposes MCP resources for workflows and agent templates plus `search_catalog`, `get_workflow`, `get_agent_template`, `validate_workflow`, and `compile_workflow`. Run `ladder-graph-mcp doctor` to inspect local setup, `status` for catalog counts, or `revoke` to invalidate all browser connection tokens.
+It exposes MCP resources for workflows, agent templates, ontologies, forms, documents, and workflow bundles, plus `search_catalog`, `get_workflow`, `get_agent_template`, `get_artifact`, `validate_workflow`, and `compile_workflow`. Run `ladder-graph-mcp doctor` to inspect local setup, `status` for catalog counts, or `revoke` to invalidate all browser connection tokens.
 
 The sync service binds only to loopback. Ladder Graph's production origin and local development origins are allowed by default. Add custom deployments through the comma-separated `LADDER_GRAPH_MCP_ALLOWED_ORIGINS` environment variable or the standalone diagnostic command `serve --allow-origin https://your-origin.example`.
 
@@ -71,9 +71,9 @@ The Rust-generated files in `src/wasm/pkg` are intentionally committed so static
 - Target-aware skill and connector templates with per-node customization stored directly in LGIR, including 15 declarative OpenRouter image, video, speech, music, and transcription profiles.
 - IndexedDB and OPFS persistence, invalid-draft recovery, import/export, revisions, installable PWA behavior, and no telemetry.
 
-## Experimental workflow bundles
+## Workflow bundles and artifact studios
 
-The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `WorkflowBundle` artifacts without changing existing workflow APIs. The insurance reference bundle demonstrates:
+The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `WorkflowBundle` artifacts without changing existing workflow APIs. The curated industry bundles demonstrate:
 
 - ontology-only import from a portable Lattice export—policies, evidence, runtime entities, and governance fields are not imported;
 - explicit DocuBricks classification as `form`, `document`, or `hybrid`, with unsupported expressions preserved as inert metadata;
@@ -88,11 +88,20 @@ The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `Workflow
 - local bundle persistence with complete-asset revisions, Recent Projects reopening, and history restore;
 - deterministic `.ladderbundle.json` import/export with SHA-256 integrity checks;
 - a searchable, industry-filtered starter library containing all 55 classified DocuBricks schemas: 24 forms and 31 documents.
+- standalone form authoring plus document-contract and ontology exploration workspaces, all with local persistence and compiler diagnostics;
+- workflow-aware recommendations that upgrade a generic workflow bundle to its curated domain pack when one exists.
 
 Regenerate the DocuBricks snapshot from a local checkout with:
 
 ```bash
 npm run docubricks:import -- --source /absolute/path/to/DocuBricks
+npm run catalog:generate
+```
+
+Regenerate the ontology-only Lattice snapshots from a local checkout with:
+
+```bash
+npm run lattice:import-ontologies -- --source /absolute/path/to/ontology-builder/lattice/apps/api/data/contract-registry.json
 npm run catalog:generate
 ```
 

@@ -120,6 +120,7 @@ function parseJson<T>(source: string, path: string, diagnostics: Diagnostic[]): 
 
 function ontologyType(source: string): OntologyDataType | undefined {
   const normalized = source.toLowerCase();
+  if (normalized === "enum") return "string";
   if (["string", "integer", "number", "decimal", "boolean", "date", "datetime", "array", "object"].includes(normalized))
     return normalized as OntologyDataType;
   return undefined;

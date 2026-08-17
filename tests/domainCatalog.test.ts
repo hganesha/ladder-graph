@@ -56,7 +56,7 @@ describe("domain expansion catalog", () => {
     expect(domainRoles).toHaveLength(184);
     expect(domainWorkflows).toHaveLength(69);
     expect(ROLE_TEMPLATES).toHaveLength(359);
-    expect(WORKFLOW_TEMPLATES).toHaveLength(124);
+    expect(WORKFLOW_TEMPLATES).toHaveLength(125);
     expect(new Set(ROLE_TEMPLATES.map((role) => role.id)).size).toBe(ROLE_TEMPLATES.length);
     expect(new Set(WORKFLOW_TEMPLATES.map((workflow) => workflow.id)).size).toBe(WORKFLOW_TEMPLATES.length);
     expect(new Set(domainWorkflows.map((workflow) => workflow.area))).toEqual(DOMAIN_AREAS);

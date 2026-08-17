@@ -85,6 +85,15 @@ describe("bundle workspace", () => {
     expect(screen.getByText("1 included properties")).toBeInTheDocument();
   });
 
+  it("opens a selected curated bundle instead of always falling back to insurance", async () => {
+    render(<BundleStudio initialTemplateId="manufacturing-line-qualification" onBack={() => undefined} />);
+
+    expect(screen.getByRole("heading", { name: "Manufacturing line qualification bundle" })).toBeInTheDocument();
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+    expect(compileBundle.mock.calls[0][0]).toContain("name: manufacturing-line-qualification");
+    expect(screen.getByRole("button", { name: "Restore Manufacturing line qualification bundle" })).toBeInTheDocument();
+  });
+
   it("switches between deterministic sliver and full ontology compilation", async () => {
     render(<BundleStudio onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
@@ -113,6 +122,19 @@ describe("bundle workspace", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Validate changes" }));
     await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("id: binding-1"));
+  });
+
+  it("recommends a curated bundle when a generic workflow has a domain pack", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "New" }));
+    fireEvent.change(screen.getByLabelText("Workflow"), { target: { value: "wf-mfg-02" } });
+    expect(await screen.findByText("Curated match: Manufacturing line qualification bundle")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Use curated bundle" }));
+
+    expect(await screen.findByRole("heading", { name: "Manufacturing line qualification bundle" })).toBeInTheDocument();
+    expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("name: manufacturing-line-qualification");
   });
 
   it("authors an ontology-bound field and recompiles the edited form into the bundle", async () => {
