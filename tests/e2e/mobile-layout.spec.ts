@@ -26,11 +26,11 @@ test("welcome and studio remain usable on a phone viewport", async ({ page }) =>
   await expect(page.getByLabel("Workflow graph canvas")).toBeVisible();
   await expect(page.getByLabel("Compile target").last()).toBeVisible();
 
-  await page.getByRole("button", { name: "Toggle library" }).click();
+  await page.getByRole("button", { name: "Open library" }).click();
   await expect(page.getByLabel("Node and template palette")).toBeVisible();
   const paletteBox = await page.getByLabel("Node and template palette").boundingBox();
   expect(paletteBox?.width).toBeLessThanOrEqual(390);
-  await page.getByRole("button", { name: "Close open panel" }).click();
+  await page.getByRole("button", { name: "Close library" }).click();
   await expect(page.getByLabel("Node and template palette")).toBeHidden();
 
   await page.getByRole("button", { name: "YAML source view" }).last().click();

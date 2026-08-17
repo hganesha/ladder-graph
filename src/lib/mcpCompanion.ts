@@ -1,5 +1,5 @@
 import { parseDocument } from "yaml";
-import { deleteSetting, getSetting, listProjects, listUserTemplates, setSetting } from "./persistence";
+import { getSetting, listProjects, listUserTemplates, setSetting } from "./persistence";
 
 const DEFAULT_URL = "http://127.0.0.1:7341";
 const INSTALLATION_ID = "mcp.installationId";
@@ -78,18 +78,29 @@ export async function companionStatus() {
   }
 }
 
-export async function pairCompanion(code: string, url = DEFAULT_URL) {
+export async function companionPairingState() {
+  return { paired: Boolean(await getSetting(TOKEN)), url: await baseUrl() };
+}
+
+export async function connectCompanion(url?: string) {
   const id = await installationId();
-  const normalizedUrl = normalizeCompanionUrl(url);
-  const response = await fetch(`${normalizedUrl}/api/v1/pair`, {
+  const normalizedUrl = normalizeCompanionUrl(url ?? (await baseUrl()));
+  const healthResponse = await fetch(`${normalizedUrl}/health`, { signal: AbortSignal.timeout(1500) });
+  const health = await responseJson<CompanionHealth>(healthResponse);
+  const response = await fetch(`${normalizedUrl}/api/v1/connect`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, installationId: id }),
+    body: JSON.stringify({ installationId: id }),
   });
   const result = await responseJson<{ token: string }>(response);
   await setSetting(TOKEN, result.token);
   await setSetting(BASE_URL, normalizedUrl);
-  return companionStatus();
+  return { reachable: health.ok, paired: true, url: normalizedUrl, details: health.details };
+}
+
+/** @deprecated Automatic local connection no longer uses a pairing code. */
+export async function pairCompanion(_code: string, url = DEFAULT_URL) {
+  return connectCompanion(url);
 }
 
 export async function publishToCompanion(): Promise<PublishResponse> {
@@ -100,7 +111,7 @@ export async function publishToCompanion(): Promise<PublishResponse> {
     getSetting(TOKEN),
     baseUrl(),
   ]);
-  if (!token) throw new Error("Pair this browser with the Ladder Graph MCP companion first.");
+  if (!token) throw new Error("Connect this browser to the Ladder Graph MCP companion first.");
 
   const entries = [
     ...projects.map((project) => {
@@ -148,8 +159,4 @@ export async function publishToCompanion(): Promise<PublishResponse> {
     }),
   });
   return responseJson<PublishResponse>(response);
-}
-
-export async function forgetCompanion() {
-  await Promise.all([deleteSetting(TOKEN), deleteSetting(BASE_URL)]);
 }

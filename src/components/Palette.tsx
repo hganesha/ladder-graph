@@ -1,4 +1,4 @@
-import { Boxes, ChevronDown, Combine, GitMerge, Layers3, Search, ShieldCheck, X } from "lucide-react";
+import { Boxes, ChevronDown, Combine, GitMerge, Layers3, PanelLeftClose, Search, ShieldCheck, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NODE_META, PALETTE_ORDER, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { groupRoleTemplates, roleSubcategory } from "../lib/roleCategories";
@@ -12,6 +12,7 @@ export function Palette() {
   const selectedId = useStudioStore((state) => state.selectedNodeId);
   const workflow = useStudioStore((state) => state.analysis?.normalized);
   const selectNode = useStudioStore((state) => state.selectNode);
+  const togglePalette = useStudioStore((state) => state.togglePalette);
   const activeGroup = useMemo(() => {
     const selected = workflow?.spec.nodes.find((node) => node.id === selectedId);
     if (selected?.kind === "group") return selected;
@@ -31,7 +32,12 @@ export function Palette() {
     <aside className="palette panel" aria-label="Node and template palette">
       <div className="panel-title">
         <span>Library</span>
-        <small>{ROLE_TEMPLATES.length} agents</small>
+        <div className="panel-title-actions">
+          <small>{ROLE_TEMPLATES.length} agents</small>
+          <button className="panel-collapse" type="button" title="Close library" aria-label="Close library" onClick={togglePalette}>
+            <PanelLeftClose size={14} />
+          </button>
+        </div>
       </div>
       <label className="search-field">
         <Search size={14} />

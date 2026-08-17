@@ -2,7 +2,7 @@ import { parseDocument } from "yaml";
 import { create } from "zustand";
 import { compiler } from "../compiler/client";
 import { createAgentStarterSource } from "../lib/agentStarter";
-import { autoLayout, groupMemberPosition } from "../lib/layout";
+import { autoLayout, groupMemberPosition, scaleNodeSpacing } from "../lib/layout";
 import { defaultNode, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { requestPersistentStorage, saveProject } from "../lib/persistence";
 import { BLANK_WORKFLOW, WORKFLOW_TEMPLATES } from "../lib/templates";
@@ -29,6 +29,7 @@ interface StudioState {
   diagnosticsOpen: boolean;
   paletteOpen: boolean;
   inspectorOpen: boolean;
+  nodeSpacing: number;
   busy: boolean;
   runtime: "wasm" | "fallback";
   savedAt: number | null;
@@ -51,6 +52,7 @@ interface StudioState {
   toggleDiagnostics: (value?: boolean) => void;
   togglePalette: () => void;
   toggleInspector: () => void;
+  patchWorkflowMetadata: (patch: Partial<Workflow["metadata"]>) => Promise<void>;
   patchNode: (id: string, patch: Partial<LgirNode>) => Promise<void>;
   patchEdge: (id: string, patch: Partial<LgirEdge>) => Promise<void>;
   deleteElements: (nodeIds: string[], edgeIds: string[]) => Promise<void>;
@@ -59,7 +61,7 @@ interface StudioState {
   addMacro: (macro: "parallel" | "pipeline" | "reduce" | "verify") => Promise<void>;
   connect: (edge: Omit<LgirEdge, "id">) => Promise<void>;
   updatePositions: (positions: Record<string, { x: number; y: number }>) => Promise<void>;
-  layout: () => Promise<void>;
+  adjustNodeSpacing: (direction: -1 | 1) => Promise<void>;
   applyFix: (diagnostic: Diagnostic) => Promise<void>;
   undo: () => Promise<void>;
   redo: () => Promise<void>;
@@ -87,7 +89,8 @@ function patchYaml(source: string, path: (string | number)[], value: unknown) {
 }
 
 function projectName(source: string) {
-  return parseWorkflow(source)?.metadata?.name ?? "untitled-workflow";
+  const metadata = parseWorkflow(source)?.metadata;
+  return metadata?.title?.trim() || metadata?.name || "untitled-workflow";
 }
 
 async function analyzeAndPersist(set: (value: Partial<StudioState>) => void, get: () => StudioState, source: string) {
@@ -130,6 +133,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   diagnosticsOpen: false,
   paletteOpen: true,
   inspectorOpen: true,
+  nodeSpacing: 1,
   busy: false,
   runtime: "fallback",
   savedAt: null,
@@ -152,6 +156,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
+      nodeSpacing: 1,
       past: [],
       future: [],
     });
@@ -185,6 +190,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
+      nodeSpacing: 1,
       past: [],
       future: [],
     });
@@ -201,6 +207,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       selectedEdgeId: null,
       outputOpen: false,
       compileResult: null,
+      nodeSpacing: 1,
       past: [],
       future: [],
     });
@@ -237,6 +244,15 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   toggleDiagnostics: (value) => set((state) => ({ diagnosticsOpen: value ?? !state.diagnosticsOpen })),
   togglePalette: () => set((state) => ({ paletteOpen: !state.paletteOpen })),
   toggleInspector: () => set((state) => ({ inspectorOpen: !state.inspectorOpen })),
+  patchWorkflowMetadata: async (patch) => {
+    const workflow = parseWorkflow(get().source);
+    if (!workflow) return;
+    let source = get().source;
+    Object.entries(patch).forEach(([key, value]) => {
+      source = patchYaml(source, ["metadata", key], value);
+    });
+    await get().setSource(source);
+  },
   patchNode: async (id, patch) => {
     const workflow = parseWorkflow(get().source);
     const index = workflow?.spec.nodes.findIndex((node) => node.id === id) ?? -1;
@@ -379,11 +395,15 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const source = patchYaml(get().source, ["spec", "nodes"], nodes);
     await get().setSource(source, false);
   },
-  layout: async () => {
+  adjustNodeSpacing: async (direction) => {
     const workflow = parseWorkflow(get().source);
     if (!workflow) return;
-    const nodes = autoLayout(workflow.spec.nodes, workflow.spec.edges);
+    const current = get().nodeSpacing;
+    const next = Math.max(0.8, Math.min(1.6, Number((current + direction * 0.2).toFixed(1))));
+    if (next === current) return;
+    const nodes = scaleNodeSpacing(workflow.spec.nodes, next / current);
     const source = patchYaml(get().source, ["spec", "nodes"], nodes);
+    set({ nodeSpacing: next });
     await get().setSource(source);
   },
   applyFix: async (diagnostic) => {

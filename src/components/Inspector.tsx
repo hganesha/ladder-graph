@@ -1,4 +1,4 @@
-import { Braces, Cable, Check, FileInput, Plug, Plus, Search, Settings2, Sparkles, X } from "lucide-react";
+import { Braces, Cable, Check, FileInput, PanelRightClose, Plug, Plus, Search, Settings2, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { type CapabilityOption, recommendedCapabilities, TARGET_CAPABILITY_CATALOGS } from "../lib/capabilityCatalog";
 import { INPUT_CONTRACT_PRESETS, type InputModality, inputContractModality, inputContractSchema } from "../lib/inputContracts";
@@ -32,6 +32,21 @@ function normalized(node: LgirNode): FormNode {
   };
 }
 
+function InspectorTitle({ title, detail }: { title: string; detail: string }) {
+  const toggleInspector = useStudioStore((state) => state.toggleInspector);
+  return (
+    <div className="panel-title">
+      <span>{title}</span>
+      <div className="panel-title-actions">
+        <small>{detail}</small>
+        <button className="panel-collapse" type="button" title="Close inspector" aria-label="Close inspector" onClick={toggleInspector}>
+          <PanelRightClose size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Inspector() {
   const selectedId = useStudioStore((state) => state.selectedNodeId);
   const selectedEdgeId = useStudioStore((state) => state.selectedEdgeId);
@@ -52,10 +67,7 @@ export function Inspector() {
   if (!draft) {
     return (
       <aside className="inspector panel empty-inspector">
-        <div className="panel-title">
-          <span>Inspector</span>
-          <small>nothing selected</small>
-        </div>
+        <InspectorTitle title="Inspector" detail="nothing selected" />
         <div>
           <FileInput size={22} />
           <h2>Workflow overview</h2>
@@ -123,10 +135,7 @@ export function Inspector() {
 
   return (
     <aside className="inspector panel" aria-label={`Inspector for ${draft.name}`}>
-      <div className="panel-title">
-        <span>Node contract</span>
-        <small>{draft.kind}</small>
-      </div>
+      <InspectorTitle title="Node contract" detail={draft.kind} />
       <div className="inspector-tabs" role="tablist">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button key={id} role="tab" aria-selected={tab === id} title={label} onClick={() => setTab(id)}>
@@ -337,10 +346,7 @@ function EdgeInspector({ edge, nodes }: { edge: LgirEdge; nodes: LgirNode[] }) {
 
   return (
     <aside className="inspector panel" aria-label={`Inspector for edge ${draft.id}`}>
-      <div className="panel-title">
-        <span>Edge contract</span>
-        <small>{draft.kind}</small>
-      </div>
+      <InspectorTitle title="Edge contract" detail={draft.kind} />
       <div className="edge-summary">
         <strong>{endpointLabel(draft.from)}</strong>
         <span aria-hidden="true">→</span>

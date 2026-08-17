@@ -1,4 +1,6 @@
+import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
 import { useEffect, useState } from "react";
+import { companionPairingState } from "../lib/mcpCompanion";
 import { useStudioStore } from "../store/useStudioStore";
 import { Diagnostics } from "./Diagnostics";
 import { GraphCanvas } from "./GraphCanvas";
@@ -14,6 +16,7 @@ export function Studio() {
   const state = useStudioStore();
   const [storageOpen, setStorageOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [mcpPaired, setMcpPaired] = useState(false);
   useEffect(() => {
     if (!state.analysis) void useStudioStore.getState().setSource(state.source, false);
   }, [state.analysis, state.source]);
@@ -29,25 +32,54 @@ export function Studio() {
     mobile.addEventListener("change", closeDesktopPanels);
     return () => mobile.removeEventListener("change", closeDesktopPanels);
   }, []);
+  useEffect(() => {
+    void companionPairingState().then((status) => setMcpPaired(status.paired));
+  }, []);
 
   const closeMobilePanel = () => {
     const current = useStudioStore.getState();
     if (current.paletteOpen) current.togglePalette();
     if (current.inspectorOpen) current.toggleInspector();
   };
+  const openPalette = () => {
+    const current = useStudioStore.getState();
+    if (current.inspectorOpen && window.matchMedia("(max-width: 880px)").matches) current.toggleInspector();
+    if (!current.paletteOpen) current.togglePalette();
+  };
+  const openInspector = () => {
+    const current = useStudioStore.getState();
+    if (current.paletteOpen && window.matchMedia("(max-width: 880px)").matches) current.togglePalette();
+    if (!current.inspectorOpen) current.toggleInspector();
+  };
+  const closeStorage = () => {
+    setStorageOpen(false);
+    void companionPairingState().then((status) => setMcpPaired(status.paired));
+  };
 
   return (
     <main
       className={`studio-shell ${state.paletteOpen ? "palette-visible" : ""} ${state.inspectorOpen ? "inspector-visible" : ""} ${state.outputOpen ? "output-visible" : ""}`}
     >
-      <StudioHeader onHelp={() => setHelpOpen(true)} onStorage={() => setStorageOpen(true)} />
+      <StudioHeader mcpPaired={mcpPaired} onHelp={() => setHelpOpen(true)} onStorage={() => setStorageOpen(true)} />
       <div className="studio-workspace">
+        {!state.paletteOpen && (
+          <button className="panel-restore panel-restore-left" type="button" aria-label="Open library" onClick={openPalette}>
+            <PanelLeftOpen size={15} />
+            <span>Library</span>
+          </button>
+        )}
         {state.paletteOpen && <Palette />}
         <section className={`center-workspace mode-${state.centerMode}`}>
           {state.centerMode !== "source" && <GraphCanvas />}
           {state.centerMode !== "canvas" && <SourceEditor />}
         </section>
         {state.inspectorOpen && <Inspector />}
+        {!state.inspectorOpen && (
+          <button className="panel-restore panel-restore-right" type="button" aria-label="Open inspector" onClick={openInspector}>
+            <span>Inspector</span>
+            <PanelRightOpen size={15} />
+          </button>
+        )}
       </div>
       {(state.paletteOpen || state.inspectorOpen) && (
         <button
@@ -73,7 +105,7 @@ export function Studio() {
       </footer>
       {state.diagnosticsOpen && <Diagnostics />}
       {state.outputOpen && <OutputPanel />}
-      {storageOpen && <StorageDialog onClose={() => setStorageOpen(false)} />}
+      {storageOpen && <StorageDialog onClose={closeStorage} />}
       {helpOpen ? <LazyHelpDialog onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );

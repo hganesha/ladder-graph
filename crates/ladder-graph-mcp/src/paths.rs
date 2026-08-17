@@ -6,7 +6,6 @@ use std::{fs, path::PathBuf};
 pub struct AppPaths {
     pub data_dir: PathBuf,
     pub snapshot: PathBuf,
-    pub pairing: PathBuf,
     pub auth: PathBuf,
 }
 
@@ -21,7 +20,6 @@ impl AppPaths {
         };
         Ok(Self {
             snapshot: data_dir.join("catalog-v1.json"),
-            pairing: data_dir.join("pairing-v1.json"),
             auth: data_dir.join("auth-v1.json"),
             data_dir,
         })
