@@ -3,13 +3,14 @@ name = "ladder-catalog"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
-description = "Catalog and snapshot model for Ladder Graph workflows and agent templates"
+description = "Catalog and snapshot model for Ladder Graph workflows, agents, and portable artifacts"
 build = "build.rs"
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 hex = "0.4"
 lgir-core = { path = "../lgir-core" }
+ladder-artifacts = { path = "../ladder-artifacts" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml_ng = "0.10"

@@ -1,0 +1,141 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: commercial-credit-underwriting
+  title: Commercial credit intake → underwriting decision
+  description: Normalize a commercial credit application, independently assess repayment and collateral, resolve
+    exceptions, and require accountable approval.
+  version: 1.0.0
+spec:
+  objective: Produce a traceable commercial credit decision whose applicant identity, requested structure,
+    repayment capacity, collateral, covenants, and policy exceptions are explicitly supported.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - credit-approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Application and supporting credit package
+      summary: Borrower application, KYC evidence, financial profile, collateral, and requested facility.
+      inputSchema:
+        type: object
+        required:
+          - workflowFields
+        properties:
+          workflowFields:
+            type: object
+            required:
+              - applicant
+              - requested_amount
+              - loan_purpose
+            properties:
+              applicant: {}
+              requested_amount: {}
+              loan_purpose: {}
+              collateral: {}
+              financial_profile: {}
+              kyc_profile: {}
+        x-ladder-input-mode: document
+    - id: normalize
+      kind: agent
+      name: Normalize application and financial evidence
+      templateRef: fin-04
+      role: Financial evidence analyst preserving period, unit, source, and applicant identity.
+      prompt: Extract cited financial facts at the correct period, unit, basis, and consolidation scope.
+      capabilities:
+        skills:
+          - finance-analysis
+          - evidence-verification
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-sensitive
+      outputSchema:
+        type: object
+    - id: credit-review
+      kind: agent
+      name: Independent credit risk assessment
+      templateRef: fin-06
+      role: Credit risk analyst assessing repayment capacity, structure, collateral, covenants, and downside
+        liquidity.
+      prompt: Assess repayment capacity, structure, collateral, covenants, downside liquidity, and concentration
+        risk.
+      capabilities:
+        skills:
+          - finance-analysis
+          - risk-analysis
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-sensitive
+      outputSchema:
+        type: object
+    - id: decision-gate
+      kind: evaluate
+      inlineRole: true
+      name: Credit package completeness gate
+      role: Independent credit policy reviewer
+      prompt: Pass only when borrower identity, requested structure, repayment capacity, collateral support,
+        covenants, exceptions, and approval conditions are traceable to supplied evidence.
+      capabilities:
+        skills:
+          - evaluation
+          - compliance-review
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-sensitive
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+    - id: credit-approval
+      kind: approval
+      name: Authorized credit officer approves the decision
+      summary: Confirm facility structure, risk rating, exceptions, conditions, and approval authority.
+    - id: result
+      kind: output
+      name: Approved credit decision and conditions register
+  edges:
+    - id: e1
+      from: intake
+      to: normalize
+      kind: data
+    - id: e2
+      from: normalize
+      to: credit-review
+      kind: data
+    - id: e3
+      from: credit-review
+      to: decision-gate
+      kind: data
+    - id: e4
+      from: decision-gate
+      to: credit-approval
+      kind: control
+      condition: passed
+    - id: e5
+      from: credit-approval
+      to: result
+      kind: dependency
+      condition: approved

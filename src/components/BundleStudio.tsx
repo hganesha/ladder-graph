@@ -29,7 +29,15 @@ import {
   resolveBundleAssets,
 } from "../lib/bundleEditor";
 import { listBundleAssets, saveArtifactProject, saveBundleAssets } from "../lib/persistence";
-import type { BundleCompileResult, CompiledArtifact, LadderForm, ProjectRecord, Target, WorkflowBundle } from "../types";
+import type {
+  ArtifactTemplateDefinition,
+  BundleCompileResult,
+  CompiledArtifact,
+  LadderForm,
+  ProjectRecord,
+  Target,
+  WorkflowBundle,
+} from "../types";
 import { Brand } from "./Brand";
 import { BindingInspector } from "./bundle/BindingInspector";
 import { BundleAssetPicker } from "./bundle/BundleAssetPicker";
@@ -40,6 +48,7 @@ import { ThemeToggle } from "./ThemeToggle";
 type WorkspaceTab = "bundle" | "form" | "ontology" | "output";
 
 const BUNDLE_TEMPLATE = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance-claim-review");
+const BUNDLE_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "workflow-bundle");
 const FORM_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "form");
 const DEFAULT_BUNDLE_SOURCE = BUNDLE_TEMPLATE?.yaml ?? stringify(createBundleForWorkflow(WORKFLOW_TEMPLATES[0]));
 const DEFAULT_SOURCE_OVERRIDES = Object.fromEntries(FORM_TEMPLATES.map((artifact) => [artifact.ref, artifact.yaml]));
@@ -95,6 +104,11 @@ function parsedBundle(source: string) {
   return parse(source) as WorkflowBundle;
 }
 
+function firstAttachedFormId(source: string) {
+  const firstRef = parsedBundle(source).spec.forms?.[0]?.ref;
+  return FORM_TEMPLATES.find((template) => template.ref === firstRef)?.id ?? "";
+}
+
 function archiveFilename(source: string) {
   const name = parsedBundle(source)
     .metadata.name.replace(/[^a-z0-9-]+/gi, "-")
@@ -108,19 +122,30 @@ function assetKind(source: string) {
   throw new Error(`Bundle asset has unsupported kind '${kind ?? "unknown"}'.`);
 }
 
-export default function BundleStudio({ onBack, initialProject }: { onBack: () => void; initialProject?: ProjectRecord }) {
-  const [source, setSource] = useState(initialProject?.yaml ?? DEFAULT_BUNDLE_SOURCE);
+export default function BundleStudio({
+  onBack,
+  initialProject,
+  initialTemplateId,
+}: {
+  onBack: () => void;
+  initialProject?: ProjectRecord;
+  initialTemplateId?: string;
+}) {
+  const starterTemplate = BUNDLE_TEMPLATES.find((template) => template.id === initialTemplateId) ?? BUNDLE_TEMPLATE;
+  const starterSource = starterTemplate?.yaml ?? DEFAULT_BUNDLE_SOURCE;
+  const initialSource = initialProject?.yaml ?? starterSource;
+  const [source, setSource] = useState(initialSource);
   const [target, setTarget] = useState<Target>(initialProject?.target ?? "codex");
   const [result, setResult] = useState<BundleCompileResult | null>(null);
   const [busy, setBusy] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [tab, setTab] = useState<WorkspaceTab>("bundle");
-  const [formId, setFormId] = useState("first-notice-of-loss");
+  const [formId, setFormId] = useState(() => firstAttachedFormId(initialSource));
   const [sourceOverrides, setSourceOverrides] = useState<Record<string, string>>(() => DEFAULT_SOURCE_OVERRIDES);
   const [editingFormRef, setEditingFormRef] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | null>(initialProject?.id ?? null);
-  const [lastValidSource, setLastValidSource] = useState(initialProject?.lastValidYaml ?? DEFAULT_BUNDLE_SOURCE);
+  const [lastValidSource, setLastValidSource] = useState(initialProject?.lastValidYaml ?? starterSource);
   const [savedAt, setSavedAt] = useState<number | null>(initialProject?.updatedAt ?? null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -179,7 +204,7 @@ export default function BundleStudio({ onBack, initialProject }: { onBack: () =>
   useEffect(() => {
     let active = true;
     const revision = ++compileRevision.current;
-    const initialSource = initialProject?.yaml ?? DEFAULT_BUNDLE_SOURCE;
+    const initialSource = initialProject?.yaml ?? starterSource;
     const initialTarget = initialProject?.target ?? "codex";
     void (initialProject ? listBundleAssets(initialProject.id) : Promise.resolve([]))
       .then((records) => {
@@ -204,7 +229,7 @@ export default function BundleStudio({ onBack, initialProject }: { onBack: () =>
     return () => {
       active = false;
     };
-  }, [initialProject]);
+  }, [initialProject, starterSource]);
 
   const restoreArchive = async (body: string) => {
     try {
@@ -324,11 +349,23 @@ export default function BundleStudio({ onBack, initialProject }: { onBack: () =>
   };
 
   const restoreStarter = () => {
-    const starter = parsedBundle(DEFAULT_BUNDLE_SOURCE);
+    const starter = parsedBundle(starterSource);
     setSourceOverrides(DEFAULT_SOURCE_OVERRIDES);
-    setFormId("first-notice-of-loss");
+    setFormId(firstAttachedFormId(starterSource));
+    setProjectId(null);
+    setSavedAt(null);
     setTab("bundle");
     applyBundle(starter, true, DEFAULT_SOURCE_OVERRIDES);
+  };
+
+  const useCuratedBundle = (template: ArtifactTemplateDefinition) => {
+    const nextSource = template.yaml;
+    setSourceOverrides(DEFAULT_SOURCE_OVERRIDES);
+    setFormId(firstAttachedFormId(nextSource));
+    setProjectId(null);
+    setSavedAt(null);
+    setTab("bundle");
+    applyBundle(parsedBundle(nextSource), true, DEFAULT_SOURCE_OVERRIDES);
   };
 
   const startNew = () => {
@@ -540,6 +577,8 @@ export default function BundleStudio({ onBack, initialProject }: { onBack: () =>
                   onDetach={(ref) => applyBundle(detachBundleArtifact(bundle, ref), true)}
                   onNew={startNew}
                   onRestoreStarter={restoreStarter}
+                  onUseCuratedBundle={useCuratedBundle}
+                  starterLabel={starterTemplate?.title ?? "Curated starter"}
                   onWorkflowChange={(workflowId) => {
                     const nextWorkflow = WORKFLOW_TEMPLATES.find((template) => template.id === workflowId);
                     if (nextWorkflow) applyBundle(replaceBundleWorkflow(bundle, nextWorkflow), true);

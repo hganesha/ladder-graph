@@ -8,6 +8,30 @@
       "description": "Portable insurance semantics normalized from Lattice.",
       "file": "ontologies/insurance.yaml",
       "ref": "ladder://ontologies/builtin/insurance"
+    },
+    {
+      "id": "manufacturing",
+      "path": "manufacturing/ontology",
+      "title": "Manufacturing ontology",
+      "description": "Portable manufacturing semantics imported from the Lattice industry ontology.",
+      "file": "ontologies/manufacturing.yaml",
+      "ref": "ladder://ontologies/builtin/manufacturing"
+    },
+    {
+      "id": "legal",
+      "path": "legal/ontology",
+      "title": "Legal ontology",
+      "description": "Portable legal semantics imported from the Lattice industry ontology.",
+      "file": "ontologies/legal.yaml",
+      "ref": "ladder://ontologies/builtin/legal"
+    },
+    {
+      "id": "financial-services",
+      "path": "fs/ontology",
+      "title": "Financial services ontology",
+      "description": "Portable financial-services semantics imported from the Lattice industry ontology.",
+      "file": "ontologies/financial-services.yaml",
+      "ref": "ladder://ontologies/builtin/financial-services"
     }
   ],
   "forms": [
@@ -470,6 +494,30 @@
       "description": "Claim intake, ontology sliver, supporting contract, workflow, and approval output.",
       "file": "bundles/insurance-claim-review.yaml",
       "ref": "ladder://bundles/builtin/insurance-claim-review"
+    },
+    {
+      "id": "manufacturing-line-qualification",
+      "path": "manufacturing/quality/line-qualification",
+      "title": "Manufacturing line qualification bundle",
+      "description": "Inspection, nonconformance, CAPA, supplier evidence, workflow, and manufacturing ontology sliver.",
+      "file": "bundles/manufacturing-line-qualification.yaml",
+      "ref": "ladder://bundles/builtin/manufacturing-line-qualification"
+    },
+    {
+      "id": "legal-regulatory-obligations",
+      "path": "legal/regulatory/obligations",
+      "title": "Regulatory obligations and submission bundle",
+      "description": "Authoritative change review, owned obligations, regulatory submission, and legal ontology sliver.",
+      "file": "bundles/legal-regulatory-obligations.yaml",
+      "ref": "ladder://bundles/builtin/legal-regulatory-obligations"
+    },
+    {
+      "id": "commercial-credit-underwriting",
+      "path": "fs/commercial-lending/underwriting",
+      "title": "Commercial credit underwriting bundle",
+      "description": "Borrower intake, KYC, collateral, credit analysis, approval, and financial-services ontology sliver.",
+      "file": "bundles/commercial-credit-underwriting.yaml",
+      "ref": "ladder://bundles/builtin/commercial-credit-underwriting"
     }
   ],
   "workflows": [
@@ -1638,6 +1686,17 @@
       "topology": "Governed specialist workflow",
       "accent": "#5ca989",
       "file": "workflows/wf-fin-03.yaml"
+    },
+    {
+      "id": "wf-fin-04",
+      "path": "finance-risk/wf-fin-04",
+      "area": "Finance & risk",
+      "title": "Commercial credit intake → underwriting decision",
+      "eyebrow": "Curated bundle workflow",
+      "description": "Normalize a commercial credit application, assess repayment and collateral, resolve exceptions, and require accountable approval.",
+      "topology": "Evidence pipeline with approval gate",
+      "accent": "#5ca989",
+      "file": "workflows/wf-fin-04.yaml"
     },
     {
       "id": "wf-jour-01",

@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["schema/lgir-v1alpha1.schema.json"],
+      includeAssets: ["schema/lgir-v1alpha1.schema.json", "icon-light.png", "icon-dark.png"],
       manifest: {
         name: "Ladder Graph",
         short_name: "Ladder",
@@ -18,11 +18,11 @@ export default defineConfig({
         background_color: "#0a0d10",
         display: "standalone",
         start_url: "/",
-        icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" }],
+        icons: [{ src: "/icon-dark.png", sizes: "680x680", type: "image/png", purpose: "any maskable" }],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,wasm,json,svg,woff2}"],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        globPatterns: ["**/*.{js,css,html,wasm,json,svg,png,woff2}"],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: "/index.html",
         runtimeCaching: [],
       },

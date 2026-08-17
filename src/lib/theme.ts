@@ -1,6 +1,10 @@
 export type Theme = "light" | "dark";
 
 const THEME_KEY = "ladder-graph-theme";
+const THEME_ICONS: Record<Theme, string> = {
+  light: "/icon-light.png",
+  dark: "/icon-dark.png",
+};
 
 export function getInitialTheme(): Theme {
   try {
@@ -14,6 +18,7 @@ export function getInitialTheme(): Theme {
 
 export function applyTheme(theme: Theme, persist = true) {
   document.documentElement.dataset.theme = theme;
+  document.querySelector<HTMLLinkElement>('link[data-ladder-icon="true"]')?.setAttribute("href", THEME_ICONS[theme]);
   if (persist) {
     try {
       window.localStorage.setItem(THEME_KEY, theme);

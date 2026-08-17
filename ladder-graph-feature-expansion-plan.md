@@ -1,6 +1,6 @@
 # Ladder Graph workflow-bundle implementation plan
 
-**Status:** General bundle assembly, persistence/portability, first-class form authoring, and the full DocuBricks starter library are implemented; ontology studio and MCP expansion remain planned
+**Status:** The release scope is implemented: reusable bundle assembly, four curated industry bundles, standalone forms/documents/ontologies, the full DocuBricks library, ontology-only Lattice imports, and catalog/MCP support for every artifact kind.
 
 **Companion strategy:** `ladder-graph-feature-expansion.md`
 
@@ -28,12 +28,22 @@ Implemented in the first vertical slice:
 - searchable and industry-filtered ontology/form/document starter selection in the bundle workspace;
 - unit, browser, build, and Rust-workspace verification.
 
-Still planned:
+Completed in the feature-expansion release:
 
-- standalone form-project persistence and workflow-node attach/create flows beyond bundle-owned forms;
-- full graph/tree ontology editing and breaking-change workflows;
-- catalog snapshot v2 and MCP resources for the new artifact kinds;
-- a second industry vertical and complete Rust/TypeScript diagnostic parity fixtures.
+- reproducible ontology-only imports from Lattice for manufacturing, legal, and financial services, without copying policies, runtime behavior, evidence systems, or other Lattice application concerns;
+- curated manufacturing line qualification, legal regulatory-obligations, and commercial-credit underwriting bundles in addition to insurance;
+- explicit workflow/form/document-to-ontology bindings and deterministic sliver compilation for every curated bundle;
+- a first-class bundle gallery, workflow-aware bundle recommendations, and correct reopening of saved bundle projects;
+- standalone, locally persisted form projects backed by the purpose-built visual form studio;
+- standalone document contract inspection and ontology type/property exploration with editable portable YAML and compiler diagnostics;
+- catalog snapshot and MCP discovery/retrieval for workflows, agents, ontologies, forms, documents, and workflow bundles;
+- regression coverage for every curated bundle, saved artifact routing, standalone artifact persistence, and the production build path used by Vercel.
+
+Post-release enhancements, not blockers for the current compiler expansion:
+
+- direct create/attach affordances on individual workflow nodes (bundle attachment already works);
+- large-ontology relationship graph layout, guided breaking-change migrations, and richer sliver-impact visualization;
+- hosted form submission, identity, case management, and runtime execution remain deliberately outside Ladder Graph's compiler boundary.
 
 ## 1. Outcome
 
@@ -718,7 +728,7 @@ Gate:
 
 ### Milestone 4 — First-class form studio
 
-**Status:** Core studio and bundle-owned form editing are complete. Standalone saved form projects and direct workflow-node attach/create remain follow-up work.
+**Status:** Complete for first-class form authoring, standalone saved form projects, bundle-owned editing, ontology-backed field creation, preview, source synchronization, diagnostics, and portable output. Direct node-level create/attach shortcuts remain a post-release convenience; bundle-level attachment is complete.
 
 **Relative effort:** Extra large
 
@@ -741,6 +751,8 @@ Gate:
 
 ### Milestone 5 — Ontology sliver studio
 
+**Status:** Complete for the release scope: searchable type/property exploration, relationship context, canonical source editing, compiler diagnostics, and deterministic bundle sliver selection. Large-graph layout and guided breaking-change migrations are post-release enhancements.
+
 **Relative effort:** Large
 
 **User-visible:** Yes
@@ -760,6 +772,8 @@ Gate:
 - the 1,000-element safety limit and performance budgets remain enforced.
 
 ### Milestone 6 — Catalog, MCP, and additional industries
+
+**Status:** Complete. The catalog and MCP expose all six artifact kinds, existing workflow behavior remains compatible, and manufacturing, legal, and commercial credit extend the insurance pilot without new artifact semantics.
 
 **Relative effort:** Large
 

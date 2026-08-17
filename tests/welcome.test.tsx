@@ -1,6 +1,7 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Welcome } from "../src/components/Welcome";
+import { listProjects } from "../src/lib/persistence";
 import { roleTemplatesForSubject } from "../src/lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
 import { useStudioStore } from "../src/store/useStudioStore";
@@ -19,6 +20,7 @@ describe("welcome gallery", () => {
   afterEach(cleanup);
 
   beforeEach(() => {
+    vi.mocked(listProjects).mockResolvedValue([]);
     window.localStorage.clear();
     document.documentElement.dataset.theme = "light";
     useStudioStore.setState({ view: "gallery", analysis: null, projectId: null });
@@ -35,7 +37,7 @@ describe("welcome gallery", () => {
       new Set(WORKFLOW_TEMPLATES.map((template) => template.area)).size,
     );
     expect(screen.getByLabelText("Subject area")).toHaveValue("Core patterns");
-    expect(screen.getAllByRole("tab")).toHaveLength(4);
+    expect(screen.getAllByRole("tab")).toHaveLength(7);
     expect(screen.getByRole("tab", { name: "Starter workflows" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Recent projects" })).toHaveAttribute("aria-selected", "false");
     expect(screen.getByRole("tab", { name: "Workflows" })).toHaveAttribute("aria-selected", "true");
@@ -56,6 +58,46 @@ describe("welcome gallery", () => {
     expect(openAgentTemplate).toHaveBeenCalledTimes(1);
   });
 
+  it("launches every curated bundle as a first-class starter", () => {
+    const onBundle = vi.fn();
+    render(<Welcome onBlank={() => undefined} onBundle={onBundle} />);
+
+    expect(screen.getByRole("heading", { name: "Curated workflow bundles" })).toBeInTheDocument();
+    expect(screen.getByText("4 bundles")).toBeInTheDocument();
+    const manufacturing = screen.getByRole("button", { name: "Open Manufacturing line qualification bundle" });
+    expect(screen.getByRole("button", { name: "Open Regulatory obligations and submission bundle" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open Commercial credit underwriting bundle" })).toBeInTheDocument();
+    fireEvent.click(manufacturing);
+
+    expect(onBundle).toHaveBeenCalledWith(undefined, "manufacturing-line-qualification");
+  });
+
+  it("opens industry forms as standalone projects", () => {
+    const onForm = vi.fn();
+    render(<Welcome onBlank={() => undefined} onForm={onForm} />);
+    selectArea("Manufacturing & industrial operations");
+    fireEvent.click(screen.getByRole("tab", { name: "Forms" }));
+
+    expect(screen.getAllByRole("button", { name: /open .* form/i })).toHaveLength(5);
+    fireEvent.click(screen.getByRole("button", { name: "Open Quality Inspection Report form" }));
+    expect(onForm).toHaveBeenCalledWith(undefined, "docubricks-manufacturing-quality-inspection-report");
+  });
+
+  it("opens industry documents and ontologies as standalone projects", () => {
+    const onDocument = vi.fn();
+    const onOntology = vi.fn();
+    render(<Welcome onBlank={() => undefined} onDocument={onDocument} onOntology={onOntology} />);
+    selectArea("Manufacturing & industrial operations");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Documents" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Certificate Of Analysis document" }));
+    expect(onDocument).toHaveBeenCalledWith(undefined, "docubricks-manufacturing-certificate-of-analysis");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Ontologies" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Manufacturing ontology ontology" }));
+    expect(onOntology).toHaveBeenCalledWith(undefined, "manufacturing");
+  });
+
   it("states the no-account, no-runtime promise", () => {
     render(<Welcome onBlank={() => undefined} />);
     expect(screen.getByText(/no account/i)).toBeInTheDocument();
@@ -71,6 +113,32 @@ describe("welcome gallery", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Browse starter workflows" }));
     expect(screen.getByLabelText("Subject area")).toBeInTheDocument();
+  });
+
+  it("reopens saved workflow bundles in the bundle workspace", async () => {
+    const onBundle = vi.fn();
+    const openProject = vi.fn(async () => undefined);
+    useStudioStore.setState({ openProject });
+    vi.mocked(listProjects).mockResolvedValue([
+      {
+        id: "bundle-project",
+        name: "Insurance claim review bundle",
+        artifactKind: "workflow-bundle",
+        yaml: "kind: WorkflowBundle",
+        lastValidYaml: "kind: WorkflowBundle",
+        target: "codex",
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]);
+
+    render(<Welcome onBlank={() => undefined} onBundle={onBundle} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Recent projects" }));
+    const savedBundle = await screen.findByRole("button", { name: /Insurance claim review bundle/i });
+    fireEvent.click(savedBundle);
+
+    await waitFor(() => expect(onBundle).toHaveBeenCalledWith(expect.objectContaining({ id: "bundle-project" })));
+    expect(openProject).not.toHaveBeenCalled();
   });
 
   it("opens the intro and help from the gallery", async () => {

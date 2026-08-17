@@ -1,0 +1,61 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: manufacturing-line-qualification
+  title: Manufacturing line qualification bundle
+  description: Inspection, nonconformance, CAPA, supplier evidence, and a manufacturing ontology sliver around line qualification.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-mfg-02
+  ontology:
+    ref: ladder://ontologies/builtin/manufacturing
+    mode: sliver
+    selection:
+      propertyRefs:
+        - part_material.part_number
+        - part_material.lot_number
+        - quality_inspection.defect_count
+        - quality_inspection.overall_disposition
+        - nonconformance.nonconformance_description
+        - corrective_action.capa_status
+        - supplier.supplier_name
+      relationshipIds: [supplied_by, inspects, identifies, resolved_by]
+  forms:
+    - { ref: ladder://forms/docubricks/manufacturing/quality_inspection_report, role: review }
+    - { ref: ladder://forms/docubricks/manufacturing/nonconformance_report, role: exception }
+    - { ref: ladder://forms/docubricks/manufacturing/corrective_preventive_action, role: completion }
+    - { ref: ladder://forms/docubricks/manufacturing/supplier_scorecard, role: review }
+  documents:
+    - { ref: ladder://documents/docubricks/manufacturing/bill_of_materials, role: supporting }
+    - { ref: ladder://documents/docubricks/manufacturing/certificate_of_analysis, role: supporting }
+  bindings:
+    - id: part-to-product-spec
+      source: { ref: ladder://forms/docubricks/manufacturing/quality_inspection_report, path: /spec/pages/0/sections/3/fields/0 }
+      target: { ref: ladder://workflows/builtin/wf-mfg-02, path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/product_spec }
+      ontologyPropertyRef: part_material.part_number
+      direction: input
+    - id: lot-to-process-flow
+      source: { ref: ladder://forms/docubricks/manufacturing/quality_inspection_report, path: /spec/pages/0/sections/3/fields/1 }
+      target: { ref: ladder://workflows/builtin/wf-mfg-02, path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/process_flow }
+      ontologyPropertyRef: part_material.lot_number
+      direction: input
+    - id: defects-to-capability-gate
+      source: { ref: ladder://forms/docubricks/manufacturing/quality_inspection_report, path: /spec/pages/0/sections/1/fields/4 }
+      target: { ref: ladder://workflows/builtin/wf-mfg-02, path: /spec/nodes/6/config/threshold }
+      ontologyPropertyRef: quality_inspection.defect_count
+      direction: review
+    - id: nonconformance-to-rework
+      source: { ref: ladder://forms/docubricks/manufacturing/nonconformance_report, path: /spec/pages/0/sections/1/fields/1 }
+      target: { ref: ladder://workflows/builtin/wf-mfg-02, path: /spec/nodes/8/prompt }
+      ontologyPropertyRef: nonconformance.nonconformance_description
+      direction: exception
+    - id: capa-status-to-approval
+      source: { ref: ladder://forms/docubricks/manufacturing/corrective_preventive_action, path: /spec/pages/0/sections/4/fields/1 }
+      target: { ref: ladder://workflows/builtin/wf-mfg-02, path: /spec/nodes/9/summary }
+      ontologyPropertyRef: corrective_action.capa_status
+      direction: approval
+    - id: supplier-to-intake
+      source: { ref: ladder://forms/docubricks/manufacturing/supplier_scorecard, path: /spec/pages/0/sections/4/fields/0 }
+      target: { ref: ladder://workflows/builtin/wf-mfg-02, path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/supplier_list }
+      ontologyPropertyRef: supplier.supplier_name
+      direction: input

@@ -6,13 +6,24 @@ fn main() {
     println!("cargo:rerun-if-changed={}", catalog_dir.display());
 
     let mut files = Vec::new();
-    for directory in ["workflows", "agents"] {
+    for directory in [
+        "workflows",
+        "agents",
+        "ontologies",
+        "forms",
+        "documents",
+        "bundles",
+    ] {
         let mut entries = fs::read_dir(catalog_dir.join(directory))
             .expect("read catalog directory")
             .map(|entry| entry.expect("read catalog entry").path())
             .filter(|path| {
                 path.extension()
                     .is_some_and(|extension| extension == "yaml")
+                    && !path
+                        .file_stem()
+                        .and_then(|value| value.to_str())
+                        .is_some_and(|value| value.ends_with(" 2"))
             })
             .collect::<Vec<_>>();
         entries.sort();

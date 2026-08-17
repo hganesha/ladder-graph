@@ -10,14 +10,27 @@ import { compileFallback } from "../src/compiler/fallback";
 import { ARTIFACT_TEMPLATES, WORKFLOW_TEMPLATES } from "../src/generated/catalog";
 import type { LadderForm, Ontology, ResolvedBundleAsset, WorkflowBundle } from "../src/types";
 
-const bundleTemplate = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "workflow-bundle");
-const ontologyTemplate = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "ontology");
+const bundleTemplate = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance-claim-review");
+const ontologyTemplate = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance");
 const insuranceWorkflow = WORKFLOW_TEMPLATES.find((workflow) => workflow.id === "wf-insr-01");
 
 function insuranceAssets(): ResolvedBundleAsset[] {
   if (!insuranceWorkflow) throw new Error("Insurance workflow fixture is required.");
   return [
     { ref: "ladder://workflows/builtin/wf-insr-01", source: insuranceWorkflow.yaml },
+    ...ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind !== "workflow-bundle").map((artifact) => ({
+      ref: artifact.ref,
+      source: artifact.yaml,
+    })),
+  ];
+}
+
+function assetsForBundle(bundle: WorkflowBundle): ResolvedBundleAsset[] {
+  const workflowId = bundle.spec.workflowRef.split("/").at(-1);
+  const workflow = WORKFLOW_TEMPLATES.find((candidate) => candidate.id === workflowId);
+  if (!workflow) throw new Error(`Workflow fixture ${workflowId} is required.`);
+  return [
+    { ref: bundle.spec.workflowRef, source: workflow.yaml },
     ...ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind !== "workflow-bundle").map((artifact) => ({
       ref: artifact.ref,
       source: artifact.yaml,
@@ -76,6 +89,18 @@ describe("artifact fallback compiler", () => {
     expect(result.artifacts.find((artifact) => artifact.path.startsWith("workflow/"))?.content).toBe(workflowOnly.content);
     expect(result.lockfile?.assets).toHaveLength(5);
     expect(result.capabilityReport.unsupported).toEqual([]);
+  });
+
+  it("compiles every curated workflow bundle with all referenced assets resolved", async () => {
+    for (const template of ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "workflow-bundle")) {
+      const bundle = parse(template.yaml) as WorkflowBundle;
+      const result = await compileBundleFallback(template.yaml, assetsForBundle(bundle), "codex");
+      expect(result.ok, `${template.id}: ${JSON.stringify(result.diagnostics)}`).toBe(true);
+      expect(result.lockfile?.bundle).toBe(template.id);
+      expect(result.artifacts).toEqual(
+        expect.arrayContaining([expect.objectContaining({ path: "bundle.yaml" }), expect.objectContaining({ path: "ladder.lock.json" })]),
+      );
+    }
   });
 
   it("fails compilation for unresolved pointers and incompatible ontology bindings", async () => {

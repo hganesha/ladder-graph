@@ -20,6 +20,10 @@ pub const MAX_SNAPSHOT_BYTES: usize = 32_000_000;
 pub enum CatalogKind {
     Workflow,
     AgentTemplate,
+    Ontology,
+    Form,
+    Document,
+    WorkflowBundle,
 }
 
 impl CatalogKind {
@@ -27,6 +31,10 @@ impl CatalogKind {
         match self {
             Self::Workflow => "workflows",
             Self::AgentTemplate => "agents",
+            Self::Ontology => "ontologies",
+            Self::Form => "forms",
+            Self::Document => "documents",
+            Self::WorkflowBundle => "bundles",
         }
     }
 }
@@ -132,6 +140,22 @@ pub enum AgentFormat {
     Markdown,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ArtifactFormat {
+    Yaml,
+    Json,
+}
+
+impl ArtifactFormat {
+    pub fn parse(value: Option<&str>) -> Result<Self, CatalogError> {
+        match value.unwrap_or("yaml") {
+            "yaml" | "source-yaml" => Ok(Self::Yaml),
+            "json" => Ok(Self::Json),
+            value => Err(CatalogError::UnsupportedFormat(value.into())),
+        }
+    }
+}
+
 impl AgentFormat {
     pub fn parse(value: Option<&str>) -> Result<Self, CatalogError> {
         match value.unwrap_or("yaml") {
@@ -172,6 +196,10 @@ pub enum CatalogError {
 struct Manifest {
     workflows: Vec<ManifestWorkflow>,
     agents: Vec<ManifestAgent>,
+    ontologies: Vec<ManifestArtifact>,
+    forms: Vec<ManifestArtifact>,
+    documents: Vec<ManifestArtifact>,
+    bundles: Vec<ManifestArtifact>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -186,6 +214,13 @@ struct ManifestWorkflow {
 struct ManifestAgent {
     id: String,
     path: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ManifestArtifact {
+    id: String,
+    path: String,
+    description: String,
 }
 
 impl Catalog {
@@ -336,6 +371,26 @@ impl Catalog {
             AgentFormat::Markdown => Ok((agent_markdown(&entry.content)?, "text/markdown".into())),
         }
     }
+
+    pub fn render_artifact(
+        &self,
+        entry: &CatalogEntry,
+        format: ArtifactFormat,
+    ) -> Result<(String, String), CatalogError> {
+        if !matches!(
+            entry.kind,
+            CatalogKind::Ontology
+                | CatalogKind::Form
+                | CatalogKind::Document
+                | CatalogKind::WorkflowBundle
+        ) {
+            return Err(CatalogError::NotFound(entry.id.clone()));
+        }
+        match format {
+            ArtifactFormat::Yaml => Ok((entry.content.clone(), "application/yaml".into())),
+            ArtifactFormat::Json => Ok((yaml_to_json(&entry.content)?, "application/json".into())),
+        }
+    }
 }
 
 fn builtin_entries() -> Result<Vec<CatalogEntry>, CatalogError> {
@@ -350,6 +405,19 @@ fn builtin_entries() -> Result<Vec<CatalogEntry>, CatalogError> {
         .into_iter()
         .map(|item| (item.id.clone(), item))
         .collect::<BTreeMap<_, _>>();
+    let artifacts = [
+        (CatalogKind::Ontology, manifest.ontologies),
+        (CatalogKind::Form, manifest.forms),
+        (CatalogKind::Document, manifest.documents),
+        (CatalogKind::WorkflowBundle, manifest.bundles),
+    ]
+    .into_iter()
+    .flat_map(|(kind, items)| {
+        items
+            .into_iter()
+            .map(move |item| ((kind, item.id.clone()), item))
+    })
+    .collect::<BTreeMap<_, _>>();
     let mut entries = Vec::with_capacity(BUILTIN_ASSETS.len());
     for (path, content) in BUILTIN_ASSETS {
         let id = Path::new(path)
@@ -378,7 +446,7 @@ fn builtin_entries() -> Result<Vec<CatalogEntry>, CatalogError> {
                 item.description.clone(),
                 tags_from_path(&item.path, Some(&item.area)),
             )
-        } else {
+        } else if path.starts_with("agents/") {
             let item = agents.get(&id).ok_or_else(|| {
                 CatalogError::InvalidSnapshot(format!("agent {id} is missing from manifest"))
             })?;
@@ -390,6 +458,31 @@ fn builtin_entries() -> Result<Vec<CatalogEntry>, CatalogError> {
             (
                 CatalogKind::AgentTemplate,
                 description,
+                tags_from_path(&item.path, None),
+            )
+        } else {
+            let kind = if path.starts_with("ontologies/") {
+                CatalogKind::Ontology
+            } else if path.starts_with("forms/") {
+                CatalogKind::Form
+            } else if path.starts_with("documents/") {
+                CatalogKind::Document
+            } else if path.starts_with("bundles/") {
+                CatalogKind::WorkflowBundle
+            } else {
+                return Err(CatalogError::InvalidSnapshot(format!(
+                    "unsupported built-in path {path}"
+                )));
+            };
+            let item = artifacts.get(&(kind, id.clone())).ok_or_else(|| {
+                CatalogError::InvalidSnapshot(format!(
+                    "{} {id} is missing from manifest",
+                    kind.collection()
+                ))
+            })?;
+            (
+                kind,
+                item.description.clone(),
                 tags_from_path(&item.path, None),
             )
         };
@@ -498,6 +591,19 @@ pub fn validate_snapshot(mut snapshot: CatalogSnapshot) -> Result<CatalogSnapsho
                     )));
                 }
             }
+            CatalogKind::Ontology
+            | CatalogKind::Form
+            | CatalogKind::Document
+            | CatalogKind::WorkflowBundle => {
+                let analysis = ladder_artifacts::analyze_artifact(&entry.content);
+                if !analysis.ok {
+                    return Err(CatalogError::InvalidSnapshot(format!(
+                        "{} {} failed artifact validation",
+                        entry.kind.collection(),
+                        entry.id
+                    )));
+                }
+            }
         }
         entry.media_type = yaml_media_type();
         entry.refresh_hash();
@@ -578,6 +684,10 @@ pub fn parse_uri(uri: &str) -> Result<(CatalogKind, CatalogScope, String), Catal
     let kind = match parts[0] {
         "workflows" => CatalogKind::Workflow,
         "agents" => CatalogKind::AgentTemplate,
+        "ontologies" => CatalogKind::Ontology,
+        "forms" => CatalogKind::Form,
+        "documents" => CatalogKind::Document,
+        "bundles" => CatalogKind::WorkflowBundle,
         _ => return Err(CatalogError::InvalidUri(uri.into())),
     };
     let scope = match parts[1] {
@@ -658,7 +768,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::Workflow)
                 .count(),
-            124
+            125
         );
         assert_eq!(
             catalog
@@ -667,6 +777,22 @@ mod tests {
                 .filter(|entry| entry.kind == CatalogKind::AgentTemplate)
                 .count(),
             359
+        );
+        assert_eq!(
+            catalog
+                .entries()
+                .iter()
+                .filter(|entry| entry.kind == CatalogKind::Ontology)
+                .count(),
+            4
+        );
+        assert_eq!(
+            catalog
+                .entries()
+                .iter()
+                .filter(|entry| entry.kind == CatalogKind::WorkflowBundle)
+                .count(),
+            4
         );
         assert!(
             catalog
@@ -747,6 +873,34 @@ mod tests {
                 .unwrap()
                 .0
                 .contains("ladder-target: codex")
+        );
+    }
+
+    #[test]
+    fn resolves_and_renders_portable_artifacts() {
+        let catalog = Catalog::load(None).unwrap();
+        let entry = catalog
+            .resolve(
+                "manufacturing-line-qualification",
+                Some(CatalogKind::WorkflowBundle),
+                Some(CatalogScope::Builtin),
+            )
+            .unwrap();
+        assert!(
+            catalog
+                .render_artifact(entry, ArtifactFormat::Json)
+                .unwrap()
+                .0
+                .contains("manufacturing-line-qualification")
+        );
+        assert!(
+            catalog
+                .resolve(
+                    "ladder://ontologies/builtin/manufacturing",
+                    Some(CatalogKind::Ontology),
+                    None,
+                )
+                .is_ok()
         );
     }
 }

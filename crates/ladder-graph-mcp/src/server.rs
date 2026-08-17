@@ -1,5 +1,6 @@
 use ladder_catalog::{
-    AgentFormat, Catalog, CatalogEntry, CatalogError, CatalogKind, CatalogScope, WorkflowFormat,
+    AgentFormat, ArtifactFormat, Catalog, CatalogEntry, CatalogError, CatalogKind, CatalogScope,
+    WorkflowFormat,
 };
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler,
@@ -27,7 +28,7 @@ pub struct SearchCatalogParams {
     /// Words that must appear in the catalog entry.
     #[serde(default)]
     query: String,
-    /// Optional kind: workflow or agent-template.
+    /// Optional kind: workflow, agent-template, ontology, form, document, or workflow-bundle.
     kind: Option<String>,
     /// Optional scope: builtin or user.
     scope: Option<String>,
@@ -52,6 +53,18 @@ pub struct GetAgentParams {
     /// Stable agent-template ID or ladder:// resource URI.
     identifier: String,
     /// yaml, json, or markdown.
+    format: Option<String>,
+    /// Optional scope when identifier is an ID: builtin or user.
+    scope: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct GetArtifactParams {
+    /// Stable artifact ID or ladder:// resource URI.
+    identifier: String,
+    /// Optional kind: ontology, form, document, or workflow-bundle.
+    kind: Option<String>,
+    /// yaml or json.
     format: Option<String>,
     /// Optional scope when identifier is an ID: builtin or user.
     scope: Option<String>,
@@ -132,7 +145,7 @@ impl LadderGraphServer {
 #[tool_router]
 impl LadderGraphServer {
     #[tool(
-        description = "Search Ladder Graph workflows and agent templates. Returns compact resource summaries, not full source bodies."
+        description = "Search Ladder Graph workflows, agent templates, ontologies, forms, documents, and workflow bundles. Returns compact resource summaries, not full source bodies."
     )]
     fn search_catalog(
         &self,
@@ -187,6 +200,31 @@ impl LadderGraphServer {
             Ok(json!({
                 "uri": entry.uri(),
                 "id": entry.id,
+                "scope": entry.scope,
+                "format": params.format.unwrap_or_else(|| "yaml".into()),
+                "mediaType": media_type,
+                "sourceHash": entry.source_hash,
+                "content": content,
+            }))
+        })();
+        tool_result(result)
+    }
+
+    #[tool(
+        description = "Get a Ladder Graph ontology, form, document, or workflow bundle as YAML or JSON."
+    )]
+    fn get_artifact(&self, Parameters(params): Parameters<GetArtifactParams>) -> CallToolResult {
+        let result = (|| -> Result<Value, CatalogError> {
+            let catalog = self.catalog()?;
+            let scope = parse_scope(params.scope.as_deref())?;
+            let kind = parse_artifact_kind(params.kind.as_deref())?;
+            let entry = catalog.resolve(&params.identifier, kind, scope)?;
+            let format = ArtifactFormat::parse(params.format.as_deref())?;
+            let (content, media_type) = catalog.render_artifact(entry, format)?;
+            Ok(json!({
+                "uri": entry.uri(),
+                "id": entry.id,
+                "kind": entry.kind,
                 "scope": entry.scope,
                 "format": params.format.unwrap_or_else(|| "yaml".into()),
                 "mediaType": media_type,
@@ -256,7 +294,7 @@ impl ServerHandler for LadderGraphServer {
                 .with_title("Ladder Graph MCP"),
         )
         .with_instructions(
-            "Discover Ladder Graph workflows and agent templates as resources. Use search_catalog for compact discovery, then read a resource or call get_workflow/get_agent_template. This server is read-only."
+            "Discover Ladder Graph workflows, agent templates, ontologies, forms, documents, and workflow bundles as resources. Use search_catalog for compact discovery, then read a resource or call the matching getter. This server is read-only."
                 .to_string(),
         )
     }
@@ -300,7 +338,25 @@ impl ServerHandler for LadderGraphServer {
                 "agent-template-representation",
             )
             .with_title("Agent-template representation")
-            .with_description("Retrieve an agent template as yaml, json, or markdown."),
+                .with_description("Retrieve an agent template as yaml, json, or markdown."),
+            ResourceTemplate::new(
+                "ladder://ontologies/{scope}/{id}{?format}",
+                "ontology-representation",
+            )
+            .with_title("Ontology representation")
+            .with_description("Retrieve a portable ontology as yaml or json."),
+            ResourceTemplate::new("ladder://forms/{scope}/{id}{?format}", "form-representation")
+                .with_title("Form representation")
+                .with_description("Retrieve a first-class form contract as yaml or json."),
+            ResourceTemplate::new(
+                "ladder://documents/{scope}/{id}{?format}",
+                "document-representation",
+            )
+            .with_title("Document representation")
+            .with_description("Retrieve a supporting document contract as yaml or json."),
+            ResourceTemplate::new("ladder://bundles/{scope}/{id}{?format}", "workflow-bundle-representation")
+                .with_title("Workflow-bundle representation")
+                .with_description("Retrieve a workflow bundle manifest as yaml or json."),
         ]))
     }
 
@@ -324,6 +380,14 @@ impl ServerHandler for LadderGraphServer {
             CatalogKind::AgentTemplate => catalog.render_agent(
                 entry,
                 AgentFormat::parse(query.get("format").map(String::as_str))
+                    .map_err(invalid_params)?,
+            ),
+            CatalogKind::Ontology
+            | CatalogKind::Form
+            | CatalogKind::Document
+            | CatalogKind::WorkflowBundle => catalog.render_artifact(
+                entry,
+                ArtifactFormat::parse(query.get("format").map(String::as_str))
                     .map_err(invalid_params)?,
             ),
         }
@@ -375,10 +439,27 @@ fn parse_kind(value: Option<&str>) -> Result<Option<CatalogKind>, CatalogError> 
         None => Ok(None),
         Some("workflow") => Ok(Some(CatalogKind::Workflow)),
         Some("agent-template") | Some("agent") => Ok(Some(CatalogKind::AgentTemplate)),
+        Some("ontology") => Ok(Some(CatalogKind::Ontology)),
+        Some("form") => Ok(Some(CatalogKind::Form)),
+        Some("document") => Ok(Some(CatalogKind::Document)),
+        Some("workflow-bundle") | Some("bundle") => Ok(Some(CatalogKind::WorkflowBundle)),
         Some(value) => Err(CatalogError::InvalidSnapshot(format!(
             "unsupported kind {value}"
         ))),
     }
+}
+
+fn parse_artifact_kind(value: Option<&str>) -> Result<Option<CatalogKind>, CatalogError> {
+    let kind = parse_kind(value)?;
+    if matches!(
+        kind,
+        Some(CatalogKind::Workflow | CatalogKind::AgentTemplate)
+    ) {
+        return Err(CatalogError::InvalidSnapshot(
+            "get_artifact kind must be ontology, form, document, or workflow-bundle".into(),
+        ));
+    }
+    Ok(kind)
 }
 
 fn parse_scope(value: Option<&str>) -> Result<Option<CatalogScope>, CatalogError> {
@@ -458,6 +539,41 @@ mod tests {
                 .unwrap()
                 .iter()
                 .any(|entry| entry["id"] == "refinement")
+        );
+    }
+
+    #[test]
+    fn server_searches_and_renders_portable_artifacts() {
+        let server = LadderGraphServer::new(PathBuf::from("/path/that/does/not/exist"));
+        let search = server.search_catalog(Parameters(SearchCatalogParams {
+            query: "manufacturing line qualification".into(),
+            kind: Some("workflow-bundle".into()),
+            scope: Some("builtin".into()),
+            limit: Some(5),
+        }));
+        assert_eq!(search.is_error, Some(false));
+        assert!(
+            search
+                .structured_content
+                .unwrap()
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|entry| entry["id"] == "manufacturing-line-qualification")
+        );
+
+        let artifact = server.get_artifact(Parameters(GetArtifactParams {
+            identifier: "manufacturing".into(),
+            kind: Some("ontology".into()),
+            format: Some("json".into()),
+            scope: Some("builtin".into()),
+        }));
+        assert_eq!(artifact.is_error, Some(false));
+        assert!(
+            artifact.structured_content.unwrap()["content"]
+                .as_str()
+                .unwrap()
+                .contains("Manufacturing Ontology")
         );
     }
 }

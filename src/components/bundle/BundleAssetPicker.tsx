@@ -1,5 +1,6 @@
 import { FileJson2, FileText, GitFork, PackageOpen, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { parse } from "yaml";
 import { ARTIFACT_TEMPLATES, WORKFLOW_TEMPLATES } from "../../generated/catalog";
 import { bundleAsset } from "../../lib/bundleEditor";
 import type { ArtifactTemplateDefinition, WorkflowBundle } from "../../types";
@@ -10,6 +11,8 @@ interface BundleAssetPickerProps {
   onDetach: (ref: string) => void;
   onNew: () => void;
   onRestoreStarter: () => void;
+  onUseCuratedBundle: (template: ArtifactTemplateDefinition) => void;
+  starterLabel: string;
   onWorkflowChange: (workflowId: string) => void;
 }
 
@@ -27,7 +30,16 @@ const kindIcon = {
   document: FileJson2,
 };
 
-export function BundleAssetPicker({ bundle, onAttach, onDetach, onNew, onRestoreStarter, onWorkflowChange }: BundleAssetPickerProps) {
+export function BundleAssetPicker({
+  bundle,
+  onAttach,
+  onDetach,
+  onNew,
+  onRestoreStarter,
+  onUseCuratedBundle,
+  starterLabel,
+  onWorkflowChange,
+}: BundleAssetPickerProps) {
   const [query, setQuery] = useState("");
   const [industry, setIndustry] = useState("all");
   const attached = new Set([
@@ -37,6 +49,13 @@ export function BundleAssetPicker({ bundle, onAttach, onDetach, onNew, onRestore
   ]);
   const workflowId = bundle.spec.workflowRef.split("/").at(-1) ?? WORKFLOW_TEMPLATES[0]?.id ?? "";
   const workflow = bundleAsset(bundle.spec.workflowRef);
+  const recommendedBundle = useMemo(
+    () =>
+      ARTIFACT_TEMPLATES.filter((template) => template.kind === "workflow-bundle")
+        .map((template) => ({ template, bundle: parse(template.yaml) as WorkflowBundle }))
+        .find((candidate) => candidate.bundle.spec.workflowRef === bundle.spec.workflowRef && candidate.bundle.metadata.name !== bundle.metadata.name),
+    [bundle.metadata.name, bundle.spec.workflowRef],
+  );
   const assetTemplates = useMemo(() => ARTIFACT_TEMPLATES.filter((template) => template.kind !== "workflow-bundle"), []);
   const industries = useMemo(() => [...new Set(assetTemplates.map((template) => template.path.split("/")[0]))].sort(), [assetTemplates]);
   const filteredTemplates = useMemo(() => {
@@ -59,8 +78,8 @@ export function BundleAssetPicker({ bundle, onAttach, onDetach, onNew, onRestore
           <button className="quiet-button" onClick={onNew} type="button">
             <Plus size={13} /> New
           </button>
-          <button className="quiet-button" onClick={onRestoreStarter} type="button">
-            <RotateCcw size={13} /> Insurance starter
+          <button aria-label={`Restore ${starterLabel}`} className="quiet-button" onClick={onRestoreStarter} type="button">
+            <RotateCcw size={13} /> Curated starter
           </button>
         </div>
       </header>
@@ -78,6 +97,22 @@ export function BundleAssetPicker({ bundle, onAttach, onDetach, onNew, onRestore
         </select>
         <small>{workflow?.description}</small>
       </label>
+
+      {recommendedBundle ? (
+        <aside className="bundle-compatibility-card" aria-label="Curated bundle recommendation">
+          <span>
+            <strong>Curated match: {recommendedBundle.template.title}</strong>
+            <small>
+              {(recommendedBundle.bundle.spec.forms?.length ?? 0) + (recommendedBundle.bundle.spec.documents?.length ?? 0)} domain assets ·{" "}
+              {recommendedBundle.bundle.spec.bindings?.length ?? 0} explicit bindings ·{" "}
+              {recommendedBundle.bundle.spec.ontology ? "ontology sliver included" : "ontology optional"}
+            </small>
+          </span>
+          <button className="quiet-button" onClick={() => onUseCuratedBundle(recommendedBundle.template)} type="button">
+            Use curated bundle
+          </button>
+        </aside>
+      ) : null}
 
       <fieldset className="bundle-library-controls">
         <legend className="sr-only">Filter the artifact library</legend>
