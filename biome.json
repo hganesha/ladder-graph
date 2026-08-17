@@ -52,6 +52,12 @@
       "linter": {
         "enabled": false
       }
+    },
+    {
+      "includes": ["src/generated/catalog.ts"],
+      "files": {
+        "maxSize": 2097152
+      }
     }
   ]
 }

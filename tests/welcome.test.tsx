@@ -28,7 +28,7 @@ describe("welcome gallery", () => {
     expect(screen.getByRole("heading", { name: "Starter workflows" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open MCP companion" })).toBeInTheDocument();
     expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows`, { exact: false })).toBeInTheDocument();
-    expect(within(screen.getByRole("group", { name: "Subject areas" })).getAllByRole("button")).toHaveLength(43);
+    expect(within(screen.getByRole("group", { name: "Subject areas" })).getAllByRole("button")).toHaveLength(45);
     expect(screen.getByRole("button", { name: "Core patterns" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByRole("tab")).toHaveLength(2);
     expect(screen.getByRole("tab", { name: "Workflows" })).toHaveAttribute("aria-selected", "true");
@@ -116,6 +116,15 @@ describe("welcome gallery", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Crisis & emergency management" }));
     expect(screen.getByRole("button", { name: /open incident intake → dispatch with coverage gate in studio/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Airline flight operations" }));
+    expect(screen.getByRole("button", { name: /open dispatch release \+ barrier verification in studio/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Oil & gas drilling & well operations" }));
+    expect(screen.getByRole("button", { name: /open well control barrier verification in studio/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
+    expect(screen.getAllByRole("button", { name: /start workflow with/i })).toHaveLength(8);
   });
 
   it("switches themes and remembers the choice", () => {

@@ -105,6 +105,20 @@ export const ROLE_CATEGORIES: RoleCategory[] = [
     searchTerms: ["manufacturing", "energy", "utilities", "transportation", "construction", "agriculture"],
   },
   {
+    id: "aviation",
+    label: "Aviation",
+    description: "Flight dispatch, planning and fuel, performance, airspace, crew legality, and airworthiness.",
+    pathPrefix: "research/aviation/",
+    searchTerms: ["airline", "flight operations", "dispatch", "notam", "mel", "crew", "weather"],
+  },
+  {
+    id: "wells",
+    label: "Drilling & wells",
+    description: "Well design, anti-collision, geomechanics, well control barriers, integrity, and permits.",
+    pathPrefix: "research/wells/",
+    searchTerms: ["oil", "gas", "drilling", "anti-collision", "well control", "barrier", "permit to work"],
+  },
+  {
     id: "applied-science",
     label: "Applied science",
     description: "Chemistry, biology, environment, astronomy, and geospatial analysis.",
