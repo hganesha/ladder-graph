@@ -465,7 +465,7 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
                     ))}
                     {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
                   </div>
-                  <button className="bundle-launch-card" onClick={() => onBundle()} type="button">
+                  <button className="bundle-launch-card" onClick={onBundle} type="button">
                     <span className="bundle-launch-icon" aria-hidden="true">
                       <PackageOpen size={22} />
                     </span>
@@ -530,10 +530,7 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
             {projects.length > 0 ? (
               <div className="recent-list">
                 {projects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() => (project.artifactKind === "workflow-bundle" ? onBundle(project) : void openProject(project))}
-                  >
+                  <button key={project.id} onClick={() => void openProject(project)}>
                     <span>
                       <strong>{project.name}</strong>
                       <small>{new Date(project.updatedAt).toLocaleString()}</small>
