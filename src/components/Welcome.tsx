@@ -16,6 +16,7 @@ import {
   Images,
   Megaphone,
   Music2,
+  PackageOpen,
   PenTool,
   Plane,
   ShieldCheck,
@@ -251,7 +252,7 @@ const WORKFLOW_AREAS = [
 type LibraryTab = "workflows" | "agents";
 type ModalityFilter = "all" | InputModality;
 
-export function Welcome({ onBlank }: { onBlank: () => void }) {
+export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () => void; onBundle?: () => void }) {
   const openTemplate = useStudioStore((state) => state.openTemplate);
   const openAgentTemplate = useStudioStore((state) => state.openAgentTemplate);
   const openProject = useStudioStore((state) => state.openProject);
@@ -429,34 +430,49 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
             </div>
           </div>
           {activeLibraryTab === "workflows" ? (
-            <div className="template-grid tabbed-template-grid">
-              {selectedTemplates.map((template) => (
-                <button
-                  aria-label={`Open ${template.title} in studio`}
-                  className="template-card"
-                  key={template.id}
-                  onClick={() => void openTemplate(template.id)}
-                  style={{ "--accent": template.accent } as React.CSSProperties}
-                >
-                  <div className="topology-art" aria-hidden="true">
-                    <SelectedAreaIcon />
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <div className="template-meta">
-                    <span>{template.eyebrow}</span>
-                    <span>{template.topology}</span>
-                  </div>
-                  <h3>{template.title}</h3>
-                  <p>{template.description}</p>
-                  <strong>
-                    Open in studio <ArrowRight size={14} />
-                  </strong>
-                </button>
-              ))}
-              {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
-            </div>
+            <>
+              <div className="template-grid tabbed-template-grid">
+                {selectedTemplates.map((template) => (
+                  <button
+                    aria-label={`Open ${template.title} in studio`}
+                    className="template-card"
+                    key={template.id}
+                    onClick={() => void openTemplate(template.id)}
+                    style={{ "--accent": template.accent } as React.CSSProperties}
+                  >
+                    <div className="topology-art" aria-hidden="true">
+                      <SelectedAreaIcon />
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                    <div className="template-meta">
+                      <span>{template.eyebrow}</span>
+                      <span>{template.topology}</span>
+                    </div>
+                    <h3>{template.title}</h3>
+                    <p>{template.description}</p>
+                    <strong>
+                      Open in studio <ArrowRight size={14} />
+                    </strong>
+                  </button>
+                ))}
+                {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
+              </div>
+              <button className="bundle-launch-card" onClick={onBundle} type="button">
+                <span className="bundle-launch-icon" aria-hidden="true">
+                  <PackageOpen size={22} />
+                </span>
+                <span>
+                  <small>Experimental workflow bundle</small>
+                  <strong>Insurance claim review</strong>
+                  <span>Workflow + first-class forms + supporting document + ontology sliver</span>
+                </span>
+                <span className="bundle-launch-action">
+                  Open bundle workspace <ArrowRight size={15} />
+                </span>
+              </button>
+            </>
           ) : (
             <div className="template-grid tabbed-template-grid agent-template-grid">
               {selectedAgents.map((agent) => (

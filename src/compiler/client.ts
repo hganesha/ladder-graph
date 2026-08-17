@@ -1,6 +1,16 @@
-import type { AnalysisResult, CompileResult, FormatResult, Target } from "../types";
+import type {
+  AnalysisResult,
+  ArtifactAnalysisResult,
+  BundleCompileResult,
+  CompileResult,
+  FormatResult,
+  OntologySelection,
+  OntologySliceResult,
+  ResolvedBundleAsset,
+  Target,
+} from "../types";
 
-type Operation = "analyze" | "compile" | "format" | "migrate";
+type Operation = "analyze" | "compile" | "format" | "migrate" | "analyzeArtifact" | "formatArtifact" | "compileBundle" | "sliceOntology";
 type Pending = { resolve: (value: never) => void; reject: (reason: Error) => void };
 
 class CompilerClient {
@@ -49,6 +59,18 @@ class CompilerClient {
   }
   migrate(source: string, toVersion: string) {
     return this.request<FormatResult>("migrate", source, { toVersion });
+  }
+  analyzeArtifact(source: string) {
+    return this.request<ArtifactAnalysisResult>("analyzeArtifact", source);
+  }
+  formatArtifact(source: string) {
+    return this.request<FormatResult>("formatArtifact", source);
+  }
+  compileBundle(source: string, resolvedAssets: ResolvedBundleAsset[], target: Target) {
+    return this.request<BundleCompileResult>("compileBundle", source, { resolvedAssets, target });
+  }
+  sliceOntology(source: string, selection: OntologySelection) {
+    return this.request<OntologySliceResult>("sliceOntology", source, { selection });
   }
 }
 

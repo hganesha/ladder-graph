@@ -574,6 +574,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ladder-artifacts"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "lgir-core",
+ "serde",
+ "serde_json",
+ "serde_yaml_ng",
+ "sha2",
+]
+
+[[package]]
 name = "ladder-catalog"
 version = "0.1.0"
 dependencies = [
@@ -636,6 +648,7 @@ dependencies = [
 name = "lgir-wasm"
 version = "0.1.0"
 dependencies = [
+ "ladder-artifacts",
  "lgir-core",
  "serde",
  "serde_json",

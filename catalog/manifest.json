@@ -1,5 +1,53 @@
 {
   "schemaVersion": 1,
+  "ontologies": [
+    {
+      "id": "insurance",
+      "path": "insurance/ontology",
+      "title": "Insurance ontology",
+      "description": "Portable insurance semantics normalized from Lattice.",
+      "file": "ontologies/insurance.yaml",
+      "ref": "ladder://ontologies/builtin/insurance"
+    }
+  ],
+  "forms": [
+    {
+      "id": "first-notice-of-loss",
+      "path": "insurance/claims/intake",
+      "title": "First Notice of Loss",
+      "description": "Interactive claim intake adapted from DocuBricks.",
+      "file": "forms/first-notice-of-loss.yaml",
+      "ref": "ladder://forms/builtin/first-notice-of-loss"
+    },
+    {
+      "id": "claim-review-decision",
+      "path": "insurance/claims/decision",
+      "title": "Claim review decision",
+      "description": "Structured determination and claims-manager approval form.",
+      "file": "forms/claim-review-decision.yaml",
+      "ref": "ladder://forms/builtin/claim-review-decision"
+    }
+  ],
+  "documents": [
+    {
+      "id": "insurance-claim-file",
+      "path": "insurance/claims/evidence",
+      "title": "Insurance claim file",
+      "description": "Supporting document contract normalized from DocuBricks.",
+      "file": "documents/insurance-claim-file.yaml",
+      "ref": "ladder://documents/builtin/insurance-claim-file"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "insurance-claim-review",
+      "path": "insurance/claims/review",
+      "title": "Insurance claim review bundle",
+      "description": "Claim intake, ontology sliver, supporting contract, workflow, and approval output.",
+      "file": "bundles/insurance-claim-review.yaml",
+      "ref": "ladder://bundles/builtin/insurance-claim-review"
+    }
+  ],
   "workflows": [
     {
       "id": "refinement",

@@ -3,20 +3,32 @@
 
 export function analyze(source: string, target?: string | null): string;
 
+export function analyze_artifact(source: string, _target?: string | null): string;
+
 export function compile(source: string, target: string): string;
+
+export function compile_bundle(source: string, resolved_assets_json: string, target: string): string;
 
 export function format(source: string): string;
 
+export function format_artifact(source: string): string;
+
 export function migrate(source: string, to_version: string): string;
+
+export function slice_ontology(source: string, selection_json: string): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly analyze: (a: number, b: number, c: number, d: number, e: number) => void;
+    readonly analyze_artifact: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly compile: (a: number, b: number, c: number, d: number, e: number) => void;
+    readonly compile_bundle: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
     readonly format: (a: number, b: number, c: number) => void;
+    readonly format_artifact: (a: number, b: number, c: number) => void;
     readonly migrate: (a: number, b: number, c: number, d: number, e: number) => void;
+    readonly slice_ontology: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;

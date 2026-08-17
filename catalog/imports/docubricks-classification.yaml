@@ -1,0 +1,32 @@
+apiVersion: ladder.dev/v1alpha1
+kind: DocuBricksClassification
+metadata:
+  name: insurance-pilot
+  version: 1.0.0
+spec:
+  sourceRoot: Schemas/insurance
+  entries:
+    - documentType: first_notice_of_loss
+      artifactKind: form
+      rationale: Interactive claim intake is the primary user-authored experience.
+    - documentType: insurance_claim_file
+      artifactKind: document
+      rationale: A claim file is supporting evidence and an extraction contract, not a blank form.
+    - documentType: claims_adjuster_report
+      artifactKind: hybrid
+      rationale: It may be extracted from evidence or completed during a structured review.
+    - documentType: certificate_of_insurance
+      artifactKind: document
+      rationale: It is issued evidence rather than an interaction surface.
+    - documentType: insurance_claim_denial_letter
+      artifactKind: document
+      rationale: It is a generated communication artifact.
+    - documentType: insurance_policy_application
+      artifactKind: form
+      rationale: It is completed by an applicant and can become a first-class form.
+    - documentType: policy_declaration_page
+      artifactKind: document
+      rationale: It is issued policy evidence.
+    - documentType: proof_of_loss
+      artifactKind: hybrid
+      rationale: It can be completed as a form or imported as signed evidence.
