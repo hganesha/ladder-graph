@@ -1,0 +1,273 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-real-estate-real-estate-transactions-title-commitment
+  title: Real Estate Transactions Title Commitment
+  description: Real Estate Transactions Title Commitment contract normalized from the DocuBricks Real estate library.
+  version: real_estate_real_estate_transactions_title_commitment_v1
+  source:
+    system: docubricks
+    sourceId: real_estate/real_estate_transactions_title_commitment
+    sourcePath: Schemas/real_estate/real_estate_transactions_title_commitment
+    sourceVersion: real_estate_real_estate_transactions_title_commitment_v1
+    sourceDigest: 28a3437ff5e05f344f511f2c3b22e20bcef9880035d9cf223a548989e9034ae3
+spec:
+  documentType: real_estate_transactions_title_commitment
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - commitment-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - commitment-number
+        - effective-time
+        - estate-or-interest
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - policy-amount
+        - tax-parcel-number
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - exceptions
+        - requirements
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - proposed-insured
+        - title-company-name
+        - vesting-owner
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - legal-description
+        - property-address
+  fields:
+    - id: commitment-number
+      name: commitment_number
+      label: Commitment Number
+      description: Title commitment number.
+      dataType: string
+      required: true
+      sourcePath: /fields/commitment_number
+    - id: commitment-date
+      name: commitment_date
+      label: Commitment Date
+      description: Title commitment date.
+      dataType: date
+      required: true
+      sourcePath: /fields/commitment_date
+    - id: title-company-name
+      name: title_company_name
+      label: Title Company Name
+      description: Title insurer, agent, or issuing office.
+      dataType: string
+      required: true
+      sourcePath: /fields/title_company_name
+    - id: proposed-insured
+      name: proposed_insured
+      label: Proposed Insured
+      description: Proposed insured owner, lender, or policyholder.
+      dataType: string
+      sourcePath: /fields/proposed_insured
+    - id: property-address
+      name: property_address
+      label: Property Address
+      description: Property address.
+      dataType: string
+      required: true
+      sourcePath: /fields/property_address
+    - id: legal-description
+      name: legal_description
+      label: Legal Description
+      description: Legal description.
+      dataType: string
+      required: true
+      sourcePath: /fields/legal_description
+    - id: vesting-owner
+      name: vesting_owner
+      label: Vesting Owner
+      description: Current vested owner.
+      dataType: string
+      sourcePath: /fields/vesting_owner
+    - id: estate-or-interest
+      name: estate_or_interest
+      label: Estate Or Interest
+      description: Estate or interest in land.
+      dataType: string
+      sourcePath: /fields/estate_or_interest
+    - id: policy-amount
+      name: policy_amount
+      label: Policy Amount
+      description: Proposed title policy amount.
+      dataType: number
+      sourcePath: /fields/policy_amount
+    - id: requirements
+      name: requirements
+      label: Requirements
+      description: Schedule B-I requirements.
+      dataType: array
+      sourcePath: /fields/requirements
+    - id: exceptions
+      name: exceptions
+      label: Exceptions
+      description: Schedule B-II exceptions.
+      dataType: array
+      sourcePath: /fields/exceptions
+    - id: tax-parcel-number
+      name: tax_parcel_number
+      label: Tax Parcel Number
+      description: Tax parcel or assessor number.
+      dataType: string
+      sourcePath: /fields/tax_parcel_number
+    - id: effective-time
+      name: effective_time
+      label: Effective Time
+      description: Effective date and time of title search.
+      dataType: string
+      sourcePath: /fields/effective_time
+  validationRules:
+    - id: commitment-number-present
+      severity: error
+      description: commitment_number is required for Title Commitment extraction.
+      rule:
+        op: present
+        field: commitment_number
+      sourceExpression: commitment_number IS NOT NULL AND LENGTH(TRIM(commitment_number)) > 0
+      supported: true
+    - id: commitment-date-present
+      severity: error
+      description: commitment_date is required for Title Commitment extraction.
+      rule:
+        op: present
+        field: commitment_date
+      sourceExpression: commitment_date IS NOT NULL AND LENGTH(TRIM(commitment_date)) > 0
+      supported: true
+    - id: title-company-name-present
+      severity: error
+      description: title_company_name is required for Title Commitment extraction.
+      rule:
+        op: present
+        field: title_company_name
+      sourceExpression: title_company_name IS NOT NULL AND LENGTH(TRIM(title_company_name)) > 0
+      supported: true
+    - id: property-address-present
+      severity: error
+      description: property_address is required for Title Commitment extraction.
+      rule:
+        op: present
+        field: property_address
+      sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
+      supported: true
+    - id: legal-description-present
+      severity: error
+      description: legal_description is required for Title Commitment extraction.
+      rule:
+        op: present
+        field: legal_description
+      sourceExpression: legal_description IS NOT NULL AND LENGTH(TRIM(legal_description)) > 0
+      supported: true
+    - id: policy-amount-non-negative
+      severity: warning
+      description: policy_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: policy_amount
+        right:
+          value: 0
+      sourceExpression: policy_amount IS NULL OR policy_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      commitment_number:
+        type: string
+        description: Title commitment number.
+      commitment_date:
+        type: date
+        description: Title commitment date.
+        format: date
+      title_company_name:
+        type: string
+        description: Title insurer, agent, or issuing office.
+      proposed_insured:
+        type: string
+        description: Proposed insured owner, lender, or policyholder.
+      property_address:
+        type: string
+        description: Property address.
+      legal_description:
+        type: string
+        description: Legal description.
+      vesting_owner:
+        type: string
+        description: Current vested owner.
+      estate_or_interest:
+        type: string
+        description: Estate or interest in land.
+      policy_amount:
+        type: number
+        description: Proposed title policy amount.
+      requirements:
+        type: array
+        items:
+          type: string
+        description: Schedule B-I requirements.
+      exceptions:
+        type: array
+        items:
+          type: string
+        description: Schedule B-II exceptions.
+      tax_parcel_number:
+        type: string
+        description: Tax parcel or assessor number.
+      effective_time:
+        type: string
+        description: Effective date and time of title search.
+    required:
+      - commitment_number
+      - commitment_date
+      - title_company_name
+      - property_address
+      - legal_description
+    additionalProperties: false
+  inertSourceMetadata:
+    family: real_estate_transactions
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - commitment_number
+          - commitment_date
+          - title_company_name
+          - property_address
+          - legal_description
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

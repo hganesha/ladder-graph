@@ -1,0 +1,344 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-legal-court-filing
+  title: Court Filing
+  description: Court Filing contract normalized from the DocuBricks Legal library.
+  version: legal_court_filing_v1
+  source:
+    system: docubricks
+    sourceId: legal/court_filing
+    sourcePath: Schemas/legal/court_filing
+    sourceVersion: legal_court_filing_v1
+    sourceDigest: 6f71369ef3ab23d1d2b821bbce45f2857c2fc0fae27c4e86d9a1984a9f3ecb56
+spec:
+  documentType: court_filing
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - filing-date
+        - hearing-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - attorney-email
+        - bar-number
+        - case-number
+        - causes-of-action
+        - court-level
+        - district-or-division
+        - filing-type
+        - jurisdictional-basis
+        - jury-demand
+        - law-firm
+        - pages
+        - relief-requested
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - attorney-name
+        - case-name
+        - court-name
+        - defendant-name
+        - filing-party
+        - judge-name
+        - plaintiff-name
+  fields:
+    - id: filing-type
+      name: filing_type
+      label: Filing Type
+      description: "The type of court document. One of: Complaint | Answer | Motion | Brief | Opposition | Reply |
+        Order | Judgment | Stipulation | Subpoena | Notice | Declaration | Deposition | Petition | Other"
+      dataType: string
+      sourcePath: /fields/filing_type
+    - id: court-level
+      name: court_level
+      label: Court Level
+      description: "The level of the court. One of: Federal | State | Appellate | Administrative | Tribal | Other"
+      dataType: string
+      sourcePath: /fields/court_level
+    - id: court-name
+      name: court_name
+      label: Court Name
+      description: Full official name of the court (e.g., "United States District Court for the Southern District of
+        New York", "Superior Court of the State of California, County of Los Angeles")
+      dataType: string
+      sourcePath: /fields/court_name
+    - id: district-or-division
+      name: district_or_division
+      label: District Or Division
+      description: The specific district, division, or department of the court (e.g., "Southern District of New
+        York", "Civil Division, Dept. 45")
+      dataType: string
+      sourcePath: /fields/district_or_division
+    - id: judge-name
+      name: judge_name
+      label: Judge Name
+      description: Name of the presiding judge or magistrate (null if not yet assigned or not stated)
+      dataType: string
+      sourcePath: /fields/judge_name
+    - id: case-number
+      name: case_number
+      label: Case Number
+      description: The official docket or case number assigned by the court (e.g., "1:25-cv-04812-LTS", "Case No.
+        BC712345")
+      dataType: string
+      required: true
+      sourcePath: /fields/case_number
+    - id: case-name
+      name: case_name
+      label: Case Name
+      description: The case caption name (e.g., "Apex Corp. v. Meridian Technologies, Inc.")
+      dataType: string
+      sourcePath: /fields/case_name
+    - id: filing-date
+      name: filing_date
+      label: Filing Date
+      description: Date the document was filed with the court, format YYYY-MM-DD
+      dataType: date
+      sourcePath: /fields/filing_date
+    - id: hearing-date
+      name: hearing_date
+      label: Hearing Date
+      description: Date of any associated hearing, trial, or oral argument, format YYYY-MM-DD (null if not scheduled
+        or not stated)
+      dataType: date
+      sourcePath: /fields/hearing_date
+    - id: plaintiff-name
+      name: plaintiff_name
+      label: Plaintiff Name
+      description: Full name of the plaintiff(s); if multiple, concatenate with "; " separator
+      dataType: string
+      sourcePath: /fields/plaintiff_name
+    - id: defendant-name
+      name: defendant_name
+      label: Defendant Name
+      description: Full name of the defendant(s); if multiple, concatenate with "; " separator
+      dataType: string
+      sourcePath: /fields/defendant_name
+    - id: filing-party
+      name: filing_party
+      label: Filing Party
+      description: "Which party filed this document. One of: Plaintiff | Defendant | Third_Party | Court | Other"
+      dataType: string
+      sourcePath: /fields/filing_party
+    - id: attorney-name
+      name: attorney_name
+      label: Attorney Name
+      description: Full name of the attorney signing or filing the document
+      dataType: string
+      sourcePath: /fields/attorney_name
+    - id: bar-number
+      name: bar_number
+      label: Bar Number
+      description: State bar number of the filing attorney
+      dataType: string
+      sourcePath: /fields/bar_number
+    - id: law-firm
+      name: law_firm
+      label: Law Firm
+      description: Name of the law firm representing the filing party (null if in-house or pro se)
+      dataType: string
+      sourcePath: /fields/law_firm
+    - id: attorney-email
+      name: attorney_email
+      label: Attorney Email
+      description: Email address of the filing attorney (null if not provided)
+      dataType: string
+      sourcePath: /fields/attorney_email
+    - id: relief-requested
+      name: relief_requested
+      label: Relief Requested
+      description: Summary of the relief sought in this filing (up to 300 chars)
+      dataType: string
+      sourcePath: /fields/relief_requested
+    - id: causes-of-action
+      name: causes_of_action
+      label: Causes Of Action
+      description: Array of strings naming each cause of action or claim (e.g., ["Breach of Contract", "Fraudulent
+        Misrepresentation", "Unjust Enrichment"])
+      dataType: array
+      sourcePath: /fields/causes_of_action
+    - id: jurisdictional-basis
+      name: jurisdictional_basis
+      label: Jurisdictional Basis
+      description: "The basis for the court's jurisdiction. One of: Federal_Question | Diversity | Supplemental |
+        State | Bankruptcy | Admiralty | Other"
+      dataType: string
+      sourcePath: /fields/jurisdictional_basis
+    - id: jury-demand
+      name: jury_demand
+      label: Jury Demand
+      description: Boolean — true if the filing includes a demand for trial by jury
+      dataType: boolean
+      sourcePath: /fields/jury_demand
+    - id: pages
+      name: pages
+      label: Pages
+      description: Total number of pages in the filed document as integer (null if not stated)
+      dataType: integer
+      sourcePath: /fields/pages
+  validationRules:
+    - id: document-id-present
+      severity: error
+      description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
+        audit trail, and deduplication
+      sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
+      supported: false
+    - id: avg-confidence-acceptable
+      severity: warning
+      description: Overall extraction confidence below 0.68 indicates the filing may be a low-quality scan,
+        handwritten, or in an unsupported format; route to quarantine for human review
+      sourceExpression: avg_confidence >= 0.68
+      supported: false
+    - id: filing-type-valid-enum
+      severity: warning
+      description: Filing type must be a recognized enumeration; invalid values break routing to litigation
+        management and e-discovery workflows
+      sourceExpression: filing_type IN ('Complaint', 'Answer', 'Motion', 'Brief', 'Opposition', 'Reply', 'Order',
+        'Judgment', 'Stipulation', 'Subpoena', 'Notice', 'Declaration', 'Deposition', 'Petition', 'Other')
+      supported: false
+    - id: case-number-not-null
+      severity: warning
+      description: Case number is the primary docket identifier; records without a case number cannot be linked to a
+        matter or tracked in litigation management systems
+      rule:
+        op: present
+        field: case_number
+      sourceExpression: case_number IS NOT NULL AND LENGTH(TRIM(case_number)) > 0
+      supported: true
+    - id: court-name-present
+      severity: warning
+      description: Court name is required to determine jurisdiction, applicable rules, and routing to the correct
+        legal team; absence triggers review
+      rule:
+        op: present
+        field: court_name
+      sourceExpression: court_name IS NOT NULL AND LENGTH(TRIM(court_name)) > 0
+      supported: true
+    - id: filing-date-present
+      severity: warning
+      description: Filing date is required to calculate deadlines, statutes of limitations, and response windows;
+        absence prevents deadline management
+      rule:
+        op: present
+        field: filing_date
+      sourceExpression: filing_date IS NOT NULL
+      supported: true
+    - id: hearing-date-after-filing
+      severity: warning
+      description: Hearing date cannot precede filing date; inversion indicates a date extraction error and flags
+        the record for human review
+      sourceExpression: hearing_date IS NULL OR filing_date IS NULL OR hearing_date >= filing_date
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      filing_type:
+        type: string
+        description: "The type of court document. One of: Complaint | Answer | Motion | Brief | Opposition | Reply |
+          Order | Judgment | Stipulation | Subpoena | Notice | Declaration | Deposition | Petition | Other"
+      court_level:
+        type: string
+        description: "The level of the court. One of: Federal | State | Appellate | Administrative | Tribal | Other"
+      court_name:
+        type: string
+        description: Full official name of the court (e.g., "United States District Court for the Southern District of
+          New York", "Superior Court of the State of California, County of Los Angeles")
+      district_or_division:
+        type: string
+        description: The specific district, division, or department of the court (e.g., "Southern District of New
+          York", "Civil Division, Dept. 45")
+      judge_name:
+        type: string
+        description: Name of the presiding judge or magistrate (null if not yet assigned or not stated)
+      case_number:
+        type: string
+        description: The official docket or case number assigned by the court (e.g., "1:25-cv-04812-LTS", "Case No.
+          BC712345")
+      case_name:
+        type: string
+        description: The case caption name (e.g., "Apex Corp. v. Meridian Technologies, Inc.")
+      filing_date:
+        type: date
+        description: Date the document was filed with the court, format YYYY-MM-DD
+        format: date
+      hearing_date:
+        type: date
+        description: Date of any associated hearing, trial, or oral argument, format YYYY-MM-DD (null if not scheduled
+          or not stated)
+        format: date
+      plaintiff_name:
+        type: string
+        description: Full name of the plaintiff(s); if multiple, concatenate with "; " separator
+      defendant_name:
+        type: string
+        description: Full name of the defendant(s); if multiple, concatenate with "; " separator
+      filing_party:
+        type: string
+        description: "Which party filed this document. One of: Plaintiff | Defendant | Third_Party | Court | Other"
+      attorney_name:
+        type: string
+        description: Full name of the attorney signing or filing the document
+      bar_number:
+        type: string
+        description: State bar number of the filing attorney
+      law_firm:
+        type: string
+        description: Name of the law firm representing the filing party (null if in-house or pro se)
+      attorney_email:
+        type: string
+        description: Email address of the filing attorney (null if not provided)
+      relief_requested:
+        type: string
+        description: Summary of the relief sought in this filing (up to 300 chars)
+      causes_of_action:
+        type: array
+        items:
+          type: string
+        description: Array of strings naming each cause of action or claim (e.g., ["Breach of Contract", "Fraudulent
+          Misrepresentation", "Unjust Enrichment"])
+      jurisdictional_basis:
+        type: string
+        description: "The basis for the court's jurisdiction. One of: Federal_Question | Diversity | Supplemental |
+          State | Bankruptcy | Admiralty | Other"
+      jury_demand:
+        type: boolean
+        description: Boolean — true if the filing includes a demand for trial by jury
+      pages:
+        type: integer
+        description: Total number of pages in the filed document as integer (null if not stated)
+    required:
+      - case_number
+    additionalProperties: false
+  inertSourceMetadata:
+    family: litigation_disputes
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - case_number
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

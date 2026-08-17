@@ -1,0 +1,358 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-commercial-loan-application
+  title: Commercial Loan Application
+  description: Commercial Loan Application contract normalized from the DocuBricks Financial services library.
+  version: fs_commercial_loan_application_v1
+  source:
+    system: docubricks
+    sourceId: fs/commercial_loan_application
+    sourcePath: Schemas/fs/commercial_loan_application
+    sourceVersion: fs_commercial_loan_application_v1
+    sourceDigest: 5efa966df140d3fff6fe136390fdb2a694d9e862df729d9f163873c115b1fbc6
+spec:
+  role: start
+  pages:
+    - id: main
+      title: Commercial Loan Application
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: application-date
+              name: application_date
+              label: Application Date
+              description: Date the application was signed or submitted.
+              dataType: date
+              widget: date
+            - id: requested-term-months
+              name: requested_term_months
+              label: Requested Term Months
+              description: Requested maturity or amortization in months.
+              dataType: integer
+              widget: number
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: applicant-entity-type
+              name: applicant_entity_type
+              label: Applicant Entity Type
+              description: Corporation, LLC, partnership, sole proprietorship, nonprofit, trust, or other.
+              dataType: string
+              widget: text
+            - id: applicant-naics-code
+              name: applicant_naics_code
+              label: Applicant Naics Code
+              description: NAICS code if present.
+              dataType: string
+              widget: text
+            - id: applicant-industry
+              name: applicant_industry
+              label: Applicant Industry
+              description: Industry or business description.
+              dataType: string
+              widget: text
+            - id: contact-email
+              name: contact_email
+              label: Contact Email
+              description: Email address.
+              dataType: string
+              widget: text
+            - id: contact-phone
+              name: contact_phone
+              label: Contact Phone
+              description: Phone number.
+              dataType: string
+              widget: text
+            - id: years-in-business
+              name: years_in_business
+              label: Years In Business
+              description: Years operating.
+              dataType: number
+              widget: number
+            - id: annual-revenue
+              name: annual_revenue
+              label: Annual Revenue
+              description: Annual gross revenue.
+              dataType: number
+              widget: number
+            - id: requested-facility-type
+              name: requested_facility_type
+              label: Requested Facility Type
+              description: Term loan, revolving line, equipment loan, CRE loan, SBA loan, construction loan, or other.
+              dataType: string
+              widget: text
+            - id: existing-bank-relationship
+              name: existing_bank_relationship
+              label: Existing Bank Relationship
+              description: Whether applicant states an existing relationship with the lender.
+              dataType: boolean
+              widget: checkbox
+            - id: net-worth
+              name: net_worth
+              label: Net Worth
+              description: Net worth if stated.
+              dataType: number
+              widget: number
+            - id: signature-title
+              name: signature_title
+              label: Signature Title
+              description: Signer title.
+              dataType: string
+              widget: text
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: applicant-tax-id-masked
+              name: applicant_tax_id_masked
+              label: Applicant Tax Id Masked
+              description: Masked EIN or tax identifier.
+              dataType: string
+              widget: text
+            - id: requested-loan-amount
+              name: requested_loan_amount
+              label: Requested Loan Amount
+              description: Requested credit amount.
+              dataType: number
+              widget: number
+              required: true
+            - id: loan-purpose
+              name: loan_purpose
+              label: Loan Purpose
+              description: Stated use of proceeds.
+              dataType: string
+              widget: text
+            - id: total-liabilities
+              name: total_liabilities
+              label: Total Liabilities
+              description: Total business liabilities if stated.
+              dataType: number
+              widget: number
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: applicant-legal-name
+              name: applicant_legal_name
+              label: Applicant Legal Name
+              description: Legal name of the borrowing business.
+              dataType: string
+              widget: text
+              required: true
+            - id: applicant-dba-name
+              name: applicant_dba_name
+              label: Applicant Dba Name
+              description: DBA or trade name.
+              dataType: string
+              widget: text
+            - id: contact-name
+              name: contact_name
+              label: Contact Name
+              description: Primary contact or authorized representative.
+              dataType: string
+              widget: text
+            - id: guarantor-names
+              name: guarantor_names
+              label: Guarantor Names
+              description: Individual or entity guarantors.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: relationship-manager-name
+              name: relationship_manager_name
+              label: Relationship Manager Name
+              description: Banker or RM name.
+              dataType: string
+              widget: text
+            - id: ownership-summary
+              name: ownership_summary
+              label: Ownership Summary
+              description: Concise ownership description.
+              dataType: string
+              widget: text
+            - id: beneficial-owner-count
+              name: beneficial_owner_count
+              label: Beneficial Owner Count
+              description: Count of beneficial owners listed.
+              dataType: integer
+              widget: number
+            - id: signature-name
+              name: signature_name
+              label: Signature Name
+              description: Signer name.
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: applicant-address
+              name: applicant_address
+              label: Applicant Address
+              description: Principal business address.
+              dataType: string
+              widget: text
+            - id: collateral-description
+              name: collateral_description
+              label: Collateral Description
+              description: Summary of proposed collateral.
+              dataType: string
+              widget: text
+            - id: total-assets
+              name: total_assets
+              label: Total Assets
+              description: Total business assets if stated.
+              dataType: number
+              widget: number
+  submissionSchema:
+    type: object
+    properties:
+      application_date:
+        type: date
+        description: Date the application was signed or submitted.
+        format: date
+      applicant_legal_name:
+        type: string
+        description: Legal name of the borrowing business.
+      applicant_dba_name:
+        type: string
+        description: DBA or trade name.
+      applicant_tax_id_masked:
+        type: string
+        description: Masked EIN or tax identifier.
+      applicant_entity_type:
+        type: string
+        description: Corporation, LLC, partnership, sole proprietorship, nonprofit, trust, or other.
+      applicant_naics_code:
+        type: string
+        description: NAICS code if present.
+      applicant_industry:
+        type: string
+        description: Industry or business description.
+      applicant_address:
+        type: string
+        description: Principal business address.
+      contact_name:
+        type: string
+        description: Primary contact or authorized representative.
+      contact_email:
+        type: string
+        description: Email address.
+      contact_phone:
+        type: string
+        description: Phone number.
+      years_in_business:
+        type: number
+        description: Years operating.
+      annual_revenue:
+        type: number
+        description: Annual gross revenue.
+      requested_loan_amount:
+        type: number
+        description: Requested credit amount.
+      requested_facility_type:
+        type: string
+        description: Term loan, revolving line, equipment loan, CRE loan, SBA loan, construction loan, or other.
+      loan_purpose:
+        type: string
+        description: Stated use of proceeds.
+      requested_term_months:
+        type: integer
+        description: Requested maturity or amortization in months.
+      collateral_description:
+        type: string
+        description: Summary of proposed collateral.
+      guarantor_names:
+        type: array
+        items:
+          type: string
+        description: Individual or entity guarantors.
+      existing_bank_relationship:
+        type: boolean
+        description: Whether applicant states an existing relationship with the lender.
+      relationship_manager_name:
+        type: string
+        description: Banker or RM name.
+      ownership_summary:
+        type: string
+        description: Concise ownership description.
+      beneficial_owner_count:
+        type: integer
+        description: Count of beneficial owners listed.
+      total_assets:
+        type: number
+        description: Total business assets if stated.
+      total_liabilities:
+        type: number
+        description: Total business liabilities if stated.
+      net_worth:
+        type: number
+        description: Net worth if stated.
+      signature_name:
+        type: string
+        description: Signer name.
+      signature_title:
+        type: string
+        description: Signer title.
+    required:
+      - applicant_legal_name
+      - requested_loan_amount
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: applicant_legal_name_present
+          rule_type: presence
+          fields:
+            - applicant_legal_name
+          expression: applicant_legal_name IS NOT NULL AND LENGTH(TRIM(applicant_legal_name)) > 0
+          severity: fail
+          description: A commercial loan application is not actionable without borrower legal identity.
+        - name: requested_loan_amount_positive
+          rule_type: range
+          fields:
+            - requested_loan_amount
+          expression: requested_loan_amount IS NOT NULL AND requested_loan_amount > 0
+          severity: fail
+          description: Requested loan amount is required and must be positive.
+        - name: application_date_valid
+          rule_type: presence
+          fields:
+            - application_date
+          expression: application_date IS NULL OR application_date <= CURRENT_DATE()
+          severity: warn
+          description: Future application dates usually indicate extraction or data-entry errors.
+        - name: entity_type_present
+          rule_type: presence
+          fields:
+            - applicant_entity_type
+          expression: applicant_entity_type IS NOT NULL AND LENGTH(TRIM(applicant_entity_type)) > 0
+          severity: warn
+          description: Entity type is important for KYB, authority, and beneficial ownership review.
+        - name: guarantors_array_valid
+          rule_type: array
+          fields:
+            - guarantor_names
+          expression: guarantor_names IS NULL OR JSON_ARRAY_LENGTH(guarantor_names) >= 0
+          severity: warn
+          description: Guarantors should be represented as an array when present.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - applicant_legal_name
+            - requested_loan_amount
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - property_or_asset
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

@@ -1,0 +1,247 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-manufacturing-bill-of-materials
+  title: Bill Of Materials
+  description: Bill Of Materials contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_bill_of_materials_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/bill_of_materials
+    sourcePath: Schemas/manufacturing/bill_of_materials
+    sourceVersion: manufacturing_bill_of_materials_v1
+    sourceDigest: 3fa7502d4faa983933a0a228a41a4d99df6f551a85c986069a465adc7254f841
+spec:
+  documentType: bill_of_materials
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - approval-date
+        - effective-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - approved-by
+        - bom-number
+        - bom-revision
+        - engineering-change-order
+        - plant-or-site
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - parent-part-description
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - component-items
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - parent-part-number
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - bom-status
+  fields:
+    - id: bom-number
+      name: bom_number
+      label: Bom Number
+      description: BOM number or identifier.
+      dataType: string
+      required: true
+      sourcePath: /fields/bom_number
+    - id: bom-revision
+      name: bom_revision
+      label: Bom Revision
+      description: BOM revision level.
+      dataType: string
+      required: true
+      sourcePath: /fields/bom_revision
+    - id: parent-part-number
+      name: parent_part_number
+      label: Parent Part Number
+      description: Parent assembly or finished good part number.
+      dataType: string
+      required: true
+      sourcePath: /fields/parent_part_number
+    - id: parent-part-description
+      name: parent_part_description
+      label: Parent Part Description
+      description: Parent part description.
+      dataType: string
+      sourcePath: /fields/parent_part_description
+    - id: effective-date
+      name: effective_date
+      label: Effective Date
+      description: BOM effective date.
+      dataType: date
+      sourcePath: /fields/effective_date
+    - id: plant-or-site
+      name: plant_or_site
+      label: Plant Or Site
+      description: Plant, site, or manufacturing location.
+      dataType: string
+      sourcePath: /fields/plant_or_site
+    - id: engineering-change-order
+      name: engineering_change_order
+      label: Engineering Change Order
+      description: Related engineering change order.
+      dataType: string
+      sourcePath: /fields/engineering_change_order
+    - id: component-items
+      name: component_items
+      label: Component Items
+      description: Component list with part number, quantity, unit, revision, and scrap factor.
+      dataType: array
+      required: true
+      sourcePath: /fields/component_items
+    - id: approved-by
+      name: approved_by
+      label: Approved By
+      description: Approver name or function.
+      dataType: string
+      sourcePath: /fields/approved_by
+    - id: approval-date
+      name: approval_date
+      label: Approval Date
+      description: Approval date.
+      dataType: date
+      sourcePath: /fields/approval_date
+    - id: bom-status
+      name: bom_status
+      label: Bom Status
+      description: Released, draft, obsolete, pending, or other status.
+      dataType: string
+      sourcePath: /fields/bom_status
+  validationRules:
+    - id: bom-number-present
+      severity: error
+      description: bom_number is required for Bill of Materials extraction.
+      rule:
+        op: present
+        field: bom_number
+      sourceExpression: bom_number IS NOT NULL AND LENGTH(TRIM(bom_number)) > 0
+      supported: true
+    - id: bom-revision-present
+      severity: error
+      description: bom_revision is required for Bill of Materials extraction.
+      rule:
+        op: present
+        field: bom_revision
+      sourceExpression: bom_revision IS NOT NULL AND LENGTH(TRIM(bom_revision)) > 0
+      supported: true
+    - id: parent-part-number-present
+      severity: error
+      description: parent_part_number is required for Bill of Materials extraction.
+      rule:
+        op: present
+        field: parent_part_number
+      sourceExpression: parent_part_number IS NOT NULL AND LENGTH(TRIM(parent_part_number)) > 0
+      supported: true
+    - id: component-items-present
+      severity: error
+      description: component_items is required for Bill of Materials extraction.
+      sourceExpression: component_items IS NOT NULL AND JSON_ARRAY_LENGTH(component_items) > 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      bom_number:
+        type: string
+        description: BOM number or identifier.
+      bom_revision:
+        type: string
+        description: BOM revision level.
+      parent_part_number:
+        type: string
+        description: Parent assembly or finished good part number.
+      parent_part_description:
+        type: string
+        description: Parent part description.
+      effective_date:
+        type: date
+        description: BOM effective date.
+        format: date
+      plant_or_site:
+        type: string
+        description: Plant, site, or manufacturing location.
+      engineering_change_order:
+        type: string
+        description: Related engineering change order.
+      component_items:
+        type: array
+        items:
+          type: object
+          properties:
+            line_number:
+              type: string
+              description: BOM line number.
+            part_number:
+              type: string
+              description: Component part number.
+            description:
+              type: string
+              description: Component description.
+            revision:
+              type: string
+              description: Component revision.
+            quantity:
+              type: number
+              description: Component quantity.
+            unit:
+              type: string
+              description: Unit of measure.
+        description: Component list with part number, quantity, unit, revision, and scrap factor.
+      approved_by:
+        type: string
+        description: Approver name or function.
+      approval_date:
+        type: date
+        description: Approval date.
+        format: date
+      bom_status:
+        type: string
+        description: Released, draft, obsolete, pending, or other status.
+    required:
+      - bom_number
+      - bom_revision
+      - parent_part_number
+      - component_items
+    additionalProperties: false
+  inertSourceMetadata:
+    family: procurement_supply_chain
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - bom_number
+          - bom_revision
+          - parent_part_number
+          - component_items
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - component_items
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

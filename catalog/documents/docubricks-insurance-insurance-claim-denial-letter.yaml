@@ -1,0 +1,266 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-insurance-insurance-claim-denial-letter
+  title: Insurance Claim Denial Letter
+  description: Insurance Claim Denial Letter contract normalized from the DocuBricks Insurance library.
+  version: insurance_insurance_claim_denial_letter_v1
+  source:
+    system: docubricks
+    sourceId: insurance/insurance_claim_denial_letter
+    sourcePath: Schemas/insurance/insurance_claim_denial_letter
+    sourceVersion: insurance_insurance_claim_denial_letter_v1
+    sourceDigest: 5fee9d42e7b91f99011c1c83c00981ea9887a9d949cc94c43f43a87014bd6d7d
+spec:
+  documentType: insurance_claim_denial_letter
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - letter-date
+        - loss-date
+        - sender-title
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - appeal-or-reconsideration-rights
+        - claim-number
+        - denial-reason
+        - facts-relied-on
+        - reservation-of-rights-continues
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - claimant-name
+        - insured-name
+        - sender-name
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - coverage-denied
+        - policy-number
+        - policy-provisions-cited
+        - regulatory-notice
+  fields:
+    - id: letter-date
+      name: letter_date
+      label: Letter Date
+      description: Date of denial letter.
+      dataType: date
+      required: true
+      sourcePath: /fields/letter_date
+    - id: claim-number
+      name: claim_number
+      label: Claim Number
+      description: Claim number.
+      dataType: string
+      required: true
+      sourcePath: /fields/claim_number
+    - id: policy-number
+      name: policy_number
+      label: Policy Number
+      description: Policy number.
+      dataType: string
+      required: true
+      sourcePath: /fields/policy_number
+    - id: insured-name
+      name: insured_name
+      label: Insured Name
+      description: Named insured.
+      dataType: string
+      sourcePath: /fields/insured_name
+    - id: claimant-name
+      name: claimant_name
+      label: Claimant Name
+      description: Claimant if different from insured.
+      dataType: string
+      sourcePath: /fields/claimant_name
+    - id: loss-date
+      name: loss_date
+      label: Loss Date
+      description: Date of loss.
+      dataType: date
+      sourcePath: /fields/loss_date
+    - id: coverage-denied
+      name: coverage_denied
+      label: Coverage Denied
+      description: Coverage, payment, or claim component denied.
+      dataType: string
+      sourcePath: /fields/coverage_denied
+    - id: denial-reason
+      name: denial_reason
+      label: Denial Reason
+      description: Reason for denial.
+      dataType: string
+      required: true
+      sourcePath: /fields/denial_reason
+    - id: policy-provisions-cited
+      name: policy_provisions_cited
+      label: Policy Provisions Cited
+      description: Policy provisions, exclusions, or conditions cited.
+      dataType: array
+      sourcePath: /fields/policy_provisions_cited
+    - id: facts-relied-on
+      name: facts_relied_on
+      label: Facts Relied On
+      description: Facts or investigation findings relied on.
+      dataType: array
+      sourcePath: /fields/facts_relied_on
+    - id: appeal-or-reconsideration-rights
+      name: appeal_or_reconsideration_rights
+      label: Appeal Or Reconsideration Rights
+      description: Appeal, complaint, or reconsideration rights.
+      dataType: string
+      sourcePath: /fields/appeal_or_reconsideration_rights
+    - id: regulatory-notice
+      name: regulatory_notice
+      label: Regulatory Notice
+      description: State or regulatory notice language.
+      dataType: string
+      sourcePath: /fields/regulatory_notice
+    - id: reservation-of-rights-continues
+      name: reservation_of_rights_continues
+      label: Reservation Of Rights Continues
+      description: Whether reservation of rights continues for other issues.
+      dataType: boolean
+      sourcePath: /fields/reservation_of_rights_continues
+    - id: sender-name
+      name: sender_name
+      label: Sender Name
+      description: Sender or claims representative.
+      dataType: string
+      sourcePath: /fields/sender_name
+    - id: sender-title
+      name: sender_title
+      label: Sender Title
+      description: Sender title.
+      dataType: string
+      sourcePath: /fields/sender_title
+  validationRules:
+    - id: letter-date-present
+      severity: error
+      description: letter_date is required for Insurance Claim Denial Letter extraction.
+      rule:
+        op: present
+        field: letter_date
+      sourceExpression: letter_date IS NOT NULL AND LENGTH(TRIM(letter_date)) > 0
+      supported: true
+    - id: claim-number-present
+      severity: error
+      description: claim_number is required for Insurance Claim Denial Letter extraction.
+      rule:
+        op: present
+        field: claim_number
+      sourceExpression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
+      supported: true
+    - id: policy-number-present
+      severity: error
+      description: policy_number is required for Insurance Claim Denial Letter extraction.
+      rule:
+        op: present
+        field: policy_number
+      sourceExpression: policy_number IS NOT NULL AND LENGTH(TRIM(policy_number)) > 0
+      supported: true
+    - id: denial-reason-present
+      severity: error
+      description: denial_reason is required for Insurance Claim Denial Letter extraction.
+      rule:
+        op: present
+        field: denial_reason
+      sourceExpression: denial_reason IS NOT NULL AND LENGTH(TRIM(denial_reason)) > 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      letter_date:
+        type: date
+        description: Date of denial letter.
+        format: date
+      claim_number:
+        type: string
+        description: Claim number.
+      policy_number:
+        type: string
+        description: Policy number.
+      insured_name:
+        type: string
+        description: Named insured.
+      claimant_name:
+        type: string
+        description: Claimant if different from insured.
+      loss_date:
+        type: date
+        description: Date of loss.
+        format: date
+      coverage_denied:
+        type: string
+        description: Coverage, payment, or claim component denied.
+      denial_reason:
+        type: string
+        description: Reason for denial.
+      policy_provisions_cited:
+        type: array
+        items:
+          type: string
+        description: Policy provisions, exclusions, or conditions cited.
+      facts_relied_on:
+        type: array
+        items:
+          type: string
+        description: Facts or investigation findings relied on.
+      appeal_or_reconsideration_rights:
+        type: string
+        description: Appeal, complaint, or reconsideration rights.
+      regulatory_notice:
+        type: string
+        description: State or regulatory notice language.
+      reservation_of_rights_continues:
+        type: boolean
+        description: Whether reservation of rights continues for other issues.
+      sender_name:
+        type: string
+        description: Sender or claims representative.
+      sender_title:
+        type: string
+        description: Sender title.
+    required:
+      - letter_date
+      - claim_number
+      - policy_number
+      - denial_reason
+    additionalProperties: false
+  inertSourceMetadata:
+    family: insurance_claims
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - letter_date
+          - claim_number
+          - policy_number
+          - denial_reason
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

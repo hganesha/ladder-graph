@@ -1,0 +1,274 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-real-estate-deed
+  title: Deed
+  description: Deed contract normalized from the DocuBricks Real estate library.
+  version: real_estate_deed_v1
+  source:
+    system: docubricks
+    sourceId: real_estate/deed
+    sourcePath: Schemas/real_estate/deed
+    sourceVersion: real_estate_deed_v1
+    sourceDigest: cf7d40284d92d5b9a2dc367e7b65e9f06c22ddb98eb1de0b2da6cdfd292e79e2
+spec:
+  documentType: deed
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - deed-date
+        - recording-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - county
+        - deed-type
+        - recording-number
+        - state
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - consideration-amount
+        - transfer-tax-amount
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - grantee-names
+        - grantor-names
+        - notary-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - legal-description
+        - property-address
+  fields:
+    - id: deed-date
+      name: deed_date
+      label: Deed Date
+      description: Date of deed.
+      dataType: date
+      required: true
+      sourcePath: /fields/deed_date
+    - id: deed-type
+      name: deed_type
+      label: Deed Type
+      description: Warranty deed, special warranty deed, quitclaim deed, grant deed, or other type.
+      dataType: string
+      required: true
+      sourcePath: /fields/deed_type
+    - id: grantor-names
+      name: grantor_names
+      label: Grantor Names
+      description: Grantor names.
+      dataType: array
+      required: true
+      sourcePath: /fields/grantor_names
+    - id: grantee-names
+      name: grantee_names
+      label: Grantee Names
+      description: Grantee names.
+      dataType: array
+      required: true
+      sourcePath: /fields/grantee_names
+    - id: property-address
+      name: property_address
+      label: Property Address
+      description: Property address.
+      dataType: string
+      sourcePath: /fields/property_address
+    - id: legal-description
+      name: legal_description
+      label: Legal Description
+      description: Legal description of conveyed property.
+      dataType: string
+      required: true
+      sourcePath: /fields/legal_description
+    - id: consideration-amount
+      name: consideration_amount
+      label: Consideration Amount
+      description: Stated consideration amount.
+      dataType: number
+      sourcePath: /fields/consideration_amount
+    - id: county
+      name: county
+      label: County
+      description: County of property or recording.
+      dataType: string
+      sourcePath: /fields/county
+    - id: state
+      name: state
+      label: State
+      description: State of property or recording.
+      dataType: string
+      sourcePath: /fields/state
+    - id: recording-date
+      name: recording_date
+      label: Recording Date
+      description: Recording date.
+      dataType: date
+      sourcePath: /fields/recording_date
+    - id: recording-number
+      name: recording_number
+      label: Recording Number
+      description: Instrument, book/page, reception, or recording number.
+      dataType: string
+      sourcePath: /fields/recording_number
+    - id: notary-name
+      name: notary_name
+      label: Notary Name
+      description: Notary name.
+      dataType: string
+      sourcePath: /fields/notary_name
+    - id: transfer-tax-amount
+      name: transfer_tax_amount
+      label: Transfer Tax Amount
+      description: Transfer tax or documentary stamp amount.
+      dataType: number
+      sourcePath: /fields/transfer_tax_amount
+  validationRules:
+    - id: deed-date-present
+      severity: error
+      description: deed_date is required for Deed extraction.
+      rule:
+        op: present
+        field: deed_date
+      sourceExpression: deed_date IS NOT NULL AND LENGTH(TRIM(deed_date)) > 0
+      supported: true
+    - id: deed-type-present
+      severity: error
+      description: deed_type is required for Deed extraction.
+      rule:
+        op: present
+        field: deed_type
+      sourceExpression: deed_type IS NOT NULL AND LENGTH(TRIM(deed_type)) > 0
+      supported: true
+    - id: grantor-names-present
+      severity: error
+      description: grantor_names is required for Deed extraction.
+      sourceExpression: grantor_names IS NOT NULL AND JSON_ARRAY_LENGTH(grantor_names) > 0
+      supported: false
+    - id: grantee-names-present
+      severity: error
+      description: grantee_names is required for Deed extraction.
+      sourceExpression: grantee_names IS NOT NULL AND JSON_ARRAY_LENGTH(grantee_names) > 0
+      supported: false
+    - id: legal-description-present
+      severity: error
+      description: legal_description is required for Deed extraction.
+      rule:
+        op: present
+        field: legal_description
+      sourceExpression: legal_description IS NOT NULL AND LENGTH(TRIM(legal_description)) > 0
+      supported: true
+    - id: consideration-amount-non-negative
+      severity: warning
+      description: consideration_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: consideration_amount
+        right:
+          value: 0
+      sourceExpression: consideration_amount IS NULL OR consideration_amount >= 0
+      supported: true
+    - id: transfer-tax-amount-non-negative
+      severity: warning
+      description: transfer_tax_amount should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: transfer_tax_amount
+        right:
+          value: 0
+      sourceExpression: transfer_tax_amount IS NULL OR transfer_tax_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      deed_date:
+        type: date
+        description: Date of deed.
+        format: date
+      deed_type:
+        type: string
+        description: Warranty deed, special warranty deed, quitclaim deed, grant deed, or other type.
+      grantor_names:
+        type: array
+        items:
+          type: string
+        description: Grantor names.
+      grantee_names:
+        type: array
+        items:
+          type: string
+        description: Grantee names.
+      property_address:
+        type: string
+        description: Property address.
+      legal_description:
+        type: string
+        description: Legal description of conveyed property.
+      consideration_amount:
+        type: number
+        description: Stated consideration amount.
+      county:
+        type: string
+        description: County of property or recording.
+      state:
+        type: string
+        description: State of property or recording.
+      recording_date:
+        type: date
+        description: Recording date.
+        format: date
+      recording_number:
+        type: string
+        description: Instrument, book/page, reception, or recording number.
+      notary_name:
+        type: string
+        description: Notary name.
+      transfer_tax_amount:
+        type: number
+        description: Transfer tax or documentary stamp amount.
+    required:
+      - deed_date
+      - deed_type
+      - grantor_names
+      - grantee_names
+      - legal_description
+    additionalProperties: false
+  inertSourceMetadata:
+    family: real_estate_transactions
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - deed_date
+          - deed_type
+          - grantor_names
+          - grantee_names
+          - legal_description
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

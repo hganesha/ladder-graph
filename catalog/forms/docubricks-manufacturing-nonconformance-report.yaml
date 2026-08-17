@@ -1,0 +1,254 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-manufacturing-nonconformance-report
+  title: Nonconformance Report
+  description: Nonconformance Report contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_nonconformance_report_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/nonconformance_report
+    sourcePath: Schemas/manufacturing/nonconformance_report
+    sourceVersion: manufacturing_nonconformance_report_v1
+    sourceDigest: f1d875769aef7f469cc7d2da43055d6ad7ff5e329e8b613d7e93331c9b055402
+spec:
+  role: exception
+  pages:
+    - id: main
+      title: Nonconformance Report
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: ncr-date
+              name: ncr_date
+              label: Ncr Date
+              description: Date the nonconformance was opened.
+              dataType: date
+              widget: date
+              required: true
+            - id: closure-date
+              name: closure_date
+              label: Closure Date
+              description: Closure date.
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: ncr-number
+              name: ncr_number
+              label: Ncr Number
+              description: Nonconformance report number.
+              dataType: string
+              widget: text
+              required: true
+            - id: nonconformance-description
+              name: nonconformance_description
+              label: Nonconformance Description
+              description: Description of nonconformance.
+              dataType: string
+              widget: text
+              required: true
+            - id: detected-by
+              name: detected_by
+              label: Detected By
+              description: Person, station, inspection, or process that detected the issue.
+              dataType: string
+              widget: text
+            - id: quantity-affected
+              name: quantity_affected
+              label: Quantity Affected
+              description: Quantity affected.
+              dataType: number
+              widget: number
+            - id: root-cause-summary
+              name: root_cause_summary
+              label: Root Cause Summary
+              description: Root cause summary if known.
+              dataType: string
+              widget: text
+        - id: line-items
+          title: Line Items
+          description: Line Items fields extracted from the document.
+          fields:
+            - id: containment-actions
+              name: containment_actions
+              label: Containment Actions
+              description: Containment actions taken.
+              dataType: array
+              widget: textarea
+              span: 2
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: supplier-or-work-center
+              name: supplier_or_work_center
+              label: Supplier Or Work Center
+              description: Supplier or internal work center.
+              dataType: string
+              widget: text
+            - id: mrb-owner
+              name: mrb_owner
+              label: Mrb Owner
+              description: Material review board owner or approver.
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: part-number
+              name: part_number
+              label: Part Number
+              description: Affected part number.
+              dataType: string
+              widget: text
+              required: true
+            - id: lot-number
+              name: lot_number
+              label: Lot Number
+              description: Affected lot, batch, serial, or work order.
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: disposition
+              name: disposition
+              label: Disposition
+              description: Scrap, rework, repair, use-as-is, return to supplier, or other disposition.
+              dataType: string
+              widget: text
+              required: true
+            - id: status
+              name: status
+              label: Status
+              description: Open, in review, closed, overdue, or other status.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      ncr_number:
+        type: string
+        description: Nonconformance report number.
+      ncr_date:
+        type: date
+        description: Date the nonconformance was opened.
+        format: date
+      part_number:
+        type: string
+        description: Affected part number.
+      lot_number:
+        type: string
+        description: Affected lot, batch, serial, or work order.
+      supplier_or_work_center:
+        type: string
+        description: Supplier or internal work center.
+      nonconformance_description:
+        type: string
+        description: Description of nonconformance.
+      detected_by:
+        type: string
+        description: Person, station, inspection, or process that detected the issue.
+      quantity_affected:
+        type: number
+        description: Quantity affected.
+      containment_actions:
+        type: array
+        items:
+          type: string
+        description: Containment actions taken.
+      root_cause_summary:
+        type: string
+        description: Root cause summary if known.
+      disposition:
+        type: string
+        description: Scrap, rework, repair, use-as-is, return to supplier, or other disposition.
+      mrb_owner:
+        type: string
+        description: Material review board owner or approver.
+      closure_date:
+        type: date
+        description: Closure date.
+        format: date
+      status:
+        type: string
+        description: Open, in review, closed, overdue, or other status.
+    required:
+      - ncr_number
+      - ncr_date
+      - part_number
+      - nonconformance_description
+      - disposition
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: ncr_number_present
+          rule_type: presence
+          fields:
+            - ncr_number
+          expression: ncr_number IS NOT NULL AND LENGTH(TRIM(ncr_number)) > 0
+          severity: fail
+          description: ncr_number is required for Nonconformance Report extraction.
+        - name: ncr_date_present
+          rule_type: presence
+          fields:
+            - ncr_date
+          expression: ncr_date IS NOT NULL AND LENGTH(TRIM(ncr_date)) > 0
+          severity: fail
+          description: ncr_date is required for Nonconformance Report extraction.
+        - name: part_number_present
+          rule_type: presence
+          fields:
+            - part_number
+          expression: part_number IS NOT NULL AND LENGTH(TRIM(part_number)) > 0
+          severity: fail
+          description: part_number is required for Nonconformance Report extraction.
+        - name: nonconformance_description_present
+          rule_type: presence
+          fields:
+            - nonconformance_description
+          expression: nonconformance_description IS NOT NULL AND LENGTH(TRIM(nonconformance_description)) > 0
+          severity: fail
+          description: nonconformance_description is required for Nonconformance Report extraction.
+        - name: disposition_present
+          rule_type: presence
+          fields:
+            - disposition
+          expression: disposition IS NOT NULL AND LENGTH(TRIM(disposition)) > 0
+          severity: fail
+          description: disposition is required for Nonconformance Report extraction.
+        - name: quantity_affected_non_negative
+          rule_type: range
+          fields:
+            - quantity_affected
+          expression: quantity_affected IS NULL OR quantity_affected >= 0
+          severity: warn
+          description: quantity_affected should be non-negative when present.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - ncr_number
+            - ncr_date
+            - part_number
+            - nonconformance_description
+            - disposition
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - line_items
+            - parties
+            - property_or_asset
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

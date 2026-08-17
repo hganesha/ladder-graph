@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 import BundleStudio from "../src/components/BundleStudio";
+import { db } from "../src/lib/persistence";
 import type { BundleCompileResult } from "../src/types";
 
 const compileResult: BundleCompileResult = {
@@ -62,7 +63,12 @@ describe("bundle workspace", () => {
       normalized: parse(source),
     }));
   });
-  afterEach(cleanup);
+  afterEach(async () => {
+    cleanup();
+    await db.bundleAssets.clear();
+    await db.revisions.clear();
+    await db.projects.clear();
+  });
 
   it("compiles the insurance starter and exposes form and ontology previews", async () => {
     render(<BundleStudio onBack={() => undefined} />);
@@ -89,6 +95,26 @@ describe("bundle workspace", () => {
     expect(compileBundle.mock.calls[1][0]).toContain("mode: full");
   });
 
+  it("creates a bundle for another workflow and authors an explicit binding", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "New" }));
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
+    fireEvent.change(screen.getByLabelText("Workflow"), { target: { value: "evidence-research" } });
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Evidence research bundle" })).toBeInTheDocument());
+    expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://workflows/builtin/evidence-research");
+
+    fireEvent.click(screen.getByRole("button", { name: "Attach First Notice of Loss" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Add binding" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Add binding" }));
+    expect(screen.getByLabelText("Binding binding-1 source asset")).toHaveValue("ladder://forms/builtin/first-notice-of-loss");
+    expect(screen.getByText("Changes pending validation")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Validate changes" }));
+    await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("id: binding-1"));
+  });
+
   it("authors an ontology-bound field and recompiles the edited form into the bundle", async () => {
     render(<BundleStudio onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
@@ -111,5 +137,25 @@ describe("bundle workspace", () => {
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
     const editedAssets = compileBundle.mock.calls[1][1] as Array<{ ref: string; source: string }>;
     expect(editedAssets.find((asset) => asset.ref.endsWith("/first-notice-of-loss"))?.source).toContain("Claim reference");
+  });
+
+  it("searches the DocuBricks library and saves complete bundle history", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    const search = screen.getByLabelText("Search bundle assets");
+    expect(search).toHaveAttribute("placeholder", "Search 55 DocuBricks schemas…");
+    fireEvent.change(search, { target: { value: "mortgage application" } });
+    expect(screen.getByText("Mortgage Application")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Attach Mortgage Application" }));
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
+
+    fireEvent.click(screen.getByRole("button", { name: /^Save$/ }));
+    await waitFor(() => expect(screen.getByText("Bundle saved with a complete portable revision.")).toBeInTheDocument());
+    expect(await db.projects.count()).toBe(1);
+    expect(await db.bundleAssets.count()).toBeGreaterThan(1);
+
+    fireEvent.click(screen.getByRole("button", { name: /^History$/ }));
+    expect(await screen.findByText("Latest save")).toBeInTheDocument();
   });
 });

@@ -1,0 +1,919 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-mortgage-application
+  title: Mortgage Application
+  description: Mortgage Application contract normalized from the DocuBricks Financial services library.
+  version: fs_mortgage_application_v1
+  source:
+    system: docubricks
+    sourceId: fs/mortgage_application
+    sourcePath: Schemas/fs/mortgage_application
+    sourceVersion: fs_mortgage_application_v1
+    sourceDigest: ccdc6f89fd750560ab641f8bef7f0b6da14a3729d84719a9d5c8651feddde679
+spec:
+  role: start
+  pages:
+    - id: main
+      title: Mortgage Application
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: loan-term-months
+              name: loan_term_months
+              label: Loan Term Months
+              description: Loan term in months as integer (e.g., 360 for 30-year)
+              dataType: integer
+              widget: number
+            - id: employment-start-date
+              name: employment_start_date
+              label: Employment Start Date
+              description: Start date with employer, format YYYY-MM-DD
+              dataType: date
+              widget: date
+            - id: proposed-hoa-dues
+              name: proposed_hoa_dues
+              label: Proposed Hoa Dues
+              description: Proposed monthly HOA dues as decimal
+              dataType: string
+              widget: text
+            - id: application-date
+              name: application_date
+              label: Application Date
+              description: Application date, format YYYY-MM-DD
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: mortgage-type
+              name: mortgage_type
+              label: Mortgage Type
+              description: "One of: FixedRate | AdjustableRate | Balloon | InterestOnly | Other"
+              dataType: string
+              widget: text
+            - id: amortization-type
+              name: amortization_type
+              label: Amortization Type
+              description: "One of: Fixed | ARM | Balloon | InterestOnly | Other"
+              dataType: string
+              widget: text
+            - id: occupancy-type
+              name: occupancy_type
+              label: Occupancy Type
+              description: "One of: PrimaryResidence | SecondHome | InvestmentProperty"
+              dataType: string
+              widget: text
+            - id: number-of-units
+              name: number_of_units
+              label: Number Of Units
+              description: Number of units as integer
+              dataType: string
+              widget: text
+            - id: year-built
+              name: year_built
+              label: Year Built
+              description: Four-digit year if present
+              dataType: string
+              widget: text
+            - id: employer-phone
+              name: employer_phone
+              label: Employer Phone
+              description: Employer phone
+              dataType: string
+              widget: text
+            - id: position-title
+              name: position_title
+              label: Position Title
+              description: Job title or position
+              dataType: string
+              widget: text
+            - id: years-on-job
+              name: years_on_job
+              label: Years On Job
+              description: Years at current employer as decimal
+              dataType: string
+              widget: text
+            - id: self-employed
+              name: self_employed
+              label: Self Employed
+              description: Boolean — true if self-employed indicator is checked
+              dataType: boolean
+              widget: checkbox
+            - id: base-monthly-income
+              name: base_monthly_income
+              label: Base Monthly Income
+              description: Base gross monthly income as decimal
+              dataType: number
+              widget: number
+            - id: overtime-monthly-income
+              name: overtime_monthly_income
+              label: Overtime Monthly Income
+              description: Overtime monthly income as decimal (null if none)
+              dataType: number
+              widget: number
+            - id: bonus-monthly-income
+              name: bonus_monthly_income
+              label: Bonus Monthly Income
+              description: Bonus monthly income as decimal (null if none)
+              dataType: number
+              widget: number
+            - id: commission-monthly-income
+              name: commission_monthly_income
+              label: Commission Monthly Income
+              description: Commission monthly income as decimal (null if none)
+              dataType: number
+              widget: number
+            - id: other-monthly-income
+              name: other_monthly_income
+              label: Other Monthly Income
+              description: Other monthly income as decimal (null if none)
+              dataType: number
+              widget: number
+            - id: proposed-principal-interest
+              name: proposed_principal_interest
+              label: Proposed Principal Interest
+              description: Proposed P&I payment as decimal
+              dataType: string
+              widget: text
+            - id: proposed-insurance
+              name: proposed_insurance
+              label: Proposed Insurance
+              description: Proposed monthly hazard insurance as decimal
+              dataType: string
+              widget: text
+            - id: checking-savings-balance
+              name: checking_savings_balance
+              label: Checking Savings Balance
+              description: Combined checking/savings balance as decimal
+              dataType: number
+              widget: number
+            - id: debt-to-income-ratio
+              name: debt_to_income_ratio
+              label: Debt To Income Ratio
+              description: Back-end DTI as decimal percent (e.g., 43.5)
+              dataType: number
+              widget: number
+            - id: housing-expense-ratio
+              name: housing_expense_ratio
+              label: Housing Expense Ratio
+              description: Front-end ratio as decimal percent
+              dataType: number
+              widget: number
+            - id: ltv-percent
+              name: ltv_percent
+              label: Ltv Percent
+              description: Loan-to-value ratio as decimal percent
+              dataType: number
+              widget: number
+            - id: cltv-percent
+              name: cltv_percent
+              label: Cltv Percent
+              description: Combined LTV as decimal percent
+              dataType: number
+              widget: number
+            - id: outstanding-judgments
+              name: outstanding_judgments
+              label: Outstanding Judgments
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: bankruptcy
+              name: bankruptcy
+              label: Bankruptcy
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: foreclosure
+              name: foreclosure
+              label: Foreclosure
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: delinquent-on-debt
+              name: delinquent_on_debt
+              label: Delinquent On Debt
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: intent-to-occupy
+              name: intent_to_occupy
+              label: Intent To Occupy
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: ethnicity-hispanic
+              name: ethnicity_hispanic
+              label: Ethnicity Hispanic
+              description: Boolean — is applicant Hispanic or Latino
+              dataType: string
+              widget: text
+            - id: race-white
+              name: race_white
+              label: Race White
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: race-black
+              name: race_black
+              label: Race Black
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: race-asian
+              name: race_asian
+              label: Race Asian
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: sex-male
+              name: sex_male
+              label: Sex Male
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: sex-female
+              name: sex_female
+              label: Sex Female
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: monitoring-info-not-provided
+              name: monitoring_info_not_provided
+              label: Monitoring Info Not Provided
+              description: Boolean — applicant declined to provide
+              dataType: string
+              widget: text
+            - id: nmls-id
+              name: nmls_id
+              label: Nmls Id
+              description: NMLS ID of loan officer if present
+              dataType: string
+              widget: text
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: loan-purpose
+              name: loan_purpose
+              label: Loan Purpose
+              description: "The stated purpose. One of: Purchase | Refinance | CashOutRefinance | Construction |
+                ConstructionPermanent | HomeEquity | HELOC | Other"
+              dataType: string
+              widget: text
+            - id: loan-type
+              name: loan_type
+              label: Loan Type
+              description: "One of: Conventional | FHA | VA | USDA | Jumbo | Portfolio | NonQM | Other"
+              dataType: string
+              widget: text
+            - id: loan-amount
+              name: loan_amount
+              label: Loan Amount
+              description: Requested loan amount as decimal (e.g., 450000.00)
+              dataType: number
+              widget: number
+              required: true
+            - id: interest-rate-percent
+              name: interest_rate_percent
+              label: Interest Rate Percent
+              description: Note rate as decimal percent (e.g., 6.875)
+              dataType: number
+              widget: number
+            - id: purchase-price
+              name: purchase_price
+              label: Purchase Price
+              description: Purchase price as decimal (for purchase transactions)
+              dataType: number
+              widget: number
+            - id: estimated-value
+              name: estimated_value
+              label: Estimated Value
+              description: Estimated/appraised property value as decimal
+              dataType: number
+              widget: number
+            - id: total-monthly-income
+              name: total_monthly_income
+              label: Total Monthly Income
+              description: Total gross monthly income as decimal
+              dataType: number
+              widget: number
+            - id: present-housing-payment
+              name: present_housing_payment
+              label: Present Housing Payment
+              description: Current monthly housing payment as decimal
+              dataType: number
+              widget: number
+            - id: proposed-taxes
+              name: proposed_taxes
+              label: Proposed Taxes
+              description: Proposed monthly taxes as decimal
+              dataType: number
+              widget: number
+            - id: proposed-total-housing-payment
+              name: proposed_total_housing_payment
+              label: Proposed Total Housing Payment
+              description: Proposed total monthly housing expense as decimal
+              dataType: number
+              widget: number
+            - id: down-payment-amount
+              name: down_payment_amount
+              label: Down Payment Amount
+              description: Down payment amount as decimal
+              dataType: number
+              widget: number
+            - id: down-payment-source
+              name: down_payment_source
+              label: Down Payment Source
+              description: Primary source of down payment
+              dataType: number
+              widget: number
+            - id: total-monthly-debt-payments
+              name: total_monthly_debt_payments
+              label: Total Monthly Debt Payments
+              description: Sum of all monthly debt payments as decimal
+              dataType: number
+              widget: number
+            - id: auto-loan-payment
+              name: auto_loan_payment
+              label: Auto Loan Payment
+              description: Monthly auto loan payment(s) as decimal
+              dataType: number
+              widget: number
+            - id: student-loan-payment
+              name: student_loan_payment
+              label: Student Loan Payment
+              description: Monthly student loan payment(s) as decimal
+              dataType: number
+              widget: number
+            - id: credit-card-payment
+              name: credit_card_payment
+              label: Credit Card Payment
+              description: Monthly credit card minimum payment(s) as decimal
+              dataType: number
+              widget: number
+            - id: other-debt-payments
+              name: other_debt_payments
+              label: Other Debt Payments
+              description: Other monthly debt as decimal
+              dataType: number
+              widget: number
+            - id: borrowed-down-payment
+              name: borrowed_down_payment
+              label: Borrowed Down Payment
+              description: Boolean
+              dataType: number
+              widget: number
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: borrower-first-name
+              name: borrower_first_name
+              label: Borrower First Name
+              description: Primary borrower first name
+              dataType: string
+              widget: text
+            - id: borrower-middle-name
+              name: borrower_middle_name
+              label: Borrower Middle Name
+              description: Middle name or initial
+              dataType: string
+              widget: text
+            - id: borrower-last-name
+              name: borrower_last_name
+              label: Borrower Last Name
+              description: Primary borrower last name
+              dataType: string
+              widget: text
+              required: true
+            - id: borrower-suffix
+              name: borrower_suffix
+              label: Borrower Suffix
+              description: Name suffix (Jr., Sr., III, etc.)
+              dataType: string
+              widget: text
+            - id: borrower-ssn-masked
+              name: borrower_ssn_masked
+              label: Borrower Ssn Masked
+              description: Last 4 digits only, format XXX-XX-NNNN
+              dataType: string
+              widget: text
+            - id: borrower-dob
+              name: borrower_dob
+              label: Borrower Dob
+              description: Date of birth, format YYYY-MM-DD
+              dataType: string
+              widget: text
+            - id: borrower-marital-status
+              name: borrower_marital_status
+              label: Borrower Marital Status
+              description: "One of: Married | Separated | Unmarried | Unknown"
+              dataType: string
+              widget: text
+            - id: borrower-dependents-count
+              name: borrower_dependents_count
+              label: Borrower Dependents Count
+              description: Number of dependents as integer
+              dataType: integer
+              widget: number
+            - id: borrower-citizenship
+              name: borrower_citizenship
+              label: Borrower Citizenship
+              description: "One of: USCitizen | PermanentResidentAlien | NonPermanentResidentAlien | ForeignNational |
+                Other"
+              dataType: string
+              widget: text
+            - id: borrower-phone
+              name: borrower_phone
+              label: Borrower Phone
+              description: Primary phone number
+              dataType: string
+              widget: text
+            - id: borrower-email
+              name: borrower_email
+              label: Borrower Email
+              description: Email address if present
+              dataType: string
+              widget: text
+            - id: coborrower-first-name
+              name: coborrower_first_name
+              label: Coborrower First Name
+              description: Co-borrower first name
+              dataType: string
+              widget: text
+            - id: coborrower-last-name
+              name: coborrower_last_name
+              label: Coborrower Last Name
+              description: Co-borrower last name
+              dataType: string
+              widget: text
+            - id: coborrower-ssn-masked
+              name: coborrower_ssn_masked
+              label: Coborrower Ssn Masked
+              description: Last 4 digits only
+              dataType: string
+              widget: text
+            - id: coborrower-dob
+              name: coborrower_dob
+              label: Coborrower Dob
+              description: Date of birth, format YYYY-MM-DD
+              dataType: string
+              widget: text
+            - id: employer-name
+              name: employer_name
+              label: Employer Name
+              description: Current primary employer name
+              dataType: string
+              widget: text
+            - id: party-to-lawsuit
+              name: party_to_lawsuit
+              label: Party To Lawsuit
+              description: Boolean
+              dataType: string
+              widget: text
+            - id: loan-officer-name
+              name: loan_officer_name
+              label: Loan Officer Name
+              description: Loan officer name if present
+              dataType: string
+              widget: text
+            - id: lender-name
+              name: lender_name
+              label: Lender Name
+              description: Lender / financial institution name
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: property-street
+              name: property_street
+              label: Property Street
+              description: Street address of subject property
+              dataType: string
+              widget: text
+            - id: property-city
+              name: property_city
+              label: Property City
+              description: City
+              dataType: string
+              widget: text
+            - id: property-state
+              name: property_state
+              label: Property State
+              description: Two-letter state code
+              dataType: string
+              widget: text
+            - id: property-zip
+              name: property_zip
+              label: Property Zip
+              description: ZIP code
+              dataType: string
+              widget: text
+            - id: property-county
+              name: property_county
+              label: Property County
+              description: County name if present
+              dataType: string
+              widget: text
+            - id: property-type
+              name: property_type
+              label: Property Type
+              description: "One of: SingleFamily | Condo | Cooperative | TwoToFourUnit | ManufacturedHome |
+                PlannedUnitDevelopment | MixedUse | Multifamily | Other"
+              dataType: string
+              widget: text
+            - id: employer-address
+              name: employer_address
+              label: Employer Address
+              description: Employer street address
+              dataType: string
+              widget: text
+            - id: total-assets
+              name: total_assets
+              label: Total Assets
+              description: Sum of all listed assets as decimal
+              dataType: number
+              widget: number
+            - id: retirement-assets
+              name: retirement_assets
+              label: Retirement Assets
+              description: Retirement account balance as decimal
+              dataType: number
+              widget: number
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: lien-priority
+              name: lien_priority
+              label: Lien Priority
+              description: "One of: FirstLien | SecondLien | Other"
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      loan_purpose:
+        type: string
+        description: "The stated purpose. One of: Purchase | Refinance | CashOutRefinance | Construction |
+          ConstructionPermanent | HomeEquity | HELOC | Other"
+      loan_type:
+        type: string
+        description: "One of: Conventional | FHA | VA | USDA | Jumbo | Portfolio | NonQM | Other"
+      lien_priority:
+        type: string
+        description: "One of: FirstLien | SecondLien | Other"
+      mortgage_type:
+        type: string
+        description: "One of: FixedRate | AdjustableRate | Balloon | InterestOnly | Other"
+      loan_amount:
+        type: number
+        description: Requested loan amount as decimal (e.g., 450000.00)
+      loan_term_months:
+        type: integer
+        description: Loan term in months as integer (e.g., 360 for 30-year)
+      interest_rate_percent:
+        type: number
+        description: Note rate as decimal percent (e.g., 6.875)
+      amortization_type:
+        type: string
+        description: "One of: Fixed | ARM | Balloon | InterestOnly | Other"
+      occupancy_type:
+        type: string
+        description: "One of: PrimaryResidence | SecondHome | InvestmentProperty"
+      property_street:
+        type: string
+        description: Street address of subject property
+      property_city:
+        type: string
+        description: City
+      property_state:
+        type: string
+        description: Two-letter state code
+      property_zip:
+        type: string
+        description: ZIP code
+      property_county:
+        type: string
+        description: County name if present
+      property_type:
+        type: string
+        description: "One of: SingleFamily | Condo | Cooperative | TwoToFourUnit | ManufacturedHome |
+          PlannedUnitDevelopment | MixedUse | Multifamily | Other"
+      number_of_units:
+        type: string
+        description: Number of units as integer
+      year_built:
+        type: string
+        description: Four-digit year if present
+      purchase_price:
+        type: number
+        description: Purchase price as decimal (for purchase transactions)
+      estimated_value:
+        type: number
+        description: Estimated/appraised property value as decimal
+      borrower_first_name:
+        type: string
+        description: Primary borrower first name
+      borrower_middle_name:
+        type: string
+        description: Middle name or initial
+      borrower_last_name:
+        type: string
+        description: Primary borrower last name
+      borrower_suffix:
+        type: string
+        description: Name suffix (Jr., Sr., III, etc.)
+      borrower_ssn_masked:
+        type: string
+        description: Last 4 digits only, format XXX-XX-NNNN
+      borrower_dob:
+        type: string
+        description: Date of birth, format YYYY-MM-DD
+      borrower_marital_status:
+        type: string
+        description: "One of: Married | Separated | Unmarried | Unknown"
+      borrower_dependents_count:
+        type: integer
+        description: Number of dependents as integer
+      borrower_citizenship:
+        type: string
+        description: "One of: USCitizen | PermanentResidentAlien | NonPermanentResidentAlien | ForeignNational | Other"
+      borrower_phone:
+        type: string
+        description: Primary phone number
+      borrower_email:
+        type: string
+        description: Email address if present
+      coborrower_first_name:
+        type: string
+        description: Co-borrower first name
+      coborrower_last_name:
+        type: string
+        description: Co-borrower last name
+      coborrower_ssn_masked:
+        type: string
+        description: Last 4 digits only
+      coborrower_dob:
+        type: string
+        description: Date of birth, format YYYY-MM-DD
+      employer_name:
+        type: string
+        description: Current primary employer name
+      employer_address:
+        type: string
+        description: Employer street address
+      employer_phone:
+        type: string
+        description: Employer phone
+      position_title:
+        type: string
+        description: Job title or position
+      employment_start_date:
+        type: date
+        description: Start date with employer, format YYYY-MM-DD
+        format: date
+      years_on_job:
+        type: string
+        description: Years at current employer as decimal
+      self_employed:
+        type: boolean
+        description: Boolean — true if self-employed indicator is checked
+      base_monthly_income:
+        type: number
+        description: Base gross monthly income as decimal
+      overtime_monthly_income:
+        type: number
+        description: Overtime monthly income as decimal (null if none)
+      bonus_monthly_income:
+        type: number
+        description: Bonus monthly income as decimal (null if none)
+      commission_monthly_income:
+        type: number
+        description: Commission monthly income as decimal (null if none)
+      other_monthly_income:
+        type: number
+        description: Other monthly income as decimal (null if none)
+      total_monthly_income:
+        type: number
+        description: Total gross monthly income as decimal
+      present_housing_payment:
+        type: number
+        description: Current monthly housing payment as decimal
+      proposed_principal_interest:
+        type: string
+        description: Proposed P&I payment as decimal
+      proposed_taxes:
+        type: number
+        description: Proposed monthly taxes as decimal
+      proposed_insurance:
+        type: string
+        description: Proposed monthly hazard insurance as decimal
+      proposed_hoa_dues:
+        type: string
+        description: Proposed monthly HOA dues as decimal
+      proposed_total_housing_payment:
+        type: number
+        description: Proposed total monthly housing expense as decimal
+      total_assets:
+        type: number
+        description: Sum of all listed assets as decimal
+      checking_savings_balance:
+        type: number
+        description: Combined checking/savings balance as decimal
+      retirement_assets:
+        type: number
+        description: Retirement account balance as decimal
+      down_payment_amount:
+        type: number
+        description: Down payment amount as decimal
+      down_payment_source:
+        type: number
+        description: Primary source of down payment
+      total_monthly_debt_payments:
+        type: number
+        description: Sum of all monthly debt payments as decimal
+      auto_loan_payment:
+        type: number
+        description: Monthly auto loan payment(s) as decimal
+      student_loan_payment:
+        type: number
+        description: Monthly student loan payment(s) as decimal
+      credit_card_payment:
+        type: number
+        description: Monthly credit card minimum payment(s) as decimal
+      other_debt_payments:
+        type: number
+        description: Other monthly debt as decimal
+      debt_to_income_ratio:
+        type: number
+        description: Back-end DTI as decimal percent (e.g., 43.5)
+      housing_expense_ratio:
+        type: number
+        description: Front-end ratio as decimal percent
+      ltv_percent:
+        type: number
+        description: Loan-to-value ratio as decimal percent
+      cltv_percent:
+        type: number
+        description: Combined LTV as decimal percent
+      outstanding_judgments:
+        type: string
+        description: Boolean
+      bankruptcy:
+        type: string
+        description: Boolean
+      foreclosure:
+        type: string
+        description: Boolean
+      party_to_lawsuit:
+        type: string
+        description: Boolean
+      delinquent_on_debt:
+        type: string
+        description: Boolean
+      intent_to_occupy:
+        type: string
+        description: Boolean
+      borrowed_down_payment:
+        type: number
+        description: Boolean
+      ethnicity_hispanic:
+        type: string
+        description: Boolean — is applicant Hispanic or Latino
+      race_white:
+        type: string
+        description: Boolean
+      race_black:
+        type: string
+        description: Boolean
+      race_asian:
+        type: string
+        description: Boolean
+      sex_male:
+        type: string
+        description: Boolean
+      sex_female:
+        type: string
+        description: Boolean
+      monitoring_info_not_provided:
+        type: string
+        description: Boolean — applicant declined to provide
+      application_date:
+        type: date
+        description: Application date, format YYYY-MM-DD
+        format: date
+      loan_officer_name:
+        type: string
+        description: Loan officer name if present
+      lender_name:
+        type: string
+        description: Lender / financial institution name
+      nmls_id:
+        type: string
+        description: NMLS ID of loan officer if present
+    required:
+      - loan_amount
+      - borrower_last_name
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: loan_amount_positive
+          rule_type: range
+          fields:
+            - loan_amount
+          expression: loan_amount IS NOT NULL AND loan_amount > 0
+          severity: fail
+          description: Loan amount must be present and positive — system invariant; no valid mortgage without a loan
+            amount
+        - name: loan_purpose_valid_enum
+          rule_type: presence
+          fields: []
+          expression: loan_purpose IN ('Purchase', 'Refinance', 'CashOutRefinance', 'Construction',
+            'ConstructionPermanent', 'HomeEquity', 'HELOC', 'Other')
+          severity: fail
+          description: Loan purpose must be a recognized MISMO/URLA enumeration; invalid values break downstream AUS and
+            HMDA routing
+        - name: loan_type_valid_enum
+          rule_type: presence
+          fields: []
+          expression: loan_type IN ('Conventional', 'FHA', 'VA', 'USDA', 'Jumbo', 'Portfolio', 'NonQM', 'Other')
+          severity: fail
+          description: Loan type must be a recognized enumeration for investor delivery and compliance routing
+        - name: borrower_last_name_present
+          rule_type: presence
+          fields:
+            - borrower_last_name
+          expression: borrower_last_name IS NOT NULL AND LENGTH(TRIM(borrower_last_name)) > 0
+          severity: fail
+          description: Borrower last name is required — cannot process an application without borrower identity
+        - name: ltv_reasonable_range
+          rule_type: range
+          fields:
+            - ltv_percent
+          expression: ltv_percent IS NULL OR (ltv_percent > 0 AND ltv_percent <= 105)
+          severity: drop
+          description: LTV > 105% or <= 0 indicates a data extraction error or impossible transaction; route to quarantine
+        - name: dti_reasonable_range
+          rule_type: range
+          fields:
+            - debt_to_income_ratio
+          expression: debt_to_income_ratio IS NULL OR (debt_to_income_ratio > 0 AND debt_to_income_ratio < 100)
+          severity: drop
+          description: DTI outside 0-100% range is invalid; drop record to quarantine for human review
+        - name: interest_rate_reasonable
+          rule_type: range
+          fields:
+            - interest_rate_percent
+          expression: interest_rate_percent IS NULL OR (interest_rate_percent > 0 AND interest_rate_percent < 30)
+          severity: drop
+          description: Interest rate outside 0-30% range is likely an extraction error; route to quarantine
+        - name: loan_term_standard_values
+          rule_type: presence
+          fields:
+            - loan_term_months
+          expression: loan_term_months IS NULL OR loan_term_months IN (60, 84, 120, 180, 240, 300, 360, 480)
+          severity: warn
+          description: Loan term should be a standard product term (e.g., 360 for 30-year); unusual terms flagged for
+            review
+        - name: hmda_reportable_fields_present
+          rule_type: presence
+          fields:
+            - property_state
+            - occupancy_type
+            - loan_amount
+          expression: property_state IS NOT NULL AND occupancy_type IS NOT NULL AND loan_amount IS NOT NULL
+          severity: warn
+          description: HMDA LAR requires state, occupancy type, and loan amount; missing values prevent regulatory
+            reporting
+        - name: purchase_price_for_purchase
+          rule_type: presence
+          fields:
+            - purchase_price
+          expression: NOT (loan_purpose = 'Purchase' AND purchase_price IS NULL)
+          severity: warn
+          description: Purchase transactions should have a purchase price; missing value may indicate extraction failure
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - loan_amount
+            - borrower_last_name
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - property_or_asset
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

@@ -80,9 +80,23 @@ The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `Workflow
 - deterministic ontology sliver closure from explicit type, property, relationship, form, document, and binding references;
 - cross-artifact JSON Pointer and ontology-property validation;
 - portable form JSON Schema and UI metadata, supporting document schemas, the unchanged workflow target, inclusion reasons, and a deterministic lockfile;
-- a bundle map, ontology-sliver inspection, compile-target selection, and per-file output download;
+- catalog-backed bundle assembly for any built-in workflow, with attach/remove controls for ontologies, forms, and documents;
+- a visual binding inspector with selectable JSON Pointer endpoints, directions, ontology properties, and safe transforms;
+- ontology-sliver inspection, compile-target selection, pending-change validation, and per-file output download;
 - a first-class form studio with structural page/section/field editing, an ontology field palette, field and workflow bindings, responsive preview, canonical YAML editing, diagnostics, undo/redo, and portable form exports;
 - bundle recompilation from edited form sources, so visual changes are reflected in the generated JSON Schema and UI contract.
+- local bundle persistence with complete-asset revisions, Recent Projects reopening, and history restore;
+- deterministic `.ladderbundle.json` import/export with SHA-256 integrity checks;
+- a searchable, industry-filtered starter library containing all 55 classified DocuBricks schemas: 24 forms and 31 documents.
+
+Regenerate the DocuBricks snapshot from a local checkout with:
+
+```bash
+npm run docubricks:import -- --source /absolute/path/to/DocuBricks
+npm run catalog:generate
+```
+
+The reviewed classification and deterministic conversion report live in [`catalog/imports`](catalog/imports). Model-routing files and SQL-like expressions are retained only as inert provenance; Ladder Graph never executes them.
 
 Portable authoring contracts are published in [`public/schema`](public/schema). The implementation and product rationale are documented in [ladder-graph-feature-expansion-plan.md](ladder-graph-feature-expansion-plan.md) and [ladder-graph-feature-expansion.md](ladder-graph-feature-expansion.md).
 

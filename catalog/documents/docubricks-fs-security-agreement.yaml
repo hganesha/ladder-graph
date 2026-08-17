@@ -1,0 +1,303 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-security-agreement
+  title: Security Agreement
+  description: Security Agreement contract normalized from the DocuBricks Financial services library.
+  version: fs_security_agreement_v1
+  source:
+    system: docubricks
+    sourceId: fs/security_agreement
+    sourcePath: Schemas/fs/security_agreement
+    sourceVersion: fs_security_agreement_v1
+    sourceDigest: 402cd6bb723fa90cfc5050c947ea47831875a35d81742077722f9bc534784a9f
+spec:
+  documentType: security_agreement
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - agreement-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - covenants
+        - debtor-representations
+        - governing-law
+        - remedies
+        - signature-title
+        - underlying-obligation-reference
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - perfection-requirements
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - borrower-name
+        - debtor-name
+        - secured-party-name
+        - signature-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - all-assets-clause
+        - collateral-categories
+        - collateral-description
+        - excluded-collateral
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - events-of-default
+  fields:
+    - id: agreement-date
+      name: agreement_date
+      label: Agreement Date
+      description: Date of security agreement.
+      dataType: date
+      sourcePath: /fields/agreement_date
+    - id: debtor-name
+      name: debtor_name
+      label: Debtor Name
+      description: Grantor or debtor.
+      dataType: string
+      required: true
+      sourcePath: /fields/debtor_name
+    - id: secured-party-name
+      name: secured_party_name
+      label: Secured Party Name
+      description: Secured party or lender.
+      dataType: string
+      sourcePath: /fields/secured_party_name
+    - id: borrower-name
+      name: borrower_name
+      label: Borrower Name
+      description: Borrower if different from debtor.
+      dataType: string
+      sourcePath: /fields/borrower_name
+    - id: underlying-obligation-reference
+      name: underlying_obligation_reference
+      label: Underlying Obligation Reference
+      description: Note, loan agreement, or obligations secured.
+      dataType: string
+      sourcePath: /fields/underlying_obligation_reference
+    - id: collateral-description
+      name: collateral_description
+      label: Collateral Description
+      description: Granting clause collateral description.
+      dataType: string
+      required: true
+      sourcePath: /fields/collateral_description
+    - id: all-assets-clause
+      name: all_assets_clause
+      label: All Assets Clause
+      description: Whether agreement grants all assets or substantially all assets.
+      dataType: boolean
+      sourcePath: /fields/all_assets_clause
+    - id: collateral-categories
+      name: collateral_categories
+      label: Collateral Categories
+      description: Accounts, inventory, equipment, general intangibles, deposit accounts, investment property,
+        fixtures, vehicles, real estate-related, or other.
+      dataType: array
+      sourcePath: /fields/collateral_categories
+    - id: excluded-collateral
+      name: excluded_collateral
+      label: Excluded Collateral
+      description: Collateral excluded from grant.
+      dataType: array
+      sourcePath: /fields/excluded_collateral
+    - id: perfection-requirements
+      name: perfection_requirements
+      label: Perfection Requirements
+      description: UCC filing, possession, control, title notation, mortgage, account control agreement, or other.
+      dataType: array
+      sourcePath: /fields/perfection_requirements
+    - id: debtor-representations
+      name: debtor_representations
+      label: Debtor Representations
+      description: Key representations about ownership, liens, location, authority, etc.
+      dataType: array
+      sourcePath: /fields/debtor_representations
+    - id: covenants
+      name: covenants
+      label: Covenants
+      description: Collateral maintenance, insurance, records, inspection, transfer restrictions, etc.
+      dataType: array
+      sourcePath: /fields/covenants
+    - id: events-of-default
+      name: events_of_default
+      label: Events Of Default
+      description: Defaults under the agreement.
+      dataType: array
+      sourcePath: /fields/events_of_default
+    - id: remedies
+      name: remedies
+      label: Remedies
+      description: Remedies available to secured party.
+      dataType: array
+      sourcePath: /fields/remedies
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: Governing law jurisdiction.
+      dataType: string
+      sourcePath: /fields/governing_law
+    - id: signature-name
+      name: signature_name
+      label: Signature Name
+      description: Signer name.
+      dataType: string
+      sourcePath: /fields/signature_name
+    - id: signature-title
+      name: signature_title
+      label: Signature Title
+      description: Signer title.
+      dataType: string
+      sourcePath: /fields/signature_title
+  validationRules:
+    - id: debtor-name-present
+      severity: error
+      description: Security agreement must identify the debtor or grantor.
+      rule:
+        op: present
+        field: debtor_name
+      sourceExpression: debtor_name IS NOT NULL AND LENGTH(TRIM(debtor_name)) > 0
+      supported: true
+    - id: secured-party-present
+      severity: warning
+      description: Secured party should be captured for collateral controls.
+      rule:
+        op: present
+        field: secured_party_name
+      sourceExpression: secured_party_name IS NOT NULL AND LENGTH(TRIM(secured_party_name)) > 0
+      supported: true
+    - id: collateral-description-present
+      severity: warning
+      description: Collateral description is required to use a security agreement extraction.
+      rule:
+        op: present
+        field: collateral_description
+      sourceExpression: collateral_description IS NOT NULL AND LENGTH(TRIM(collateral_description)) > 0
+      supported: true
+    - id: collateral-categories-array-valid
+      severity: warning
+      description: Collateral categories should be represented as an array.
+      sourceExpression: collateral_categories IS NULL OR JSON_ARRAY_LENGTH(collateral_categories) >= 0
+      supported: false
+    - id: perfection-requirements-array-valid
+      severity: warning
+      description: Perfection requirements should be represented as an array.
+      sourceExpression: perfection_requirements IS NULL OR JSON_ARRAY_LENGTH(perfection_requirements) >= 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      agreement_date:
+        type: date
+        description: Date of security agreement.
+        format: date
+      debtor_name:
+        type: string
+        description: Grantor or debtor.
+      secured_party_name:
+        type: string
+        description: Secured party or lender.
+      borrower_name:
+        type: string
+        description: Borrower if different from debtor.
+      underlying_obligation_reference:
+        type: string
+        description: Note, loan agreement, or obligations secured.
+      collateral_description:
+        type: string
+        description: Granting clause collateral description.
+      all_assets_clause:
+        type: boolean
+        description: Whether agreement grants all assets or substantially all assets.
+      collateral_categories:
+        type: array
+        items:
+          type: string
+        description: Accounts, inventory, equipment, general intangibles, deposit accounts, investment property,
+          fixtures, vehicles, real estate-related, or other.
+      excluded_collateral:
+        type: array
+        items:
+          type: string
+        description: Collateral excluded from grant.
+      perfection_requirements:
+        type: array
+        items:
+          type: string
+        description: UCC filing, possession, control, title notation, mortgage, account control agreement, or other.
+      debtor_representations:
+        type: array
+        items:
+          type: string
+        description: Key representations about ownership, liens, location, authority, etc.
+      covenants:
+        type: array
+        items:
+          type: string
+        description: Collateral maintenance, insurance, records, inspection, transfer restrictions, etc.
+      events_of_default:
+        type: array
+        items:
+          type: string
+        description: Defaults under the agreement.
+      remedies:
+        type: array
+        items:
+          type: string
+        description: Remedies available to secured party.
+      governing_law:
+        type: string
+        description: Governing law jurisdiction.
+      signature_name:
+        type: string
+        description: Signer name.
+      signature_title:
+        type: string
+        description: Signer title.
+    required:
+      - debtor_name
+      - collateral_description
+    additionalProperties: false
+  inertSourceMetadata:
+    family: commercial_lending
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - debtor_name
+          - collateral_description
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - line_items
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

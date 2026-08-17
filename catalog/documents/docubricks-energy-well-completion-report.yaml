@@ -1,0 +1,385 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-energy-well-completion-report
+  title: Well Completion Report
+  description: Well Completion Report contract normalized from the DocuBricks Energy library.
+  version: energy_well_completion_report_v1
+  source:
+    system: docubricks
+    sourceId: energy/well_completion_report
+    sourcePath: Schemas/energy/well_completion_report
+    sourceVersion: energy_well_completion_report_v1
+    sourceDigest: c5728b8e7fda9bb4e6bb2cd580120b7569df87fe69b323d6fa13dda4f86ecadc
+spec:
+  documentType: well_completion_report
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - completion-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - choke-size
+        - completion-type
+        - contractors
+        - fluid-volume
+        - formation
+        - proppant-volume
+        - stimulation-summary
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - initial-gas-rate-mcfpd
+        - initial-oil-rate-bpd
+        - initial-water-rate-bpd
+        - perforated-intervals
+        - total-depth
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - field-name
+        - operator-name
+        - well-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - api-well-number
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - regulatory-filing-status
+  fields:
+    - id: completion-date
+      name: completion_date
+      label: Completion Date
+      description: Date completion operations finished or report was signed.
+      dataType: date
+      required: true
+      sourcePath: /fields/completion_date
+    - id: well-name
+      name: well_name
+      label: Well Name
+      description: Well name and number.
+      dataType: string
+      required: true
+      sourcePath: /fields/well_name
+    - id: api-well-number
+      name: api_well_number
+      label: Api Well Number
+      description: API well number or regulatory well identifier.
+      dataType: string
+      required: true
+      sourcePath: /fields/api_well_number
+    - id: operator-name
+      name: operator_name
+      label: Operator Name
+      description: Operating company.
+      dataType: string
+      required: true
+      sourcePath: /fields/operator_name
+    - id: field-name
+      name: field_name
+      label: Field Name
+      description: Field, pool, or reservoir name.
+      dataType: string
+      sourcePath: /fields/field_name
+    - id: formation
+      name: formation
+      label: Formation
+      description: Producing formation or target zone.
+      dataType: string
+      sourcePath: /fields/formation
+    - id: completion-type
+      name: completion_type
+      label: Completion Type
+      description: Completion type such as hydraulic fracture, open hole, perforated casing, or recompletion.
+      dataType: string
+      required: true
+      sourcePath: /fields/completion_type
+    - id: total-depth
+      name: total_depth
+      label: Total Depth
+      description: Total measured depth.
+      dataType: number
+      sourcePath: /fields/total_depth
+    - id: perforated-intervals
+      name: perforated_intervals
+      label: Perforated Intervals
+      description: Perforation intervals with top, bottom, stage, and date when available.
+      dataType: array
+      sourcePath: /fields/perforated_intervals
+    - id: stimulation-summary
+      name: stimulation_summary
+      label: Stimulation Summary
+      description: Fracturing, acidizing, stimulation, or treatment summary.
+      dataType: string
+      sourcePath: /fields/stimulation_summary
+    - id: proppant-volume
+      name: proppant_volume
+      label: Proppant Volume
+      description: Total proppant volume.
+      dataType: number
+      sourcePath: /fields/proppant_volume
+    - id: fluid-volume
+      name: fluid_volume
+      label: Fluid Volume
+      description: Total stimulation fluid volume.
+      dataType: number
+      sourcePath: /fields/fluid_volume
+    - id: initial-oil-rate-bpd
+      name: initial_oil_rate_bpd
+      label: Initial Oil Rate Bpd
+      description: Initial oil production rate in barrels per day.
+      dataType: number
+      sourcePath: /fields/initial_oil_rate_bpd
+    - id: initial-gas-rate-mcfpd
+      name: initial_gas_rate_mcfpd
+      label: Initial Gas Rate Mcfpd
+      description: Initial gas production rate in thousand cubic feet per day.
+      dataType: number
+      sourcePath: /fields/initial_gas_rate_mcfpd
+    - id: initial-water-rate-bpd
+      name: initial_water_rate_bpd
+      label: Initial Water Rate Bpd
+      description: Initial water production rate in barrels per day.
+      dataType: number
+      sourcePath: /fields/initial_water_rate_bpd
+    - id: choke-size
+      name: choke_size
+      label: Choke Size
+      description: Initial production test choke size.
+      dataType: string
+      sourcePath: /fields/choke_size
+    - id: contractors
+      name: contractors
+      label: Contractors
+      description: Completion, cementing, logging, or stimulation contractors.
+      dataType: array
+      sourcePath: /fields/contractors
+    - id: regulatory-filing-status
+      name: regulatory_filing_status
+      label: Regulatory Filing Status
+      description: Filed, pending, rejected, amended, or other filing status.
+      dataType: string
+      sourcePath: /fields/regulatory_filing_status
+  validationRules:
+    - id: completion-date-present
+      severity: error
+      description: completion_date is required for Well Completion Report extraction.
+      rule:
+        op: present
+        field: completion_date
+      sourceExpression: completion_date IS NOT NULL AND LENGTH(TRIM(completion_date)) > 0
+      supported: true
+    - id: well-name-present
+      severity: error
+      description: well_name is required for Well Completion Report extraction.
+      rule:
+        op: present
+        field: well_name
+      sourceExpression: well_name IS NOT NULL AND LENGTH(TRIM(well_name)) > 0
+      supported: true
+    - id: api-well-number-present
+      severity: error
+      description: api_well_number is required for Well Completion Report extraction.
+      rule:
+        op: present
+        field: api_well_number
+      sourceExpression: api_well_number IS NOT NULL AND LENGTH(TRIM(api_well_number)) > 0
+      supported: true
+    - id: operator-name-present
+      severity: error
+      description: operator_name is required for Well Completion Report extraction.
+      rule:
+        op: present
+        field: operator_name
+      sourceExpression: operator_name IS NOT NULL AND LENGTH(TRIM(operator_name)) > 0
+      supported: true
+    - id: completion-type-present
+      severity: error
+      description: completion_type is required for Well Completion Report extraction.
+      rule:
+        op: present
+        field: completion_type
+      sourceExpression: completion_type IS NOT NULL AND LENGTH(TRIM(completion_type)) > 0
+      supported: true
+    - id: total-depth-non-negative
+      severity: warning
+      description: total_depth should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: total_depth
+        right:
+          value: 0
+      sourceExpression: total_depth IS NULL OR total_depth >= 0
+      supported: true
+    - id: proppant-volume-non-negative
+      severity: warning
+      description: proppant_volume should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: proppant_volume
+        right:
+          value: 0
+      sourceExpression: proppant_volume IS NULL OR proppant_volume >= 0
+      supported: true
+    - id: fluid-volume-non-negative
+      severity: warning
+      description: fluid_volume should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: fluid_volume
+        right:
+          value: 0
+      sourceExpression: fluid_volume IS NULL OR fluid_volume >= 0
+      supported: true
+    - id: initial-oil-rate-bpd-non-negative
+      severity: warning
+      description: initial_oil_rate_bpd should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: initial_oil_rate_bpd
+        right:
+          value: 0
+      sourceExpression: initial_oil_rate_bpd IS NULL OR initial_oil_rate_bpd >= 0
+      supported: true
+    - id: initial-gas-rate-mcfpd-non-negative
+      severity: warning
+      description: initial_gas_rate_mcfpd should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: initial_gas_rate_mcfpd
+        right:
+          value: 0
+      sourceExpression: initial_gas_rate_mcfpd IS NULL OR initial_gas_rate_mcfpd >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      completion_date:
+        type: date
+        description: Date completion operations finished or report was signed.
+        format: date
+      well_name:
+        type: string
+        description: Well name and number.
+      api_well_number:
+        type: string
+        description: API well number or regulatory well identifier.
+      operator_name:
+        type: string
+        description: Operating company.
+      field_name:
+        type: string
+        description: Field, pool, or reservoir name.
+      formation:
+        type: string
+        description: Producing formation or target zone.
+      completion_type:
+        type: string
+        description: Completion type such as hydraulic fracture, open hole, perforated casing, or recompletion.
+      total_depth:
+        type: number
+        description: Total measured depth.
+      perforated_intervals:
+        type: array
+        items:
+          type: object
+          properties:
+            perforated_interval_type:
+              type: string
+              description: Type or class for perforated_intervals item.
+            perforated_interval_description:
+              type: string
+              description: Description for perforated_intervals item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Perforation intervals with top, bottom, stage, and date when available.
+      stimulation_summary:
+        type: string
+        description: Fracturing, acidizing, stimulation, or treatment summary.
+      proppant_volume:
+        type: number
+        description: Total proppant volume.
+      fluid_volume:
+        type: number
+        description: Total stimulation fluid volume.
+      initial_oil_rate_bpd:
+        type: number
+        description: Initial oil production rate in barrels per day.
+      initial_gas_rate_mcfpd:
+        type: number
+        description: Initial gas production rate in thousand cubic feet per day.
+      initial_water_rate_bpd:
+        type: number
+        description: Initial water production rate in barrels per day.
+      choke_size:
+        type: string
+        description: Initial production test choke size.
+      contractors:
+        type: array
+        items:
+          type: string
+        description: Completion, cementing, logging, or stimulation contractors.
+      regulatory_filing_status:
+        type: string
+        description: Filed, pending, rejected, amended, or other filing status.
+    required:
+      - completion_date
+      - well_name
+      - api_well_number
+      - operator_name
+      - completion_type
+    additionalProperties: false
+  inertSourceMetadata:
+    family: energy_upstream_operations
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - completion_date
+          - well_name
+          - api_well_number
+          - operator_name
+          - completion_type
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - perforated_intervals
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

@@ -1,0 +1,232 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-manufacturing-receiving-report
+  title: Receiving Report
+  description: Receiving Report contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_receiving_report_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/receiving_report
+    sourcePath: Schemas/manufacturing/receiving_report
+    sourceVersion: manufacturing_receiving_report_v1
+    sourceDigest: 79bcc7b4e666edfa86c35c88725d1459a120448d0d804e6012a4b1b21bcfac5d
+spec:
+  role: completion
+  pages:
+    - id: main
+      title: Receiving Report
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: receipt-date
+              name: receipt_date
+              label: Receipt Date
+              description: Date goods were received.
+              dataType: date
+              widget: date
+              required: true
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: receiving-report-number
+              name: receiving_report_number
+              label: Receiving Report Number
+              description: Receiving report or goods receipt number.
+              dataType: string
+              widget: text
+              required: true
+            - id: purchase-order-number
+              name: purchase_order_number
+              label: Purchase Order Number
+              description: Related purchase order number.
+              dataType: string
+              widget: text
+              required: true
+            - id: packing-slip-number
+              name: packing_slip_number
+              label: Packing Slip Number
+              description: Supplier packing slip number.
+              dataType: string
+              widget: text
+            - id: received-by
+              name: received_by
+              label: Received By
+              description: Receiving employee or function.
+              dataType: string
+              widget: text
+            - id: shortage-or-overage
+              name: shortage_or_overage
+              label: Shortage Or Overage
+              description: Shortage, overage, or mismatch summary.
+              dataType: string
+              widget: text
+            - id: inspection-required
+              name: inspection_required
+              label: Inspection Required
+              description: Whether quality inspection is required.
+              dataType: boolean
+              widget: checkbox
+        - id: line-items
+          title: Line Items
+          description: Line Items fields extracted from the document.
+          fields:
+            - id: line-items-received
+              name: line_items_received
+              label: Line Items Received
+              description: Received line items with part, quantity ordered, quantity received, and disposition.
+              dataType: array
+              widget: textarea
+              required: true
+              span: 2
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: supplier-name
+              name: supplier_name
+              label: Supplier Name
+              description: Supplier name.
+              dataType: string
+              widget: text
+              required: true
+            - id: carrier-name
+              name: carrier_name
+              label: Carrier Name
+              description: Carrier or freight provider.
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: hold-status
+              name: hold_status
+              label: Hold Status
+              description: Released, on hold, rejected, pending inspection, or other status.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      receiving_report_number:
+        type: string
+        description: Receiving report or goods receipt number.
+      receipt_date:
+        type: date
+        description: Date goods were received.
+        format: date
+      purchase_order_number:
+        type: string
+        description: Related purchase order number.
+      supplier_name:
+        type: string
+        description: Supplier name.
+      packing_slip_number:
+        type: string
+        description: Supplier packing slip number.
+      carrier_name:
+        type: string
+        description: Carrier or freight provider.
+      received_by:
+        type: string
+        description: Receiving employee or function.
+      line_items_received:
+        type: array
+        items:
+          type: object
+          properties:
+            line_items_received_type:
+              type: string
+              description: Type or class for line_items_received item.
+            line_items_received_description:
+              type: string
+              description: Description for line_items_received item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Received line items with part, quantity ordered, quantity received, and disposition.
+      shortage_or_overage:
+        type: string
+        description: Shortage, overage, or mismatch summary.
+      inspection_required:
+        type: boolean
+        description: Whether quality inspection is required.
+      hold_status:
+        type: string
+        description: Released, on hold, rejected, pending inspection, or other status.
+    required:
+      - receiving_report_number
+      - receipt_date
+      - purchase_order_number
+      - supplier_name
+      - line_items_received
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: receiving_report_number_present
+          rule_type: presence
+          fields:
+            - receiving_report_number
+          expression: receiving_report_number IS NOT NULL AND LENGTH(TRIM(receiving_report_number)) > 0
+          severity: fail
+          description: receiving_report_number is required for Receiving Report extraction.
+        - name: receipt_date_present
+          rule_type: presence
+          fields:
+            - receipt_date
+          expression: receipt_date IS NOT NULL AND LENGTH(TRIM(receipt_date)) > 0
+          severity: fail
+          description: receipt_date is required for Receiving Report extraction.
+        - name: purchase_order_number_present
+          rule_type: presence
+          fields:
+            - purchase_order_number
+          expression: purchase_order_number IS NOT NULL AND LENGTH(TRIM(purchase_order_number)) > 0
+          severity: fail
+          description: purchase_order_number is required for Receiving Report extraction.
+        - name: supplier_name_present
+          rule_type: presence
+          fields:
+            - supplier_name
+          expression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
+          severity: fail
+          description: supplier_name is required for Receiving Report extraction.
+        - name: line_items_received_present
+          rule_type: array
+          fields:
+            - line_items_received
+          expression: line_items_received IS NOT NULL AND JSON_ARRAY_LENGTH(line_items_received) > 0
+          severity: fail
+          description: line_items_received is required for Receiving Report extraction.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - receiving_report_number
+            - receipt_date
+            - purchase_order_number
+            - supplier_name
+            - line_items_received
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - line_items
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields:
+            - line_items_received

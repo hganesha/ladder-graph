@@ -1,0 +1,261 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-manufacturing-quality-inspection-report
+  title: Quality Inspection Report
+  description: Quality Inspection Report contract normalized from the DocuBricks Manufacturing library.
+  version: manufacturing_quality_inspection_report_v1
+  source:
+    system: docubricks
+    sourceId: manufacturing/quality_inspection_report
+    sourcePath: Schemas/manufacturing/quality_inspection_report
+    sourceVersion: manufacturing_quality_inspection_report_v1
+    sourceDigest: 1eb5690cf2f749bea18a91741402c91d4739d29a54597b42f8d08e46f4ebfdfd
+spec:
+  role: review
+  pages:
+    - id: main
+      title: Quality Inspection Report
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: inspection-date
+              name: inspection_date
+              label: Inspection Date
+              description: Inspection date.
+              dataType: date
+              widget: date
+              required: true
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: inspection-report-number
+              name: inspection_report_number
+              label: Inspection Report Number
+              description: Inspection report number.
+              dataType: string
+              widget: text
+              required: true
+            - id: part-revision
+              name: part_revision
+              label: Part Revision
+              description: Part revision.
+              dataType: string
+              widget: text
+            - id: sample-size
+              name: sample_size
+              label: Sample Size
+              description: Sample size inspected.
+              dataType: integer
+              widget: number
+            - id: inspection-characteristics
+              name: inspection_characteristics
+              label: Inspection Characteristics
+              description: Measured characteristics with specification, result, and disposition.
+              dataType: array
+              widget: textarea
+              required: true
+              span: 2
+            - id: defect-count
+              name: defect_count
+              label: Defect Count
+              description: Count of defects found.
+              dataType: integer
+              widget: number
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: supplier-or-work-center
+              name: supplier_or_work_center
+              label: Supplier Or Work Center
+              description: Supplier, work center, or production cell.
+              dataType: string
+              widget: text
+            - id: inspector-name
+              name: inspector_name
+              label: Inspector Name
+              description: Inspector name.
+              dataType: string
+              widget: text
+            - id: approval-name
+              name: approval_name
+              label: Approval Name
+              description: Quality approver name.
+              dataType: string
+              widget: text
+        - id: property-or-asset
+          title: Property Or Asset
+          description: Property Or Asset fields extracted from the document.
+          fields:
+            - id: part-number
+              name: part_number
+              label: Part Number
+              description: Part number inspected.
+              dataType: string
+              widget: text
+              required: true
+            - id: lot-number
+              name: lot_number
+              label: Lot Number
+              description: Lot, batch, or serial group inspected.
+              dataType: string
+              widget: text
+              required: true
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: overall-disposition
+              name: overall_disposition
+              label: Overall Disposition
+              description: Accepted, rejected, rework, use-as-is, or other disposition.
+              dataType: string
+              widget: text
+              required: true
+  submissionSchema:
+    type: object
+    properties:
+      inspection_report_number:
+        type: string
+        description: Inspection report number.
+      inspection_date:
+        type: date
+        description: Inspection date.
+        format: date
+      part_number:
+        type: string
+        description: Part number inspected.
+      part_revision:
+        type: string
+        description: Part revision.
+      lot_number:
+        type: string
+        description: Lot, batch, or serial group inspected.
+      supplier_or_work_center:
+        type: string
+        description: Supplier, work center, or production cell.
+      sample_size:
+        type: integer
+        description: Sample size inspected.
+      inspection_characteristics:
+        type: array
+        items:
+          type: object
+          properties:
+            characteristic:
+              type: string
+              description: Inspected characteristic.
+            specification:
+              type: string
+              description: Specification or tolerance.
+            measured_value:
+              type: string
+              description: Measured value.
+            result:
+              type: string
+              description: Pass, fail, accepted, rejected, or other result.
+        description: Measured characteristics with specification, result, and disposition.
+      defect_count:
+        type: integer
+        description: Count of defects found.
+      overall_disposition:
+        type: string
+        description: Accepted, rejected, rework, use-as-is, or other disposition.
+      inspector_name:
+        type: string
+        description: Inspector name.
+      approval_name:
+        type: string
+        description: Quality approver name.
+    required:
+      - inspection_report_number
+      - inspection_date
+      - part_number
+      - lot_number
+      - inspection_characteristics
+      - overall_disposition
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: inspection_report_number_present
+          rule_type: presence
+          fields:
+            - inspection_report_number
+          expression: inspection_report_number IS NOT NULL AND LENGTH(TRIM(inspection_report_number)) > 0
+          severity: fail
+          description: inspection_report_number is required for Quality Inspection Report extraction.
+        - name: inspection_date_present
+          rule_type: presence
+          fields:
+            - inspection_date
+          expression: inspection_date IS NOT NULL AND LENGTH(TRIM(inspection_date)) > 0
+          severity: fail
+          description: inspection_date is required for Quality Inspection Report extraction.
+        - name: part_number_present
+          rule_type: presence
+          fields:
+            - part_number
+          expression: part_number IS NOT NULL AND LENGTH(TRIM(part_number)) > 0
+          severity: fail
+          description: part_number is required for Quality Inspection Report extraction.
+        - name: lot_number_present
+          rule_type: presence
+          fields:
+            - lot_number
+          expression: lot_number IS NOT NULL AND LENGTH(TRIM(lot_number)) > 0
+          severity: fail
+          description: lot_number is required for Quality Inspection Report extraction.
+        - name: inspection_characteristics_present
+          rule_type: array
+          fields:
+            - inspection_characteristics
+          expression: inspection_characteristics IS NOT NULL AND JSON_ARRAY_LENGTH(inspection_characteristics) > 0
+          severity: fail
+          description: inspection_characteristics is required for Quality Inspection Report extraction.
+        - name: overall_disposition_present
+          rule_type: presence
+          fields:
+            - overall_disposition
+          expression: overall_disposition IS NOT NULL AND LENGTH(TRIM(overall_disposition)) > 0
+          severity: fail
+          description: overall_disposition is required for Quality Inspection Report extraction.
+        - name: sample_size_non_negative
+          rule_type: range
+          fields:
+            - sample_size
+          expression: sample_size IS NULL OR sample_size >= 0
+          severity: warn
+          description: sample_size should be non-negative when present.
+        - name: defect_count_non_negative
+          rule_type: range
+          fields:
+            - defect_count
+          expression: defect_count IS NULL OR defect_count >= 0
+          severity: warn
+          description: defect_count should be non-negative when present.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - inspection_report_number
+            - inspection_date
+            - part_number
+            - lot_number
+            - inspection_characteristics
+            - overall_disposition
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - parties
+            - property_or_asset
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields:
+            - inspection_characteristics

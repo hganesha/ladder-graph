@@ -1,0 +1,272 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-insurance-certificate-of-insurance
+  title: Certificate Of Insurance
+  description: Certificate Of Insurance contract normalized from the DocuBricks Insurance library.
+  version: insurance_certificate_of_insurance_v1
+  source:
+    system: docubricks
+    sourceId: insurance/certificate_of_insurance
+    sourcePath: Schemas/insurance/certificate_of_insurance
+    sourceVersion: insurance_certificate_of_insurance_v1
+    sourceDigest: 1a2fb211bccdaaa9ce433c761e14fe81d61571e90ef8dce58d221dbcec415ba3
+spec:
+  documentType: certificate_of_insurance
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - certificate-date
+        - effective-dates
+        - expiration-dates
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - cancellation-notice-text
+        - description-of-operations
+        - limits
+        - waiver-of-subrogation-indicator
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - coverage-lines
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - additional-insured-indicator
+        - carrier-names
+        - certificate-holder-name
+        - insured-name
+        - producer-name
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - policy-numbers
+  fields:
+    - id: certificate-date
+      name: certificate_date
+      label: Certificate Date
+      description: Date the certificate was issued.
+      dataType: date
+      sourcePath: /fields/certificate_date
+    - id: producer-name
+      name: producer_name
+      label: Producer Name
+      description: Insurance producer or agency.
+      dataType: string
+      sourcePath: /fields/producer_name
+    - id: insured-name
+      name: insured_name
+      label: Insured Name
+      description: Insured party named on the certificate.
+      dataType: string
+      required: true
+      sourcePath: /fields/insured_name
+    - id: certificate-holder-name
+      name: certificate_holder_name
+      label: Certificate Holder Name
+      description: Certificate holder.
+      dataType: string
+      required: true
+      sourcePath: /fields/certificate_holder_name
+    - id: carrier-names
+      name: carrier_names
+      label: Carrier Names
+      description: Insurers affording coverage.
+      dataType: array
+      sourcePath: /fields/carrier_names
+    - id: policy-numbers
+      name: policy_numbers
+      label: Policy Numbers
+      description: Policy numbers shown on the certificate.
+      dataType: array
+      sourcePath: /fields/policy_numbers
+    - id: coverage-lines
+      name: coverage_lines
+      label: Coverage Lines
+      description: Coverage types listed.
+      dataType: array
+      required: true
+      sourcePath: /fields/coverage_lines
+    - id: effective-dates
+      name: effective_dates
+      label: Effective Dates
+      description: Effective dates by coverage line.
+      dataType: array
+      sourcePath: /fields/effective_dates
+    - id: expiration-dates
+      name: expiration_dates
+      label: Expiration Dates
+      description: Expiration dates by coverage line.
+      dataType: array
+      sourcePath: /fields/expiration_dates
+    - id: limits
+      name: limits
+      label: Limits
+      description: Limits by coverage line or limit type.
+      dataType: array
+      sourcePath: /fields/limits
+    - id: additional-insured-indicator
+      name: additional_insured_indicator
+      label: Additional Insured Indicator
+      description: Whether additional insured status is indicated.
+      dataType: boolean
+      sourcePath: /fields/additional_insured_indicator
+    - id: waiver-of-subrogation-indicator
+      name: waiver_of_subrogation_indicator
+      label: Waiver Of Subrogation Indicator
+      description: Whether waiver of subrogation is indicated.
+      dataType: boolean
+      sourcePath: /fields/waiver_of_subrogation_indicator
+    - id: description-of-operations
+      name: description_of_operations
+      label: Description Of Operations
+      description: Operations, locations, vehicles, or remarks.
+      dataType: string
+      sourcePath: /fields/description_of_operations
+    - id: cancellation-notice-text
+      name: cancellation_notice_text
+      label: Cancellation Notice Text
+      description: Cancellation notice language.
+      dataType: string
+      sourcePath: /fields/cancellation_notice_text
+  validationRules:
+    - id: insured-name-present
+      severity: error
+      description: insured_name is required for Certificate of Insurance extraction.
+      rule:
+        op: present
+        field: insured_name
+      sourceExpression: insured_name IS NOT NULL AND LENGTH(TRIM(insured_name)) > 0
+      supported: true
+    - id: certificate-holder-name-present
+      severity: error
+      description: certificate_holder_name is required for Certificate of Insurance extraction.
+      rule:
+        op: present
+        field: certificate_holder_name
+      sourceExpression: certificate_holder_name IS NOT NULL AND LENGTH(TRIM(certificate_holder_name)) > 0
+      supported: true
+    - id: coverage-lines-present
+      severity: error
+      description: coverage_lines is required for Certificate of Insurance extraction.
+      sourceExpression: coverage_lines IS NOT NULL AND JSON_ARRAY_LENGTH(coverage_lines) > 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      certificate_date:
+        type: date
+        description: Date the certificate was issued.
+        format: date
+      producer_name:
+        type: string
+        description: Insurance producer or agency.
+      insured_name:
+        type: string
+        description: Insured party named on the certificate.
+      certificate_holder_name:
+        type: string
+        description: Certificate holder.
+      carrier_names:
+        type: array
+        items:
+          type: string
+        description: Insurers affording coverage.
+      policy_numbers:
+        type: array
+        items:
+          type: string
+        description: Policy numbers shown on the certificate.
+      coverage_lines:
+        type: array
+        items:
+          type: string
+        description: Coverage types listed.
+      effective_dates:
+        type: array
+        items:
+          type: string
+        description: Effective dates by coverage line.
+      expiration_dates:
+        type: array
+        items:
+          type: string
+        description: Expiration dates by coverage line.
+      limits:
+        type: array
+        items:
+          type: object
+          properties:
+            limit_type:
+              type: string
+              description: Type or class for limits item.
+            limit_description:
+              type: string
+              description: Description for limits item.
+            amount:
+              type: number
+              description: Amount or value when stated.
+            date:
+              type: date
+              description: Relevant item date when stated.
+              format: date
+            status:
+              type: string
+              description: Item status or disposition when stated.
+        description: Limits by coverage line or limit type.
+      additional_insured_indicator:
+        type: boolean
+        description: Whether additional insured status is indicated.
+      waiver_of_subrogation_indicator:
+        type: boolean
+        description: Whether waiver of subrogation is indicated.
+      description_of_operations:
+        type: string
+        description: Operations, locations, vehicles, or remarks.
+      cancellation_notice_text:
+        type: string
+        description: Cancellation notice language.
+    required:
+      - insured_name
+      - certificate_holder_name
+      - coverage_lines
+    additionalProperties: false
+  inertSourceMetadata:
+    family: insurance_collateral_protection
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - insured_name
+          - certificate_holder_name
+          - coverage_lines
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - line_items
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - limits
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

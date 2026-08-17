@@ -1,0 +1,359 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-loan-agreement
+  title: Loan Agreement
+  description: Loan Agreement contract normalized from the DocuBricks Financial services library.
+  version: fs_loan_agreement_v1
+  source:
+    system: docubricks
+    sourceId: fs/loan_agreement
+    sourcePath: Schemas/fs/loan_agreement
+    sourceVersion: fs_loan_agreement_v1
+    sourceDigest: f20b738940e07655a721cd3466958136a1bf2e65f2ee705db9c21480c5bd5455
+spec:
+  documentType: loan_agreement
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - agreement-date
+        - amortization-terms
+        - maturity-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - affirmative-covenants
+        - assignment-clause-present
+        - facility-type
+        - financial-covenants
+        - governing-law
+        - jurisdiction-venue
+        - jury-trial-waiver
+        - negative-covenants
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - benchmark-rate
+        - commitment-amount
+        - default-rate-margin
+        - interest-rate-margin
+        - interest-rate-type
+        - payment-frequency
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - reporting-requirements
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - borrower-name
+        - guarantor-names
+        - lender-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - collateral-description
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - events-of-default
+  fields:
+    - id: agreement-date
+      name: agreement_date
+      label: Agreement Date
+      description: Date of the agreement.
+      dataType: date
+      sourcePath: /fields/agreement_date
+    - id: borrower-name
+      name: borrower_name
+      label: Borrower Name
+      description: Borrower legal name.
+      dataType: string
+      required: true
+      sourcePath: /fields/borrower_name
+    - id: lender-name
+      name: lender_name
+      label: Lender Name
+      description: Lender, administrative agent, or bank.
+      dataType: string
+      sourcePath: /fields/lender_name
+    - id: facility-type
+      name: facility_type
+      label: Facility Type
+      description: Term loan, revolving credit facility, delayed draw, line of credit, or other.
+      dataType: string
+      sourcePath: /fields/facility_type
+    - id: commitment-amount
+      name: commitment_amount
+      label: Commitment Amount
+      description: Principal commitment amount.
+      dataType: number
+      sourcePath: /fields/commitment_amount
+    - id: maturity-date
+      name: maturity_date
+      label: Maturity Date
+      description: Final maturity date.
+      dataType: date
+      sourcePath: /fields/maturity_date
+    - id: interest-rate-type
+      name: interest_rate_type
+      label: Interest Rate Type
+      description: Fixed, floating, SOFR, prime, base rate, or other.
+      dataType: string
+      sourcePath: /fields/interest_rate_type
+    - id: interest-rate-margin
+      name: interest_rate_margin
+      label: Interest Rate Margin
+      description: Margin/spread as percent if stated.
+      dataType: number
+      sourcePath: /fields/interest_rate_margin
+    - id: benchmark-rate
+      name: benchmark_rate
+      label: Benchmark Rate
+      description: SOFR, Term SOFR, Prime, Base Rate, or other.
+      dataType: string
+      sourcePath: /fields/benchmark_rate
+    - id: default-rate-margin
+      name: default_rate_margin
+      label: Default Rate Margin
+      description: Additional default interest margin.
+      dataType: number
+      sourcePath: /fields/default_rate_margin
+    - id: amortization-terms
+      name: amortization_terms
+      label: Amortization Terms
+      description: Payment/amortization description.
+      dataType: string
+      sourcePath: /fields/amortization_terms
+    - id: payment-frequency
+      name: payment_frequency
+      label: Payment Frequency
+      description: Monthly, quarterly, semiannual, annual, on demand, or other.
+      dataType: string
+      sourcePath: /fields/payment_frequency
+    - id: collateral-description
+      name: collateral_description
+      label: Collateral Description
+      description: Collateral securing the facility.
+      dataType: string
+      sourcePath: /fields/collateral_description
+    - id: guarantor-names
+      name: guarantor_names
+      label: Guarantor Names
+      description: Guarantors.
+      dataType: array
+      sourcePath: /fields/guarantor_names
+    - id: affirmative-covenants
+      name: affirmative_covenants
+      label: Affirmative Covenants
+      description: Affirmative covenants.
+      dataType: array
+      sourcePath: /fields/affirmative_covenants
+    - id: negative-covenants
+      name: negative_covenants
+      label: Negative Covenants
+      description: Negative covenants.
+      dataType: array
+      sourcePath: /fields/negative_covenants
+    - id: financial-covenants
+      name: financial_covenants
+      label: Financial Covenants
+      description: DSCR, leverage, liquidity, net worth, borrowing base, or other covenants.
+      dataType: array
+      sourcePath: /fields/financial_covenants
+    - id: reporting-requirements
+      name: reporting_requirements
+      label: Reporting Requirements
+      description: Financial statements, certificates, borrowing base reports, or other reporting.
+      dataType: array
+      sourcePath: /fields/reporting_requirements
+    - id: events-of-default
+      name: events_of_default
+      label: Events Of Default
+      description: Events of default.
+      dataType: array
+      sourcePath: /fields/events_of_default
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: Governing law jurisdiction.
+      dataType: string
+      sourcePath: /fields/governing_law
+    - id: jurisdiction-venue
+      name: jurisdiction_venue
+      label: Jurisdiction Venue
+      description: Court or venue clause.
+      dataType: string
+      sourcePath: /fields/jurisdiction_venue
+    - id: jury-trial-waiver
+      name: jury_trial_waiver
+      label: Jury Trial Waiver
+      description: Whether a jury trial waiver appears.
+      dataType: boolean
+      sourcePath: /fields/jury_trial_waiver
+    - id: assignment-clause-present
+      name: assignment_clause_present
+      label: Assignment Clause Present
+      description: Whether assignments/transfers are addressed.
+      dataType: boolean
+      sourcePath: /fields/assignment_clause_present
+  validationRules:
+    - id: borrower-name-present
+      severity: error
+      description: Loan agreement must identify the borrower.
+      rule:
+        op: present
+        field: borrower_name
+      sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
+      supported: true
+    - id: commitment-amount-positive
+      severity: warning
+      description: Commitment amount must be positive when present.
+      sourceExpression: commitment_amount IS NULL OR commitment_amount > 0
+      supported: false
+    - id: maturity-after-agreement-date
+      severity: warning
+      description: Maturity should be after agreement date.
+      sourceExpression: maturity_date IS NULL OR agreement_date IS NULL OR maturity_date > agreement_date
+      supported: false
+    - id: financial-covenants-array-valid
+      severity: warning
+      description: Financial covenants should be represented as an array.
+      sourceExpression: financial_covenants IS NULL OR JSON_ARRAY_LENGTH(financial_covenants) >= 0
+      supported: false
+    - id: governing-law-present
+      severity: warning
+      description: Governing law is important for legal ops and enforceability review.
+      rule:
+        op: present
+        field: governing_law
+      sourceExpression: governing_law IS NOT NULL AND LENGTH(TRIM(governing_law)) > 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      agreement_date:
+        type: date
+        description: Date of the agreement.
+        format: date
+      borrower_name:
+        type: string
+        description: Borrower legal name.
+      lender_name:
+        type: string
+        description: Lender, administrative agent, or bank.
+      facility_type:
+        type: string
+        description: Term loan, revolving credit facility, delayed draw, line of credit, or other.
+      commitment_amount:
+        type: number
+        description: Principal commitment amount.
+      maturity_date:
+        type: date
+        description: Final maturity date.
+        format: date
+      interest_rate_type:
+        type: string
+        description: Fixed, floating, SOFR, prime, base rate, or other.
+      interest_rate_margin:
+        type: number
+        description: Margin/spread as percent if stated.
+      benchmark_rate:
+        type: string
+        description: SOFR, Term SOFR, Prime, Base Rate, or other.
+      default_rate_margin:
+        type: number
+        description: Additional default interest margin.
+      amortization_terms:
+        type: string
+        description: Payment/amortization description.
+      payment_frequency:
+        type: string
+        description: Monthly, quarterly, semiannual, annual, on demand, or other.
+      collateral_description:
+        type: string
+        description: Collateral securing the facility.
+      guarantor_names:
+        type: array
+        items:
+          type: string
+        description: Guarantors.
+      affirmative_covenants:
+        type: array
+        items:
+          type: string
+        description: Affirmative covenants.
+      negative_covenants:
+        type: array
+        items:
+          type: string
+        description: Negative covenants.
+      financial_covenants:
+        type: array
+        items:
+          type: string
+        description: DSCR, leverage, liquidity, net worth, borrowing base, or other covenants.
+      reporting_requirements:
+        type: array
+        items:
+          type: string
+        description: Financial statements, certificates, borrowing base reports, or other reporting.
+      events_of_default:
+        type: array
+        items:
+          type: string
+        description: Events of default.
+      governing_law:
+        type: string
+        description: Governing law jurisdiction.
+      jurisdiction_venue:
+        type: string
+        description: Court or venue clause.
+      jury_trial_waiver:
+        type: boolean
+        description: Whether a jury trial waiver appears.
+      assignment_clause_present:
+        type: boolean
+        description: Whether assignments/transfers are addressed.
+    required:
+      - borrower_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: commercial_lending
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - borrower_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

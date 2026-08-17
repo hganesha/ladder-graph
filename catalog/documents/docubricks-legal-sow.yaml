@@ -1,0 +1,367 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-legal-sow
+  title: Sow
+  description: Sow contract normalized from the DocuBricks Legal library.
+  version: legal_sow_v1
+  source:
+    system: docubricks
+    sourceId: legal/sow
+    sourcePath: Schemas/legal/sow
+    sourceVersion: legal_sow_v1
+    sourceDigest: ebb9ff8927461672a03533f8d9711fa803fb458303e67e6ae6cc188331497a08
+spec:
+  documentType: sow
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - amendment-number
+        - due-date
+        - effective-date
+        - end-date
+        - payment-terms
+        - vendor-contact
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - acceptance-criteria-described
+        - change-order-process-described
+        - currency
+        - deliverables
+        - description
+        - governing-law
+        - pricing-model
+        - project-description
+        - sow-number
+        - sow-title
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - payment-schedule
+        - total-contract-value
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - client-name
+        - ip-ownership
+        - name
+        - vendor-name
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - client-contact
+        - client-po-number
+  fields:
+    - id: sow-number
+      name: sow_number
+      label: Sow Number
+      description: 'The unique SOW identifier or reference number (e.g., "SOW-2025-007", "SOW #3")'
+      dataType: string
+      sourcePath: /fields/sow_number
+    - id: sow-title
+      name: sow_title
+      label: Sow Title
+      description: Descriptive title of the statement of work
+      dataType: string
+      sourcePath: /fields/sow_title
+    - id: effective-date
+      name: effective_date
+      label: Effective Date
+      description: The date the SOW becomes effective, format YYYY-MM-DD
+      dataType: date
+      required: true
+      sourcePath: /fields/effective_date
+    - id: end-date
+      name: end_date
+      label: End Date
+      description: The date the SOW terminates or the project is expected to complete, format YYYY-MM-DD
+      dataType: date
+      sourcePath: /fields/end_date
+    - id: amendment-number
+      name: amendment_number
+      label: Amendment Number
+      description: If this is an amendment to an existing SOW, the amendment number as integer (null if original)
+      dataType: string
+      sourcePath: /fields/amendment_number
+    - id: client-name
+      name: client_name
+      label: Client Name
+      description: Full legal name of the client organization
+      dataType: string
+      sourcePath: /fields/client_name
+    - id: client-contact
+      name: client_contact
+      label: Client Contact
+      description: Name of the primary client contact person (project manager, sponsor, or signatory)
+      dataType: string
+      sourcePath: /fields/client_contact
+    - id: client-po-number
+      name: client_po_number
+      label: Client Po Number
+      description: Client's Purchase Order number referenced in the SOW (null if not present)
+      dataType: string
+      sourcePath: /fields/client_po_number
+    - id: vendor-name
+      name: vendor_name
+      label: Vendor Name
+      description: Full legal name of the vendor / service provider organization
+      dataType: string
+      sourcePath: /fields/vendor_name
+    - id: vendor-contact
+      name: vendor_contact
+      label: Vendor Contact
+      description: Name of the primary vendor contact person (project manager or account manager)
+      dataType: string
+      sourcePath: /fields/vendor_contact
+    - id: project-description
+      name: project_description
+      label: Project Description
+      description: Brief description of the project or engagement scope (up to 300 characters)
+      dataType: string
+      sourcePath: /fields/project_description
+    - id: deliverables
+      name: deliverables
+      label: Deliverables
+      description: "Array of deliverable objects. Each object must contain:"
+      dataType: array
+      sourcePath: /fields/deliverables
+    - id: name
+      name: name
+      label: Name
+      description: Short name of the deliverable
+      dataType: string
+      sourcePath: /fields/name
+    - id: description
+      name: description
+      label: Description
+      description: Brief description of the deliverable (up to 150 chars)
+      dataType: string
+      sourcePath: /fields/description
+    - id: due-date
+      name: due_date
+      label: Due Date
+      description: Due date in format YYYY-MM-DD (null if not specified for this deliverable)
+      dataType: date
+      sourcePath: /fields/due_date
+    - id: pricing-model
+      name: pricing_model
+      label: Pricing Model
+      description: "The pricing structure. One of: Fixed | T&M | Retainer | Milestone | Other"
+      dataType: string
+      sourcePath: /fields/pricing_model
+    - id: total-contract-value
+      name: total_contract_value
+      label: Total Contract Value
+      description: Total value of the SOW as decimal (null if T&M with no cap, or retainer with no stated total)
+      dataType: number
+      sourcePath: /fields/total_contract_value
+    - id: currency
+      name: currency
+      label: Currency
+      description: Currency code (e.g., "USD", "EUR", "GBP")
+      dataType: string
+      sourcePath: /fields/currency
+    - id: payment-terms
+      name: payment_terms
+      label: Payment Terms
+      description: Payment terms as stated (e.g., "Net 30", "50% upfront / 50% on completion", "Monthly in arrears")
+      dataType: number
+      sourcePath: /fields/payment_terms
+    - id: payment-schedule
+      name: payment_schedule
+      label: Payment Schedule
+      description: Description of the payment schedule or milestones for billing (up to 200 chars)
+      dataType: number
+      sourcePath: /fields/payment_schedule
+    - id: acceptance-criteria-described
+      name: acceptance_criteria_described
+      label: Acceptance Criteria Described
+      description: Boolean — true if the SOW contains defined acceptance criteria for deliverables
+      dataType: string
+      sourcePath: /fields/acceptance_criteria_described
+    - id: change-order-process-described
+      name: change_order_process_described
+      label: Change Order Process Described
+      description: Boolean — true if the SOW describes a change order or change control process
+      dataType: string
+      sourcePath: /fields/change_order_process_described
+    - id: ip-ownership
+      name: ip_ownership
+      label: Ip Ownership
+      description: "Who owns intellectual property created under this SOW. One of: Client | Vendor | Joint | null"
+      dataType: string
+      sourcePath: /fields/ip_ownership
+    - id: governing-law
+      name: governing_law
+      label: Governing Law
+      description: The state or jurisdiction whose laws govern the SOW (e.g., "CA", "NY", "DE")
+      dataType: string
+      sourcePath: /fields/governing_law
+  validationRules:
+    - id: document-id-present
+      severity: error
+      description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
+        audit trail, and deduplication
+      sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
+      supported: false
+    - id: avg-confidence-acceptable
+      severity: warning
+      description: Overall extraction confidence below 0.68 indicates the document may be a scan of low quality,
+        partially missing, or in an unsupported format; route to quarantine for human review
+      sourceExpression: avg_confidence >= 0.68
+      supported: false
+    - id: effective-date-not-null
+      severity: warning
+      description: Effective date is required to anchor the project timeline, trigger billing schedules, and manage
+        SLA obligations; records without it are not actionable
+      rule:
+        op: present
+        field: effective_date
+      sourceExpression: effective_date IS NOT NULL
+      supported: true
+    - id: total-contract-value-positive
+      severity: warning
+      description: Contract value must be positive when present; zero or negative values indicate an extraction
+        error or corrupt financial data
+      sourceExpression: total_contract_value IS NULL OR total_contract_value > 0
+      supported: false
+    - id: deliverables-present
+      severity: warning
+      description: A SOW should define at least one deliverable; absence may indicate extraction failure or an
+        incomplete document requiring human review
+      sourceExpression: deliverables IS NOT NULL AND JSON_ARRAY_LENGTH(deliverables) > 0
+      supported: false
+    - id: payment-terms-present
+      severity: warning
+      description: Payment terms are required for accounts payable / receivable processing; absence blocks invoice
+        automation
+      rule:
+        op: present
+        field: payment_terms
+      sourceExpression: payment_terms IS NOT NULL AND LENGTH(TRIM(payment_terms)) > 0
+      supported: true
+    - id: end-date-after-effective-date
+      severity: warning
+      description: End date must be after effective date if both are present; inversion indicates a date extraction
+        or data entry error
+      sourceExpression: end_date IS NULL OR effective_date IS NULL OR end_date > effective_date
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      sow_number:
+        type: string
+        description: 'The unique SOW identifier or reference number (e.g., "SOW-2025-007", "SOW #3")'
+      sow_title:
+        type: string
+        description: Descriptive title of the statement of work
+      effective_date:
+        type: date
+        description: The date the SOW becomes effective, format YYYY-MM-DD
+        format: date
+      end_date:
+        type: date
+        description: The date the SOW terminates or the project is expected to complete, format YYYY-MM-DD
+        format: date
+      amendment_number:
+        type: string
+        description: If this is an amendment to an existing SOW, the amendment number as integer (null if original)
+      client_name:
+        type: string
+        description: Full legal name of the client organization
+      client_contact:
+        type: string
+        description: Name of the primary client contact person (project manager, sponsor, or signatory)
+      client_po_number:
+        type: string
+        description: Client's Purchase Order number referenced in the SOW (null if not present)
+      vendor_name:
+        type: string
+        description: Full legal name of the vendor / service provider organization
+      vendor_contact:
+        type: string
+        description: Name of the primary vendor contact person (project manager or account manager)
+      project_description:
+        type: string
+        description: Brief description of the project or engagement scope (up to 300 characters)
+      deliverables:
+        type: array
+        items:
+          type: string
+        description: "Array of deliverable objects. Each object must contain:"
+      name:
+        type: string
+        description: Short name of the deliverable
+      description:
+        type: string
+        description: Brief description of the deliverable (up to 150 chars)
+      due_date:
+        type: date
+        description: Due date in format YYYY-MM-DD (null if not specified for this deliverable)
+        format: date
+      pricing_model:
+        type: string
+        description: "The pricing structure. One of: Fixed | T&M | Retainer | Milestone | Other"
+      total_contract_value:
+        type: number
+        description: Total value of the SOW as decimal (null if T&M with no cap, or retainer with no stated total)
+      currency:
+        type: string
+        description: Currency code (e.g., "USD", "EUR", "GBP")
+      payment_terms:
+        type: number
+        description: Payment terms as stated (e.g., "Net 30", "50% upfront / 50% on completion", "Monthly in arrears")
+      payment_schedule:
+        type: number
+        description: Description of the payment schedule or milestones for billing (up to 200 chars)
+      acceptance_criteria_described:
+        type: string
+        description: Boolean — true if the SOW contains defined acceptance criteria for deliverables
+      change_order_process_described:
+        type: string
+        description: Boolean — true if the SOW describes a change order or change control process
+      ip_ownership:
+        type: string
+        description: "Who owns intellectual property created under this SOW. One of: Client | Vendor | Joint | null"
+      governing_law:
+        type: string
+        description: The state or jurisdiction whose laws govern the SOW (e.g., "CA", "NY", "DE")
+    required:
+      - effective_date
+    additionalProperties: false
+  inertSourceMetadata:
+    family: contracts
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - effective_date
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

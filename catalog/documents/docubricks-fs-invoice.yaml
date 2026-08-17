@@ -1,0 +1,339 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-invoice
+  title: Invoice
+  description: Invoice contract normalized from the DocuBricks Financial services library.
+  version: fs_invoice_v1
+  source:
+    system: docubricks
+    sourceId: fs/invoice
+    sourcePath: Schemas/fs/invoice
+    sourceVersion: fs_invoice_v1
+    sourceDigest: 2f269eb323a3083e9d65292d556f639ec51d1de1977cc47657b6c3884f78f081
+spec:
+  documentType: invoice
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - amount-due
+        - due-date
+        - invoice-date
+        - payment-terms
+        - vendor-tax-id-masked
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - currency
+        - invoice-number
+        - line-item-count
+        - purchase-order-number
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - discount-amount
+        - shipping-amount
+        - subtotal
+        - tax-amount
+        - total-amount
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - line-items
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - customer-address
+        - customer-name
+        - vendor-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - vendor-address
+  fields:
+    - id: invoice-number
+      name: invoice_number
+      label: Invoice Number
+      description: Invoice number
+      dataType: string
+      required: true
+      sourcePath: /fields/invoice_number
+    - id: invoice-date
+      name: invoice_date
+      label: Invoice Date
+      description: Invoice date
+      dataType: date
+      sourcePath: /fields/invoice_date
+    - id: due-date
+      name: due_date
+      label: Due Date
+      description: Due date
+      dataType: date
+      sourcePath: /fields/due_date
+    - id: vendor-name
+      name: vendor_name
+      label: Vendor Name
+      description: Vendor name
+      dataType: string
+      required: true
+      sourcePath: /fields/vendor_name
+    - id: vendor-tax-id-masked
+      name: vendor_tax_id_masked
+      label: Vendor Tax Id Masked
+      description: Vendor tax id masked
+      dataType: string
+      sourcePath: /fields/vendor_tax_id_masked
+    - id: vendor-address
+      name: vendor_address
+      label: Vendor Address
+      description: Vendor address
+      dataType: string
+      sourcePath: /fields/vendor_address
+    - id: customer-name
+      name: customer_name
+      label: Customer Name
+      description: Customer name
+      dataType: string
+      sourcePath: /fields/customer_name
+    - id: customer-address
+      name: customer_address
+      label: Customer Address
+      description: Customer address
+      dataType: string
+      sourcePath: /fields/customer_address
+    - id: purchase-order-number
+      name: purchase_order_number
+      label: Purchase Order Number
+      description: Purchase order number
+      dataType: string
+      sourcePath: /fields/purchase_order_number
+    - id: currency
+      name: currency
+      label: Currency
+      description: Currency
+      dataType: string
+      sourcePath: /fields/currency
+    - id: subtotal
+      name: subtotal
+      label: Subtotal
+      description: Subtotal
+      dataType: number
+      sourcePath: /fields/subtotal
+    - id: tax-amount
+      name: tax_amount
+      label: Tax Amount
+      description: Tax amount
+      dataType: number
+      sourcePath: /fields/tax_amount
+    - id: shipping-amount
+      name: shipping_amount
+      label: Shipping Amount
+      description: Shipping amount
+      dataType: number
+      sourcePath: /fields/shipping_amount
+    - id: discount-amount
+      name: discount_amount
+      label: Discount Amount
+      description: Discount amount
+      dataType: number
+      sourcePath: /fields/discount_amount
+    - id: total-amount
+      name: total_amount
+      label: Total Amount
+      description: Total amount
+      dataType: number
+      required: true
+      sourcePath: /fields/total_amount
+    - id: amount-due
+      name: amount_due
+      label: Amount Due
+      description: Amount due
+      dataType: number
+      sourcePath: /fields/amount_due
+    - id: payment-terms
+      name: payment_terms
+      label: Payment Terms
+      description: Payment terms
+      dataType: number
+      sourcePath: /fields/payment_terms
+    - id: line-item-count
+      name: line_item_count
+      label: Line Item Count
+      description: Line item count
+      dataType: integer
+      sourcePath: /fields/line_item_count
+    - id: line-items
+      name: line_items
+      label: Line Items
+      description: Individual line items extracted from the invoice
+      dataType: array
+      sourcePath: /fields/line_items
+  validationRules:
+    - id: invoice-number-present
+      severity: error
+      description: Invoice number is required for accounts payable matching.
+      rule:
+        op: present
+        field: invoice_number
+      sourceExpression: invoice_number IS NOT NULL AND LENGTH(TRIM(invoice_number)) > 0
+      supported: true
+    - id: vendor-name-present
+      severity: error
+      description: Vendor name is required for payment routing.
+      rule:
+        op: present
+        field: vendor_name
+      sourceExpression: vendor_name IS NOT NULL AND LENGTH(TRIM(vendor_name)) > 0
+      supported: true
+    - id: total-amount-non-negative
+      severity: error
+      description: Invoice total must be present and non-negative.
+      rule:
+        op: gte
+        left:
+          field: total_amount
+        right:
+          value: 0
+      sourceExpression: total_amount IS NOT NULL AND total_amount >= 0
+      supported: true
+    - id: amount-due-non-negative
+      severity: warning
+      description: Amount due cannot be negative.
+      rule:
+        op: gte
+        left:
+          field: amount_due
+        right:
+          value: 0
+      sourceExpression: amount_due IS NULL OR amount_due >= 0
+      supported: true
+    - id: due-date-not-before-invoice-date
+      severity: warning
+      description: Due date should not precede invoice date.
+      sourceExpression: invoice_date IS NULL OR due_date IS NULL OR due_date >= invoice_date
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      invoice_number:
+        type: string
+        description: Invoice number
+      invoice_date:
+        type: date
+        description: Invoice date
+        format: date
+      due_date:
+        type: date
+        description: Due date
+        format: date
+      vendor_name:
+        type: string
+        description: Vendor name
+      vendor_tax_id_masked:
+        type: string
+        description: Vendor tax id masked
+      vendor_address:
+        type: string
+        description: Vendor address
+      customer_name:
+        type: string
+        description: Customer name
+      customer_address:
+        type: string
+        description: Customer address
+      purchase_order_number:
+        type: string
+        description: Purchase order number
+      currency:
+        type: string
+        description: Currency
+      subtotal:
+        type: number
+        description: Subtotal
+      tax_amount:
+        type: number
+        description: Tax amount
+      shipping_amount:
+        type: number
+        description: Shipping amount
+      discount_amount:
+        type: number
+        description: Discount amount
+      total_amount:
+        type: number
+        description: Total amount
+      amount_due:
+        type: number
+        description: Amount due
+      payment_terms:
+        type: number
+        description: Payment terms
+      line_item_count:
+        type: integer
+        description: Line item count
+      line_items:
+        type: array
+        items:
+          type: object
+          properties:
+            line_number:
+              type: string
+              description: Line number.
+            description:
+              type: string
+              description: Line description.
+            quantity:
+              type: number
+              description: Quantity.
+            unit_amount:
+              type: number
+              description: Unit amount or price.
+            total_amount:
+              type: number
+              description: Line total amount.
+        description: Individual line items extracted from the invoice
+    required:
+      - invoice_number
+      - vendor_name
+      - total_amount
+    additionalProperties: false
+  inertSourceMetadata:
+    family: accounts_payable
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - invoice_number
+          - vendor_name
+          - total_amount
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - line_items
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

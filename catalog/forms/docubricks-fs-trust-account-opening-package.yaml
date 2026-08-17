@@ -1,0 +1,287 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: docubricks-fs-trust-account-opening-package
+  title: Trust Account Opening Package
+  description: Trust Account Opening Package contract normalized from the DocuBricks Financial services library.
+  version: fs_trust_account_opening_package_v1
+  source:
+    system: docubricks
+    sourceId: fs/trust_account_opening_package
+    sourcePath: Schemas/fs/trust_account_opening_package
+    sourceVersion: fs_trust_account_opening_package_v1
+    sourceDigest: 004a6398ca97a1e761afa0d7c6369bdba9db50ffe6f69e02d005096a74833d83
+spec:
+  role: start
+  pages:
+    - id: main
+      title: Trust Account Opening Package
+      sections:
+        - id: dates-and-terms
+          title: Dates And Terms
+          description: Dates And Terms fields extracted from the document.
+          fields:
+            - id: application-date
+              name: application_date
+              label: Application Date
+              description: Date the account package was completed.
+              dataType: date
+              widget: date
+        - id: document-details
+          title: Document Details
+          description: Document Details fields extracted from the document.
+          fields:
+            - id: trust-type
+              name: trust_type
+              label: Trust Type
+              description: Revocable, irrevocable, testamentary, estate, charitable, special needs, or other.
+              dataType: string
+              widget: text
+            - id: jurisdiction
+              name: jurisdiction
+              label: Jurisdiction
+              description: Governing state or country.
+              dataType: string
+              widget: text
+            - id: fiduciary-powers
+              name: fiduciary_powers
+              label: Fiduciary Powers
+              description: Investment, distribution, borrowing, pledge, or other powers.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: investment-objective
+              name: investment_objective
+              label: Investment Objective
+              description: Investment objective or account purpose.
+              dataType: string
+              widget: text
+            - id: source-of-funds
+              name: source_of_funds
+              label: Source Of Funds
+              description: Source of initial funding.
+              dataType: string
+              widget: text
+            - id: account-type-requested
+              name: account_type_requested
+              label: Account Type Requested
+              description: Trust brokerage, fiduciary checking, estate account, managed account, or other.
+              dataType: string
+              widget: text
+            - id: document-checklist
+              name: document_checklist
+              label: Document Checklist
+              description: Documents received or required.
+              dataType: array
+              widget: textarea
+              span: 2
+        - id: financials
+          title: Financials
+          description: Financials fields extracted from the document.
+          fields:
+            - id: trust-tax-id-masked
+              name: trust_tax_id_masked
+              label: Trust Tax Id Masked
+              description: Masked trust EIN or tax identifier.
+              dataType: string
+              widget: text
+            - id: initial-deposit-amount
+              name: initial_deposit_amount
+              label: Initial Deposit Amount
+              description: Initial deposit or transfer amount.
+              dataType: number
+              widget: number
+            - id: tax-certification-status
+              name: tax_certification_status
+              label: Tax Certification Status
+              description: W-9, W-8, exempt, missing, or other tax certification status.
+              dataType: string
+              widget: text
+        - id: parties
+          title: Parties
+          description: Parties fields extracted from the document.
+          fields:
+            - id: trust-name
+              name: trust_name
+              label: Trust Name
+              description: Legal name of trust or estate.
+              dataType: string
+              widget: text
+              required: true
+            - id: grantor-names
+              name: grantor_names
+              label: Grantor Names
+              description: Grantors, settlors, or decedent names.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: trustee-names
+              name: trustee_names
+              label: Trustee Names
+              description: Trustees or personal representatives.
+              dataType: array
+              widget: textarea
+              required: true
+              span: 2
+            - id: authorized-signer-names
+              name: authorized_signer_names
+              label: Authorized Signer Names
+              description: Authorized account signers.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: beneficiary-names
+              name: beneficiary_names
+              label: Beneficiary Names
+              description: Named beneficiaries when present.
+              dataType: array
+              widget: textarea
+              span: 2
+            - id: beneficial-ownership-required
+              name: beneficial_ownership_required
+              label: Beneficial Ownership Required
+              description: Whether beneficial ownership certification is required or referenced.
+              dataType: boolean
+              widget: checkbox
+            - id: relationship-manager-name
+              name: relationship_manager_name
+              label: Relationship Manager Name
+              description: Advisor, banker, or relationship manager.
+              dataType: string
+              widget: text
+        - id: risk-and-compliance
+          title: Risk And Compliance
+          description: Risk And Compliance fields extracted from the document.
+          fields:
+            - id: risk-tolerance
+              name: risk_tolerance
+              label: Risk Tolerance
+              description: Conservative, moderate, aggressive, or stated risk profile.
+              dataType: string
+              widget: text
+            - id: approval-status
+              name: approval_status
+              label: Approval Status
+              description: Approved, pending, rejected, conditional, or other.
+              dataType: string
+              widget: text
+  submissionSchema:
+    type: object
+    properties:
+      application_date:
+        type: date
+        description: Date the account package was completed.
+        format: date
+      trust_name:
+        type: string
+        description: Legal name of trust or estate.
+      trust_type:
+        type: string
+        description: Revocable, irrevocable, testamentary, estate, charitable, special needs, or other.
+      trust_tax_id_masked:
+        type: string
+        description: Masked trust EIN or tax identifier.
+      jurisdiction:
+        type: string
+        description: Governing state or country.
+      grantor_names:
+        type: array
+        items:
+          type: string
+        description: Grantors, settlors, or decedent names.
+      trustee_names:
+        type: array
+        items:
+          type: string
+        description: Trustees or personal representatives.
+      authorized_signer_names:
+        type: array
+        items:
+          type: string
+        description: Authorized account signers.
+      beneficiary_names:
+        type: array
+        items:
+          type: string
+        description: Named beneficiaries when present.
+      fiduciary_powers:
+        type: array
+        items:
+          type: string
+        description: Investment, distribution, borrowing, pledge, or other powers.
+      investment_objective:
+        type: string
+        description: Investment objective or account purpose.
+      risk_tolerance:
+        type: string
+        description: Conservative, moderate, aggressive, or stated risk profile.
+      source_of_funds:
+        type: string
+        description: Source of initial funding.
+      initial_deposit_amount:
+        type: number
+        description: Initial deposit or transfer amount.
+      account_type_requested:
+        type: string
+        description: Trust brokerage, fiduciary checking, estate account, managed account, or other.
+      tax_certification_status:
+        type: string
+        description: W-9, W-8, exempt, missing, or other tax certification status.
+      beneficial_ownership_required:
+        type: boolean
+        description: Whether beneficial ownership certification is required or referenced.
+      document_checklist:
+        type: array
+        items:
+          type: string
+        description: Documents received or required.
+      approval_status:
+        type: string
+        description: Approved, pending, rejected, conditional, or other.
+      relationship_manager_name:
+        type: string
+        description: Advisor, banker, or relationship manager.
+    required:
+      - trust_name
+      - trustee_names
+    additionalProperties: false
+    x-ladder-docubricks:
+      validationRules:
+        - name: trust_name_present
+          rule_type: presence
+          fields:
+            - trust_name
+          expression: trust_name IS NOT NULL AND LENGTH(TRIM(trust_name)) > 0
+          severity: fail
+          description: trust_name is required for Trust Account Opening Package extraction.
+        - name: trustee_names_present
+          rule_type: array
+          fields:
+            - trustee_names
+          expression: trustee_names IS NOT NULL AND JSON_ARRAY_LENGTH(trustee_names) > 0
+          severity: fail
+          description: trustee_names is required for Trust Account Opening Package extraction.
+        - name: initial_deposit_amount_non_negative
+          rule_type: range
+          fields:
+            - initial_deposit_amount
+          expression: initial_deposit_amount IS NULL OR initial_deposit_amount >= 0
+          severity: warn
+          description: initial_deposit_amount should be non-negative when present.
+      completenessChecklist:
+        - id: required_fields_present
+          description: All required fields are present or explicitly null with low confidence when absent.
+          fields:
+            - trust_name
+            - trustee_names
+        - id: section_coverage_reviewed
+          description: Each declared section was reviewed for extractable evidence.
+          sections:
+            - dates_and_terms
+            - document_details
+            - financials
+            - parties
+            - risk_and_compliance
+        - id: nested_lists_normalized
+          description: Object array fields use their item_schema for consistent nested extraction.
+          fields: []

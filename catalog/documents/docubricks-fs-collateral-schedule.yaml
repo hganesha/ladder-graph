@@ -1,0 +1,347 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-collateral-schedule
+  title: Collateral Schedule
+  description: Collateral Schedule contract normalized from the DocuBricks Financial services library.
+  version: fs_collateral_schedule_v1
+  source:
+    system: docubricks
+    sourceId: fs/collateral_schedule
+    sourcePath: Schemas/fs/collateral_schedule
+    sourceVersion: fs_collateral_schedule_v1
+    sourceDigest: 07be3349fde413a2085ba74d15594aa043c0c7a7d5b3b642772230774eb115aa
+spec:
+  documentType: collateral_schedule
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - appraisal-date
+        - schedule-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - agreement-reference
+        - insurance-required
+        - valuation-method
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - advance-rate-percent
+        - borrowing-base-amount
+        - prior-liens-amount
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - borrower-name
+        - lender-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - collateral-category
+        - collateral-description
+        - collateral-items
+        - collateral-location
+        - eligible-collateral-value
+        - total-collateral-value
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - lien-position
+        - perfection-method
+  fields:
+    - id: schedule-date
+      name: schedule_date
+      label: Schedule Date
+      description: Date of schedule.
+      dataType: date
+      sourcePath: /fields/schedule_date
+    - id: borrower-name
+      name: borrower_name
+      label: Borrower Name
+      description: Borrower or owner of collateral.
+      dataType: string
+      required: true
+      sourcePath: /fields/borrower_name
+    - id: lender-name
+      name: lender_name
+      label: Lender Name
+      description: Secured party or lender.
+      dataType: string
+      sourcePath: /fields/lender_name
+    - id: agreement-reference
+      name: agreement_reference
+      label: Agreement Reference
+      description: Loan/security agreement referenced.
+      dataType: string
+      sourcePath: /fields/agreement_reference
+    - id: collateral-category
+      name: collateral_category
+      label: Collateral Category
+      description: Accounts receivable, inventory, equipment, real estate, deposit accounts, securities, vehicles,
+        mixed, or other.
+      dataType: string
+      sourcePath: /fields/collateral_category
+    - id: collateral-description
+      name: collateral_description
+      label: Collateral Description
+      description: General description of collateral.
+      dataType: string
+      required: true
+      sourcePath: /fields/collateral_description
+    - id: collateral-location
+      name: collateral_location
+      label: Collateral Location
+      description: Location of collateral if stated.
+      dataType: string
+      sourcePath: /fields/collateral_location
+    - id: total-collateral-value
+      name: total_collateral_value
+      label: Total Collateral Value
+      description: Total stated value.
+      dataType: number
+      sourcePath: /fields/total_collateral_value
+    - id: eligible-collateral-value
+      name: eligible_collateral_value
+      label: Eligible Collateral Value
+      description: Eligible value after exclusions/reserves.
+      dataType: number
+      sourcePath: /fields/eligible_collateral_value
+    - id: advance-rate-percent
+      name: advance_rate_percent
+      label: Advance Rate Percent
+      description: Advance rate percentage.
+      dataType: number
+      sourcePath: /fields/advance_rate_percent
+    - id: borrowing-base-amount
+      name: borrowing_base_amount
+      label: Borrowing Base Amount
+      description: Borrowing base amount.
+      dataType: number
+      sourcePath: /fields/borrowing_base_amount
+    - id: appraisal-date
+      name: appraisal_date
+      label: Appraisal Date
+      description: Appraisal or valuation date.
+      dataType: date
+      sourcePath: /fields/appraisal_date
+    - id: valuation-method
+      name: valuation_method
+      label: Valuation Method
+      description: Appraisal, book value, market value, invoice value, NADA, or other.
+      dataType: string
+      sourcePath: /fields/valuation_method
+    - id: lien-position
+      name: lien_position
+      label: Lien Position
+      description: First priority, second priority, subordinated, unknown, or other.
+      dataType: string
+      sourcePath: /fields/lien_position
+    - id: prior-liens-amount
+      name: prior_liens_amount
+      label: Prior Liens Amount
+      description: Amount of prior liens if stated.
+      dataType: number
+      sourcePath: /fields/prior_liens_amount
+    - id: insurance-required
+      name: insurance_required
+      label: Insurance Required
+      description: Whether insurance is required or referenced.
+      dataType: boolean
+      sourcePath: /fields/insurance_required
+    - id: perfection-method
+      name: perfection_method
+      label: Perfection Method
+      description: UCC filing, possession, control agreement, title lien, mortgage, or other.
+      dataType: string
+      sourcePath: /fields/perfection_method
+    - id: collateral-items
+      name: collateral_items
+      label: Collateral Items
+      description: Item-level collateral entries with item_id, description, value, location, serial_number, vin, or
+        account_number_masked when present.
+      dataType: array
+      sourcePath: /fields/collateral_items
+  validationRules:
+    - id: borrower-name-present
+      severity: error
+      description: Collateral schedule must identify the borrower or collateral owner.
+      rule:
+        op: present
+        field: borrower_name
+      sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
+      supported: true
+    - id: collateral-description-present
+      severity: warning
+      description: Collateral description is required to use the schedule.
+      rule:
+        op: present
+        field: collateral_description
+      sourceExpression: collateral_description IS NOT NULL AND LENGTH(TRIM(collateral_description)) > 0
+      supported: true
+    - id: collateral-value-non-negative
+      severity: warning
+      description: Collateral value cannot be negative.
+      rule:
+        op: gte
+        left:
+          field: total_collateral_value
+        right:
+          value: 0
+      sourceExpression: total_collateral_value IS NULL OR total_collateral_value >= 0
+      supported: true
+    - id: advance-rate-range
+      severity: warning
+      description: Advance rate should be between 0 and 100 percent.
+      rule:
+        op: gte
+        left:
+          field: advance_rate_percent
+        right:
+          value: 0
+      sourceExpression: advance_rate_percent IS NULL OR (advance_rate_percent >= 0 AND advance_rate_percent <= 100)
+      supported: true
+    - id: collateral-items-array-valid
+      severity: warning
+      description: Item-level collateral should be represented as an array.
+      sourceExpression: collateral_items IS NULL OR JSON_ARRAY_LENGTH(collateral_items) >= 0
+      supported: false
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      schedule_date:
+        type: date
+        description: Date of schedule.
+        format: date
+      borrower_name:
+        type: string
+        description: Borrower or owner of collateral.
+      lender_name:
+        type: string
+        description: Secured party or lender.
+      agreement_reference:
+        type: string
+        description: Loan/security agreement referenced.
+      collateral_category:
+        type: string
+        description: Accounts receivable, inventory, equipment, real estate, deposit accounts, securities, vehicles,
+          mixed, or other.
+      collateral_description:
+        type: string
+        description: General description of collateral.
+      collateral_location:
+        type: string
+        description: Location of collateral if stated.
+      total_collateral_value:
+        type: number
+        description: Total stated value.
+      eligible_collateral_value:
+        type: number
+        description: Eligible value after exclusions/reserves.
+      advance_rate_percent:
+        type: number
+        description: Advance rate percentage.
+      borrowing_base_amount:
+        type: number
+        description: Borrowing base amount.
+      appraisal_date:
+        type: date
+        description: Appraisal or valuation date.
+        format: date
+      valuation_method:
+        type: string
+        description: Appraisal, book value, market value, invoice value, NADA, or other.
+      lien_position:
+        type: string
+        description: First priority, second priority, subordinated, unknown, or other.
+      prior_liens_amount:
+        type: number
+        description: Amount of prior liens if stated.
+      insurance_required:
+        type: boolean
+        description: Whether insurance is required or referenced.
+      perfection_method:
+        type: string
+        description: UCC filing, possession, control agreement, title lien, mortgage, or other.
+      collateral_items:
+        type: array
+        items:
+          type: object
+          properties:
+            asset_id:
+              type: string
+              description: Unique asset, collateral, VIN, serial, parcel, or internal identifier.
+            asset_type:
+              type: string
+              description: Collateral type such as equipment, inventory, receivable, vehicle, real estate, cash, or
+                securities.
+            asset_description:
+              type: string
+              description: Specific asset or collateral description.
+            owner_name:
+              type: string
+              description: Owner or pledgor of the asset.
+            location:
+              type: string
+              description: Physical or custodial location of the asset.
+            value_amount:
+              type: number
+              description: Stated value for the asset.
+            valuation_date:
+              type: date
+              description: Date of valuation or appraisal.
+              format: date
+            lien_position:
+              type: string
+              description: Lien priority for the asset.
+            perfection_status:
+              type: string
+              description: Perfected, unperfected, pending, expired, or unknown perfection status.
+            insurance_status:
+              type: string
+              description: Insurance coverage status if stated.
+        description: Item-level collateral entries with item_id, description, value, location, serial_number, vin, or
+          account_number_masked when present.
+    required:
+      - borrower_name
+      - collateral_description
+    additionalProperties: false
+  inertSourceMetadata:
+    family: commercial_lending
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - borrower_name
+          - collateral_description
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields:
+          - collateral_items
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

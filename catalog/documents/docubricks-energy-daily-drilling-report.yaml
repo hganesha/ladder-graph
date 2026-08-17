@@ -1,0 +1,373 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-energy-daily-drilling-report
+  title: Daily Drilling Report
+  description: Daily Drilling Report contract normalized from the DocuBricks Energy library.
+  version: energy_daily_drilling_report_v1
+  source:
+    system: docubricks
+    sourceId: energy/daily_drilling_report
+    sourcePath: Schemas/energy/daily_drilling_report
+    sourceVersion: energy_daily_drilling_report_v1
+    sourceDigest: 577f533fdd4bea16a0e4cc18ca2f2f045c4ff8e2007f3eb54d2e7823df0fbd77
+spec:
+  documentType: daily_drilling_report
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - report-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - company-representative
+        - daily-footage
+        - downtime-hours
+        - hole-size
+        - hse-summary
+        - measured-depth
+        - mud-weight
+        - operations-summary
+        - safety-incidents
+        - true-vertical-depth
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - daily-cost
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - contractor-name
+        - operator-name
+        - rig-name
+        - well-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - api-well-number
+        - location
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - casing-status
+  fields:
+    - id: report-date
+      name: report_date
+      label: Report Date
+      description: Date covered by the daily drilling report.
+      dataType: date
+      required: true
+      sourcePath: /fields/report_date
+    - id: well-name
+      name: well_name
+      label: Well Name
+      description: Well name and number.
+      dataType: string
+      required: true
+      sourcePath: /fields/well_name
+    - id: api-well-number
+      name: api_well_number
+      label: Api Well Number
+      description: API well number or other regulatory well identifier.
+      dataType: string
+      sourcePath: /fields/api_well_number
+    - id: operator-name
+      name: operator_name
+      label: Operator Name
+      description: Operating company.
+      dataType: string
+      required: true
+      sourcePath: /fields/operator_name
+    - id: rig-name
+      name: rig_name
+      label: Rig Name
+      description: Rig name or rig number.
+      dataType: string
+      required: true
+      sourcePath: /fields/rig_name
+    - id: contractor-name
+      name: contractor_name
+      label: Contractor Name
+      description: Drilling contractor or rig contractor.
+      dataType: string
+      sourcePath: /fields/contractor_name
+    - id: location
+      name: location
+      label: Location
+      description: County, state, block, lease, or offshore location.
+      dataType: string
+      sourcePath: /fields/location
+    - id: measured-depth
+      name: measured_depth
+      label: Measured Depth
+      description: Measured depth at report cutoff.
+      dataType: number
+      required: true
+      sourcePath: /fields/measured_depth
+    - id: true-vertical-depth
+      name: true_vertical_depth
+      label: True Vertical Depth
+      description: True vertical depth at report cutoff.
+      dataType: number
+      sourcePath: /fields/true_vertical_depth
+    - id: daily-footage
+      name: daily_footage
+      label: Daily Footage
+      description: Footage drilled during the reporting period.
+      dataType: number
+      sourcePath: /fields/daily_footage
+    - id: hole-size
+      name: hole_size
+      label: Hole Size
+      description: Hole size for current interval.
+      dataType: string
+      sourcePath: /fields/hole_size
+    - id: mud-weight
+      name: mud_weight
+      label: Mud Weight
+      description: Mud weight in pounds per gallon when stated.
+      dataType: number
+      sourcePath: /fields/mud_weight
+    - id: casing-status
+      name: casing_status
+      label: Casing Status
+      description: Casing, cementing, or liner status.
+      dataType: string
+      sourcePath: /fields/casing_status
+    - id: operations-summary
+      name: operations_summary
+      label: Operations Summary
+      description: Narrative summary of rig operations for the reporting day.
+      dataType: string
+      required: true
+      sourcePath: /fields/operations_summary
+    - id: downtime-hours
+      name: downtime_hours
+      label: Downtime Hours
+      description: Non-productive time or downtime hours.
+      dataType: number
+      sourcePath: /fields/downtime_hours
+    - id: safety-incidents
+      name: safety_incidents
+      label: Safety Incidents
+      description: Count of safety incidents for the day.
+      dataType: integer
+      sourcePath: /fields/safety_incidents
+    - id: hse-summary
+      name: hse_summary
+      label: Hse Summary
+      description: HSE notes or safety summary.
+      dataType: string
+      sourcePath: /fields/hse_summary
+    - id: daily-cost
+      name: daily_cost
+      label: Daily Cost
+      description: Estimated or reported daily drilling cost.
+      dataType: number
+      sourcePath: /fields/daily_cost
+    - id: company-representative
+      name: company_representative
+      label: Company Representative
+      description: Company man, drilling supervisor, or report approver.
+      dataType: string
+      sourcePath: /fields/company_representative
+  validationRules:
+    - id: report-date-present
+      severity: error
+      description: report_date is required for Daily Drilling Report extraction.
+      rule:
+        op: present
+        field: report_date
+      sourceExpression: report_date IS NOT NULL AND LENGTH(TRIM(report_date)) > 0
+      supported: true
+    - id: well-name-present
+      severity: error
+      description: well_name is required for Daily Drilling Report extraction.
+      rule:
+        op: present
+        field: well_name
+      sourceExpression: well_name IS NOT NULL AND LENGTH(TRIM(well_name)) > 0
+      supported: true
+    - id: operator-name-present
+      severity: error
+      description: operator_name is required for Daily Drilling Report extraction.
+      rule:
+        op: present
+        field: operator_name
+      sourceExpression: operator_name IS NOT NULL AND LENGTH(TRIM(operator_name)) > 0
+      supported: true
+    - id: rig-name-present
+      severity: error
+      description: rig_name is required for Daily Drilling Report extraction.
+      rule:
+        op: present
+        field: rig_name
+      sourceExpression: rig_name IS NOT NULL AND LENGTH(TRIM(rig_name)) > 0
+      supported: true
+    - id: measured-depth-present
+      severity: error
+      description: measured_depth is required for Daily Drilling Report extraction.
+      rule:
+        op: present
+        field: measured_depth
+      sourceExpression: measured_depth IS NOT NULL AND LENGTH(TRIM(measured_depth)) > 0
+      supported: true
+    - id: operations-summary-present
+      severity: error
+      description: operations_summary is required for Daily Drilling Report extraction.
+      rule:
+        op: present
+        field: operations_summary
+      sourceExpression: operations_summary IS NOT NULL AND LENGTH(TRIM(operations_summary)) > 0
+      supported: true
+    - id: measured-depth-non-negative
+      severity: warning
+      description: measured_depth should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: measured_depth
+        right:
+          value: 0
+      sourceExpression: measured_depth IS NULL OR measured_depth >= 0
+      supported: true
+    - id: true-vertical-depth-non-negative
+      severity: warning
+      description: true_vertical_depth should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: true_vertical_depth
+        right:
+          value: 0
+      sourceExpression: true_vertical_depth IS NULL OR true_vertical_depth >= 0
+      supported: true
+    - id: daily-footage-non-negative
+      severity: warning
+      description: daily_footage should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: daily_footage
+        right:
+          value: 0
+      sourceExpression: daily_footage IS NULL OR daily_footage >= 0
+      supported: true
+    - id: mud-weight-non-negative
+      severity: warning
+      description: mud_weight should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: mud_weight
+        right:
+          value: 0
+      sourceExpression: mud_weight IS NULL OR mud_weight >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      report_date:
+        type: date
+        description: Date covered by the daily drilling report.
+        format: date
+      well_name:
+        type: string
+        description: Well name and number.
+      api_well_number:
+        type: string
+        description: API well number or other regulatory well identifier.
+      operator_name:
+        type: string
+        description: Operating company.
+      rig_name:
+        type: string
+        description: Rig name or rig number.
+      contractor_name:
+        type: string
+        description: Drilling contractor or rig contractor.
+      location:
+        type: string
+        description: County, state, block, lease, or offshore location.
+      measured_depth:
+        type: number
+        description: Measured depth at report cutoff.
+      true_vertical_depth:
+        type: number
+        description: True vertical depth at report cutoff.
+      daily_footage:
+        type: number
+        description: Footage drilled during the reporting period.
+      hole_size:
+        type: string
+        description: Hole size for current interval.
+      mud_weight:
+        type: number
+        description: Mud weight in pounds per gallon when stated.
+      casing_status:
+        type: string
+        description: Casing, cementing, or liner status.
+      operations_summary:
+        type: string
+        description: Narrative summary of rig operations for the reporting day.
+      downtime_hours:
+        type: number
+        description: Non-productive time or downtime hours.
+      safety_incidents:
+        type: integer
+        description: Count of safety incidents for the day.
+      hse_summary:
+        type: string
+        description: HSE notes or safety summary.
+      daily_cost:
+        type: number
+        description: Estimated or reported daily drilling cost.
+      company_representative:
+        type: string
+        description: Company man, drilling supervisor, or report approver.
+    required:
+      - report_date
+      - well_name
+      - operator_name
+      - rig_name
+      - measured_depth
+      - operations_summary
+    additionalProperties: false
+  inertSourceMetadata:
+    family: energy_upstream_operations
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - report_date
+          - well_name
+          - operator_name
+          - rig_name
+          - measured_depth
+          - operations_summary
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

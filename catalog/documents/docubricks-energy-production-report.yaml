@@ -1,0 +1,333 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-energy-production-report
+  title: Production Report
+  description: Production Report contract normalized from the DocuBricks Energy library.
+  version: energy_production_report_v1
+  source:
+    system: docubricks
+    sourceId: energy/production_report
+    sourcePath: Schemas/energy/production_report
+    sourceVersion: energy_production_report_v1
+    sourceDigest: 9a81118998df7397917c60824d7aeebe0618406b362ab68cdcc79f8c34f8eabb
+spec:
+  documentType: production_report
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - ending-inventory-bbl
+        - production-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - beginning-inventory-bbl
+        - downtime-hours
+        - downtime-reason
+        - flared-gas-mcf
+        - gas-volume-mcf
+        - ngl-volume-bbl
+        - oil-volume-bbl
+        - report-preparer
+        - sales-volume-bbl
+        - water-volume-bbl
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - lease-name
+        - operator-name
+        - purchaser-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - well-count
+  fields:
+    - id: production-date
+      name: production_date
+      label: Production Date
+      description: Production date or reporting period end date.
+      dataType: date
+      required: true
+      sourcePath: /fields/production_date
+    - id: lease-name
+      name: lease_name
+      label: Lease Name
+      description: Lease, unit, or facility name.
+      dataType: string
+      required: true
+      sourcePath: /fields/lease_name
+    - id: operator-name
+      name: operator_name
+      label: Operator Name
+      description: Operating company.
+      dataType: string
+      required: true
+      sourcePath: /fields/operator_name
+    - id: well-count
+      name: well_count
+      label: Well Count
+      description: Number of wells included in the report.
+      dataType: integer
+      sourcePath: /fields/well_count
+    - id: oil-volume-bbl
+      name: oil_volume_bbl
+      label: Oil Volume Bbl
+      description: Oil production volume in barrels.
+      dataType: number
+      required: true
+      sourcePath: /fields/oil_volume_bbl
+    - id: gas-volume-mcf
+      name: gas_volume_mcf
+      label: Gas Volume Mcf
+      description: Gas production volume in thousand cubic feet.
+      dataType: number
+      required: true
+      sourcePath: /fields/gas_volume_mcf
+    - id: water-volume-bbl
+      name: water_volume_bbl
+      label: Water Volume Bbl
+      description: Produced water volume in barrels.
+      dataType: number
+      sourcePath: /fields/water_volume_bbl
+    - id: ngl-volume-bbl
+      name: ngl_volume_bbl
+      label: Ngl Volume Bbl
+      description: Natural gas liquids volume in barrels.
+      dataType: number
+      sourcePath: /fields/ngl_volume_bbl
+    - id: beginning-inventory-bbl
+      name: beginning_inventory_bbl
+      label: Beginning Inventory Bbl
+      description: Beginning tank or lease oil inventory.
+      dataType: number
+      sourcePath: /fields/beginning_inventory_bbl
+    - id: ending-inventory-bbl
+      name: ending_inventory_bbl
+      label: Ending Inventory Bbl
+      description: Ending tank or lease oil inventory.
+      dataType: number
+      sourcePath: /fields/ending_inventory_bbl
+    - id: sales-volume-bbl
+      name: sales_volume_bbl
+      label: Sales Volume Bbl
+      description: Oil or liquids sales volume.
+      dataType: number
+      sourcePath: /fields/sales_volume_bbl
+    - id: flared-gas-mcf
+      name: flared_gas_mcf
+      label: Flared Gas Mcf
+      description: Gas flared volume.
+      dataType: number
+      sourcePath: /fields/flared_gas_mcf
+    - id: downtime-hours
+      name: downtime_hours
+      label: Downtime Hours
+      description: Production downtime hours.
+      dataType: number
+      sourcePath: /fields/downtime_hours
+    - id: downtime-reason
+      name: downtime_reason
+      label: Downtime Reason
+      description: Reason for downtime or shut-in status.
+      dataType: string
+      sourcePath: /fields/downtime_reason
+    - id: purchaser-name
+      name: purchaser_name
+      label: Purchaser Name
+      description: Purchaser, gatherer, or transporter.
+      dataType: string
+      sourcePath: /fields/purchaser_name
+    - id: report-preparer
+      name: report_preparer
+      label: Report Preparer
+      description: Person or role preparing the report.
+      dataType: string
+      sourcePath: /fields/report_preparer
+  validationRules:
+    - id: production-date-present
+      severity: error
+      description: production_date is required for Production Report extraction.
+      rule:
+        op: present
+        field: production_date
+      sourceExpression: production_date IS NOT NULL AND LENGTH(TRIM(production_date)) > 0
+      supported: true
+    - id: lease-name-present
+      severity: error
+      description: lease_name is required for Production Report extraction.
+      rule:
+        op: present
+        field: lease_name
+      sourceExpression: lease_name IS NOT NULL AND LENGTH(TRIM(lease_name)) > 0
+      supported: true
+    - id: operator-name-present
+      severity: error
+      description: operator_name is required for Production Report extraction.
+      rule:
+        op: present
+        field: operator_name
+      sourceExpression: operator_name IS NOT NULL AND LENGTH(TRIM(operator_name)) > 0
+      supported: true
+    - id: oil-volume-bbl-present
+      severity: error
+      description: oil_volume_bbl is required for Production Report extraction.
+      rule:
+        op: present
+        field: oil_volume_bbl
+      sourceExpression: oil_volume_bbl IS NOT NULL AND LENGTH(TRIM(oil_volume_bbl)) > 0
+      supported: true
+    - id: gas-volume-mcf-present
+      severity: error
+      description: gas_volume_mcf is required for Production Report extraction.
+      rule:
+        op: present
+        field: gas_volume_mcf
+      sourceExpression: gas_volume_mcf IS NOT NULL AND LENGTH(TRIM(gas_volume_mcf)) > 0
+      supported: true
+    - id: well-count-non-negative
+      severity: warning
+      description: well_count should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: well_count
+        right:
+          value: 0
+      sourceExpression: well_count IS NULL OR well_count >= 0
+      supported: true
+    - id: oil-volume-bbl-non-negative
+      severity: warning
+      description: oil_volume_bbl should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: oil_volume_bbl
+        right:
+          value: 0
+      sourceExpression: oil_volume_bbl IS NULL OR oil_volume_bbl >= 0
+      supported: true
+    - id: gas-volume-mcf-non-negative
+      severity: warning
+      description: gas_volume_mcf should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: gas_volume_mcf
+        right:
+          value: 0
+      sourceExpression: gas_volume_mcf IS NULL OR gas_volume_mcf >= 0
+      supported: true
+    - id: water-volume-bbl-non-negative
+      severity: warning
+      description: water_volume_bbl should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: water_volume_bbl
+        right:
+          value: 0
+      sourceExpression: water_volume_bbl IS NULL OR water_volume_bbl >= 0
+      supported: true
+    - id: ngl-volume-bbl-non-negative
+      severity: warning
+      description: ngl_volume_bbl should be non-negative when present.
+      rule:
+        op: gte
+        left:
+          field: ngl_volume_bbl
+        right:
+          value: 0
+      sourceExpression: ngl_volume_bbl IS NULL OR ngl_volume_bbl >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+  outputSchema:
+    type: object
+    properties:
+      production_date:
+        type: date
+        description: Production date or reporting period end date.
+        format: date
+      lease_name:
+        type: string
+        description: Lease, unit, or facility name.
+      operator_name:
+        type: string
+        description: Operating company.
+      well_count:
+        type: integer
+        description: Number of wells included in the report.
+      oil_volume_bbl:
+        type: number
+        description: Oil production volume in barrels.
+      gas_volume_mcf:
+        type: number
+        description: Gas production volume in thousand cubic feet.
+      water_volume_bbl:
+        type: number
+        description: Produced water volume in barrels.
+      ngl_volume_bbl:
+        type: number
+        description: Natural gas liquids volume in barrels.
+      beginning_inventory_bbl:
+        type: number
+        description: Beginning tank or lease oil inventory.
+      ending_inventory_bbl:
+        type: number
+        description: Ending tank or lease oil inventory.
+      sales_volume_bbl:
+        type: number
+        description: Oil or liquids sales volume.
+      flared_gas_mcf:
+        type: number
+        description: Gas flared volume.
+      downtime_hours:
+        type: number
+        description: Production downtime hours.
+      downtime_reason:
+        type: string
+        description: Reason for downtime or shut-in status.
+      purchaser_name:
+        type: string
+        description: Purchaser, gatherer, or transporter.
+      report_preparer:
+        type: string
+        description: Person or role preparing the report.
+    required:
+      - production_date
+      - lease_name
+      - operator_name
+      - oil_volume_bbl
+      - gas_volume_mcf
+    additionalProperties: false
+  inertSourceMetadata:
+    family: energy_production_operations
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - production_date
+          - lease_name
+          - operator_name
+          - oil_volume_bbl
+          - gas_volume_mcf
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

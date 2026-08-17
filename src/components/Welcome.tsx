@@ -253,7 +253,7 @@ type LibraryTab = "workflows" | "agents";
 type ModalityFilter = "all" | InputModality;
 type GalleryView = "starters" | "recent";
 
-export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () => void; onBundle?: () => void }) {
+export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () => void; onBundle?: (project?: ProjectRecord) => void }) {
   const openTemplate = useStudioStore((state) => state.openTemplate);
   const openAgentTemplate = useStudioStore((state) => state.openAgentTemplate);
   const openProject = useStudioStore((state) => state.openProject);
