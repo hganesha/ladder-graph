@@ -6,7 +6,7 @@ test("opens intro and help from the gallery and studio", async ({ page }) => {
   await page.getByRole("button", { name: "Intro & help" }).click();
   const galleryDialog = page.getByRole("dialog", { name: "Build your first workflow" });
   await expect(galleryDialog).toBeVisible();
-  await expect(galleryDialog.getByRole("button", { name: /workflow|canvas|issues|target|copy/i })).toHaveCount(5);
+  await expect(galleryDialog.getByRole("button", { name: /workflow|canvas|issues|target|copy|about/i })).toHaveCount(6);
   await galleryDialog.getByRole("button", { name: "Close help" }).click();
   await expect(galleryDialog).toBeHidden();
 
