@@ -1,15 +1,7 @@
 import { Check, Clipboard, Download, FileText, ShieldCheck, X } from "lucide-react";
 import { useState } from "react";
+import { downloadText } from "../lib/download";
 import { useStudioStore } from "../store/useStudioStore";
-
-function download(name: string, content: string, type: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = name;
-  link.click();
-  URL.revokeObjectURL(url);
-}
 
 export function OutputPanel() {
   const result = useStudioStore((state) => state.compileResult);
@@ -39,7 +31,10 @@ export function OutputPanel() {
             {copied ? <Check size={14} /> : <Clipboard size={14} />}
             <span>{copied ? "Copied" : isCode ? "Copy code" : "Copy prompt"}</span>
           </button>
-          <button disabled={!result?.ok} onClick={() => result?.ok && download(result.suggestedFilename, result.content, result.mimeType)}>
+          <button
+            disabled={!result?.ok}
+            onClick={() => result?.ok && downloadText(result.suggestedFilename, result.content, result.mimeType)}
+          >
             <Download size={14} />
             <span>Download {target === "python" ? "Python" : target === "typescript" ? "TypeScript" : "Markdown"}</span>
           </button>
@@ -98,5 +93,3 @@ function Capability({ title, values, tone }: { title: string; values: string[]; 
     </section>
   );
 }
-
-export { download };

@@ -6,12 +6,14 @@ import {
   MiniMap,
   type Node,
   ReactFlow,
+  type ReactFlowInstance,
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
 import { Trash2 } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import "@xyflow/react/dist/style.css";
+import { exportGraphImage, type GraphImageFormat } from "../lib/graphImage";
 import { groupDimensions } from "../lib/layout";
 import { NODE_META } from "../lib/nodeMeta";
 import { useStudioStore } from "../store/useStudioStore";
@@ -116,7 +118,11 @@ function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
 
 const nodeTypes = { task: TaskNode, group: GroupNode };
 
-export function GraphCanvas() {
+export interface GraphCanvasHandle {
+  exportImage: (format: GraphImageFormat) => Promise<void>;
+}
+
+export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_, ref) {
   const workflow = useStudioStore((state) => state.analysis?.normalized);
   const validYaml = Boolean(workflow);
   const selectNode = useStudioStore((state) => state.selectNode);
@@ -130,10 +136,28 @@ export function GraphCanvas() {
   const sourceEdges = useMemo(() => toFlowEdges(workflow?.spec.edges ?? [], workflow?.spec.nodes ?? []), [workflow]);
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowFlowNode>(sourceNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(sourceEdges);
+  const canvasRef = useRef<HTMLElement>(null);
+  const flowRef = useRef<ReactFlowInstance<WorkflowFlowNode, Edge> | null>(null);
   const fitAddedNodes = useRef<(() => void) | null>(null);
   const previousNodeCount = useRef(sourceNodes.length);
   const selectedNode = workflow?.spec.nodes.find((node) => node.id === selectedNodeId);
   const selectedEdge = workflow?.spec.edges.find((edge) => edge.id === selectedEdgeId);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      exportImage: async (format) => {
+        if (!canvasRef.current || !flowRef.current) throw new Error("Open the canvas before exporting an image.");
+        await exportGraphImage({
+          format,
+          instance: flowRef.current,
+          name: workflow?.metadata.name ?? "workflow",
+          root: canvasRef.current,
+        });
+      },
+    }),
+    [workflow?.metadata.name],
+  );
 
   useEffect(() => setNodes(sourceNodes), [sourceNodes, setNodes]);
   useEffect(() => setEdges(sourceEdges), [sourceEdges, setEdges]);
@@ -153,13 +177,13 @@ export function GraphCanvas() {
   };
 
   return (
-    <section className="canvas-wrap" aria-label="Workflow graph canvas">
+    <section ref={canvasRef} className="canvas-wrap" aria-label="Workflow graph canvas">
       {!validYaml && (
         <div className="canvas-lock">
           <AlertContent />
         </div>
       )}
-      <ReactFlow
+      <ReactFlow<WorkflowFlowNode, Edge>
         nodes={nodes.map((node) => ({ ...node, selected: node.id === selectedNodeId }))}
         edges={edges.map((edge) =>
           edge.id === selectedEdgeId
@@ -186,6 +210,7 @@ export function GraphCanvas() {
         }
         onPaneClick={() => selectNode(null)}
         onInit={(instance) => {
+          flowRef.current = instance;
           fitAddedNodes.current = () => {
             void instance.fitView({ padding: 0.15, minZoom: 0.45, maxZoom: 0.9, duration: 220 });
           };
@@ -257,7 +282,7 @@ export function GraphCanvas() {
       </div>
     </section>
   );
-}
+});
 
 function AlertContent() {
   return (

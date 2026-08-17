@@ -1,9 +1,10 @@
 import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { GraphImageFormat } from "../lib/graphImage";
 import { companionPairingState } from "../lib/mcpCompanion";
 import { useStudioStore } from "../store/useStudioStore";
 import { Diagnostics } from "./Diagnostics";
-import { GraphCanvas } from "./GraphCanvas";
+import { GraphCanvas, type GraphCanvasHandle } from "./GraphCanvas";
 import { Inspector } from "./Inspector";
 import { LazyHelpDialog } from "./LazyHelpDialog";
 import { OutputPanel } from "./OutputPanel";
@@ -17,6 +18,7 @@ export function Studio() {
   const [storageOpen, setStorageOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [mcpPaired, setMcpPaired] = useState(false);
+  const graphCanvasRef = useRef<GraphCanvasHandle>(null);
   useEffect(() => {
     if (!state.analysis) void useStudioStore.getState().setSource(state.source, false);
   }, [state.analysis, state.source]);
@@ -60,7 +62,15 @@ export function Studio() {
     <main
       className={`studio-shell ${state.paletteOpen ? "palette-visible" : ""} ${state.inspectorOpen ? "inspector-visible" : ""} ${state.outputOpen ? "output-visible" : ""}`}
     >
-      <StudioHeader mcpPaired={mcpPaired} onHelp={() => setHelpOpen(true)} onStorage={() => setStorageOpen(true)} />
+      <StudioHeader
+        canExportImage={state.centerMode !== "source"}
+        mcpPaired={mcpPaired}
+        onExportImage={(format: GraphImageFormat) =>
+          graphCanvasRef.current?.exportImage(format) ?? Promise.reject(new Error("Open the canvas before exporting an image."))
+        }
+        onHelp={() => setHelpOpen(true)}
+        onStorage={() => setStorageOpen(true)}
+      />
       <div className="studio-workspace">
         {!state.paletteOpen && (
           <button className="panel-restore panel-restore-left" type="button" aria-label="Open library" onClick={openPalette}>
@@ -70,7 +80,7 @@ export function Studio() {
         )}
         {state.paletteOpen && <Palette />}
         <section className={`center-workspace mode-${state.centerMode}`}>
-          {state.centerMode !== "source" && <GraphCanvas />}
+          {state.centerMode !== "source" && <GraphCanvas ref={graphCanvasRef} />}
           {state.centerMode !== "canvas" && <SourceEditor />}
         </section>
         {state.inspectorOpen && <Inspector />}
