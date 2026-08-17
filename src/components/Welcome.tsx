@@ -24,7 +24,7 @@ import {
   Target,
   Workflow,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
 import { listProjects } from "../lib/persistence";
 import { roleSubcategory } from "../lib/roleCategories";
@@ -251,6 +251,7 @@ const WORKFLOW_AREAS = [
 
 type LibraryTab = "workflows" | "agents";
 type ModalityFilter = "all" | InputModality;
+type GalleryView = "starters" | "recent";
 
 export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () => void; onBundle?: () => void }) {
   const openTemplate = useStudioStore((state) => state.openTemplate);
@@ -261,9 +262,8 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
   const [modality, setModality] = useState<ModalityFilter>("all");
   const [helpOpen, setHelpOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
+  const [activeGalleryView, setActiveGalleryView] = useState<GalleryView>("starters");
   const [activeLibraryTab, setActiveLibraryTab] = useState<LibraryTab>("workflows");
-  const [areaChooserOpen, setAreaChooserOpen] = useState(true);
-  const areaRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
   const selectedTemplates = WORKFLOW_TEMPLATES.filter(
@@ -274,11 +274,19 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
   );
   const SelectedAreaIcon = selectedArea.icon;
 
-  const focusArea = (index: number) => {
-    const nextArea = WORKFLOW_AREAS[index];
-    if (!nextArea) return;
-    setActiveArea(nextArea.name);
-    areaRefs.current[index]?.focus();
+  const handleGalleryViewKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    let nextView: GalleryView | null = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      nextView = activeGalleryView === "starters" ? "recent" : "starters";
+    } else if (event.key === "Home") {
+      nextView = "starters";
+    } else if (event.key === "End") {
+      nextView = "recent";
+    }
+    if (!nextView) return;
+    event.preventDefault();
+    setActiveGalleryView(nextView);
+    requestAnimationFrame(() => document.getElementById(`gallery-tab-${nextView}`)?.focus());
   };
 
   useEffect(() => {
@@ -311,207 +319,217 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
       <section className="gallery-section workflow-library" aria-labelledby="gallery-title">
         <div className="section-heading library-heading">
           <div>
-            <h1 id="gallery-title">Starter workflows</h1>
-            <p>
-              Choose a subject area, then start from one of {WORKFLOW_TEMPLATES.length} workflows or {ROLE_TEMPLATES.length} agent
-              templates.
-            </p>
+            <h1 id="gallery-title">Workflow library</h1>
+            <p>Start from a proven workflow or agent template, or reopen work saved in this browser.</p>
           </div>
           <button className="quiet-button new-workflow-button" onClick={onBlank}>
-            New workflow <ArrowRight size={15} />
+            <span>New workflow</span> <ArrowRight size={15} />
           </button>
         </div>
-        <button
-          aria-controls="subject-area-selector"
-          aria-expanded={areaChooserOpen}
-          aria-label={`Choose a subject area, selected ${selectedArea.name}`}
-          className="subject-area-toggle"
-          onClick={() => setAreaChooserOpen((open) => !open)}
-          type="button"
-        >
-          <span className="eyebrow">1 · Choose a subject area</span>
-          <span className="subject-area-toggle-selection">
-            <SelectedAreaIcon size={14} aria-hidden="true" />
-            <span>{selectedArea.name}</span>
-            <ChevronDown className={areaChooserOpen ? "expanded" : undefined} size={14} aria-hidden="true" />
-          </span>
-        </button>
-        <fieldset className="workflow-tabs subject-area-selector" hidden={!areaChooserOpen} id="subject-area-selector">
-          <legend className="sr-only">Subject areas</legend>
-          {WORKFLOW_AREAS.map((area, index) => {
-            const AreaIcon = area.icon;
-            const selected = area.name === activeArea;
-            return (
-              <button
-                aria-pressed={selected}
-                className={selected ? "active" : undefined}
-                id={`subject-area-${index}`}
-                key={area.name}
-                onClick={() => setActiveArea(area.name)}
-                onKeyDown={(event) => {
-                  if (event.key === "ArrowRight") {
-                    event.preventDefault();
-                    focusArea((index + 1) % WORKFLOW_AREAS.length);
-                  } else if (event.key === "ArrowLeft") {
-                    event.preventDefault();
-                    focusArea((index - 1 + WORKFLOW_AREAS.length) % WORKFLOW_AREAS.length);
-                  } else if (event.key === "Home") {
-                    event.preventDefault();
-                    focusArea(0);
-                  } else if (event.key === "End") {
-                    event.preventDefault();
-                    focusArea(WORKFLOW_AREAS.length - 1);
-                  }
-                }}
-                ref={(element) => {
-                  areaRefs.current[index] = element;
-                }}
-                type="button"
-              >
-                <AreaIcon size={15} aria-hidden="true" />
-                <span>{area.name}</span>
-                <small aria-hidden="true">
-                  {WORKFLOW_TEMPLATES.filter((template) => template.area === area.name).length + roleTemplatesForSubject(area.name).length}
-                </small>
-              </button>
-            );
-          })}
-        </fieldset>
-        <div className="library-tab-heading">
-          <span className="eyebrow">2 · Choose a starting point</span>
-          <div className="library-tabs" role="tablist" aria-label="Starting point type">
-            <button
-              aria-label="Workflows"
-              aria-controls="library-panel"
-              aria-selected={activeLibraryTab === "workflows"}
-              className={activeLibraryTab === "workflows" ? "active" : undefined}
-              id="library-tab-workflows"
-              onClick={() => setActiveLibraryTab("workflows")}
-              role="tab"
-              tabIndex={activeLibraryTab === "workflows" ? 0 : -1}
-              type="button"
-            >
-              <Workflow size={15} /> Workflows <small>{selectedTemplates.length}</small>
-            </button>
-            <button
-              aria-label="Agents"
-              aria-controls="library-panel"
-              aria-selected={activeLibraryTab === "agents"}
-              className={activeLibraryTab === "agents" ? "active" : undefined}
-              id="library-tab-agents"
-              onClick={() => setActiveLibraryTab("agents")}
-              role="tab"
-              tabIndex={activeLibraryTab === "agents" ? 0 : -1}
-              type="button"
-            >
-              <Bot size={15} /> Agents <small>{selectedAgents.length}</small>
-            </button>
-          </div>
+        <div className="gallery-view-tabs" role="tablist" aria-label="Workflow library view">
+          <button
+            aria-controls="gallery-panel-starters"
+            aria-label="Starter workflows"
+            aria-selected={activeGalleryView === "starters"}
+            className={activeGalleryView === "starters" ? "active" : undefined}
+            id="gallery-tab-starters"
+            onClick={() => setActiveGalleryView("starters")}
+            onKeyDown={handleGalleryViewKeyDown}
+            role="tab"
+            tabIndex={activeGalleryView === "starters" ? 0 : -1}
+            type="button"
+          >
+            Starter workflows <small>{WORKFLOW_TEMPLATES.length + ROLE_TEMPLATES.length}</small>
+          </button>
+          <button
+            aria-controls="gallery-panel-recent"
+            aria-label="Recent projects"
+            aria-selected={activeGalleryView === "recent"}
+            className={activeGalleryView === "recent" ? "active" : undefined}
+            id="gallery-tab-recent"
+            onClick={() => setActiveGalleryView("recent")}
+            onKeyDown={handleGalleryViewKeyDown}
+            role="tab"
+            tabIndex={activeGalleryView === "recent" ? 0 : -1}
+            type="button"
+          >
+            Recent projects <small>{projects.length}</small>
+          </button>
         </div>
-        <label className="modality-filter">
-          <span>Filter by modality</span>
-          <select value={modality} onChange={(event) => setModality(event.target.value as ModalityFilter)}>
-            <option value="all">All modalities</option>
-            {INPUT_CONTRACT_PRESETS.map((preset) => (
-              <option key={preset.id} value={preset.id}>
-                {preset.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <section aria-labelledby={`library-tab-${activeLibraryTab}`} className="workflow-tab-panel" id="library-panel" role="tabpanel">
-          <div className="workflow-group-heading">
-            <span aria-hidden="true">
-              <SelectedAreaIcon size={17} />
-            </span>
-            <div>
-              <h2>{selectedArea.name}</h2>
-              <p>{selectedArea.description}</p>
-            </div>
-          </div>
-          {activeLibraryTab === "workflows" ? (
-            <>
-              <div className="template-grid tabbed-template-grid">
-                {selectedTemplates.map((template) => (
-                  <button
-                    aria-label={`Open ${template.title} in studio`}
-                    className="template-card"
-                    key={template.id}
-                    onClick={() => void openTemplate(template.id)}
-                    style={{ "--accent": template.accent } as React.CSSProperties}
-                  >
-                    <div className="topology-art" aria-hidden="true">
-                      <SelectedAreaIcon />
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    <div className="template-meta">
-                      <span>{template.eyebrow}</span>
-                      <span>{template.topology}</span>
-                    </div>
-                    <h3>{template.title}</h3>
-                    <p>{template.description}</p>
-                    <strong>
-                      Open in studio <ArrowRight size={14} />
-                    </strong>
-                  </button>
-                ))}
-                {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
-              </div>
-              <button className="bundle-launch-card" onClick={onBundle} type="button">
-                <span className="bundle-launch-icon" aria-hidden="true">
-                  <PackageOpen size={22} />
-                </span>
-                <span>
-                  <small>Experimental workflow bundle</small>
-                  <strong>Insurance claim review</strong>
-                  <span>Workflow + first-class forms + supporting document + ontology sliver</span>
-                </span>
-                <span className="bundle-launch-action">
-                  Open bundle workspace <ArrowRight size={15} />
-                </span>
-              </button>
-            </>
-          ) : (
-            <div className="template-grid tabbed-template-grid agent-template-grid">
-              {selectedAgents.map((agent) => (
-                <button
-                  aria-label={`Start workflow with ${agent.name}`}
-                  className="template-card agent-template-card"
-                  key={agent.id}
-                  onClick={() => void openAgentTemplate(agent.id)}
-                  style={{ "--accent": "#e86b5d" } as React.CSSProperties}
-                >
-                  <div className="agent-card-icon" aria-hidden="true">
-                    <Bot />
-                  </div>
-                  <div className="template-meta">
-                    <span>{roleSubcategory(agent)}</span>
-                    <span>{agent.skills.length} skills</span>
-                  </div>
-                  <h3>{agent.name}</h3>
-                  <p>{agent.role}</p>
-                  <div className="agent-skill-list" aria-hidden="true">
-                    {agent.skills.slice(0, 3).map((skill) => (
-                      <span key={skill}>{skill}</span>
-                    ))}
-                  </div>
-                  <strong>
-                    Create workflow <ArrowRight size={14} />
-                  </strong>
-                </button>
-              ))}
-              {selectedAgents.length === 0 && <p className="library-empty">No agents match this modality.</p>}
-            </div>
-          )}
 
-          {activeLibraryTab === "workflows" && projects.length > 0 && (
-            <section className="recent-section" aria-labelledby="recent-title">
-              <div className="eyebrow">Saved in this browser</div>
-              <h2 id="recent-title">Recent projects</h2>
+        {activeGalleryView === "starters" ? (
+          <section aria-labelledby="gallery-tab-starters" className="gallery-view-panel" id="gallery-panel-starters" role="tabpanel">
+            <fieldset className="library-controls">
+              <legend className="sr-only">Starter workflow filters</legend>
+              <label className="subject-area-control">
+                <span className="eyebrow">Subject area</span>
+                <span className="subject-area-select">
+                  <SelectedAreaIcon size={15} aria-hidden="true" />
+                  <select aria-label="Subject area" value={activeArea} onChange={(event) => setActiveArea(event.target.value)}>
+                    {WORKFLOW_AREAS.map((area) => (
+                      <option key={area.name} value={area.name}>
+                        {area.name} (
+                        {WORKFLOW_TEMPLATES.filter((template) => template.area === area.name).length +
+                          roleTemplatesForSubject(area.name).length}
+                        )
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} aria-hidden="true" />
+                </span>
+              </label>
+              <div className="starting-point-control">
+                <span className="eyebrow">Starting point</span>
+                <div className="library-tabs" role="tablist" aria-label="Starting point type">
+                  <button
+                    aria-label="Workflows"
+                    aria-controls="library-panel"
+                    aria-selected={activeLibraryTab === "workflows"}
+                    className={activeLibraryTab === "workflows" ? "active" : undefined}
+                    id="library-tab-workflows"
+                    onClick={() => setActiveLibraryTab("workflows")}
+                    role="tab"
+                    tabIndex={activeLibraryTab === "workflows" ? 0 : -1}
+                    type="button"
+                  >
+                    <Workflow size={15} aria-hidden="true" /> Workflows <small>{selectedTemplates.length}</small>
+                  </button>
+                  <button
+                    aria-label="Agents"
+                    aria-controls="library-panel"
+                    aria-selected={activeLibraryTab === "agents"}
+                    className={activeLibraryTab === "agents" ? "active" : undefined}
+                    id="library-tab-agents"
+                    onClick={() => setActiveLibraryTab("agents")}
+                    role="tab"
+                    tabIndex={activeLibraryTab === "agents" ? 0 : -1}
+                    type="button"
+                  >
+                    <Bot size={15} aria-hidden="true" /> Agents <small>{selectedAgents.length}</small>
+                  </button>
+                </div>
+              </div>
+              <label className="modality-filter">
+                <span className="eyebrow">Modality</span>
+                <select
+                  aria-label="Filter by modality"
+                  value={modality}
+                  onChange={(event) => setModality(event.target.value as ModalityFilter)}
+                >
+                  <option value="all">All modalities</option>
+                  {INPUT_CONTRACT_PRESETS.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </fieldset>
+            <section aria-labelledby={`library-tab-${activeLibraryTab}`} className="workflow-tab-panel" id="library-panel" role="tabpanel">
+              <div className="workflow-group-heading">
+                <span aria-hidden="true">
+                  <SelectedAreaIcon size={17} />
+                </span>
+                <div>
+                  <h2>{selectedArea.name}</h2>
+                  <p>{selectedArea.description}</p>
+                </div>
+              </div>
+              {activeLibraryTab === "workflows" ? (
+                <>
+                  <div className="template-grid tabbed-template-grid">
+                    {selectedTemplates.map((template) => (
+                      <button
+                        aria-label={`Open ${template.title} in studio`}
+                        className="template-card"
+                        key={template.id}
+                        onClick={() => void openTemplate(template.id)}
+                        style={{ "--accent": template.accent } as React.CSSProperties}
+                      >
+                        <div className="topology-art" aria-hidden="true">
+                          <SelectedAreaIcon />
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                        <div className="template-meta">
+                          <span>{template.eyebrow}</span>
+                          <span>{template.topology}</span>
+                        </div>
+                        <h3>{template.title}</h3>
+                        <p>{template.description}</p>
+                        <strong>
+                          Open in studio <ArrowRight size={14} />
+                        </strong>
+                      </button>
+                    ))}
+                    {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
+                  </div>
+                  <button className="bundle-launch-card" onClick={onBundle} type="button">
+                    <span className="bundle-launch-icon" aria-hidden="true">
+                      <PackageOpen size={22} />
+                    </span>
+                    <span>
+                      <small>Experimental workflow bundle</small>
+                      <strong>Insurance claim review</strong>
+                      <span>Workflow + first-class forms + supporting document + ontology sliver</span>
+                    </span>
+                    <span className="bundle-launch-action">
+                      Open bundle workspace <ArrowRight size={15} />
+                    </span>
+                  </button>
+                </>
+              ) : (
+                <div className="template-grid tabbed-template-grid agent-template-grid">
+                  {selectedAgents.map((agent) => (
+                    <button
+                      aria-label={`Start workflow with ${agent.name}`}
+                      className="template-card agent-template-card"
+                      key={agent.id}
+                      onClick={() => void openAgentTemplate(agent.id)}
+                      style={{ "--accent": "#e86b5d" } as React.CSSProperties}
+                    >
+                      <div className="agent-card-icon" aria-hidden="true">
+                        <Bot />
+                      </div>
+                      <div className="template-meta">
+                        <span>{roleSubcategory(agent)}</span>
+                        <span>{agent.skills.length} skills</span>
+                      </div>
+                      <h3>{agent.name}</h3>
+                      <p>{agent.role}</p>
+                      <div className="agent-skill-list" aria-hidden="true">
+                        {agent.skills.slice(0, 3).map((skill) => (
+                          <span key={skill}>{skill}</span>
+                        ))}
+                      </div>
+                      <strong>
+                        Create workflow <ArrowRight size={14} />
+                      </strong>
+                    </button>
+                  ))}
+                  {selectedAgents.length === 0 && <p className="library-empty">No agents match this modality.</p>}
+                </div>
+              )}
+            </section>
+          </section>
+        ) : (
+          <section
+            aria-labelledby="gallery-tab-recent"
+            className="gallery-view-panel recent-projects-panel"
+            id="gallery-panel-recent"
+            role="tabpanel"
+          >
+            <div className="recent-projects-heading">
+              <div>
+                <span className="eyebrow">Saved in this browser</span>
+                <h2>Recent projects</h2>
+              </div>
+              <span>{projects.length} saved</span>
+            </div>
+            {projects.length > 0 ? (
               <div className="recent-list">
-                {projects.slice(0, 5).map((project) => (
+                {projects.map((project) => (
                   <button key={project.id} onClick={() => void openProject(project)}>
                     <span>
                       <strong>{project.name}</strong>
@@ -521,9 +539,18 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
                   </button>
                 ))}
               </div>
-            </section>
-          )}
-        </section>
+            ) : (
+              <div className="recent-empty">
+                <PackageOpen size={24} aria-hidden="true" />
+                <strong>No saved projects yet</strong>
+                <p>Workflows you create or open will appear here.</p>
+                <button className="quiet-button" onClick={() => setActiveGalleryView("starters")} type="button">
+                  Browse starter workflows
+                </button>
+              </div>
+            )}
+          </section>
+        )}
       </section>
 
       <footer className="welcome-footer">
