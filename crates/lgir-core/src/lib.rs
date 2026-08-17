@@ -136,6 +136,8 @@ pub struct NodeConfig {
     #[serde(default)]
     pub on_exhausted: String,
     #[serde(default)]
+    pub carry: BTreeMap<String, String>,
+    #[serde(default)]
     pub threshold: Option<f64>,
     #[serde(default)]
     pub members: Vec<String>,
@@ -492,6 +494,20 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
             if exit.is_some_and(|id| !body_ids.contains(id)) {
                 diagnostics.push(node_diag("LG172", "error", index, node, "Loop exitNode must identify a node in the loop body."));
             }
+            for (slot, source_path) in &node.config.carry {
+                if slot.is_empty()
+                    || !slot.chars().next().is_some_and(|character| character.is_ascii_alphabetic())
+                    || !slot.chars().all(|character| character.is_ascii_alphanumeric() || character == '_' || character == '-')
+                {
+                    diagnostics.push(node_diag("LG177", "error", index, node, format!("Loop carry slot '{slot}' must start with a letter and contain only letters, digits, underscores, or hyphens.")));
+                }
+                if !valid_state_path(source_path) {
+                    diagnostics.push(node_diag("LG178", "error", index, node, format!("Loop carry source '{source_path}' must be a valid state JSON Pointer.")));
+                }
+            }
+        }
+        if node.kind != "loop" && !node.config.carry.is_empty() {
+            diagnostics.push(node_diag("LG179", "error", index, node, "Loop carry state is valid only on loop nodes."));
         }
         if node.kind == "join" && !["all", "allSettled", "first"].contains(&node.config.join.as_str()) {
             diagnostics.push(node_diag("LG124", "error", index, node, "Join policy must be all, allSettled, or first."));
@@ -739,7 +755,13 @@ fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
         "join" => output.push_str(&format!("\nWait using the `{}` join policy. Release the available branch outputs unchanged; use an aggregator when they must be combined.\n", node.config.join)),
         "aggregator" => output.push_str(&format!("\nAfter every declared dependency is available, {}. Preserve each source node ID and do not invent missing results.\n", aggregation_instruction(&node.config.aggregation))),
         "approval" => output.push_str("\nPause and request explicit user approval before continuing. State what will happen next.\n"),
-        "loop" => output.push_str(&format!("\nRepeat nodes {} until `{}` is true, for at most {} iterations. On exhaustion: `{}`. Never exceed the bound.\n", node.config.body.iter().map(|id| format!("`{id}`")).collect::<Vec<_>>().join(", "), node.config.exit_condition, node.config.max_iterations, if node.config.on_exhausted.is_empty() { "stop" } else { &node.config.on_exhausted })),
+        "loop" => {
+            output.push_str(&format!("\nRepeat nodes {} until `{}` is true, for at most {} iterations. On exhaustion: `{}`. Never exceed the bound.\n", node.config.body.iter().map(|id| format!("`{id}`")).collect::<Vec<_>>().join(", "), node.config.exit_condition, node.config.max_iterations, if node.config.on_exhausted.is_empty() { "stop" } else { &node.config.on_exhausted }));
+            if !node.config.carry.is_empty() {
+                let mappings = node.config.carry.iter().map(|(slot, path)| format!("`{slot}` from `{path}`")).collect::<Vec<_>>().join(", ");
+                output.push_str(&format!("Before each subsequent iteration, snapshot {mappings} into `/loopState/{}/<slot>` and expose that loop state to every body handler. A missing source is a runtime contract error.\n", node.id));
+            }
+        }
         "group" => output.push_str(&format!("\nAccept the group input, run {} in `{}` mode, then `{}` every member output before releasing any group output. The group is complete only after all members finish.\n", node.config.members.iter().map(|id| format!("`{id}`")).collect::<Vec<_>>().join(", "), node.config.execution, node.config.exit)),
         "tool" => output.push_str(&format!("\nThis node documents required tools ({}) and connectors ({}). Use only capabilities already available and permitted in the current environment.\n", list_or_none(&node.capabilities.tools), list_or_none(&node.capabilities.connectors))),
         "subgraph" => output.push_str("\nTreat this as a named phase boundary. Complete its referenced child work before continuing.\n"),
@@ -1243,6 +1265,31 @@ spec:
         assert!(analysis.diagnostics.iter().any(|d| d.code == "LG171"));
         assert!(analysis.diagnostics.iter().any(|d| d.code == "LG175"));
         assert!(analysis.diagnostics.iter().any(|d| d.code == "LG183" && d.edge_id.as_deref() == Some("map")));
+    }
+
+    #[test]
+    fn validates_and_compiles_loop_carry_state() {
+        let source = VALID.replace(
+            "    - id: output",
+            "    - id: debate-loop\n      kind: loop\n      name: Debate rounds\n      config:\n        body: [writer]\n        entry: writer\n        exitNode: writer\n        exitCondition: moderator.consensusReached\n        maxIterations: 3\n        onExhausted: stop\n        carry:\n          moderator: /results/writer\n    - id: output",
+        ).replace(
+            "    - id: e2",
+            "    - id: loop-exit\n      from: debate-loop\n      to: output\n      kind: control\n      condition: loop_exit\n    - id: e2",
+        );
+        let analysis = analyze_inner(&source, None);
+        assert!(!analysis.diagnostics.iter().any(|d| d.code == "LG177" || d.code == "LG178"));
+        let output = compile(&source, "codex");
+        assert!(output.content.contains("`moderator` from `/results/writer`"));
+        assert!(output.content.contains("`/loopState/debate-loop/<slot>`"));
+
+        let invalid = source.replace("moderator: /results/writer", "'bad slot': not-a-pointer");
+        let analysis = analyze_inner(&invalid, None);
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG177"));
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG178"));
+
+        let misplaced = VALID.replace("prompt: Draft the answer.", "prompt: Draft the answer.\n      config:\n        carry:\n          review: /results/writer");
+        let analysis = analyze_inner(&misplaced, None);
+        assert!(analysis.diagnostics.iter().any(|d| d.code == "LG179"));
     }
 
     #[test]

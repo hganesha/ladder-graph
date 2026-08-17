@@ -232,7 +232,25 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
         diagnostics.push(diagnostic("LG171", "error", path, "Loop entry must identify a node in the loop body.", node.id));
       if (exit && !bodyIds.has(exit))
         diagnostics.push(diagnostic("LG172", "error", path, "Loop exitNode must identify a node in the loop body.", node.id));
+      Object.entries(node.config?.carry ?? {}).forEach(([slot, sourcePath]) => {
+        if (!/^[A-Za-z][A-Za-z0-9_-]*$/u.test(slot))
+          diagnostics.push(
+            diagnostic(
+              "LG177",
+              "error",
+              path,
+              `Loop carry slot '${slot}' must start with a letter and contain only letters, digits, underscores, or hyphens.`,
+              node.id,
+            ),
+          );
+        if (!validStatePath(sourcePath))
+          diagnostics.push(
+            diagnostic("LG178", "error", path, `Loop carry source '${sourcePath}' must be a valid state JSON Pointer.`, node.id),
+          );
+      });
     }
+    if (node.kind !== "loop" && Object.keys(node.config?.carry ?? {}).length)
+      diagnostics.push(diagnostic("LG179", "error", path, "Loop carry state is valid only on loop nodes.", node.id));
     if (node.kind === "join" && !["all", "allSettled", "first"].includes(node.config?.join ?? ""))
       diagnostics.push(diagnostic("LG124", "error", path, "Join policy must be all, allSettled, or first.", node.id));
     if (node.kind === "group") {
@@ -526,9 +544,12 @@ function renderNode(workflow: Workflow, node: LgirNode, index: number): string {
   else if (node.kind === "aggregator")
     body += `\nAfter every declared dependency is available, ${aggregationInstruction(node.config?.aggregation)}. Preserve each source node ID and do not invent missing results.\n`;
   else if (node.kind === "approval") body += "\nPause and request explicit user approval before continuing. State what will happen next.\n";
-  else if (node.kind === "loop")
+  else if (node.kind === "loop") {
     body += `\nRepeat ${(node.config?.body ?? []).map((id) => `\`${id}\``).join(", ")} until \`${node.config?.exitCondition}\` is true, for at most ${node.config?.maxIterations} iterations. On exhaustion: \`${node.config?.onExhausted || "stop"}\`. Never exceed the bound.\n`;
-  else if (node.kind === "group")
+    const carry = Object.entries(node.config?.carry ?? {}).sort(([left], [right]) => left.localeCompare(right));
+    if (carry.length)
+      body += `Before each subsequent iteration, snapshot ${carry.map(([slot, path]) => `\`${slot}\` from \`${path}\``).join(", ")} into \`/loopState/${node.id}/<slot>\` and expose that loop state to every body handler. A missing source is a runtime contract error.\n`;
+  } else if (node.kind === "group")
     body += `\nAccept the group input, run ${(node.config?.members ?? []).map((id) => `\`${id}\``).join(", ")} in \`${node.config?.execution}\` mode, then \`${node.config?.exit}\` every member output before releasing any group output. The group is complete only after all members finish.\n`;
   else if (node.kind === "tool")
     body += `\nThis node documents required tools (${list(node.capabilities?.tools)}) and connectors (${list(node.capabilities?.connectors)}). Use only capabilities already available and permitted.\n`;

@@ -104,4 +104,13 @@ describe("agent template palette", () => {
     expect(screen.getByText("Combine outputs from multiple nodes")).toBeInTheDocument();
     expect(screen.getByText("Get feedback from a teacher model")).toBeInTheDocument();
   });
+
+  it("offers debate and brainstorm as visual macros rather than primitives", () => {
+    render(<Palette />);
+
+    expect(screen.getByRole("button", { name: "Debate" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Brainstorm" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Visual macros")).toHaveTextContent("Debate");
+    expect(screen.getByLabelText("Primitives")).not.toHaveTextContent("Debate");
+  });
 });

@@ -312,6 +312,45 @@ describe("LGIR fallback compiler", () => {
     );
   });
 
+  it("validates and compiles explicit loop carry state", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    workflow.spec.nodes.push({
+      id: "debate-loop",
+      kind: "loop",
+      name: "Debate rounds",
+      config: {
+        body: ["draft-a", "draft-b"],
+        entry: "draft-a",
+        exitNode: "draft-b",
+        exitCondition: "moderator.consensusReached",
+        maxIterations: 3,
+        onExhausted: "stop",
+        carry: { moderator: "/results/teacher", positions: "/results/combined" },
+      },
+    });
+    workflow.spec.edges.push({ id: "debate-exit", from: "debate-loop", to: "output", kind: "control", condition: "loop_exit" });
+
+    const source = stringify(workflow);
+    const valid = await analyzeFallback(source);
+    const compiled = await compileFallback(source, "codex");
+    expect(valid.ok).toBe(true);
+    expect(compiled.content).toContain("`moderator` from `/results/teacher`");
+    expect(compiled.content).toContain("`/loopState/debate-loop/<slot>`");
+
+    const loop = workflow.spec.nodes.find((node) => node.id === "debate-loop");
+    if (!loop?.config) throw new Error("The loop carry fixture is required.");
+    loop.config.carry = { "bad slot": "not-a-pointer" };
+    workflow.spec.nodes[1].config = { carry: { review: "/results/teacher" } };
+    const invalid = await analyzeFallback(stringify(workflow));
+    expect(invalid.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "LG177" }),
+        expect.objectContaining({ code: "LG178" }),
+        expect.objectContaining({ code: "LG179" }),
+      ]),
+    );
+  });
+
   it("validates join cardinality and deterministic data mappings", async () => {
     const workflow = structuredClone(primitiveWorkflow);
     workflow.spec.edges = workflow.spec.edges.filter((edge) => edge.id !== "e4");

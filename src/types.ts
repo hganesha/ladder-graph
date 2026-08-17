@@ -48,6 +48,7 @@ export interface NodeConfig {
   exitCondition?: string;
   maxIterations?: number;
   onExhausted?: "stop" | "continue" | "warn" | "";
+  carry?: Record<string, string>;
   threshold?: number;
   members?: string[];
   execution?: "sequential" | "parallel" | "";

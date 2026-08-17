@@ -1,4 +1,16 @@
-import { Boxes, ChevronDown, Combine, GitMerge, Layers3, PanelLeftClose, Search, ShieldCheck, X } from "lucide-react";
+import {
+  Boxes,
+  ChevronDown,
+  Combine,
+  GitMerge,
+  Layers3,
+  Lightbulb,
+  MessagesSquare,
+  PanelLeftClose,
+  Search,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { NODE_META, PALETTE_ORDER, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { groupRoleTemplates, roleSubcategory } from "../lib/roleCategories";
@@ -74,6 +86,14 @@ export function Palette() {
           <button onClick={() => void addMacro("verify")}>
             <ShieldCheck size={15} />
             <span>Verify</span>
+          </button>
+          <button onClick={() => void addMacro("debate")}>
+            <MessagesSquare size={15} />
+            <span>Debate</span>
+          </button>
+          <button onClick={() => void addMacro("brainstorm")}>
+            <Lightbulb size={15} />
+            <span>Brainstorm</span>
           </button>
         </div>
       </details>

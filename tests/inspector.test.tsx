@@ -106,6 +106,32 @@ describe("input contract inspector", () => {
 
     expect(screen.queryByLabelText("Working folder")).not.toBeInTheDocument();
   });
+
+  it("edits explicit loop carry state", () => {
+    const workflow = parse(WORKFLOW_TEMPLATES[0].yaml) as Workflow;
+    const loop = workflow.spec.nodes.find((node) => node.kind === "loop");
+    if (!loop) throw new Error("The refinement loop is required.");
+    const patchNode = vi.fn(async () => undefined);
+    const analysis: AnalysisResult = {
+      ok: true,
+      sourceHash: "test",
+      diagnostics: [],
+      normalized: workflow,
+      nodeOrder: workflow.spec.nodes.map((node) => node.id),
+      stats: { nodes: workflow.spec.nodes.length, edges: workflow.spec.edges.length, agents: 2, loops: 1, maxParallelism: 1 },
+    };
+    useStudioStore.setState({ analysis, selectedNodeId: loop.id, selectedEdgeId: null, inspectorTab: "advanced", patchNode });
+
+    render(<Inspector />);
+
+    const carry = screen.getByLabelText("Carry state into next iteration");
+    fireEvent.change(carry, { target: { value: '{"review":"/results/critique"}' } });
+    fireEvent.blur(carry);
+    expect(patchNode).toHaveBeenCalledWith(
+      loop.id,
+      expect.objectContaining({ config: expect.objectContaining({ carry: { review: "/results/critique" } }) }),
+    );
+  });
 });
 
 describe("edge inspector", () => {

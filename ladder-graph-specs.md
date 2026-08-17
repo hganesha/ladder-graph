@@ -33,7 +33,7 @@ Activation occurs when a user validates and copies or downloads a workflow with 
 - Dependencies, typed data edges, control edges, parallel branches, joins, aggregators, conditions, evaluations, teacher-model feedback, approvals, structured loops, execution groups, and subgraphs.
 - Canonical node kinds: `input`, `output`, `agent`, `tool`, `transform`, `condition`, `evaluate`, `teacher`, `approval`, `join`, `aggregator`, `loop`, `group`, and `subgraph`.
 - Declarative transforms: select, rename, merge, filter, deduplicate, sort, and slice.
-- Visual macro insertion for Parallel, Pipeline, Reduce, and Verify. Macros materialize canonical nodes and edges before validation.
+- Visual macro insertion for Parallel, Pipeline, Reduce, Verify, Debate, and Brainstorm. Debate materializes independent parallel positions, neutral moderation, explicit consensus routing, bounded rounds, and unresolved-disagreement output. Brainstorm materializes independent ideation, deduplication, ranking, and refinement. Macros always materialize canonical nodes and edges before validation.
 - Role templates for the eight core roles plus 20 software-development, 20 security, and 20 architecture/design specialists. Research-derived roles preserve their narrow responsibility, handoff, verification, connector, and authorization boundaries.
 - Deterministic Codex, Claude, and Hermes Agent Markdown adapters.
 - Deterministic Python and TypeScript data-module adapters with stable node order, dependencies, capability manifests, and pure readiness helpers.
@@ -92,7 +92,7 @@ The bundled research library includes mathematics, music, and physics specialist
 
 ### Structured loops
 
-A loop owns a body list, an exit-condition reference, `maxIterations` from 1 through 100, and an exhaustion policy. Back-edges and self-edges are invalid. Targets render loops as explicit bounded instructions and report the capability as instructional.
+A loop owns a body list, an exit-condition reference, `maxIterations` from 1 through 100, an exhaustion policy, and optional named carry slots sourced from explicit state JSON Pointers. Carried values are exposed to the next iteration without adding graph back-edges. Back-edges and self-edges remain invalid. Targets render loops as explicit bounded instructions and report the capability as instructional.
 
 ### Aggregators and teacher models
 

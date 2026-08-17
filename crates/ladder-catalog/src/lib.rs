@@ -658,7 +658,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::Workflow)
                 .count(),
-            85
+            93
         );
         assert_eq!(
             catalog
@@ -666,7 +666,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::AgentTemplate)
                 .count(),
-            291
+            307
         );
         assert!(
             catalog
