@@ -25,11 +25,22 @@ interface SettingRecord {
   value: string;
 }
 
+export interface BundleAssetRecord {
+  id: string;
+  projectId: string;
+  ref: string;
+  kind: "Workflow" | "Ontology" | "Form" | "Document";
+  source: string;
+  sourceHash: string;
+  updatedAt: number;
+}
+
 class LadderDatabase extends Dexie {
   projects!: EntityTable<ProjectRecord, "id">;
   revisions!: EntityTable<RevisionRecord, "id">;
   templates!: EntityTable<UserTemplateRecord, "id">;
   settings!: EntityTable<SettingRecord, "key">;
+  bundleAssets!: EntityTable<BundleAssetRecord, "id">;
 
   constructor() {
     super("ladder-graph");
@@ -44,6 +55,22 @@ class LadderDatabase extends Dexie {
       templates: "id, path, title, updatedAt",
       settings: "key",
     });
+    this.version(3)
+      .stores({
+        projects: "id, name, artifactKind, updatedAt",
+        revisions: "id, projectId, createdAt",
+        templates: "id, kind, path, title, updatedAt",
+        settings: "key",
+        bundleAssets: "id, projectId, ref, kind, updatedAt",
+      })
+      .upgrade(async (transaction) => {
+        await transaction
+          .table<ProjectRecord, string>("projects")
+          .toCollection()
+          .modify((project) => {
+            project.artifactKind ??= "workflow";
+          });
+      });
   }
 }
 
@@ -86,6 +113,7 @@ export async function saveProject(
   const project: ProjectRecord = {
     id: existing?.id ?? id(),
     name,
+    artifactKind: existing?.artifactKind ?? "workflow",
     yaml,
     lastValidYaml,
     target,
@@ -107,6 +135,17 @@ export async function saveProject(
   const old = await db.revisions.where("projectId").equals(project.id).reverse().sortBy("createdAt");
   if (old.length > 30) await db.revisions.bulkDelete(old.slice(30).map((item) => item.id));
   return project;
+}
+
+export async function saveBundleAssets(projectId: string, assets: BundleAssetRecord[]) {
+  await db.transaction("rw", db.bundleAssets, async () => {
+    await db.bundleAssets.where("projectId").equals(projectId).delete();
+    await db.bundleAssets.bulkPut(assets.map((asset) => ({ ...asset, projectId })));
+  });
+}
+
+export async function listBundleAssets(projectId: string) {
+  return db.bundleAssets.where("projectId").equals(projectId).sortBy("ref");
 }
 
 export async function listProjects() {
@@ -134,9 +173,10 @@ export async function deleteSetting(key: string) {
 }
 
 export async function deleteProject(id: string) {
-  await db.transaction("rw", db.projects, db.revisions, async () => {
+  await db.transaction("rw", db.projects, db.revisions, db.bundleAssets, async () => {
     await db.projects.delete(id);
     await db.revisions.where("projectId").equals(id).delete();
+    await db.bundleAssets.where("projectId").equals(id).delete();
   });
 }
 

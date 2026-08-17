@@ -4,6 +4,8 @@ Design agent workflows visually. Validate the hard parts. Compile prompts or det
 
 Ladder Graph is an open-source, offline-first visual compiler for agent workflows. It provides a synchronized graph and LGIR YAML editor, structured loops, sequential or parallel execution groups, typed dependencies, diagnostics, local templates, deterministic Markdown adapters for Codex, Claude, and Hermes Agent, and deterministic data modules for Python and TypeScript. It does not run agents or contact model providers.
 
+Ladder Graph also includes an experimental workflow-bundle vertical slice. Open **Insurance claim review** from the gallery to combine an existing workflow with first-class forms, a supporting document contract, and either a complete ontology or a deterministic workflow-specific ontology sliver.
+
 ## Run locally
 
 Requirements: Node.js 20+, npm 10+, and optionally Rust stable plus `wasm-pack` when regenerating the committed compiler artifacts.
@@ -68,6 +70,21 @@ The Rust-generated files in `src/wasm/pkg` are intentionally committed so static
 - Typed text, image, audio, video, document, and mixed-media input contracts, including image-to-text and reference-image transformation workflows.
 - Target-aware skill and connector templates with per-node customization stored directly in LGIR, including 15 declarative OpenRouter image, video, speech, music, and transcription profiles.
 - IndexedDB and OPFS persistence, invalid-draft recovery, import/export, revisions, installable PWA behavior, and no telemetry.
+
+## Experimental workflow bundles
+
+The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `WorkflowBundle` artifacts without changing existing workflow APIs. The insurance reference bundle demonstrates:
+
+- ontology-only import from a portable Lattice export—policies, evidence, runtime entities, and governance fields are not imported;
+- explicit DocuBricks classification as `form`, `document`, or `hybrid`, with unsupported expressions preserved as inert metadata;
+- deterministic ontology sliver closure from explicit type, property, relationship, form, document, and binding references;
+- cross-artifact JSON Pointer and ontology-property validation;
+- portable form JSON Schema and UI metadata, supporting document schemas, the unchanged workflow target, inclusion reasons, and a deterministic lockfile;
+- a bundle map, ontology-sliver inspection, compile-target selection, and per-file output download;
+- a first-class form studio with structural page/section/field editing, an ontology field palette, field and workflow bindings, responsive preview, canonical YAML editing, diagnostics, undo/redo, and portable form exports;
+- bundle recompilation from edited form sources, so visual changes are reflected in the generated JSON Schema and UI contract.
+
+Portable authoring contracts are published in [`public/schema`](public/schema). The implementation and product rationale are documented in [ladder-graph-feature-expansion-plan.md](ladder-graph-feature-expansion-plan.md) and [ladder-graph-feature-expansion.md](ladder-graph-feature-expansion.md).
 
 See [ladder-graph-specs.md](ladder-graph-specs.md), [ARCHITECTURE.md](ARCHITECTURE.md), [ladder-graph-validation-plan.md](ladder-graph-validation-plan.md), and [ladder-graph-mcp-native-plan.md](ladder-graph-mcp-native-plan.md).
 

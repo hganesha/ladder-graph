@@ -5,9 +5,10 @@ test.use({ viewport: { width: 390, height: 844 } });
 test("welcome and studio remain usable on a phone viewport", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "Starter workflows" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Workflow library" })).toBeVisible();
   await expect(page.locator(".template-card").first()).toBeVisible();
   const workflowCardBounds = await page.locator(".template-card").first().boundingBox();
+  expect(workflowCardBounds?.y).toBeLessThanOrEqual(420);
   expect(workflowCardBounds?.x).toBeGreaterThanOrEqual(0);
   expect((workflowCardBounds?.x ?? 0) + (workflowCardBounds?.width ?? 0)).toBeLessThanOrEqual(390);
   expect(workflowCardBounds?.height).toBeLessThanOrEqual(140);

@@ -14,6 +14,7 @@ wasm-opt = false
 
 [dependencies]
 lgir-core = { path = "../lgir-core" }
+ladder-artifacts = { path = "../ladder-artifacts" }
 serde = "1"
 serde_json = "1"
 wasm-bindgen = "0.2"

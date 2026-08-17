@@ -1,0 +1,57 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: claim-review-decision
+  title: Claim review decision
+  description: Structured review and approval record for the insurance claim workflow.
+  version: 1.0.0
+  source:
+    system: ladder
+    sourceId: claim-review-decision
+    sourceVersion: 1.0.0
+spec:
+  role: approval
+  pages:
+    - id: determination
+      title: Claim determination
+      sections:
+        - id: decision
+          title: Decision
+          fields:
+            - id: coverage-position
+              name: coverage_position
+              label: Coverage position
+              dataType: string
+              widget: radio
+              required: true
+              allowedValues: [accepted, reservation-of-rights, denied, pending]
+              ontologyPropertyRef: coverage.coverage_position
+            - id: recommended-reserve
+              name: recommended_reserve
+              label: Recommended reserve
+              dataType: number
+              widget: number
+              minimum: 0
+              ontologyPropertyRef: claim_adjustment.recommended_reserve
+            - id: rationale
+              name: rationale
+              label: Determination rationale
+              dataType: string
+              widget: textarea
+              required: true
+              minLength: 40
+              ontologyPropertyRef: coverage.coverage_analysis
+              span: 2
+            - id: open-items
+              name: open_items
+              label: Open items
+              dataType: array
+              ontologyPropertyRef: claim_adjustment.open_items
+              span: 2
+            - id: manager-approved
+              name: manager_approved
+              label: Claims manager approval
+              dataType: boolean
+              widget: checkbox
+              required: true
+  submissionSchema: {}

@@ -216,9 +216,12 @@ export interface RoleTemplate {
 export interface ProjectRecord {
   id: string;
   name: string;
+  artifactKind?: "workflow" | "ontology" | "form" | "document" | "workflow-bundle";
   yaml: string;
   lastValidYaml: string;
   target: Target;
   createdAt: number;
   updatedAt: number;
 }
+
+export type * from "./types/artifacts";
