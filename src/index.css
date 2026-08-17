@@ -4172,6 +4172,79 @@ button:disabled {
 .help-checklist li svg {
   color: var(--green);
 }
+.help-about-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--cyan) 32%, var(--border));
+  border-radius: 14px;
+  padding: clamp(28px, 6vw, 56px) 24px;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--cyan) 12%, transparent), transparent 48%),
+    linear-gradient(var(--graph-grid) 1px, transparent 1px), linear-gradient(90deg, var(--graph-grid) 1px, transparent 1px),
+    color-mix(in srgb, var(--surface-2) 72%, var(--surface));
+  background-size:
+    auto,
+    24px 24px,
+    24px 24px,
+    auto;
+  text-align: center;
+}
+.help-about-mark {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 42%, var(--border));
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--cyan) 9%, var(--surface));
+  box-shadow: 0 12px 36px color-mix(in srgb, var(--cyan) 10%, transparent);
+  color: var(--cyan);
+}
+.help-about-copy {
+  margin-top: 20px;
+}
+.help-about-copy > span {
+  display: block;
+  color: var(--dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.help-about-copy strong {
+  display: block;
+  margin-top: 7px;
+  font-family: "Syne", sans-serif;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 560;
+  letter-spacing: -0.025em;
+}
+.help-about-copy p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.help-about-card > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 45%, var(--border));
+  border-radius: 9px;
+  padding: 10px 13px;
+  background: color-mix(in srgb, var(--cyan) 8%, var(--surface));
+  color: var(--cyan);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.help-about-card > a:hover {
+  border-color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 13%, var(--surface));
+}
 .help-dialog-footer {
   min-height: 62px;
   border-top: 1px solid var(--border);
