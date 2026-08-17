@@ -258,12 +258,12 @@ export function Welcome({ onBlank }: { onBlank: () => void }) {
   }, []);
 
   return (
-      <main className="welcome-shell">
-        <header className="welcome-header">
-          <Brand />
-          <div className="welcome-header-actions">
-            <button className="quiet-button" onClick={() => setMcpOpen(true)} type="button" aria-label="Open MCP companion">
-              <Cable size={16} aria-hidden="true" />
+    <main className="welcome-shell">
+      <header className="welcome-header">
+        <Brand />
+        <div className="welcome-header-actions">
+          <button className="quiet-button" onClick={() => setMcpOpen(true)} type="button" aria-label="Open MCP companion">
+            <Cable size={16} aria-hidden="true" />
             <span>MCP</span>
           </button>
           <button className="quiet-button welcome-help-button" onClick={() => setHelpOpen(true)} type="button">
