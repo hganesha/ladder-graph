@@ -3,12 +3,14 @@ import {
   Braces,
   Cable,
   CheckCircle2,
+  ChevronDown,
   CircleHelp,
   Code2,
   Columns2,
   Database,
   Download,
   FileUp,
+  Image as ImageIcon,
   Minus,
   Plus,
   Redo2,
@@ -16,20 +18,25 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { downloadText } from "../lib/download";
+import type { GraphImageFormat } from "../lib/graphImage";
 import { useStudioStore } from "../store/useStudioStore";
 import type { Target } from "../types";
 import { Brand } from "./Brand";
-import { download } from "./OutputPanel";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function StudioHeader({
   onHelp,
   onStorage,
+  canExportImage,
   mcpPaired,
+  onExportImage,
 }: {
   onHelp: () => void;
   onStorage: () => void;
+  canExportImage: boolean;
   mcpPaired: boolean;
+  onExportImage: (format: GraphImageFormat) => Promise<void>;
 }) {
   const state = useStudioStore();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -39,6 +46,8 @@ export function StudioHeader({
   const workflow = state.analysis?.normalized;
   const [titleDraft, setTitleDraft] = useState("");
   const [descriptionDraft, setDescriptionDraft] = useState("");
+  const [exportError, setExportError] = useState("");
+  const [exporting, setExporting] = useState<GraphImageFormat | null>(null);
 
   useEffect(() => {
     setTitleDraft(workflow?.metadata.title ?? workflow?.metadata.name ?? "");
@@ -60,6 +69,18 @@ export function StudioHeader({
     if (!workflow) return;
     setDescriptionDraft(description);
     if (description !== (workflow.metadata.description ?? "")) await state.patchWorkflowMetadata({ description });
+  };
+
+  const exportImage = async (format: GraphImageFormat) => {
+    setExportError("");
+    setExporting(format);
+    try {
+      await onExportImage(format);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : "The graph image could not be exported.");
+    } finally {
+      setExporting(null);
+    }
   };
 
   return (
@@ -212,14 +233,13 @@ export function StudioHeader({
         <button className="icon-button" title="Import YAML" aria-label="Import YAML" onClick={() => fileRef.current?.click()}>
           <FileUp size={15} />
         </button>
-        <button
-          className="icon-button"
-          title="Export YAML"
-          aria-label="Export YAML"
-          onClick={() => download(`${workflow?.metadata.name ?? "workflow"}.yaml`, state.source, "application/yaml")}
-        >
-          <Download size={15} />
-        </button>
+        <ExportMenu
+          canExportImage={canExportImage}
+          exporting={exporting}
+          name={workflow?.metadata.name ?? "workflow"}
+          onExportImage={exportImage}
+          source={state.source}
+        />
         <button className="icon-button" title="Storage" aria-label="Storage details" onClick={onStorage}>
           <Database size={15} />
         </button>
@@ -289,14 +309,13 @@ export function StudioHeader({
         <button className="icon-button" title="Import YAML" aria-label="Import YAML" onClick={() => fileRef.current?.click()}>
           <FileUp size={15} />
         </button>
-        <button
-          className="icon-button"
-          title="Export YAML"
-          aria-label="Export YAML"
-          onClick={() => download(`${workflow?.metadata.name ?? "workflow"}.yaml`, state.source, "application/yaml")}
-        >
-          <Download size={15} />
-        </button>
+        <ExportMenu
+          canExportImage={canExportImage}
+          exporting={exporting}
+          name={workflow?.metadata.name ?? "workflow"}
+          onExportImage={exportImage}
+          source={state.source}
+        />
         <button
           className={`icon-button mobile-mcp-button ${mcpPaired ? "paired" : ""}`}
           title={mcpPaired ? "MCP paired — open companion settings" : "Set up MCP companion"}
@@ -312,7 +331,85 @@ export function StudioHeader({
           <CircleHelp size={15} aria-hidden="true" />
         </button>
       </section>
-      {importError && <div className="import-error">{importError}</div>}
+      {(importError || exportError) && <div className="import-error">{importError || exportError}</div>}
     </header>
+  );
+}
+
+function ExportMenu({
+  canExportImage,
+  exporting,
+  name,
+  onExportImage,
+  source,
+}: {
+  canExportImage: boolean;
+  exporting: GraphImageFormat | null;
+  name: string;
+  onExportImage: (format: GraphImageFormat) => Promise<void>;
+  source: string;
+}) {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!detailsRef.current?.contains(event.target as globalThis.Node)) detailsRef.current?.removeAttribute("open");
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, []);
+
+  const close = () => detailsRef.current?.removeAttribute("open");
+  const exportImage = (format: GraphImageFormat) => {
+    close();
+    void onExportImage(format);
+  };
+
+  return (
+    <details
+      className="export-menu"
+      ref={detailsRef}
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        close();
+        detailsRef.current?.querySelector<HTMLElement>("summary")?.focus();
+      }}
+    >
+      <summary className="icon-button" title="Download workflow" aria-label="Download workflow">
+        <Download size={15} />
+        <ChevronDown className="export-menu-chevron" size={9} aria-hidden="true" />
+      </summary>
+      <div className="export-menu-popover" role="menu" aria-label="Download format">
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            close();
+            downloadText(`${name}.yaml`, source, "application/yaml");
+          }}
+        >
+          <Braces size={15} aria-hidden="true" />
+          <span>
+            <strong>YAML source</strong>
+            <small>Editable workflow definition</small>
+          </span>
+        </button>
+        <button type="button" role="menuitem" disabled={!canExportImage || Boolean(exporting)} onClick={() => exportImage("png")}>
+          <ImageIcon size={15} aria-hidden="true" />
+          <span>
+            <strong>{exporting === "png" ? "Creating PNG…" : "PNG image"}</strong>
+            <small>High-resolution raster image</small>
+          </span>
+        </button>
+        <button type="button" role="menuitem" disabled={!canExportImage || Boolean(exporting)} onClick={() => exportImage("svg")}>
+          <ImageIcon size={15} aria-hidden="true" />
+          <span>
+            <strong>{exporting === "svg" ? "Creating SVG…" : "SVG image"}</strong>
+            <small>Scalable canvas snapshot</small>
+          </span>
+        </button>
+        {!canExportImage ? <p>Switch to Canvas or Split view to download an image.</p> : null}
+      </div>
+    </details>
   );
 }

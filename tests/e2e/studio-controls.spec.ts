@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 test("node spacing and panel-owned controls provide visible feedback", async ({ page }) => {
   await page.goto("/");
@@ -48,4 +49,42 @@ test("workflow name and description are editable from the header", async ({ page
   await page.getByRole("button", { name: "YAML source view" }).click();
   await expect(page.locator(".cm-content")).toContainText("title: Release readiness review");
   await expect(page.locator(".cm-content")).toContainText("description: Verify risks, owners, and launch evidence.");
+});
+
+test("downloads the full graph as PNG and SVG from the export menu", async ({ page }, testInfo) => {
+  const browserErrors: string[] = [];
+  page.on("pageerror", (error) => browserErrors.push(error.message));
+  await page.goto("/");
+  await page.getByRole("button", { name: /new workflow/i }).click();
+  await expect(page.getByLabel("Workflow graph canvas")).toBeVisible();
+
+  await page.locator(".header-actions .export-menu summary").click();
+  await expect(page.getByRole("menu", { name: "Download format" }).first()).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("export-menu.png") });
+
+  const pngDownloadPromise = page.waitForEvent("download");
+  await page
+    .getByRole("menuitem", { name: /PNG image/i })
+    .first()
+    .click();
+  const pngDownload = await pngDownloadPromise;
+  const pngPath = await pngDownload.path();
+  expect(pngDownload.suggestedFilename()).toMatch(/\.png$/);
+  expect(pngPath).not.toBeNull();
+  expect((await readFile(pngPath as string)).subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+
+  await page.locator(".header-actions .export-menu summary").click();
+  const svgDownloadPromise = page.waitForEvent("download");
+  await page
+    .getByRole("menuitem", { name: /SVG image/i })
+    .first()
+    .click();
+  const svgDownload = await svgDownloadPromise;
+  const svgPath = await svgDownload.path();
+  expect(svgDownload.suggestedFilename()).toMatch(/\.svg$/);
+  expect(svgPath).not.toBeNull();
+  const svg = await readFile(svgPath as string, "utf8");
+  expect(svg).toContain("<svg");
+  expect(svg).toContain("task-node");
+  expect(browserErrors).toEqual([]);
 });
