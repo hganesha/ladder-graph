@@ -12,6 +12,7 @@ import {
   FileCheck2,
   FileUp,
   GitBranch,
+  Github,
   HardDrive,
   Library,
   LockKeyhole,
@@ -342,6 +343,28 @@ const HELP_PAGES: HelpPage[] = [
           </ul>
         </div>
       </>
+    ),
+  },
+  {
+    eyebrow: "06 · About",
+    title: "About Ladder Graph",
+    description: "An open-source visual studio for designing, validating, and compiling agent workflows.",
+    content: (
+      <div className="help-about-card">
+        <div className="help-about-mark" aria-hidden="true">
+          <Network size={30} />
+        </div>
+        <div className="help-about-copy">
+          <span>Created by</span>
+          <strong>Hari Venkataraman with Codex</strong>
+          <p>Explore the source, follow development, or contribute on GitHub.</p>
+        </div>
+        <a href="https://github.com/hganesha/ladder-graph" rel="noreferrer" target="_blank">
+          <Github size={17} aria-hidden="true" />
+          View on GitHub
+          <ArrowRight size={15} aria-hidden="true" />
+        </a>
+      </div>
     ),
   },
 ];
