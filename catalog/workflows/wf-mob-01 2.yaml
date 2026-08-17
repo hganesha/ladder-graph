@@ -1,0 +1,234 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-mob-01
+  title: Fleet record reconciliation + exception register
+  description: Extract telematics and maintenance records separately, merge them declaratively, and drive
+    everything that will not reconcile into a source-tagged exception register.
+  version: 1.0.0
+spec:
+  objective: Produce a fleet operating picture in which every vehicle record ties across systems and every
+    unreconciled field is listed with its source rather than averaged away.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Fleet records from operating systems
+      summary: Fleet records from operating systems
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - telematics_records
+              - maintenance_records
+              - fuel_and_job_records
+              - period
+            properties:
+              telematics_records: {}
+              maintenance_records: {}
+              fuel_and_job_records: {}
+              period: {}
+        x-ladder-input-mode: document
+    - id: n-source1
+      kind: agent
+      name: Telematics and utilization extraction
+      summary: 'Source extraction 1: telematics and utilization extraction.'
+      role: Fleet analyst tying utilization, duty cycles, and maintenance into operating decisions.
+      prompt: You are a Fleet Operations Analyst. You combine telematics, duty cycles, and maintenance
+        history into vehicle- and route-level operating economics, and you reconcile odometer, fuel, and
+        job records against each other rather than trusting one system. You state where the data sources
+        disagree instead of averaging them, because the disagreement is usually a process failure worth
+        more than the metric.
+      capabilities:
+        skills:
+          - fleet-analytics
+          - telematics-reconciliation
+          - duty-cycle-analysis
+          - operating-cost-modeling
+          - data-lineage-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:telematics
+          - mcp:cmms
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-source2
+      kind: agent
+      name: Maintenance and duty-cycle extraction
+      summary: 'Source extraction 2: maintenance and duty-cycle extraction.'
+      role: Dispatch engineer producing feasible vehicle assignments under hard constraints.
+      prompt: You are a Routing & Dispatch Engineer. You produce assignments that respect hours of service,
+        vehicle capability, time windows, and depot capacity, and you report which constraint made a request
+        infeasible rather than returning a plan that quietly violates one. You give the optimality gap
+        for heuristic solutions, because a dispatcher deciding whether to add a vehicle needs to know
+        how much is left on the table.
+      capabilities:
+        skills:
+          - dispatch-optimization
+          - constraint-feasibility-checking
+          - hours-of-service-compliance
+          - optimality-gap-reporting
+          - route-optimization
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:tms
+          - mcp:telematics
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-union
+      kind: transform
+      name: Merge telematics and maintenance records
+      summary: merge the extracted vehicle records on vehicle_id and period
+      config:
+        operation: merge
+        expression: merge the extracted vehicle records on vehicle_id and period
+    - id: n-reconcile
+      kind: agent
+      name: Reconcile matched vehicle records
+      summary: Reconcile fields that arrived from more than one source.
+      role: Fleet analyst tying utilization, duty cycles, and maintenance into operating decisions.
+      prompt: You are a Fleet Operations Analyst. You combine telematics, duty cycles, and maintenance
+        history into vehicle- and route-level operating economics, and you reconcile odometer, fuel, and
+        job records against each other rather than trusting one system. You state where the data sources
+        disagree instead of averaging them, because the disagreement is usually a process failure worth
+        more than the metric.
+      capabilities:
+        skills:
+          - fleet-analytics
+          - telematics-reconciliation
+          - duty-cycle-analysis
+          - operating-cost-modeling
+          - data-lineage-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:telematics
+          - mcp:cmms
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-exceptions
+      kind: agent
+      name: State the unreconciled records as exceptions
+      summary: Everything that could not be reconciled, stated as an exception.
+      role: Incident analyst reconstructing events and separating cause from correlation.
+      prompt: You are a Mobility Incident Analyst. You reconstruct an incident from vehicle, infrastructure,
+        and human-factors evidence, keeping the timeline separate from the causal claim, and you state
+        what the evidence cannot distinguish. You resist single-cause narratives, because the recommendation
+        that follows from 'driver error' and from 'a design that invites driver error' are not the same
+        recommendation.
+      capabilities:
+        skills:
+          - incident-reconstruction
+          - timeline-construction
+          - human-factors-analysis
+          - causal-claim-discipline
+          - failure-mode-analysis
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:telematics
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-register
+      kind: aggregator
+      name: Collect the exception register
+      summary: Every unreconciled field is source-tagged so an exception keeps its provenance.
+      config:
+        aggregation: collect
+    - id: n-clean
+      kind: condition
+      name: Exception register empty?
+      summary: Route on register.exceptions is empty.
+      config:
+        expression: register.exceptions is empty
+        branches:
+          - label: Clean
+            when: clean
+          - label: Exceptions
+            when: exceptions
+    - id: n-approval
+      kind: approval
+      name: Fleet manager accepts the reconciled operating picture
+      summary: Pause for the fleet manager; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Fleet record reconciliation + exception register deliverable, the
+        evidence behind it, and every unresolved item.
+  edges:
+    - id: wf-mob-01-edge-1
+      from: n-intake
+      to: n-source1
+      kind: data
+    - id: wf-mob-01-edge-2
+      from: n-intake
+      to: n-source2
+      kind: data
+    - id: wf-mob-01-edge-3
+      from: n-source1
+      to: n-union
+      kind: data
+    - id: wf-mob-01-edge-4
+      from: n-source2
+      to: n-union
+      kind: data
+    - id: wf-mob-01-edge-5
+      from: n-union
+      to: n-reconcile
+      kind: data
+    - id: wf-mob-01-edge-6
+      from: n-reconcile
+      to: n-exceptions
+      kind: data
+    - id: wf-mob-01-edge-7
+      from: n-reconcile
+      to: n-register
+      kind: data
+    - id: wf-mob-01-edge-8
+      from: n-exceptions
+      to: n-register
+      kind: data
+    - id: wf-mob-01-edge-9
+      from: n-register
+      to: n-clean
+      kind: data
+    - id: wf-mob-01-edge-10
+      from: n-clean
+      to: n-approval
+      kind: control
+      condition: clean
+    - id: wf-mob-01-edge-11
+      from: n-clean
+      to: n-approval
+      kind: control
+      condition: exceptions
+    - id: wf-mob-01-edge-12
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

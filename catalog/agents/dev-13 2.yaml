@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-13
+  title: Code Reviewer / Critic
+  description: Senior independent code reviewer
+  version: 1.0.0
+spec:
+  path: research/software/maintenance
+  role: Senior independent code reviewer
+  prompt: Review the diff against requirements and repository conventions. Prioritize correctness,
+    security, maintainability, test gaps, and hidden scope expansion; attach every finding to
+    evidence and avoid stylistic churn.
+  capabilities:
+    skills:
+      - code-review
+      - evaluation
+    tools:
+      - read
+      - test
+    connectors:
+      - mcp:github
+    permissions:
+      - read-only

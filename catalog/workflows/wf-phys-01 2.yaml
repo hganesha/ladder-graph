@@ -1,0 +1,409 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: physics-problem-solving-verification-pipeline
+  title: Physics Problem Solving & Verification Pipeline
+  description: Classifies an incoming physics problem by domain, routes it to the matching specialist
+    solver, runs a dimensional/units and numerical sanity check on the result, and loops re-solving
+    with error feedback until the answer passes sanity checks or a cap is hit.
+  version: 1.0.0
+spec:
+  objective: "Classifies an incoming physics problem by domain, routes it to the matching specialist
+    solver, runs a dimensional/units and numerical sanity check on the result, and loops re-solving
+    with error feedback until the answer passes sanity checks or a cap is hit. Trigger: user submits
+    a physics problem statement with known quantities and a target unknown"
+  policies:
+    maxConcurrency: 4
+    onFailure: stop
+    requireApprovalFor: []
+  nodes:
+    - id: n1
+      kind: input
+      name: Problem Statement Intake
+      summary: Problem Statement Intake
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The user's objective, source text, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - problem_text
+              - known_quantities
+              - target_quantity
+            properties:
+              problem_text: {}
+              known_quantities: {}
+              target_quantity: {}
+        x-ladder-input-mode: text
+    - id: n2
+      kind: agent
+      name: Classify Problem Domain & Extract Givens
+      summary: Classify Problem Domain & Extract Givens
+      role: Physics educator specializing in building physical intuition, not just formula manipulation,
+        and routing problems to the right specialist.
+      prompt: You are a Physics Concept & Intuition Explainer agent. You explain a physics concept by
+        building the physical intuition behind it — analogies, limiting cases, order-of-magnitude
+        reasoning — before or alongside the formal mathematics, rather than leading with equations
+        the student can manipulate without understanding. Given an incoming problem, you classify it
+        by physics domain and identify the given and unknown quantities so it can be routed to the
+        right specialist solver (mechanics, electromagnetism, thermodynamics, quantum), and once a
+        solution is produced, you check the final answer against intuition and order-of-magnitude
+        sanity before it's presented as correct.
+      capabilities:
+        skills:
+          - problem-domain-classification
+          - order-of-magnitude-sanity-check-heuristics
+          - analogy-and-limiting-case-reference
+          - latex-rendering
+          - routing-logic-to-domain-specific-solver-agents
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:daw
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n3
+      kind: condition
+      name: Route by Physics Domain
+      summary: Route from problem classification.domain.
+      config:
+        expression: problem_classification.domain selects one declared branch
+        branches:
+          - label: classical mechanics
+            when: classical_mechanics
+          - label: electromagnetism
+            when: electromagnetism
+          - label: thermodynamics
+            when: thermodynamics
+          - label: quantum mechanics
+            when: quantum_mechanics
+          - label: Default
+            when: default
+    - id: n4a
+      kind: agent
+      name: Solve — Classical Mechanics
+      summary: Solve — Classical Mechanics
+      role: Physics instructor/solver specializing in Newtonian and Lagrangian/Hamiltonian mechanics.
+      prompt: "You are a Classical Mechanics Problem Solver agent. You solve mechanics problems —
+        kinematics, dynamics, energy and momentum conservation, rotational motion, oscillations —
+        using the formalism best suited to the problem: a Newtonian free-body-diagram approach for
+        straightforward force problems, Lagrangian or Hamiltonian mechanics for constrained or
+        multi-body systems where it genuinely simplifies the work. You show all intermediate steps
+        and state the physical reasoning behind each modeling choice — what's being neglected and
+        why (friction, air resistance, a rod treated as massless) — so the idealizations are visible
+        rather than silently baked in."
+      capabilities:
+        skills:
+          - symbolic-numeric-solver
+          - free-body-diagram-and-lagrangian-derivation
+          - latex-rendering
+          - plotting-visualization
+          - dimensional-consistency-pre-check
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n4b
+      kind: agent
+      name: Solve — Electromagnetism
+      summary: Solve — Electromagnetism
+      role: Physics specialist in electricity, magnetism, and electromagnetic theory, from electrostatics
+        through Maxwell's equations.
+      prompt: You are an Electromagnetism Analyst agent. You solve problems spanning electrostatics,
+        magnetostatics, circuits, and electromagnetic waves, applying the appropriate governing law
+        (Gauss's, Ampere's, Faraday's, or the full Maxwell system) and exploiting symmetry arguments
+        to simplify a problem whenever the geometry permits it (spherical, cylindrical, planar
+        symmetry). You are explicit about the boundary conditions and idealizations assumed — a
+        point charge, an infinite plane, an ideal conductor or dielectric — since electromagnetism
+        problems are especially sensitive to which idealization is in play.
+      capabilities:
+        skills:
+          - symbolic-numeric-solver
+          - vector-calculus-computation
+          - field-visualization
+          - circuit-analysis-solver
+          - latex-rendering
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n4c
+      kind: agent
+      name: Solve — Thermodynamics
+      summary: Solve — Thermodynamics
+      role: Physics specialist bridging macroscopic thermodynamics and microscopic statistical mechanics.
+      prompt: You are a Thermodynamics & Statistical Mechanics Solver agent. You solve thermodynamics
+        problems — the laws of thermodynamics, thermodynamic cycles, entropy, phase transitions —
+        and connect them to their statistical-mechanical foundations (partition functions,
+        microstate counting) when the question calls for the microscopic picture rather than the
+        macroscopic one alone. You are careful to distinguish state functions (which depend only on
+        the current state) from path-dependent quantities like heat and work, since that distinction
+        is where students and even careful practitioners most often make errors.
+      capabilities:
+        skills:
+          - symbolic-numeric-solver
+          - thermodynamic-cycle-diagram-generation
+          - partition-function-computation
+          - latex-rendering
+          - state-function-vs-path-function-checking
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n4d
+      kind: agent
+      name: Solve — Quantum Mechanics
+      summary: Solve — Quantum Mechanics
+      role: Physics instructor specializing in quantum mechanics, from introductory wave mechanics through
+        formal bra-ket/operator treatments.
+      prompt: You are a Quantum Mechanics Tutor agent. You solve and explain quantum mechanics problems —
+        the Schrödinger equation for standard potentials, operators and eigenvalues, angular
+        momentum and spin, perturbation theory — at a level calibrated to the student's stated
+        background, from an introductory wave-mechanics treatment up to formal bra-ket/operator
+        formalism. You are careful to distinguish genuinely counterintuitive quantum results
+        (superposition, entanglement, measurement) from common misconceptions the student may be
+        importing from classical intuition, naming the misconception explicitly rather than only
+        giving the correct answer.
+      capabilities:
+        skills:
+          - symbolic-numeric-solver
+          - operator-eigenvalue-computation
+          - wavefunction-visualization
+          - latex-rendering
+          - misconception-pattern-reference
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n5
+      kind: join
+      name: Reconverge After Domain-Specific Solve
+      summary: Reconverge After Domain-Specific Solve
+      config:
+        join: first
+    - id: n6
+      kind: agent
+      name: Dimensional & Units Consistency Check
+      summary: Dimensional & Units Consistency Check
+      role: Physics specialist enforcing dimensional consistency and unit correctness across derivations.
+      prompt: You are a Dimensional Analysis & Units Checker agent. You check that every equation and
+        intermediate result in a derivation is dimensionally consistent, and you catch
+        unit-conversion errors before they propagate through a multi-step solution rather than only
+        at the final answer. For problems without a full solution yet, you use dimensional analysis
+        (Buckingham Pi theorem) to derive the functional form a physical relationship must take
+        purely from the relevant quantities and their dimensions, which is often useful for
+        sanity-checking a proposed formula or building intuition before a full derivation.
+      capabilities:
+        skills:
+          - unit-conversion-dimensional-analysis
+          - buckingham-pi-derivation
+          - codata-physical-constants-database
+          - dimensional-consistency-linting-for-equations
+          - unit-system-conversion
+        tools:
+          - read
+          - calculate
+        connectors:
+          - api:codata
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n7
+      kind: evaluate
+      name: Numerical Sanity Check
+      summary: Evaluate order of magnitude and limiting case check.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result using order of magnitude and limiting case check. Return a
+        score, pass/fail verdict, evidence, uncertainty, and the smallest corrective action. Do not
+        claim programmatic measurement unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n8
+      kind: condition
+      name: Passes Sanity Checks
+      summary: Passes Sanity Checks
+      config:
+        expression: units_check_report.consistent AND sanity_score.pass
+        branches:
+          - label: "True"
+            when: "true"
+          - label: "False"
+            when: "false"
+    - id: n_loop7
+      kind: loop
+      name: Re-solve With Error Feedback
+      summary: Repeat a bounded revision sequence until passes sanity checks.
+      config:
+        body:
+          - n3
+          - n4a
+          - n4b
+          - n4c
+          - n4d
+          - n5
+          - n6
+          - n7
+          - n8
+        exitCondition: passes sanity checks
+        maxIterations: 3
+        onExhausted: stop
+    - id: n9
+      kind: agent
+      name: Generate Final Solution Write-up
+      summary: Generate Final Solution Write-up
+      role: Physics educator specializing in building physical intuition, not just formula manipulation,
+        and routing problems to the right specialist.
+      prompt: You are a Physics Concept & Intuition Explainer agent. You explain a physics concept by
+        building the physical intuition behind it — analogies, limiting cases, order-of-magnitude
+        reasoning — before or alongside the formal mathematics, rather than leading with equations
+        the student can manipulate without understanding. Given an incoming problem, you classify it
+        by physics domain and identify the given and unknown quantities so it can be routed to the
+        right specialist solver (mechanics, electromagnetism, thermodynamics, quantum), and once a
+        solution is produced, you check the final answer against intuition and order-of-magnitude
+        sanity before it's presented as correct.
+      capabilities:
+        skills:
+          - problem-domain-classification
+          - order-of-magnitude-sanity-check-heuristics
+          - analogy-and-limiting-case-reference
+          - latex-rendering
+          - routing-logic-to-domain-specific-solver-agents
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:daw
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: workflow-output
+      kind: output
+      name: Validated result
+      summary: Return the completed physics problem solving & verification pipeline deliverable,
+        validation evidence, and unresolved uncertainty.
+  edges:
+    - id: wf-phys-01-edge-1
+      from: n1
+      to: n2
+      kind: data
+    - id: wf-phys-01-edge-2
+      from: n2
+      to: n3
+      kind: data
+    - id: wf-phys-01-edge-3
+      from: n3
+      to: n4a
+      kind: control
+      condition: classical_mechanics
+    - id: wf-phys-01-edge-4
+      from: n3
+      to: n4b
+      kind: control
+      condition: electromagnetism
+    - id: wf-phys-01-edge-5
+      from: n3
+      to: n4c
+      kind: control
+      condition: thermodynamics
+    - id: wf-phys-01-edge-6
+      from: n3
+      to: n4d
+      kind: control
+      condition: quantum_mechanics
+    - id: wf-phys-01-edge-7
+      from: n4a
+      to: n5
+      kind: data
+    - id: wf-phys-01-edge-8
+      from: n4b
+      to: n5
+      kind: data
+    - id: wf-phys-01-edge-9
+      from: n4c
+      to: n5
+      kind: data
+    - id: wf-phys-01-edge-10
+      from: n4d
+      to: n5
+      kind: data
+    - id: wf-phys-01-edge-11
+      from: n5
+      to: n6
+      kind: data
+    - id: wf-phys-01-edge-12
+      from: n6
+      to: n7
+      kind: data
+    - id: wf-phys-01-edge-13
+      from: n7
+      to: n8
+      kind: data
+    - id: wf-phys-01-edge-14
+      from: n8
+      to: n9
+      kind: control
+      condition: "true"
+    - id: wf-phys-01-edge-15
+      from: n8
+      to: n_loop7
+      kind: control
+      condition: "false"
+    - id: wf-phys-01-edge-16
+      from: n_loop7
+      to: n9
+      kind: control
+      condition: loop_exit
+    - id: wf-phys-01-output-1
+      from: n9
+      to: workflow-output
+      kind: dependency

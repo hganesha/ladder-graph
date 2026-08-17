@@ -1,0 +1,254 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-bio-01
+  title: Blind dual variant read + discordance resolution
+  description: Two interpreters classify the same variant without seeing each other's call; the vote preserves
+    ties and discordance routes to explicit resolution before sign-out.
+  version: 1.0.0
+spec:
+  objective: Reach a variant classification where agreement was demonstrated rather than assumed. This
+    workflow structures interpretation for a qualified professional and is not a diagnostic device or
+    medical advice.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: De-identified variant evidence package
+      summary: De-identified variant evidence package
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - variant_records
+              - population_frequencies
+              - functional_evidence
+              - phenotype_summary
+            properties:
+              variant_records: {}
+              population_frequencies: {}
+              functional_evidence: {}
+              phenotype_summary: {}
+        x-ladder-input-mode: document
+    - id: n-read1
+      kind: agent
+      name: First independent classification
+      summary: Independent read 1; produced without sight of the other reads.
+      role: Variant scientist classifying variants against evidence criteria.
+      prompt: You are a Genomic Variant Interpreter. You classify variants against explicit evidence criteria
+        — population frequency, computational prediction, functional data, segregation, case observations
+        — and you record the strength assigned to each line of evidence separately. You return 'uncertain
+        significance' when the evidence supports only that, and you never let a clinically satisfying
+        story upgrade a variant the evidence does not carry. This structures interpretation for a qualified
+        professional; it is not a diagnosis.
+      capabilities:
+        skills:
+          - variant-interpretation
+          - evidence-criteria-application
+          - population-frequency-analysis
+          - uncertainty-preservation
+          - clinical-evidence-appraisal
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:variant-database
+        permissions:
+          - read-only
+          - phi-restricted
+      outputSchema:
+        type: object
+        required:
+          - classification
+          - evidence_codes
+          - conflicting_evidence
+          - confidence
+        properties:
+          classification: {}
+          evidence_codes: {}
+          conflicting_evidence: {}
+          confidence: {}
+    - id: n-read2
+      kind: agent
+      name: Second independent classification
+      summary: Independent read 2; produced without sight of the other reads.
+      role: Variant scientist classifying variants against evidence criteria.
+      prompt: You are a Genomic Variant Interpreter. You classify variants against explicit evidence criteria
+        — population frequency, computational prediction, functional data, segregation, case observations
+        — and you record the strength assigned to each line of evidence separately. You return 'uncertain
+        significance' when the evidence supports only that, and you never let a clinically satisfying
+        story upgrade a variant the evidence does not carry. This structures interpretation for a qualified
+        professional; it is not a diagnosis.
+      capabilities:
+        skills:
+          - variant-interpretation
+          - evidence-criteria-application
+          - population-frequency-analysis
+          - uncertainty-preservation
+          - clinical-evidence-appraisal
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:variant-database
+        permissions:
+          - read-only
+          - phi-restricted
+      outputSchema:
+        type: object
+        required:
+          - classification
+          - evidence_codes
+          - conflicting_evidence
+          - confidence
+        properties:
+          classification: {}
+          evidence_codes: {}
+          conflicting_evidence: {}
+          confidence: {}
+    - id: n-read3
+      kind: agent
+      name: Statistical and evidence-strength review
+      summary: Independent read 3; produced without sight of the other reads.
+      role: Biostatistician reviewing design, analysis, and inference in biological studies.
+      prompt: You are a Biostatistics Reviewer. You check whether the analysis matches the design, whether
+        multiplicity and clustering were handled, and whether the effect estimate's uncertainty is reported
+        honestly. You state when a study is underpowered for the claim being made rather than reporting
+        the p-value it happened to produce, and you flag analyses that were clearly chosen after the data
+        were seen.
+      capabilities:
+        skills:
+          - biostatistical-review
+          - multiplicity-correction-checking
+          - power-analysis
+          - analysis-plan-conformance
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - classification
+          - evidence_codes
+          - conflicting_evidence
+          - confidence
+        properties:
+          classification: {}
+          evidence_codes: {}
+          conflicting_evidence: {}
+          confidence: {}
+    - id: n-vote
+      kind: aggregator
+      name: Tally independent classifications
+      summary: Tally classification across the independent reads and preserve ties rather than averaging
+        them.
+      config:
+        aggregation: vote
+    - id: n-concordance
+      kind: condition
+      name: Reads concordant?
+      summary: Route on vote.tally has a single majority for classification.
+      config:
+        expression: vote.tally has a single majority for classification
+        branches:
+          - label: Concordant
+            when: concordant
+          - label: Discordant
+            when: discordant
+    - id: n-adjudicate
+      kind: agent
+      name: Resolve the discordant classification on the record
+      summary: Resolve the discordance on the record; the disagreement itself is evidence.
+      role: Data steward enforcing provenance, consent, and de-identification on biological data.
+      prompt: You are a Research Data Steward. You verify that every dataset carries its provenance, consent
+        scope, and de-identification status, and you block a use that exceeds the consent the data were
+        collected under. You treat re-identification risk from combined datasets as a real risk rather
+        than a theoretical one, and you state the specific fields that create it.
+      capabilities:
+        skills:
+          - data-provenance-tracking
+          - consent-scope-enforcement
+          - de-identification
+          - re-identification-risk-assessment
+          - regulatory-mapping
+        tools:
+          - read
+        connectors:
+          - mcp:lims
+        permissions:
+          - read-only
+          - phi-restricted
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Qualified professional sign-out on the final classification
+      summary: Pause for the qualified reviewing professional; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Blind dual variant read + discordance resolution deliverable, the
+        evidence behind it, and every unresolved item.
+  edges:
+    - id: wf-bio-01-edge-1
+      from: n-intake
+      to: n-read1
+      kind: data
+    - id: wf-bio-01-edge-2
+      from: n-intake
+      to: n-read2
+      kind: data
+    - id: wf-bio-01-edge-3
+      from: n-intake
+      to: n-read3
+      kind: data
+    - id: wf-bio-01-edge-4
+      from: n-read1
+      to: n-vote
+      kind: data
+    - id: wf-bio-01-edge-5
+      from: n-read2
+      to: n-vote
+      kind: data
+    - id: wf-bio-01-edge-6
+      from: n-read3
+      to: n-vote
+      kind: data
+    - id: wf-bio-01-edge-7
+      from: n-vote
+      to: n-concordance
+      kind: data
+    - id: wf-bio-01-edge-8
+      from: n-concordance
+      to: n-approval
+      kind: control
+      condition: concordant
+    - id: wf-bio-01-edge-9
+      from: n-concordance
+      to: n-adjudicate
+      kind: control
+      condition: discordant
+    - id: wf-bio-01-edge-10
+      from: n-adjudicate
+      to: n-approval
+      kind: data
+    - id: wf-bio-01-edge-11
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

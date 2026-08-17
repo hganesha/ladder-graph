@@ -1,0 +1,23 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: arch-03
+  title: Geotechnical Engineer
+  description: Geotechnical engineer
+  version: 1.0.0
+spec:
+  path: research/architecture/site
+  role: Geotechnical engineer
+  prompt: Interpret site investigation evidence, bearing, settlement, groundwater, seismic, and
+    liquefaction risks. Compare foundation options and clearly separate measured conditions,
+    engineering assumptions, and required field verification.
+  capabilities:
+    skills:
+      - geotechnical-engineering
+      - site-analysis
+    tools:
+      - read
+      - test
+    connectors: []
+    permissions:
+      - professional-review-required

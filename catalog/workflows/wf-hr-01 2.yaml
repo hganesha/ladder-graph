@@ -1,0 +1,257 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-hr-01
+  title: Blind screening panel + rubric calibration
+  description: Score every candidate blind against the same rubric, then let a teacher model critique
+    the assessors — not the candidates — until the panel is calibrated.
+  version: 1.0.0
+spec:
+  objective: Produce screening decisions that a fairness reviewer can defend, with inter-assessor agreement
+    demonstrated before any candidate is advanced or rejected.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Candidate packet and published rubric
+      summary: Candidate packet and published rubric
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - candidate_evidence
+              - role_scorecard
+              - rubric_bands
+              - agreement_threshold
+            properties:
+              candidate_evidence: {}
+              role_scorecard: {}
+              rubric_bands: {}
+              agreement_threshold: {}
+        x-ladder-input-mode: document
+    - id: n-assess1
+      kind: agent
+      name: First blind rubric assessment
+      summary: Blind assessment 1; no sight of the other assessments.
+      role: Structured interviewer scoring candidates against a fixed rubric and defined evidence.
+      prompt: You are a Structured Screening Interviewer. You assess a candidate strictly against the
+        published rubric dimensions, quote the evidence behind each dimension score, and mark a dimension
+        'not evidenced' rather than inferring it from adjacent signals. You keep your assessment independent
+        — you do not read another assessor's score first, because a rubric that anchors on a colleague's
+        number stops being a second opinion.
+      capabilities:
+        skills:
+          - structured-interviewing
+          - rubric-scoring
+          - evidence-quoting
+          - anchoring-avoidance
+          - rubric-design
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assess2
+      kind: agent
+      name: Second blind rubric assessment
+      summary: Blind assessment 2; no sight of the other assessments.
+      role: Structured interviewer scoring candidates against a fixed rubric and defined evidence.
+      prompt: You are a Structured Screening Interviewer. You assess a candidate strictly against the
+        published rubric dimensions, quote the evidence behind each dimension score, and mark a dimension
+        'not evidenced' rather than inferring it from adjacent signals. You keep your assessment independent
+        — you do not read another assessor's score first, because a rubric that anchors on a colleague's
+        number stops being a second opinion.
+      capabilities:
+        skills:
+          - structured-interviewing
+          - rubric-scoring
+          - evidence-quoting
+          - anchoring-avoidance
+          - rubric-design
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assess3
+      kind: agent
+      name: Fairness and consistency assessment
+      summary: Blind assessment 3; no sight of the other assessments.
+      role: Fairness reviewer auditing selection decisions for adverse impact and inconsistent standards.
+      prompt: You are a Selection Fairness Reviewer. You audit a selection process for inconsistent rubric
+        application, criteria that appeared after the fact, and adverse-impact patterns across the funnel,
+        and you report what the evidence supports rather than asserting intent. You distinguish a defensible
+        job-related standard from an unexamined preference, and name which one each contested criterion
+        actually is.
+      capabilities:
+        skills:
+          - adverse-impact-analysis
+          - selection-criteria-audit
+          - consistency-checking
+          - regulatory-mapping
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:ats
+        permissions:
+          - pii-restricted
+      outputSchema:
+        type: object
+    - id: n-panel
+      kind: group
+      name: Blind screening panel
+      summary: Every assessor runs on the same evidence in parallel; the group exits only once all member
+        results are aggregated.
+      config:
+        members:
+          - n-assess1
+          - n-assess2
+          - n-assess3
+        execution: parallel
+        exit: aggregate
+    - id: n-teacher
+      kind: teacher
+      name: Rubric calibration
+      summary: Critique the assessors against the rubric — this scores the graders, not the work.
+      role: Host-resolved teacher model
+      prompt: 'You are the calibration teacher for this screening panel. Critique the assessors against
+        the rubric bands: where did two assessors read the same evidence into different bands, where did
+        an assessor score a dimension the evidence does not support, and where did a band definition itself
+        prove ambiguous? Return assessor-level feedback and any rubric wording that should change. Score
+        the graders, not the candidate.'
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        teacherModel: host:teacher-model
+        feedbackMode: rubric
+    - id: n-agreement
+      kind: evaluate
+      name: Score inter-assessor agreement
+      summary: Evaluate inter-assessor agreement on every rubric dimension and evidence sufficiency per
+        score.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against inter-assessor agreement on every rubric dimension
+        and evidence sufficiency per score. Return a score, pass/fail verdict, the evidence behind the
+        verdict, remaining uncertainty, and the smallest corrective action. Do not claim programmatic
+        measurement unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+    - id: n-calibrated
+      kind: condition
+      name: Calibrated?
+      summary: Route on agreement.passed.
+      config:
+        expression: agreement.passed
+        branches:
+          - label: Calibrated
+            when: 'true'
+          - label: Not calibrated
+            when: 'false'
+    - id: n-recalibrate
+      kind: loop
+      name: Recalibrate until assessors agree
+      summary: Repeat a bounded revision sequence until inter-assessor agreement meets the declared threshold.
+      config:
+        body:
+          - n-panel
+          - n-teacher
+          - n-agreement
+          - n-calibrated
+        exitCondition: inter-assessor agreement meets the declared threshold
+        maxIterations: 3
+        onExhausted: stop
+    - id: n-approval
+      kind: approval
+      name: Hiring manager decision on the calibrated panel result
+      summary: Pause for the hiring manager; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Blind screening panel + rubric calibration deliverable, the evidence
+        behind it, and every unresolved item.
+  edges:
+    - id: wf-hr-01-edge-1
+      from: n-intake
+      to: n-panel
+      kind: data
+    - id: wf-hr-01-edge-2
+      from: n-panel
+      to: n-teacher
+      kind: data
+    - id: wf-hr-01-edge-3
+      from: n-teacher
+      to: n-agreement
+      kind: data
+    - id: wf-hr-01-edge-4
+      from: n-agreement
+      to: n-calibrated
+      kind: data
+    - id: wf-hr-01-edge-5
+      from: n-calibrated
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-hr-01-edge-6
+      from: n-calibrated
+      to: n-recalibrate
+      kind: control
+      condition: 'false'
+    - id: wf-hr-01-edge-7
+      from: n-recalibrate
+      to: n-approval
+      kind: control
+      condition: loop_exit
+    - id: wf-hr-01-edge-8
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

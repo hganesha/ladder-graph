@@ -1,0 +1,255 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-chem-02
+  title: Synthesis route → reviewed protocol
+  description: Run route planning, characterization strategy, and experimental design in order, then focus
+    the scale and hazard review phase before any protocol is approved.
+  version: 1.0.0
+spec:
+  objective: Produce a synthesis protocol with a compared route, a characterization plan that requires
+    orthogonal evidence, and an explicit hazard review before bench work is authorized.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Target compound and constraints
+      summary: Target compound and constraints
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - target_structure
+              - available_reagents
+              - scale
+              - purity_requirement
+            properties:
+              target_structure: {}
+              available_reagents: {}
+              scale: {}
+              purity_requirement: {}
+        x-ladder-input-mode: text
+    - id: n-phase1
+      kind: agent
+      name: Retrosynthetic route comparison
+      summary: 'Phase 1: retrosynthetic route comparison.'
+      role: Synthetic chemist planning routes with realistic steps, yields, and hazards.
+      prompt: You are a Synthesis Route Planner. You propose retrosynthetic routes with named reaction
+        types, realistic step yields, and the purification burden at each stage, and you compare routes
+        on overall yield and practicality rather than step count. You surface reagent hazards, incompatibilities,
+        and scale-dependent risks explicitly — a route that is elegant on paper and pyrophoric at scale
+        is not a route.
+      capabilities:
+        skills:
+          - retrosynthesis-planning
+          - route-comparison
+          - yield-realism-assessment
+          - reagent-hazard-identification
+          - failure-mode-analysis
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:chem-database
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-phase2
+      kind: agent
+      name: Characterization and confirmation plan
+      summary: 'Phase 2: characterization and confirmation plan.'
+      role: Analyst interpreting spectra, diffraction, and microscopy against structural claims.
+      prompt: You are a Materials Characterization Analyst. You interpret spectroscopic, diffraction,
+        and imaging data against the structural claim being made, and you state which features are diagnostic
+        and which are consistent-but-not-conclusive. You require orthogonal evidence before confirming
+        a phase or structure, because a single technique confirming an expected answer is the classic
+        path to a retracted result.
+      capabilities:
+        skills:
+          - spectral-interpretation
+          - diffraction-analysis
+          - orthogonal-evidence-requirement
+          - artifact-discrimination
+          - citation-verification
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:lims
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-phase3
+      kind: agent
+      name: Design of experiments for the key step
+      summary: 'Phase 3: design of experiments for the key step.'
+      role: Statistician designing efficient experiments and reading their results honestly.
+      prompt: You are an Experimental Design Statistician. You design factorial and response-surface experiments
+        with declared factors, ranges, replication, and randomization, and you state the effects the design
+        can and cannot resolve. You report confounded effects as confounded rather than attributing them
+        to the more interesting factor, and you say when a result requires confirmation runs before it
+        can be believed.
+      capabilities:
+        skills:
+          - experiment-design
+          - factorial-and-response-surface-design
+          - confounding-analysis
+          - replication-planning
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:lims
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-stages
+      kind: group
+      name: Route and evidence planning
+      summary: Each phase consumes the previous phase's output; the group exits only after every phase
+        result has been aggregated into one evidence set.
+      config:
+        members:
+          - n-phase1
+          - n-phase2
+          - n-phase3
+        execution: sequential
+        exit: aggregate
+    - id: n-focus
+      kind: subgraph
+      name: Scale and hazard review
+      summary: The scale-up and safety phase, focused on the canvas because thermal, control, and waste
+        decisions are made here.
+    - id: n-check
+      kind: evaluate
+      name: Check the staged result
+      summary: Evaluate hazard control adequacy, orthogonal characterization coverage, and route practicality
+        at the stated scale.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against hazard control adequacy, orthogonal characterization
+        coverage, and route practicality at the stated scale. Return a score, pass/fail verdict, the evidence
+        behind the verdict, remaining uncertainty, and the smallest corrective action. Do not claim programmatic
+        measurement unless the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-ready
+      kind: condition
+      name: Ready to commit?
+      summary: Route on check.passed.
+      config:
+        expression: check.passed
+        branches:
+          - label: Ready
+            when: 'true'
+          - label: Rework
+            when: 'false'
+    - id: n-rework
+      kind: agent
+      name: Repair the protocol's control gaps
+      summary: Smallest corrective pass before re-gating.
+      role: Process chemist translating bench routes into safe, controllable processes.
+      prompt: You are a Process Chemistry Scale-Up Engineer. You assess heat release, mixing, mass transfer,
+        and impurity fate when a bench route moves to scale, and you identify the step where control,
+        not chemistry, becomes the limiting factor. You state the thermal runaway and accumulation risks
+        with the data that would need to be measured, because scale-up assumptions that were never measured
+        are how incidents happen.
+      capabilities:
+        skills:
+          - scale-up-analysis
+          - thermal-hazard-assessment
+          - impurity-fate-tracking
+          - process-control-design
+          - failure-mode-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:lims
+        permissions:
+          - explicit-authorization-required
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Laboratory safety officer authorizes bench work
+      summary: Pause for the laboratory safety officer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Synthesis route → reviewed protocol deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-chem-02-edge-1
+      from: n-intake
+      to: n-stages
+      kind: data
+    - id: wf-chem-02-edge-2
+      from: n-stages
+      to: n-focus
+      kind: data
+    - id: wf-chem-02-edge-3
+      from: n-focus
+      to: n-check
+      kind: data
+    - id: wf-chem-02-edge-4
+      from: n-check
+      to: n-ready
+      kind: data
+    - id: wf-chem-02-edge-5
+      from: n-ready
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-chem-02-edge-6
+      from: n-ready
+      to: n-rework
+      kind: control
+      condition: 'false'
+    - id: wf-chem-02-edge-7
+      from: n-rework
+      to: n-approval
+      kind: data
+    - id: wf-chem-02-edge-8
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-11
+  title: Performance Profiler
+  description: Performance and capacity engineer
+  version: 1.0.0
+spec:
+  path: research/software/quality
+  role: Performance and capacity engineer
+  prompt: Measure before optimizing. Use traces, profiles, query plans, bundle evidence, and
+    user-facing budgets to locate bottlenecks; quantify impact and verify that each proposed change
+    improves the relevant metric without shifting cost elsewhere.
+  capabilities:
+    skills:
+      - performance-engineering
+      - observability
+    tools:
+      - read
+      - test
+    connectors:
+      - mcp:sentry
+      - mcp:browser
+    permissions:
+      - read-only

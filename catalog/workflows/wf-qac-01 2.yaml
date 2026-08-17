@@ -1,0 +1,256 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-qac-01
+  title: Audit rubric calibration
+  description: Assess the same evidence blind across three auditors, then let a teacher model critique
+    the auditors against the rubric until their grading agrees.
+  version: 1.0.0
+spec:
+  objective: Produce audit conclusions where grading consistency was demonstrated before findings are
+    issued, and rubric ambiguity was repaired rather than argued about after the fact.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Control evidence package
+      summary: Control evidence package
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - control_evidence
+              - grading_rubric
+              - scheme_clauses
+              - agreement_threshold
+            properties:
+              control_evidence: {}
+              grading_rubric: {}
+              scheme_clauses: {}
+              agreement_threshold: {}
+        x-ladder-input-mode: document
+    - id: n-assess1
+      kind: agent
+      name: First blind control assessment
+      summary: Blind assessment 1; no sight of the other assessments.
+      role: Assessor testing readiness against a certification scheme before the real audit.
+      prompt: You are a Certification Readiness Assessor. You test the organization against each clause
+        of the scheme with the evidence that would be presented, and you grade readiness by clause rather
+        than overall. You report a clause as not ready when the evidence exists but would not satisfy
+        an auditor, because that distinction is the entire value of a readiness assessment.
+      capabilities:
+        skills:
+          - certification-readiness-assessment
+          - clause-by-clause-testing
+          - evidence-sufficiency-grading
+          - gap-remediation-planning
+          - regulatory-mapping
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assess2
+      kind: agent
+      name: Second blind control assessment
+      summary: Blind assessment 2; no sight of the other assessments.
+      role: Reviewer assessing whether the quality system works as documented.
+      prompt: You are a Quality Management Reviewer. You test whether documented processes match what
+        is actually done, whether records are contemporaneous and complete, and whether management review
+        closes the loop on findings. You report a documented-but-unpracticed process as a finding, because
+        the gap between the manual and the floor is where certification and reality separate.
+      capabilities:
+        skills:
+          - quality-system-review
+          - process-conformance-testing
+          - record-integrity-checking
+          - management-review-assessment
+          - rubric-design
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:qms
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assess3
+      kind: agent
+      name: Evidence sufficiency assessment
+      summary: Blind assessment 3; no sight of the other assessments.
+      role: Collector assembling audit trails that stand up without the collector present.
+      prompt: You are an Audit Evidence Collector. You assemble evidence with its source system, extraction
+        date, population basis, and completeness check attached, and you state when evidence is a sample
+        rather than a population. You flag evidence that cannot be reproduced from the source system,
+        because an audit trail that depends on someone remembering how it was made is not an audit trail.
+      capabilities:
+        skills:
+          - audit-evidence-collection
+          - completeness-verification
+          - population-versus-sample-declaration
+          - data-lineage-analysis
+          - citation-verification
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:grc
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-panel
+      kind: group
+      name: Blind audit panel
+      summary: Every assessor runs on the same evidence in parallel; the group exits only once all member
+        results are aggregated.
+      config:
+        members:
+          - n-assess1
+          - n-assess2
+          - n-assess3
+        execution: parallel
+        exit: aggregate
+    - id: n-teacher
+      kind: teacher
+      name: Rubric calibration
+      summary: Critique the assessors against the rubric — this scores the graders, not the work.
+      role: Host-resolved teacher model
+      prompt: 'You are the calibration teacher for this audit panel. Critique the auditors against the
+        grading rubric: where did two auditors grade the same evidence differently, where did an auditor
+        accept evidence that would not satisfy an external assessor, and which rubric bands are too vague
+        to grade consistently? Score the auditors, not the auditee.'
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        teacherModel: host:teacher-model
+        feedbackMode: rubric
+    - id: n-agreement
+      kind: evaluate
+      name: Score inter-assessor agreement
+      summary: Evaluate inter-auditor agreement per clause and evidence sufficiency behind each grade.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against inter-auditor agreement per clause and evidence sufficiency
+        behind each grade. Return a score, pass/fail verdict, the evidence behind the verdict, remaining
+        uncertainty, and the smallest corrective action. Do not claim programmatic measurement unless
+        the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+    - id: n-calibrated
+      kind: condition
+      name: Calibrated?
+      summary: Route on agreement.passed.
+      config:
+        expression: agreement.passed
+        branches:
+          - label: Calibrated
+            when: 'true'
+          - label: Not calibrated
+            when: 'false'
+    - id: n-recalibrate
+      kind: loop
+      name: Recalibrate until assessors agree
+      summary: Repeat a bounded revision sequence until inter-assessor agreement meets the declared threshold.
+      config:
+        body:
+          - n-panel
+          - n-teacher
+          - n-agreement
+          - n-calibrated
+        exitCondition: inter-assessor agreement meets the declared threshold
+        maxIterations: 3
+        onExhausted: stop
+    - id: n-approval
+      kind: approval
+      name: Lead auditor approves the graded findings
+      summary: Pause for the lead auditor; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Audit rubric calibration deliverable, the evidence behind it, and
+        every unresolved item.
+  edges:
+    - id: wf-qac-01-edge-1
+      from: n-intake
+      to: n-panel
+      kind: data
+    - id: wf-qac-01-edge-2
+      from: n-panel
+      to: n-teacher
+      kind: data
+    - id: wf-qac-01-edge-3
+      from: n-teacher
+      to: n-agreement
+      kind: data
+    - id: wf-qac-01-edge-4
+      from: n-agreement
+      to: n-calibrated
+      kind: data
+    - id: wf-qac-01-edge-5
+      from: n-calibrated
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-qac-01-edge-6
+      from: n-calibrated
+      to: n-recalibrate
+      kind: control
+      condition: 'false'
+    - id: wf-qac-01-edge-7
+      from: n-recalibrate
+      to: n-approval
+      kind: control
+      condition: loop_exit
+    - id: wf-qac-01-edge-8
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

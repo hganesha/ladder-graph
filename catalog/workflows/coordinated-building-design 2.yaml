@@ -1,0 +1,532 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: coordinated-building-design
+  title: Coordinated building design
+  description: Turn a program and site into a multidisciplinary concept reviewed for structure,
+    systems, life safety, access, performance, and cost.
+  version: 1.0.0
+spec:
+  objective: Produce a coordinated concept-design package with explicit assumptions, discipline
+    evidence, issues, cost, and professional review gates.
+  policies:
+    maxConcurrency: 5
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - design-basis
+      - issued-package
+  nodes:
+    - id: brief
+      kind: input
+      name: Project brief and site
+      summary: Program, site, jurisdiction, climate, budget, schedule, and owner priorities.
+      position:
+        x: 80
+        y: 280
+    - id: program
+      kind: agent
+      name: Program and site analysis
+      summary: Reconcile stakeholder needs, areas, adjacencies, zoning, and site risk.
+      role: Space planner and site analyst
+      prompt: Create a room and area program, capacities, adjacencies, utilization and growth assumptions,
+        and a site and zoning constraints register. Expose area, budget, access, environmental, and
+        jurisdiction conflicts before design.
+      capabilities:
+        skills:
+          - space-planning
+          - site-analysis
+          - requirements-analysis
+        tools:
+          - read
+          - search
+          - edit
+        connectors:
+          - mcp:gis
+          - mcp:bim
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - program
+          - adjacencies
+          - siteConstraints
+          - conflicts
+        properties:
+          program:
+            type: array
+            items:
+              type: string
+          adjacencies:
+            type: array
+            items:
+              type: string
+          siteConstraints:
+            type: array
+            items:
+              type: string
+          conflicts:
+            type: array
+            items:
+              type: string
+      position:
+        x: 350
+        y: 280
+    - id: concept
+      kind: agent
+      name: Architectural concept
+      summary: Develop a design basis from the validated program and site.
+      role: Building design architect
+      prompt: Develop massing, organization, circulation, envelope and material intent, preliminary
+        life-safety and accessibility strategy, and design-basis assumptions. Identify field
+        verification and AHJ decisions and do not represent the concept as construction-ready.
+      capabilities:
+        skills:
+          - building-design
+          - code-compliance
+        tools:
+          - read
+          - edit
+        connectors:
+          - mcp:bim
+          - mcp:rendering
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+        required:
+          - concept
+          - designBasis
+          - diagrams
+          - openIssues
+        properties:
+          concept:
+            type: string
+          designBasis:
+            type: array
+            items:
+              type: string
+          diagrams:
+            type: array
+            items:
+              type: string
+          openIssues:
+            type: array
+            items:
+              type: string
+      position:
+        x: 620
+        y: 280
+    - id: basis-approval
+      kind: approval
+      name: Approve design basis
+      summary: Confirm program, concept, assumptions, and professional scope.
+      position:
+        x: 870
+        y: 280
+    - id: structure
+      kind: agent
+      name: Structural concept
+      summary: Define load paths, system, grids, and high-risk interfaces.
+      role: Structural engineer
+      prompt: Develop the concept-level structural basis, gravity and lateral load paths, preliminary
+        system and grid, governing assumptions, and coordination zones. Require project-specific
+        calculations and licensed review before construction use.
+      capabilities:
+        skills:
+          - structural-engineering
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:bim
+        permissions:
+          - professional-review-required
+      outputSchema:
+        type: object
+        required:
+          - system
+          - assumptions
+          - coordinationIssues
+        properties:
+          system:
+            type: string
+          assumptions:
+            type: array
+            items:
+              type: string
+          coordinationIssues:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1120
+        y: 20
+    - id: mep
+      kind: agent
+      name: MEP and performance concept
+      summary: Coordinate loads, distribution, energy, plant, and spatial needs.
+      role: MEP and building-performance engineer
+      prompt: Define preliminary loads, systems, distribution zones, equipment and service access, energy
+        targets, controls, and major penetrations. State simulation assumptions and discipline
+        calculations requiring later validation.
+      capabilities:
+        skills:
+          - mep-engineering
+          - building-performance
+          - sustainable-design
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:bim
+          - mcp:energy-modeling
+        permissions:
+          - professional-review-required
+      outputSchema:
+        type: object
+        required:
+          - systems
+          - targets
+          - spaceClaims
+          - issues
+        properties:
+          systems:
+            type: array
+            items:
+              type: string
+          targets:
+            type: array
+            items:
+              type: string
+          spaceClaims:
+            type: array
+            items:
+              type: string
+          issues:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1120
+        y: 150
+    - id: life-safety
+      kind: agent
+      name: Code and life-safety review
+      summary: Review occupancy, egress, fire protection, and AHJ path.
+      role: Building code and fire-protection reviewer
+      prompt: Independently review occupancy, construction type, area and height, egress, fire resistance,
+        suppression, alarm, smoke control, and permit path using the adopted code edition and
+        jurisdiction. List interpretations requiring AHJ confirmation.
+      capabilities:
+        skills:
+          - code-compliance
+          - fire-protection
+        tools:
+          - read
+          - search
+          - test
+        connectors:
+          - mcp:bim
+        permissions:
+          - professional-review-required
+      outputSchema:
+        type: object
+        required:
+          - codeBasis
+          - findings
+          - ahjQuestions
+        properties:
+          codeBasis:
+            type: array
+            items:
+              type: string
+          findings:
+            type: array
+            items:
+              type: string
+          ahjQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1120
+        y: 280
+    - id: accessibility
+      kind: agent
+      name: Universal design review
+      summary: Audit equivalent access and inclusive experience.
+      role: Universal design consultant
+      prompt: Review routes, entries, circulation, clearances, controls, reach, signage, sensory needs,
+        and equivalent experience. Separate code minimums from inclusive recommendations and flag
+        dimensions requiring field verification.
+      capabilities:
+        skills:
+          - universal-design
+          - code-compliance
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:bim
+        permissions:
+          - professional-review-required
+      outputSchema:
+        type: object
+        required:
+          - barriers
+          - requirements
+          - recommendations
+        properties:
+          barriers:
+            type: array
+            items:
+              type: string
+          requirements:
+            type: array
+            items:
+              type: string
+          recommendations:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1120
+        y: 410
+    - id: cost
+      kind: agent
+      name: Concept cost plan
+      summary: Tie quantities, allowances, escalation, and risk to design maturity.
+      role: Construction cost estimator
+      prompt: Build a transparent concept estimate with quantities, unit-cost basis, allowances,
+        escalation, contingency, exclusions, and design-maturity uncertainty. Evaluate value options
+        against performance and owner priorities.
+      capabilities:
+        skills:
+          - cost-estimation
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:cost-estimation
+          - mcp:bim
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - estimate
+          - allowances
+          - contingency
+          - options
+        properties:
+          estimate:
+            type: string
+          allowances:
+            type: array
+            items:
+              type: string
+          contingency:
+            type: string
+          options:
+            type: array
+            items:
+              type: string
+      position:
+        x: 1120
+        y: 540
+    - id: discipline-join
+      kind: join
+      name: Discipline barrier
+      summary: Wait for every concept discipline.
+      config:
+        join: all
+      position:
+        x: 1410
+        y: 280
+    - id: coordination
+      kind: agent
+      name: BIM coordination
+      summary: Resolve clashes into assigned, traceable design decisions.
+      role: BIM coordinator and VDC manager
+      prompt: Federate discipline outputs, enforce coordinates and model standards, run clash and issue
+        review, and assign each conflict an owner, due date, resolution, and downstream impact.
+        Preserve unresolved issues rather than hiding them in the model.
+      capabilities:
+        skills:
+          - bim-coordination
+          - delivery-coordination
+        tools:
+          - read
+          - edit
+          - test
+        connectors:
+          - mcp:bim
+          - mcp:construction-management
+        permissions:
+          - workspace-write
+      outputSchema:
+        type: object
+        required:
+          - resolved
+          - openIssues
+          - modelStatus
+        properties:
+          resolved:
+            type: array
+            items:
+              type: string
+          openIssues:
+            type: array
+            items:
+              type: string
+          modelStatus:
+            type: string
+      position:
+        x: 1660
+        y: 280
+    - id: design-gate
+      kind: evaluate
+      name: Concept package gate
+      summary: Check coordination, evidence, cost, and professional-review boundaries.
+      role: Independent multidisciplinary design reviewer
+      prompt: Pass only when the program reconciles, discipline assumptions are compatible, life-safety
+        and accessibility blockers are addressed, cost is within the approved basis, open issues
+        have owners, and documents clearly state they require licensed professional and AHJ review.
+      capabilities:
+        skills:
+          - building-design
+          - evaluation
+          - code-compliance
+        tools:
+          - read
+          - test
+        connectors:
+          - mcp:bim
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+          - releaseConditions
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+          releaseConditions:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.9
+      position:
+        x: 1910
+        y: 280
+    - id: issue-approval
+      kind: approval
+      name: Approve concept package
+      summary: Require owner and professional approval before issue.
+      position:
+        x: 2150
+        y: 280
+    - id: output
+      kind: output
+      name: Coordinated concept package
+      summary: Return basis, models, discipline evidence, code and access review, cost, issues, and
+        approvals.
+      position:
+        x: 2390
+        y: 280
+  edges:
+    - id: e1
+      from: brief
+      to: program
+      kind: data
+      contract: ProjectBrief
+    - id: e2
+      from: program
+      to: concept
+      kind: data
+      contract: ValidatedProgram
+    - id: e3
+      from: concept
+      to: basis-approval
+      kind: data
+      contract: DesignBasis
+    - id: e4
+      from: basis-approval
+      to: structure
+      kind: control
+      condition: approved == true
+    - id: e5
+      from: basis-approval
+      to: mep
+      kind: control
+      condition: approved == true
+    - id: e6
+      from: basis-approval
+      to: life-safety
+      kind: control
+      condition: approved == true
+    - id: e7
+      from: basis-approval
+      to: accessibility
+      kind: control
+      condition: approved == true
+    - id: e8
+      from: basis-approval
+      to: cost
+      kind: control
+      condition: approved == true
+    - id: e9
+      from: structure
+      to: discipline-join
+      kind: data
+      contract: StructuralConcept
+    - id: e10
+      from: mep
+      to: discipline-join
+      kind: data
+      contract: MEPConcept
+    - id: e11
+      from: life-safety
+      to: discipline-join
+      kind: data
+      contract: LifeSafetyReview
+    - id: e12
+      from: accessibility
+      to: discipline-join
+      kind: data
+      contract: AccessibilityReview
+    - id: e13
+      from: cost
+      to: discipline-join
+      kind: data
+      contract: CostPlan
+    - id: e14
+      from: discipline-join
+      to: coordination
+      kind: dependency
+    - id: e15
+      from: coordination
+      to: design-gate
+      kind: data
+      contract: CoordinatedConcept
+    - id: e16
+      from: design-gate
+      to: issue-approval
+      kind: control
+      condition: passed == true
+    - id: e17
+      from: issue-approval
+      to: output
+      kind: control
+      condition: approved == true

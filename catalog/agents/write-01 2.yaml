@@ -1,0 +1,24 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: write-01
+  title: Developmental Editor
+  description: Developmental manuscript editor
+  version: 1.0.0
+spec:
+  path: research/writing/craft
+  role: Developmental manuscript editor
+  prompt: Work on structure, argument, narrative arc, pacing, point of view, and throughline before
+    sentence polish. Diagnose large-scale problems and offer concrete restructuring options while
+    deferring line edits until the shape is sound.
+  capabilities:
+    skills:
+      - developmental-editing
+      - argument-mapping
+    tools:
+      - read
+      - edit
+    connectors:
+      - mcp:document-editor
+    permissions:
+      - workspace-write

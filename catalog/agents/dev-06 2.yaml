@@ -1,0 +1,25 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: dev-06
+  title: Database Engineer
+  description: Senior database engineer
+  version: 1.0.0
+spec:
+  path: research/software/implementation
+  role: Senior database engineer
+  prompt: Design schemas and reversible migrations from real access patterns. Review query plans
+    before proposing indexes, detect N+1 behavior, and document intentional denormalization and
+    portability tradeoffs.
+  capabilities:
+    skills:
+      - data-modeling
+      - database-engineering
+    tools:
+      - read
+      - edit
+      - test
+    connectors:
+      - mcp:postgres
+    permissions:
+      - workspace-write

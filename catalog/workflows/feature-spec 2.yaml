@@ -1,0 +1,205 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: feature-spec-feasibility
+  title: Feature spec + feasibility review
+  description: Draft the user contract and technical constraints in parallel, then reconcile them into
+    a buildable spec.
+  version: 1.0.0
+spec:
+  objective: Produce a feature specification that is valuable, testable, and feasible.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: brief
+      kind: input
+      name: Feature objective
+      summary: Desired user outcome, context, constraints, and known risks.
+      position:
+        x: 100
+        y: 220
+    - id: perspective-a
+      kind: agent
+      name: User contract
+      summary: Define journey, behavior, edge cases, and acceptance criteria.
+      role: Senior product manager
+      prompt: Write the user problem, primary journey, behavior rules, non-goals, edge cases, and
+        measurable acceptance criteria.
+      capabilities:
+        skills:
+          - product-management
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - evidence
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          evidence:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 90
+    - id: perspective-b
+      kind: agent
+      name: Feasibility review
+      summary: Identify system boundaries, dependencies, and delivery risks.
+      role: Staff software engineer
+      prompt: Review feasibility independently. Identify interfaces, dependencies, failure modes,
+        migration needs, and safer scope cuts.
+      capabilities:
+        skills:
+          - software-architecture
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - findings
+          - risks
+        properties:
+          findings:
+            type: array
+            items:
+              type: string
+          risks:
+            type: array
+            items:
+              type: string
+      position:
+        x: 380
+        y: 350
+    - id: join
+      kind: join
+      name: Perspective barrier
+      summary: Wait for both independent perspectives.
+      config:
+        join: all
+      position:
+        x: 660
+        y: 220
+    - id: synthesis
+      kind: agent
+      name: Buildable specification
+      summary: Resolve conflicts into one implementation-ready contract.
+      role: Technical product lead
+      prompt: Reconcile user value and feasibility. Return a sequenced specification with acceptance
+        criteria, release gates, and explicit tradeoffs.
+      capabilities:
+        skills:
+          - product-specification
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - recommendation
+          - actions
+          - openQuestions
+        properties:
+          recommendation:
+            type: string
+          actions:
+            type: array
+            items:
+              type: string
+          openQuestions:
+            type: array
+            items:
+              type: string
+      position:
+        x: 900
+        y: 150
+    - id: evaluation
+      kind: evaluate
+      name: Spec readiness gate
+      summary: Check the recommendation against its evidence and contract.
+      role: Cross-functional spec reviewer
+      prompt: Pass only when the spec is unambiguous, testable, feasible, and explicit about non-goals and
+        unresolved decisions.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+      position:
+        x: 900
+        y: 330
+    - id: output
+      kind: output
+      name: Reviewed feature spec
+      summary: Buildable scope, behavior contract, acceptance criteria, and release gates.
+      position:
+        x: 1180
+        y: 220
+  edges:
+    - id: e1
+      from: brief
+      to: perspective-a
+      kind: data
+      contract: Brief
+    - id: e2
+      from: brief
+      to: perspective-b
+      kind: data
+      contract: Brief
+    - id: e3
+      from: perspective-a
+      to: join
+      kind: data
+      contract: EvidenceSet
+    - id: e4
+      from: perspective-b
+      to: join
+      kind: data
+      contract: RiskSet
+    - id: e5
+      from: join
+      to: synthesis
+      kind: dependency
+    - id: e6
+      from: synthesis
+      to: evaluation
+      kind: data
+      contract: Recommendation
+    - id: e7
+      from: evaluation
+      to: output
+      kind: control
+      condition: passed == true

@@ -1,0 +1,234 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-sales-02
+  title: Deal desk review + position merge
+  description: Let commercial, risk, and forecast reviewers take independent positions on the same terms,
+    then merge them so every disagreement surfaces as a negotiation point.
+  version: 1.0.0
+spec:
+  objective: Reach one approved deal structure in which each non-standard term carries a priced position,
+    and reviewer disagreements were resolved on the record.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: Proposed deal and requested exceptions
+      summary: Proposed deal and requested exceptions
+      inputSchema:
+        type: object
+        required:
+          - text
+        properties:
+          text:
+            type: string
+            description: The requester's objective, source material, or instructions.
+          workflowFields:
+            type: object
+            required:
+              - requested_terms
+              - standard_policy
+              - opportunity_record
+              - quarter_context
+            properties:
+              requested_terms: {}
+              standard_policy: {}
+              opportunity_record: {}
+              quarter_context: {}
+        x-ladder-input-mode: document
+    - id: n-split
+      kind: transform
+      name: Select the sections under review
+      summary: select the non-standard terms and the policy clause each one departs from
+      config:
+        operation: select
+        expression: select the non-standard terms and the policy clause each one departs from
+    - id: n-position1
+      kind: agent
+      name: Commercial position on each term
+      summary: 'Independent position 1: commercial position on each term.'
+      role: Deal desk reviewer pricing non-standard terms against policy and precedent.
+      prompt: You are a Deal Desk Reviewer. You review non-standard terms — discount, payment schedule,
+        termination, liability, custom SLA — against the pricing policy and the precedent set by prior
+        approvals, and you price each concession rather than approving it as goodwill. You name the precedent
+        a concession creates, because the second identical request is the one the policy actually has
+        to survive.
+      capabilities:
+        skills:
+          - deal-structuring
+          - concession-costing
+          - precedent-analysis
+          - approval-policy-mapping
+          - contract-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:crm
+          - mcp:contract-lifecycle
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-position2
+      kind: agent
+      name: Qualification and risk position
+      summary: 'Independent position 2: qualification and risk position.'
+      role: Qualification analyst testing an opportunity against explicit criteria and disconfirming evidence.
+      prompt: You are an Opportunity Qualification Analyst. You test an opportunity against each qualification
+        dimension — problem, economic buyer, decision process, criteria, timing, champion — and mark a
+        dimension unqualified when the evidence is a seller's belief rather than a buyer's statement.
+        You actively look for disconfirming evidence, because pipeline that fails only at the end of a
+        quarter was mis-qualified at the start.
+      capabilities:
+        skills:
+          - opportunity-qualification
+          - disconfirming-evidence-search
+          - decision-process-mapping
+          - champion-testing
+          - evidence-citation
+        tools:
+          - read
+          - search
+        connectors:
+          - mcp:crm
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-position3
+      kind: agent
+      name: Forecast integrity position
+      summary: 'Independent position 3: forecast integrity position.'
+      role: Pipeline auditor testing forecast integrity against stage evidence.
+      prompt: You are a Pipeline Hygiene Auditor. You test each opportunity's stage against the exit criteria
+        evidence actually present in the record, flag stalled and repeatedly pushed deals, and report
+        the forecast that survives the evidence rather than the forecast that was submitted. You quantify
+        the gap between committed and evidenced pipeline instead of softening it, because that gap is
+        the forecast miss arriving early.
+      capabilities:
+        skills:
+          - pipeline-auditing
+          - stage-exit-criteria-testing
+          - forecast-integrity-analysis
+          - stall-detection
+          - statistical-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:crm
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-merge
+      kind: aggregator
+      name: Merge positions and surface collisions
+      summary: Combine the position objects field by field; where two positions disagree on the same field,
+        the collision is the finding.
+      config:
+        aggregation: merge
+    - id: n-collisions
+      kind: condition
+      name: Collisions to resolve?
+      summary: Route on merged.collisions is empty.
+      config:
+        expression: merged.collisions is empty
+        branches:
+          - label: Aligned
+            when: aligned
+          - label: Collisions
+            when: collisions
+    - id: n-resolve
+      kind: agent
+      name: Resolve collisions into one recommended structure
+      summary: Work each collision to a recommended position with a stated fallback.
+      role: Deal desk reviewer pricing non-standard terms against policy and precedent.
+      prompt: You are a Deal Desk Reviewer. You review non-standard terms — discount, payment schedule,
+        termination, liability, custom SLA — against the pricing policy and the precedent set by prior
+        approvals, and you price each concession rather than approving it as goodwill. You name the precedent
+        a concession creates, because the second identical request is the one the policy actually has
+        to survive.
+      capabilities:
+        skills:
+          - deal-structuring
+          - concession-costing
+          - precedent-analysis
+          - approval-policy-mapping
+          - contract-analysis
+        tools:
+          - read
+          - calculate
+        connectors:
+          - mcp:crm
+          - mcp:contract-lifecycle
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Deal desk approval of the merged structure
+      summary: Pause for the deal desk owner; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Deal desk review + position merge deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-sales-02-edge-1
+      from: n-intake
+      to: n-split
+      kind: data
+    - id: wf-sales-02-edge-2
+      from: n-split
+      to: n-position1
+      kind: data
+    - id: wf-sales-02-edge-3
+      from: n-split
+      to: n-position2
+      kind: data
+    - id: wf-sales-02-edge-4
+      from: n-split
+      to: n-position3
+      kind: data
+    - id: wf-sales-02-edge-5
+      from: n-position1
+      to: n-merge
+      kind: data
+    - id: wf-sales-02-edge-6
+      from: n-position2
+      to: n-merge
+      kind: data
+    - id: wf-sales-02-edge-7
+      from: n-position3
+      to: n-merge
+      kind: data
+    - id: wf-sales-02-edge-8
+      from: n-merge
+      to: n-collisions
+      kind: data
+    - id: wf-sales-02-edge-9
+      from: n-collisions
+      to: n-approval
+      kind: control
+      condition: aligned
+    - id: wf-sales-02-edge-10
+      from: n-collisions
+      to: n-resolve
+      kind: control
+      condition: collisions
+    - id: wf-sales-02-edge-11
+      from: n-resolve
+      to: n-approval
+      kind: data
+    - id: wf-sales-02-edge-12
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved
