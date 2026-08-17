@@ -11,6 +11,10 @@ vi.mock("../src/lib/persistence", () => ({
   requestPersistentStorage: vi.fn(async () => false),
 }));
 
+const selectArea = (area: string) => {
+  fireEvent.change(screen.getByLabelText("Subject area"), { target: { value: area } });
+};
+
 describe("welcome gallery", () => {
   afterEach(cleanup);
 
@@ -25,19 +29,20 @@ describe("welcome gallery", () => {
     const openAgentTemplate = vi.fn(async () => undefined);
     useStudioStore.setState({ openTemplate, openAgentTemplate });
     render(<Welcome onBlank={() => undefined} />);
-    expect(screen.getByRole("heading", { name: "Starter workflows" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Workflow library" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open MCP companion" })).toBeInTheDocument();
-    expect(screen.getByText(`${WORKFLOW_TEMPLATES.length} workflows`, { exact: false })).toBeInTheDocument();
-    expect(within(screen.getByRole("group", { name: "Subject areas" })).getAllByRole("button")).toHaveLength(
+    expect(within(screen.getByLabelText("Subject area")).getAllByRole("option")).toHaveLength(
       new Set(WORKFLOW_TEMPLATES.map((template) => template.area)).size,
     );
-    expect(screen.getByRole("button", { name: "Core patterns" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getAllByRole("tab")).toHaveLength(2);
+    expect(screen.getByLabelText("Subject area")).toHaveValue("Core patterns");
+    expect(screen.getAllByRole("tab")).toHaveLength(4);
+    expect(screen.getByRole("tab", { name: "Starter workflows" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Recent projects" })).toHaveAttribute("aria-selected", "false");
     expect(screen.getByRole("tab", { name: "Workflows" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Agents" })).toHaveAttribute("aria-selected", "false");
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(1);
-    fireEvent.click(screen.getByRole("button", { name: "Software engineering" }));
-    expect(screen.getByRole("button", { name: "Software engineering" })).toHaveAttribute("aria-pressed", "true");
+    selectArea("Software engineering");
+    expect(screen.getByLabelText("Subject area")).toHaveValue("Software engineering");
     const templateButtons = screen.getAllByRole("button", { name: /open .* in studio/i });
     expect(templateButtons).toHaveLength(WORKFLOW_TEMPLATES.filter((template) => template.area === "Software engineering").length);
     fireEvent.click(templateButtons[0]);
@@ -57,21 +62,15 @@ describe("welcome gallery", () => {
     expect(screen.getByText(/never runs agents/i)).toBeInTheDocument();
   });
 
-  it("collapses the subject-area chooser without losing the selection", () => {
+  it("switches between starter workflows and recent projects", () => {
     render(<Welcome onBlank={() => undefined} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Software engineering" }));
-    const toggle = screen.getByRole("button", { name: "Choose a subject area, selected Software engineering" });
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("tab", { name: "Recent projects" }));
+    expect(screen.getByText("No saved projects yet")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Subject area")).not.toBeInTheDocument();
 
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(document.getElementById("subject-area-selector")).not.toBeVisible();
-    expect(screen.getByRole("button", { name: /open implementation \+ risk review in studio/i })).toBeInTheDocument();
-
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("group", { name: "Subject areas" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Browse starter workflows" }));
+    expect(screen.getByLabelText("Subject area")).toBeInTheDocument();
   });
 
   it("opens the intro and help from the gallery", async () => {
@@ -86,19 +85,19 @@ describe("welcome gallery", () => {
   it("exposes the new multimodal and architecture workflow areas", () => {
     render(<Welcome onBlank={() => undefined} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Multimodal" }));
+    selectArea("Multimodal");
     expect(screen.getByRole("button", { name: /open multimodal asset production in studio/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open image → structured text in studio/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open reference image → new image in studio/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Architecture & design" }));
+    selectArea("Architecture & design");
     expect(screen.getByRole("button", { name: /open coordinated building design in studio/i })).toBeInTheDocument();
   });
 
   it("filters workflows and agents by input modality", () => {
     render(<Welcome onBlank={() => undefined} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Multimodal" }));
+    selectArea("Multimodal");
     fireEvent.change(screen.getByLabelText("Filter by modality"), { target: { value: "image" } });
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /open multimodal asset production in studio/i })).not.toBeInTheDocument();
@@ -110,28 +109,28 @@ describe("welcome gallery", () => {
   it("exposes humanities, writing, and personal-development workflows", () => {
     render(<Welcome onBlank={() => undefined} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Humanities" }));
+    selectArea("Humanities");
     expect(screen.getByRole("button", { name: /open humanities inquiry \+ seminar in studio/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Writing" }));
+    selectArea("Writing");
     expect(screen.getByRole("button", { name: /open manuscript development \+ editorial gate in studio/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Personal development" }));
+    selectArea("Personal development");
     expect(screen.getByRole("button", { name: /open values → sustainable action system in studio/i })).toBeInTheDocument();
   });
 
   it("exposes mathematics, music, and physics workflows", () => {
     render(<Welcome onBlank={() => undefined} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Mathematics" }));
+    selectArea("Mathematics");
     expect(screen.getByRole("button", { name: /open optimization problem solving pipeline in studio/i })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(3);
 
-    fireEvent.click(screen.getByRole("button", { name: "Music" }));
+    selectArea("Music");
     expect(screen.getByRole("button", { name: /open audio-to-analysis pipeline in studio/i })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(3);
 
-    fireEvent.click(screen.getByRole("button", { name: "Physics" }));
+    selectArea("Physics");
     expect(screen.getByRole("button", { name: /open physics problem solving & verification pipeline in studio/i })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(2);
   });
@@ -139,19 +138,19 @@ describe("welcome gallery", () => {
   it("exposes the added domain workflow areas", () => {
     render(<Welcome onBlank={() => undefined} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Supply chain & logistics" }));
+    selectArea("Supply chain & logistics");
     expect(screen.getByRole("button", { name: /open demand forecast \+ independent tie-out in studio/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Robotics & embodied AI" }));
+    selectArea("Robotics & embodied AI");
     expect(screen.getByRole("button", { name: /open manipulation plan \+ hardware tie-out in studio/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Crisis & emergency management" }));
+    selectArea("Crisis & emergency management");
     expect(screen.getByRole("button", { name: /open incident intake → dispatch with coverage gate in studio/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Airline flight operations" }));
+    selectArea("Airline flight operations");
     expect(screen.getByRole("button", { name: /open dispatch release \+ barrier verification in studio/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Oil & gas drilling & well operations" }));
+    selectArea("Oil & gas drilling & well operations");
     expect(screen.getByRole("button", { name: /open well control barrier verification in studio/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Agents" }));

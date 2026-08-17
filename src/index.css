@@ -302,9 +302,9 @@ button:disabled {
 .library-controls {
   display: grid;
   flex: none;
-  grid-template-columns: minmax(260px, 1fr) auto;
+  grid-template-columns: minmax(240px, 1fr) auto minmax(150px, 180px);
   align-items: end;
-  gap: 20px;
+  gap: 14px;
   min-width: 0;
   margin: 0;
   border: 0;
@@ -393,16 +393,10 @@ button:disabled {
   opacity: 0.72;
 }
 .modality-filter {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 9px;
-  padding: 0 0 12px;
-  color: #74818a;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  padding: 0;
 }
 .modality-filter select,
 .palette-modality-filter select {
@@ -412,6 +406,11 @@ button:disabled {
   background: #10161a;
   color: #d7e1e2;
   font-size: 11px;
+}
+.modality-filter select {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
 }
 .library-empty {
   grid-column: 1 / -1;
@@ -4621,6 +4620,15 @@ button:disabled {
   }
   .library-tabs button > svg {
     display: none;
+  }
+  .modality-filter {
+    grid-column: 1 / -1;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+  .modality-filter select {
+    height: 34px;
   }
   .tabbed-template-grid {
     grid-template-columns: minmax(0, 1fr);
