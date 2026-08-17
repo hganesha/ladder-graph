@@ -264,8 +264,57 @@ button:disabled {
   padding: 0 0 10px;
   scrollbar-width: thin;
 }
-.subject-area-label {
+.subject-area-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
   margin-bottom: 10px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+.subject-area-toggle-selection {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 600;
+}
+.subject-area-toggle-selection > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.subject-area-toggle-selection > svg {
+  flex: none;
+}
+.subject-area-toggle-selection svg:last-child {
+  color: #64737b;
+  transition: transform 160ms ease;
+}
+.subject-area-toggle-selection svg:last-child.expanded {
+  transform: rotate(180deg);
+}
+.subject-area-toggle:hover .subject-area-toggle-selection svg:last-child {
+  color: #d9e2e2;
+}
+.subject-area-toggle:focus-visible {
+  border-radius: 5px;
+  outline: 2px solid var(--cyan);
+  outline-offset: 5px;
+}
+.subject-area-selector {
+  margin-bottom: 10px;
+}
+.subject-area-selector[hidden] {
+  display: none;
 }
 .library-tab-heading {
   display: flex;
@@ -3100,6 +3149,16 @@ button:disabled {
     padding-inline: max(16px, env(safe-area-inset-left));
     scroll-padding-inline: max(16px, env(safe-area-inset-left));
     scrollbar-width: none;
+  }
+  .subject-area-toggle-selection {
+    flex: 0 1 46%;
+    max-width: 46%;
+  }
+  .subject-area-toggle > .eyebrow {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .library-tab-heading {
     align-items: flex-start;
