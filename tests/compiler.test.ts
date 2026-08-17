@@ -104,7 +104,7 @@ describe("LGIR fallback compiler", () => {
   });
 
   it("schedules grouped members inside the group boundary before downstream work", async () => {
-    const workflow = parse(WORKFLOW_TEMPLATES[1].yaml) as Workflow;
+    const workflow = structuredClone(primitiveWorkflow);
     const output = workflow.spec.nodes.find((node) => node.kind === "output");
     const members = workflow.spec.nodes.filter((node) => node.kind === "agent").slice(0, 2);
     if (!output || members.length < 2) throw new Error("The group fixture requires two agents and an output.");
@@ -256,5 +256,114 @@ describe("LGIR fallback compiler", () => {
     const source = WORKFLOW_TEMPLATES[0].yaml.replace("type: object", "$ref: https://example.com/schema.json");
     const result = await analyzeFallback(source);
     expect(result.diagnostics[0].code).toBe("LG005");
+  });
+
+  it("enforces condition branch tokens while allowing an explicit unused default", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    workflow.spec.nodes.splice(4, 0, {
+      id: "route",
+      kind: "condition",
+      name: "Route",
+      config: {
+        expression: "review.status",
+        router: "host:review-router",
+        defaultBranch: "default",
+        branches: [
+          { label: "Pass", when: "pass" },
+          { label: "Default", when: "default" },
+        ],
+      },
+    });
+    workflow.spec.edges = [
+      ...workflow.spec.edges.filter((edge) => edge.to !== "teacher"),
+      { id: "route-in", from: "combined", to: "route", kind: "data" },
+      { id: "route-out", from: "route", to: "teacher", kind: "control", condition: "unknown" },
+    ];
+
+    const invalid = await analyzeFallback(stringify(workflow));
+    expect(invalid.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG163", edgeId: "route-out" })]));
+
+    workflow.spec.edges.at(-1)!.condition = "pass";
+    const valid = await analyzeFallback(stringify(workflow));
+    expect(valid.ok).toBe(true);
+    expect(valid.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG164", severity: "warning" })]));
+  });
+
+  it("validates ordered loop boundaries and exhaustion routing", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    workflow.spec.nodes.splice(4, 0, {
+      id: "revise-loop",
+      kind: "loop",
+      name: "Revise",
+      config: {
+        body: ["draft-a", "draft-b"],
+        entry: "missing",
+        exitNode: "draft-b",
+        exitCondition: "review.passed",
+        maxIterations: 3,
+        onExhausted: "warn",
+      },
+    });
+    workflow.spec.edges.push({ id: "loop-exit", from: "revise-loop", to: "output", kind: "control", condition: "loop_exit" });
+
+    const result = await analyzeFallback(stringify(workflow));
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "LG171" }), expect.objectContaining({ code: "LG175" })]),
+    );
+  });
+
+  it("validates join cardinality and deterministic data mappings", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    workflow.spec.edges = workflow.spec.edges.filter((edge) => edge.id !== "e4");
+    const first = workflow.spec.edges.find((edge) => edge.id === "e3");
+    if (!first) throw new Error("The mapping fixture requires e3.");
+    first.sourcePath = "/answer";
+    first.targetPath = "/candidates/primary";
+    workflow.spec.edges.push({
+      id: "collision",
+      from: "draft-b",
+      to: "combined",
+      kind: "data",
+      sourcePath: "/answer",
+      targetPath: "/candidates/primary",
+    });
+    const join = workflow.spec.nodes.find((node) => node.id === "combined");
+    if (!join) throw new Error("The mapping fixture requires combined.");
+    join.kind = "join";
+    join.config = { join: "all" };
+
+    const collision = await analyzeFallback(stringify(workflow));
+    expect(collision.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG187" })]));
+
+    workflow.spec.edges.pop();
+    const undersupplied = await analyzeFallback(stringify(workflow));
+    expect(undersupplied.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG180" })]));
+  });
+
+  it("requires executable subgraph references and state maps when config is present", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    workflow.spec.nodes[1] = {
+      id: "draft-a",
+      kind: "subgraph",
+      name: "Research pass",
+      config: {
+        subgraph: {
+          ref: "ladder://workflows/research-pass",
+          inputMap: { request: "/inputs/request" },
+          outputMap: { result: "/results/research" },
+          checkpointer: "inherit",
+        },
+      },
+    };
+
+    const valid = await analyzeFallback(stringify(workflow));
+    expect(valid.diagnostics.some((item) => item.code.startsWith("LG19") && item.severity === "error")).toBe(false);
+
+    workflow.spec.nodes[1].config!.subgraph!.ref = "https://example.com/graph";
+    workflow.spec.nodes[1].config!.subgraph!.inputMap = {};
+    const invalid = await analyzeFallback(stringify(workflow));
+    expect(invalid.diagnostics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "LG191" }), expect.objectContaining({ code: "LG192" })]),
+    );
   });
 });

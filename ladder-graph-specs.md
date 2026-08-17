@@ -104,6 +104,10 @@ A teacher node requests feedback from a host-resolved `teacherModel` in `critiqu
 
 A group is a visible bounding container with one external input and one external output. It owns an ordered `members` list, runs those members in `sequential` or `parallel` mode, and exits only after every member result has been `aggregate`d or `serialize`d. Direct edges across a member boundary produce diagnostics so inputs enter through the group and outputs leave through its collector.
 
+### Executable semantics
+
+LGIR conditions, structured loops, joins, approvals, groups, subgraphs, and data mappings have runtime-neutral contracts independent of any output framework. Executable targets must preserve those contracts or block compilation with stable diagnostics. See [docs/executable-semantics.md](docs/executable-semantics.md).
+
 ### Security limits
 
 - Imports are capped at 2 MB and 1,000 nodes.

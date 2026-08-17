@@ -211,13 +211,32 @@ export function Inspector() {
               </>
             )}
             {draft.kind === "condition" && (
-              <Field label="Condition">
-                <input
-                  value={draft.config.expression ?? ""}
-                  onChange={(event) => setDraft({ ...draft, config: { ...draft.config, expression: event.target.value } })}
-                  onBlur={() => commit({ config: draft.config })}
-                />
-              </Field>
+              <>
+                <Field label="Condition">
+                  <input
+                    value={draft.config.expression ?? ""}
+                    onChange={(event) => setDraft({ ...draft, config: { ...draft.config, expression: event.target.value } })}
+                    onBlur={() => commit({ config: draft.config })}
+                  />
+                </Field>
+                <Field label="Router binding">
+                  <input
+                    value={draft.config.router ?? ""}
+                    placeholder={draft.id}
+                    onChange={(event) => setDraft({ ...draft, config: { ...draft.config, router: event.target.value } })}
+                    onBlur={() => commit({ config: draft.config })}
+                  />
+                  <small className="field-help">Optional host binding; defaults to the stable node ID.</small>
+                </Field>
+                <Field label="Default branch token">
+                  <input
+                    value={draft.config.defaultBranch ?? ""}
+                    placeholder="No implicit default"
+                    onChange={(event) => setDraft({ ...draft, config: { ...draft.config, defaultBranch: event.target.value } })}
+                    onBlur={() => commit({ config: draft.config })}
+                  />
+                </Field>
+              </>
             )}
           </>
         )}
@@ -325,10 +344,23 @@ function EdgeInspector({ edge, nodes }: { edge: LgirEdge; nodes: LgirNode[] }) {
     const currentText = draft.kind === "control" ? draft.condition : draft.contract;
     const next: LgirEdge =
       kind === "control"
-        ? { ...draft, kind, condition: currentText, contract: undefined }
-        : { ...draft, kind, contract: currentText, condition: undefined };
+        ? { ...draft, kind, condition: currentText, contract: undefined, sourcePath: undefined, targetPath: undefined }
+        : {
+            ...draft,
+            kind,
+            contract: currentText,
+            condition: undefined,
+            sourcePath: kind === "data" ? draft.sourcePath : undefined,
+            targetPath: kind === "data" ? draft.targetPath : undefined,
+          };
     setDraft(next);
-    void patchEdge(draft.id, { kind, contract: next.contract, condition: next.condition });
+    void patchEdge(draft.id, {
+      kind,
+      contract: next.contract,
+      condition: next.condition,
+      sourcePath: next.sourcePath,
+      targetPath: next.targetPath,
+    });
   };
   const setText = (value: string) => {
     setDraft(
@@ -402,6 +434,26 @@ function EdgeInspector({ edge, nodes }: { edge: LgirEdge; nodes: LgirNode[] }) {
           />
           <small className="field-help">This text appears directly on the edge in the canvas.</small>
         </Field>
+        {draft.kind === "data" && (
+          <>
+            <Field label="Source JSON Pointer">
+              <input
+                value={draft.sourcePath ?? ""}
+                placeholder="/result"
+                onChange={(event) => setDraft({ ...draft, sourcePath: event.target.value })}
+                onBlur={(event) => void patchEdge(draft.id, { sourcePath: event.target.value.trim() || undefined })}
+              />
+            </Field>
+            <Field label="Target JSON Pointer">
+              <input
+                value={draft.targetPath ?? ""}
+                placeholder="/inputs/result"
+                onChange={(event) => setDraft({ ...draft, targetPath: event.target.value })}
+                onBlur={(event) => void patchEdge(draft.id, { targetPath: event.target.value.trim() || undefined })}
+              />
+            </Field>
+          </>
+        )}
         <Field label="Stable edge ID">
           <input value={draft.id} readOnly />
         </Field>
@@ -657,6 +709,12 @@ function Advanced({
   commit: (patch: Partial<LgirNode>) => void;
 }) {
   const update = (key: string, value: unknown) => setNode({ ...node, config: { ...node.config, [key]: value } });
+  const subgraph = node.config.subgraph ?? { ref: "", inputMap: {}, outputMap: {}, checkpointer: "inherit" as const };
+  const commitSubgraph = (patch: Partial<typeof subgraph>) => {
+    const value = { ...subgraph, ...patch };
+    setNode({ ...node, config: { ...node.config, subgraph: value } });
+    commit({ config: { ...node.config, subgraph: value } });
+  };
   return (
     <>
       <Field label="Stable node ID">
@@ -683,6 +741,22 @@ function Advanced({
             <input
               value={node.config.exitCondition ?? ""}
               onChange={(event) => update("exitCondition", event.target.value)}
+              onBlur={() => commit({ config: node.config })}
+            />
+          </Field>
+          <Field label="Entry node ID">
+            <input
+              value={node.config.entry ?? ""}
+              placeholder={node.config.body?.[0] ?? "First body node"}
+              onChange={(event) => update("entry", event.target.value)}
+              onBlur={() => commit({ config: node.config })}
+            />
+          </Field>
+          <Field label="Exit node ID">
+            <input
+              value={node.config.exitNode ?? ""}
+              placeholder={node.config.body?.at(-1) ?? "Last body node"}
+              onChange={(event) => update("exitNode", event.target.value)}
               onBlur={() => commit({ config: node.config })}
             />
           </Field>
@@ -798,6 +872,45 @@ function Advanced({
             />
           </Field>
           <p className="field-help">Select this group or one of its members before adding a primitive to place it inside.</p>
+        </>
+      )}
+      {node.kind === "subgraph" && (
+        <>
+          <Field label="Subgraph reference">
+            <input
+              value={subgraph.ref}
+              placeholder="ladder://workflows/example"
+              onChange={(event) => setNode({ ...node, config: { ...node.config, subgraph: { ...subgraph, ref: event.target.value } } })}
+              onBlur={(event) => commitSubgraph({ ref: event.target.value.trim() })}
+            />
+          </Field>
+          <JsonField
+            label="Subgraph input map"
+            value={subgraph.inputMap}
+            onCommit={(value) =>
+              commitSubgraph({ inputMap: Object.fromEntries(Object.entries(value ?? {}).map(([key, item]) => [key, String(item)])) })
+            }
+          />
+          <JsonField
+            label="Subgraph output map"
+            value={subgraph.outputMap}
+            onCommit={(value) =>
+              commitSubgraph({ outputMap: Object.fromEntries(Object.entries(value ?? {}).map(([key, item]) => [key, String(item)])) })
+            }
+          />
+          <Field label="Subgraph persistence">
+            <select
+              value={subgraph.checkpointer ?? "inherit"}
+              onChange={(event) =>
+                commitSubgraph({ checkpointer: event.target.value as "inherit" | "perInvocation" | "perThread" | "stateless" })
+              }
+            >
+              <option value="inherit">Inherit parent</option>
+              <option value="perInvocation">Per invocation</option>
+              <option value="perThread">Per thread</option>
+              <option value="stateless">Stateless</option>
+            </select>
+          </Field>
         </>
       )}
       {node.kind === "transform" && (

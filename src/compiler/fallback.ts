@@ -49,6 +49,14 @@ function diagnostic(code: string, severity: Diagnostic["severity"], path: string
   return { code, severity, path, message, nodeId };
 }
 
+function validStatePath(path: string) {
+  if (!path.startsWith("/")) return false;
+  return !path
+    .split("/")
+    .slice(1)
+    .some((segment) => /~(?![01])/u.test(segment));
+}
+
 function parse(source: string): { workflow?: Workflow; diagnostics: Diagnostic[] } {
   if (source.length > 2_000_000) return { diagnostics: [diagnostic("LG001", "error", "/", "LGIR source exceeds the 2 MB import limit.")] };
   if (source.includes("!!") || source.includes("!<"))
@@ -178,6 +186,23 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
     }
     if (node.kind === "aggregator" && !AGGREGATIONS.has(node.config?.aggregation ?? ""))
       diagnostics.push(diagnostic("LG118", "error", path, "Aggregation strategy must be collect, merge, concat, or vote.", node.id));
+    if (node.kind === "condition") {
+      const branches = node.config?.branches ?? [];
+      if (!branches.length)
+        diagnostics.push(diagnostic("LG160", "error", path, "Condition nodes require at least one declared branch token.", node.id));
+      const tokens = new Set<string>();
+      branches.forEach((branch) => {
+        if (!branch.label?.trim() || !branch.when?.trim())
+          diagnostics.push(diagnostic("LG161", "error", path, "Condition branch labels and tokens must be non-empty.", node.id));
+        else if (tokens.has(branch.when))
+          diagnostics.push(diagnostic("LG161", "error", path, `Condition branch token '${branch.when}' is duplicated.`, node.id));
+        tokens.add(branch.when);
+      });
+      if (node.config?.defaultBranch && !tokens.has(node.config.defaultBranch))
+        diagnostics.push(
+          diagnostic("LG162", "error", path, `defaultBranch '${node.config.defaultBranch}' must name a declared branch token.`, node.id),
+        );
+    }
     if (node.kind === "loop") {
       const max = node.config?.maxIterations ?? 0;
       if (max < 1 || max > 100)
@@ -191,10 +216,22 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
         );
       if (!node.config?.body?.length)
         diagnostics.push(diagnostic("LG122", "error", path, "Loop body must reference at least one node.", node.id));
+      const bodyIds = new Set<string>();
       node.config?.body?.forEach((bodyId) => {
         if (!nodes.some((candidate) => candidate.id === bodyId))
           diagnostics.push(diagnostic("LG123", "error", path, `Loop body references missing node '${bodyId}'.`, node.id));
+        if (bodyId === node.id || bodyIds.has(bodyId))
+          diagnostics.push(
+            diagnostic("LG170", "error", path, "Loop bodies cannot contain the loop node or duplicate member IDs.", node.id),
+          );
+        bodyIds.add(bodyId);
       });
+      const entry = node.config?.entry || node.config?.body?.[0];
+      const exit = node.config?.exitNode || node.config?.body?.at(-1);
+      if (entry && !bodyIds.has(entry))
+        diagnostics.push(diagnostic("LG171", "error", path, "Loop entry must identify a node in the loop body.", node.id));
+      if (exit && !bodyIds.has(exit))
+        diagnostics.push(diagnostic("LG172", "error", path, "Loop exitNode must identify a node in the loop body.", node.id));
     }
     if (node.kind === "join" && !["all", "allSettled", "first"].includes(node.config?.join ?? ""))
       diagnostics.push(diagnostic("LG124", "error", path, "Join policy must be all, allSettled, or first.", node.id));
@@ -213,6 +250,29 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
         else if (member.id === node.id || member.kind === "group")
           diagnostics.push(diagnostic("LG132", "error", path, "Groups cannot contain themselves or another group.", node.id));
       });
+    }
+    if (node.kind === "subgraph") {
+      const subgraph = node.config?.subgraph;
+      if (!subgraph)
+        diagnostics.push(diagnostic("LG190", "warning", path, "Subgraph has no executable ref or parent/child state mapping.", node.id));
+      else {
+        if (!/^(ladder:\/\/|host:).+/u.test(subgraph.ref))
+          diagnostics.push(diagnostic("LG191", "error", path, "Subgraph ref must be a non-empty ladder:// or host: reference.", node.id));
+        if (!Object.keys(subgraph.inputMap ?? {}).length)
+          diagnostics.push(
+            diagnostic("LG192", "error", path, "Subgraph inputMap must map at least one child input to a parent state path.", node.id),
+          );
+        if (!Object.keys(subgraph.outputMap ?? {}).length)
+          diagnostics.push(
+            diagnostic("LG193", "error", path, "Subgraph outputMap must map at least one child output to a parent state path.", node.id),
+          );
+        if ([...Object.values(subgraph.inputMap ?? {}), ...Object.values(subgraph.outputMap ?? {})].some((value) => !validStatePath(value)))
+          diagnostics.push(diagnostic("LG194", "error", path, "Subgraph state mappings must use valid JSON Pointer paths.", node.id));
+        if (subgraph.checkpointer && !["inherit", "perInvocation", "perThread", "stateless"].includes(subgraph.checkpointer))
+          diagnostics.push(
+            diagnostic("LG195", "error", path, "Subgraph checkpointer must be inherit, perInvocation, perThread, or stateless.", node.id),
+          );
+      }
     }
     if (target && (node.kind === "loop" || node.kind === "approval" || node.kind === "group" || node.kind === "teacher"))
       diagnostics.push({
@@ -274,6 +334,25 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
         ...diagnostic("LG144", "error", path, "Self edges are not allowed; use a structured loop node."),
         edgeId: edge.id,
       });
+    const hasSourcePath = Boolean(edge.sourcePath);
+    const hasTargetPath = Boolean(edge.targetPath);
+    if (hasSourcePath !== hasTargetPath)
+      diagnostics.push({ ...diagnostic("LG183", "error", path, "Data mappings require both sourcePath and targetPath."), edgeId: edge.id });
+    if ((edge.sourcePath && !validStatePath(edge.sourcePath)) || (edge.targetPath && !validStatePath(edge.targetPath)))
+      diagnostics.push({
+        ...diagnostic("LG184", "error", path, "sourcePath and targetPath must be valid JSON Pointer paths."),
+        edgeId: edge.id,
+      });
+    if ((hasSourcePath || hasTargetPath) && edge.kind !== "data")
+      diagnostics.push({
+        ...diagnostic("LG185", "error", path, "Only data edges can declare sourcePath and targetPath."),
+        edgeId: edge.id,
+      });
+    if (edge.kind === "control" && !edge.condition?.trim())
+      diagnostics.push({
+        ...diagnostic("LG186", "error", path, "Control edges require a non-empty branch token in condition."),
+        edgeId: edge.id,
+      });
     const sourceGroup = membership.get(edge.from);
     const targetGroup = membership.get(edge.to);
     if (sourceGroup && targetGroup !== sourceGroup)
@@ -295,6 +374,77 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
         ),
       );
   });
+  const mappedTargets = new Set<string>();
+  edges.forEach((edge, index) => {
+    if (edge.kind !== "data" || !edge.targetPath) return;
+    const key = `${edge.to}\0${edge.targetPath}`;
+    if (mappedTargets.has(key))
+      diagnostics.push({
+        ...diagnostic(
+          "LG187",
+          "error",
+          `/spec/edges/${index}`,
+          `Multiple data edges map to targetPath '${edge.targetPath}' on node '${edge.to}'.`,
+        ),
+        edgeId: edge.id,
+      });
+    mappedTargets.add(key);
+  });
+  nodes
+    .filter((node) => node.kind === "condition")
+    .forEach((node) => {
+      const path = `/spec/nodes/${nodes.indexOf(node)}`;
+      const branchTokens = new Set((node.config?.branches ?? []).map((branch) => branch.when));
+      const outgoing = edges.filter((edge) => edge.from === node.id && edge.kind === "control");
+      if (!outgoing.length)
+        diagnostics.push(diagnostic("LG165", "error", path, "Condition requires at least one outgoing control edge.", node.id));
+      const outgoingTokens = new Set(outgoing.map((edge) => edge.condition ?? ""));
+      outgoing.forEach((edge) => {
+        if (!branchTokens.has(edge.condition ?? ""))
+          diagnostics.push({
+            ...diagnostic(
+              "LG163",
+              "error",
+              path,
+              `Control edge '${edge.id}' uses undeclared branch token '${edge.condition ?? ""}'.`,
+              node.id,
+            ),
+            edgeId: edge.id,
+          });
+      });
+      branchTokens.forEach((token) => {
+        if (!outgoingTokens.has(token))
+          diagnostics.push(diagnostic("LG164", "warning", path, `Declared branch token '${token}' has no outgoing control edge.`, node.id));
+      });
+    });
+  nodes
+    .filter((node) => node.kind === "loop")
+    .forEach((node) => {
+      const path = `/spec/nodes/${nodes.indexOf(node)}`;
+      const outgoing = edges.filter((edge) => edge.from === node.id);
+      if (!outgoing.length) diagnostics.push(diagnostic("LG173", "error", path, "Loop requires at least one outgoing exit edge.", node.id));
+      else if (!outgoing.some((edge) => edge.condition === "loop_exit"))
+        diagnostics.push(
+          diagnostic("LG174", "warning", path, "Loop exit edges should use the canonical 'loop_exit' condition token.", node.id),
+        );
+      const hasExhaustedEdge = outgoing.some((edge) => edge.condition === "loop_exhausted");
+      if (["continue", "warn"].includes(node.config?.onExhausted ?? "") && !hasExhaustedEdge)
+        diagnostics.push(
+          diagnostic("LG175", "error", path, "continue and warn exhaustion policies require a 'loop_exhausted' outgoing edge.", node.id),
+        );
+      if (node.config?.onExhausted === "stop" && hasExhaustedEdge)
+        diagnostics.push(diagnostic("LG176", "warning", path, "A stop exhaustion policy never follows a 'loop_exhausted' edge.", node.id));
+    });
+  nodes
+    .filter((node) => node.kind === "join")
+    .forEach((node) => {
+      const path = `/spec/nodes/${nodes.indexOf(node)}`;
+      const inbound = edges.filter((edge) => edge.to === node.id && ids.has(edge.from)).length;
+      const outbound = edges.filter((edge) => edge.from === node.id && ids.has(edge.to)).length;
+      if (inbound < 2)
+        diagnostics.push(diagnostic("LG180", "error", path, "Join nodes require at least two distinct upstream edges.", node.id));
+      if (!outbound) diagnostics.push(diagnostic("LG181", "error", path, "Join nodes require at least one downstream edge.", node.id));
+    });
   nodes
     .filter((node) => node.kind === "aggregator")
     .forEach((node) => {

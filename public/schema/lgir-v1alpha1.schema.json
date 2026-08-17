@@ -85,7 +85,18 @@
                 "properties": {
                   "operation": { "enum": ["select", "rename", "merge", "filter", "deduplicate", "sort", "slice", ""] },
                   "expression": { "type": "string" },
-                  "branches": { "type": "array" },
+                  "branches": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["label", "when"],
+                      "additionalProperties": false,
+                      "properties": {
+                        "label": { "type": "string", "minLength": 1 },
+                        "when": { "type": "string", "minLength": 1 }
+                      }
+                    }
+                  },
                   "join": { "enum": ["all", "allSettled", "first", ""] },
                   "aggregation": { "enum": ["collect", "merge", "concat", "vote", ""] },
                   "teacherModel": { "type": "string" },
@@ -98,7 +109,30 @@
                   "threshold": { "type": "number" },
                   "members": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
                   "execution": { "enum": ["sequential", "parallel", ""] },
-                  "exit": { "enum": ["aggregate", "serialize", ""] }
+                  "exit": { "enum": ["aggregate", "serialize", ""] },
+                  "router": { "type": "string", "minLength": 1 },
+                  "defaultBranch": { "type": "string", "minLength": 1 },
+                  "entry": { "type": "string", "minLength": 1 },
+                  "exitNode": { "type": "string", "minLength": 1 },
+                  "subgraph": {
+                    "type": "object",
+                    "required": ["ref", "inputMap", "outputMap"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "ref": { "type": "string", "pattern": "^(ladder://|host:).+" },
+                      "inputMap": {
+                        "type": "object",
+                        "minProperties": 1,
+                        "additionalProperties": { "type": "string", "pattern": "^/" }
+                      },
+                      "outputMap": {
+                        "type": "object",
+                        "minProperties": 1,
+                        "additionalProperties": { "type": "string", "pattern": "^/" }
+                      },
+                      "checkpointer": { "enum": ["inherit", "perInvocation", "perThread", "stateless"] }
+                    }
+                  }
                 }
               },
               "position": { "type": "object" }
@@ -116,7 +150,9 @@
               "to": { "type": "string" },
               "kind": { "enum": ["data", "dependency", "control"] },
               "contract": { "type": "string" },
-              "condition": { "type": "string" }
+              "condition": { "type": "string" },
+              "sourcePath": { "type": "string", "pattern": "^/" },
+              "targetPath": { "type": "string", "pattern": "^/" }
             }
           }
         }
