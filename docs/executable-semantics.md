@@ -13,6 +13,7 @@ An executable host maintains one workflow state with these logical namespaces:
 - `/results/<node-id>`: the latest successful result envelope for a node;
 - `/routes/<node-id>`: the branch token selected by a condition or approval;
 - `/iterations/<loop-id>`: the completed iteration count;
+- `/loopState/<loop-id>/<slot>`: an explicit value carried from one loop iteration into the next;
 - `/errors/<node-id>`: a serializable failure envelope;
 - `/output`: the declared workflow result.
 
@@ -65,6 +66,7 @@ The loop contract is:
 - `entry` optionally identifies the first executed body node; it defaults to the first `body` item.
 - `exitNode` optionally identifies the body node after which the exit decision is evaluated; it defaults to the last `body` item.
 - `exitCondition` describes the host-resolved exit predicate.
+- optional `carry` maps stable slot names to state JSON Pointers that are snapshotted for the next iteration.
 - `maxIterations` is a hard limit from 1 through 100.
 - A successful predicate follows every outgoing edge whose condition is `loop_exit`.
 - An exhausted loop records its iteration count and follows `onExhausted`.
@@ -76,6 +78,8 @@ The loop contract is:
 - `warn`: record exhaustion, emit a warning event, and follow the required `loop_exhausted` edge.
 
 The runtime increments `/iterations/<loop-id>` once after `exitNode` completes. It evaluates the exit predicate before starting another iteration. The hard bound is checked by generated control code and cannot be delegated solely to a host router or framework recursion limit.
+
+When another iteration is required, the runtime resolves every `carry` source against the completed iteration state and writes the values to `/loopState/<loop-id>/<slot>` before executing `entry`. Slot names start with a letter and contain only letters, digits, underscores, or hyphens. Missing source paths are runtime contract errors. Carry writes are atomic: body handlers see either the complete next-iteration loop state or no update. The first execution has no carried state unless the host explicitly seeds it.
 
 Body nodes may appear on the initial acyclic path. Executable lowering treats the loop node as ownership of subsequent repetitions; it must not duplicate initial execution. A target that cannot identify one unambiguous entry and exit from the declared fields must reject the loop.
 

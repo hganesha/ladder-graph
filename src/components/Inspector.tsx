@@ -715,6 +715,13 @@ function Advanced({
     setNode({ ...node, config: { ...node.config, subgraph: value } });
     commit({ config: { ...node.config, subgraph: value } });
   };
+  const commitCarry = (value: Record<string, unknown> | null) => {
+    const config = { ...node.config };
+    if (value) config.carry = Object.fromEntries(Object.entries(value).map(([slot, source]) => [slot, String(source)]));
+    else delete config.carry;
+    setNode({ ...node, config });
+    commit({ config });
+  };
   return (
     <>
       <Field label="Stable node ID">
@@ -760,6 +767,11 @@ function Advanced({
               onBlur={() => commit({ config: node.config })}
             />
           </Field>
+          <JsonField label="Carry state into next iteration" value={node.config.carry} onCommit={commitCarry} />
+          <p className="field-help">
+            Map stable slot names to state JSON Pointers, for example <code>{'{"moderator":"/results/moderator-4"}'}</code>. Body handlers
+            read the next iteration value beneath <code>/loopState/{node.id}/&lt;slot&gt;</code>.
+          </p>
           <Field label="Maximum iterations">
             <input
               type="number"

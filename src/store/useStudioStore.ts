@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { compiler } from "../compiler/client";
 import { createAgentStarterSource } from "../lib/agentStarter";
 import { autoLayout, groupMemberPosition, scaleNodeSpacing } from "../lib/layout";
+import { type MacroKind, materializeMacro } from "../lib/macros";
 import { defaultNode, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { requestPersistentStorage, saveProject } from "../lib/persistence";
 import { BLANK_WORKFLOW, WORKFLOW_TEMPLATES } from "../lib/templates";
@@ -58,7 +59,7 @@ interface StudioState {
   deleteElements: (nodeIds: string[], edgeIds: string[]) => Promise<void>;
   addNode: (kind: NodeKind) => Promise<void>;
   addRole: (name: string) => Promise<void>;
-  addMacro: (macro: "parallel" | "pipeline" | "reduce" | "verify") => Promise<void>;
+  addMacro: (macro: MacroKind) => Promise<void>;
   connect: (edge: Omit<LgirEdge, "id">) => Promise<void>;
   updatePositions: (positions: Record<string, { x: number; y: number }>) => Promise<void>;
   adjustNodeSpacing: (direction: -1 | 1) => Promise<void>;
@@ -344,40 +345,9 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   addMacro: async (macro) => {
     const workflow = parseWorkflow(get().source);
     if (!workflow) return;
-    const offset = workflow.spec.nodes.length + 1;
-    const nodes = [...workflow.spec.nodes];
-    const edges = [...workflow.spec.edges];
-    if (macro === "parallel") {
-      const left = defaultNode("agent", offset);
-      left.name = "Parallel branch A";
-      const right = defaultNode("agent", offset + 1);
-      right.name = "Parallel branch B";
-      const join = defaultNode("join", offset + 2);
-      join.name = "Parallel join";
-      nodes.push(left, right, join);
-      edges.push(
-        { id: `macro-parallel-${offset}-a`, from: left.id, to: join.id, kind: "dependency" },
-        { id: `macro-parallel-${offset}-b`, from: right.id, to: join.id, kind: "dependency" },
-      );
-    } else if (macro === "pipeline") {
-      const first = defaultNode("agent", offset);
-      first.name = "Pipeline step 1";
-      const second = defaultNode("agent", offset + 1);
-      second.name = "Pipeline step 2";
-      nodes.push(first, second);
-      edges.push({ id: `macro-pipeline-${offset}`, from: first.id, to: second.id, kind: "data", contract: "StepResult" });
-    } else if (macro === "reduce") {
-      const transform = defaultNode("transform", offset);
-      transform.name = "Deduplicate results";
-      transform.config = { operation: "deduplicate", expression: "$.items by $.id" };
-      nodes.push(transform);
-    } else {
-      const evaluator = defaultNode("evaluate", offset);
-      evaluator.name = "Independent verification";
-      nodes.push(evaluator);
-    }
-    let source = patchYaml(get().source, ["spec", "nodes"], nodes);
-    source = patchYaml(source, ["spec", "edges"], edges);
+    const materialized = materializeMacro(workflow, macro);
+    let source = patchYaml(get().source, ["spec", "nodes"], materialized.nodes);
+    source = patchYaml(source, ["spec", "edges"], materialized.edges);
     await get().setSource(source);
   },
   connect: async (edge) => {
