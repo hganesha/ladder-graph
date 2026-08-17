@@ -465,7 +465,7 @@ export function Welcome({ onBlank, onBundle = () => undefined }: { onBlank: () =
                     ))}
                     {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
                   </div>
-                  <button className="bundle-launch-card" onClick={onBundle} type="button">
+                  <button className="bundle-launch-card" onClick={() => onBundle()} type="button">
                     <span className="bundle-launch-icon" aria-hidden="true">
                       <PackageOpen size={22} />
                     </span>
