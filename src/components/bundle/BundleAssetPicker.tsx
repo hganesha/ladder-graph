@@ -1,7 +1,8 @@
 import { FileJson2, FileText, GitFork, PackageOpen, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES, WORKFLOW_TEMPLATES } from "../../generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
+import { WORKFLOW_TEMPLATES } from "../../generated/catalog";
 import { bundleAsset } from "../../lib/bundleEditor";
 import type { ArtifactTemplateDefinition, WorkflowBundle } from "../../types";
 
@@ -53,7 +54,10 @@ export function BundleAssetPicker({
     () =>
       ARTIFACT_TEMPLATES.filter((template) => template.kind === "workflow-bundle")
         .map((template) => ({ template, bundle: parse(template.yaml) as WorkflowBundle }))
-        .find((candidate) => candidate.bundle.spec.workflowRef === bundle.spec.workflowRef && candidate.bundle.metadata.name !== bundle.metadata.name),
+        .find(
+          (candidate) =>
+            candidate.bundle.spec.workflowRef === bundle.spec.workflowRef && candidate.bundle.metadata.name !== bundle.metadata.name,
+        ),
     [bundle.metadata.name, bundle.spec.workflowRef],
   );
   const assetTemplates = useMemo(() => ARTIFACT_TEMPLATES.filter((template) => template.kind !== "workflow-bundle"), []);

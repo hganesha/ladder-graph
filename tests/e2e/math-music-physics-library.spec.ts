@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("opens a mathematics workflow and finds a physics agent", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Mathematics" }).click();
+  await page.getByLabel("Subject area").selectOption("Mathematics");
   await expect(page.getByRole("button", { name: /open optimization problem solving pipeline in studio/i })).toBeVisible();
   await page.getByRole("button", { name: /open optimization problem solving pipeline in studio/i }).click();
 

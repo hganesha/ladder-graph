@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES } from "../src/generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
 import { createFormOutputFiles, formSubmissionSchema } from "../src/lib/formOutputs";
 import type { LadderForm } from "../src/types";
 

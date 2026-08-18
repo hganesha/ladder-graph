@@ -4,7 +4,7 @@ Design agent workflows visually. Validate the hard parts. Compile prompts or det
 
 Ladder Graph is an open-source, offline-first visual compiler for agent workflows. It provides a synchronized graph and LGIR YAML editor, structured loops, sequential or parallel execution groups, typed dependencies, diagnostics, local templates, deterministic Markdown adapters for Codex, Claude, and Hermes Agent, and deterministic data modules for Python and TypeScript. It does not run agents or contact model providers.
 
-Ladder Graph also compiles portable workflow bundles. The gallery includes curated insurance, manufacturing, legal, and commercial-credit bundles that combine an existing workflow with first-class forms, supporting document contracts, and either a complete ontology or a deterministic workflow-specific ontology sliver. Forms, documents, and ontologies can also be opened and saved as standalone projects.
+Ladder Graph also compiles portable workflow bundles. The gallery includes curated insurance, manufacturing, legal, commercial-credit, energy, healthcare, and real-estate bundles that combine an existing workflow with first-class forms, supporting document contracts, and either a complete ontology or a deterministic workflow-specific ontology sliver. Forms, documents, and ontologies can also be opened and saved as standalone projects.
 
 ## Run locally
 
@@ -81,13 +81,15 @@ The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `Workflow
 - cross-artifact JSON Pointer and ontology-property validation;
 - portable form JSON Schema and UI metadata, supporting document schemas, the unchanged workflow target, inclusion reasons, and a deterministic lockfile;
 - catalog-backed bundle assembly for any built-in workflow, with attach/remove controls for ontologies, forms, and documents;
+- a read-only workflow graph inside every bundle, with selectable node and edge contract inspection;
+- direct form attachment on workflow nodes and node-scoped form creation seeded from input/output contracts;
 - a visual binding inspector with selectable JSON Pointer endpoints, directions, ontology properties, and safe transforms;
-- ontology-sliver inspection, compile-target selection, pending-change validation, and per-file output download;
+- selectable ontology relationship canvases and inspectors in standalone and bundle views, workflow-sliver impact previews, breaking-change guidance, compile-target selection, pending-change validation, and per-file output download;
 - a first-class form studio with structural page/section/field editing, an ontology field palette, field and workflow bindings, responsive preview, canonical YAML editing, diagnostics, undo/redo, and portable form exports;
 - bundle recompilation from edited form sources, so visual changes are reflected in the generated JSON Schema and UI contract.
 - local bundle persistence with complete-asset revisions, Recent Projects reopening, and history restore;
 - deterministic `.ladderbundle.json` import/export with SHA-256 integrity checks;
-- a searchable, industry-filtered starter library containing all 55 classified DocuBricks schemas: 24 forms and 31 documents.
+- a searchable, industry-filtered starter library containing all 55 classified DocuBricks schemas: 24 forms and 31 documents, plus two native Ladder forms;
 - standalone form authoring plus document-contract and ontology exploration workspaces, all with local persistence and compiler diagnostics;
 - workflow-aware recommendations that upgrade a generic workflow bundle to its curated domain pack when one exists.
 

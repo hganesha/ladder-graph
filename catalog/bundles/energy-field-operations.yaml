@@ -1,0 +1,49 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: energy-field-operations
+  title: Energy field operations permit bundle
+  description: Field service intake, drilling and production evidence, permit gates, and an energy ontology sliver.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-well-03
+  ontology:
+    ref: ladder://ontologies/builtin/energy
+    mode: sliver
+    selection:
+      propertyRefs:
+        - well.well_name
+        - operator.operator_name
+        - field_service_job.ticket_number
+        - field_service_job.job_type
+        - field_service_job.job_description
+        - field_service_job.service_date
+        - field_service_job.approval_status
+      relationshipIds: [operated_by, performed_at]
+  forms:
+    - { ref: ladder://forms/docubricks/energy/field_ticket, role: start }
+  documents:
+    - { ref: ladder://documents/docubricks/energy/daily_drilling_report, role: supporting }
+    - { ref: ladder://documents/docubricks/energy/production_report, role: supporting }
+    - { ref: ladder://documents/docubricks/energy/well_completion_report, role: supporting }
+  bindings:
+    - id: job-description-to-work-request
+      source: { ref: ladder://forms/docubricks/energy/field_ticket, path: /spec/pages/0/sections/1/fields/2 }
+      target: { ref: ladder://workflows/builtin/wf-well-03, path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/work_request }
+      ontologyPropertyRef: field_service_job.job_description
+      direction: input
+    - id: job-type-to-active-operations
+      source: { ref: ladder://forms/docubricks/energy/field_ticket, path: /spec/pages/0/sections/1/fields/1 }
+      target: { ref: ladder://workflows/builtin/wf-well-03, path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/active_operations }
+      ontologyPropertyRef: field_service_job.job_type
+      direction: input
+    - id: well-to-permit-preparation
+      source: { ref: ladder://forms/docubricks/energy/field_ticket, path: /spec/pages/0/sections/4/fields/2 }
+      target: { ref: ladder://workflows/builtin/wf-well-03, path: /spec/nodes/2/prompt }
+      ontologyPropertyRef: well.well_name
+      direction: review
+    - id: approval-status-to-authority-gate
+      source: { ref: ladder://forms/docubricks/energy/field_ticket, path: /spec/pages/0/sections/6/fields/0 }
+      target: { ref: ladder://workflows/builtin/wf-well-03, path: /spec/nodes/8/summary }
+      ontologyPropertyRef: field_service_job.approval_status
+      direction: approval

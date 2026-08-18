@@ -4,9 +4,9 @@ import { parse } from "yaml";
 import StructuredArtifactStudio from "../src/components/artifacts/StructuredArtifactStudio";
 import { db } from "../src/lib/persistence";
 
-const { analyzeArtifact } = vi.hoisted(() => ({ analyzeArtifact: vi.fn() }));
+const { analyzeArtifact, sliceOntology } = vi.hoisted(() => ({ analyzeArtifact: vi.fn(), sliceOntology: vi.fn() }));
 
-vi.mock("../src/compiler/client", () => ({ compiler: { analyzeArtifact } }));
+vi.mock("../src/compiler/client", () => ({ compiler: { analyzeArtifact, sliceOntology } }));
 
 describe("structured artifact studio", () => {
   beforeEach(() => {
@@ -17,6 +17,17 @@ describe("structured artifact studio", () => {
       diagnostics: [],
       normalized: parse(source),
     }));
+    sliceOntology.mockReset();
+    sliceOntology.mockResolvedValue({
+      ok: true,
+      sourceHash: "artifact-hash",
+      selectionHash: "selection-hash",
+      includedTypeIds: ["part_material"],
+      includedPropertyRefs: ["part_material.part_number"],
+      includedRelationshipIds: ["supplied_by"],
+      inclusionReasons: { part_material: ["selected type"] },
+      diagnostics: [],
+    });
   });
 
   afterEach(async () => {
@@ -29,10 +40,20 @@ describe("structured artifact studio", () => {
     render(<StructuredArtifactStudio artifactKind="ontology" initialTemplateId="manufacturing" onBack={() => undefined} />);
 
     expect(await screen.findByRole("heading", { level: 1, name: "Manufacturing Ontology" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Part or Material/ })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Ontology relationship canvas" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Ontology selection inspector")).toHaveTextContent("Part or Material");
+    expect(screen.getByLabelText("Search ontology canvas")).toBeInTheDocument();
     expect(screen.getByText("lattice source")).toBeInTheDocument();
     expect((screen.getByLabelText("Ontology YAML source") as HTMLTextAreaElement).value).toContain("kind: Ontology");
     await waitFor(() => expect(screen.getByText("Valid ontology")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Preview sliver" }));
+    await waitFor(() => expect(sliceOntology).toHaveBeenCalledWith(expect.any(String), { typeIds: ["part_material"] }));
+    expect(screen.getByText("part_material: selected type")).toBeInTheDocument();
+
+    const source = screen.getByLabelText("Ontology YAML source") as HTMLTextAreaElement;
+    fireEvent.change(source, { target: { value: source.value.replace("part_material.part_number", "part_material.part_number_v2") } });
+    expect(await screen.findByText("Breaking ontology change")).toBeInTheDocument();
+    expect(screen.getByText(/Removed property part_material\.part_number/)).toBeInTheDocument();
   });
 
   it("edits and saves a DocuBricks document contract independently", async () => {

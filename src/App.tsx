@@ -12,7 +12,9 @@ export default function App() {
   const view = useStudioStore((state) => state.view);
   const openBlank = useStudioStore((state) => state.openBlank);
   const [bundleLaunch, setBundleLaunch] = useState<{ project?: ProjectRecord; templateId?: string } | undefined>(undefined);
-  const [formLaunch, setFormLaunch] = useState<{ project?: ProjectRecord; templateId?: string } | undefined>(undefined);
+  const [formLaunch, setFormLaunch] = useState<{ project?: ProjectRecord; templateId?: string; initialSource?: string } | undefined>(
+    undefined,
+  );
   const [structuredLaunch, setStructuredLaunch] = useState<
     { artifactKind: "ontology" | "document"; project?: ProjectRecord; templateId?: string } | undefined
   >(undefined);
@@ -32,6 +34,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  useEffect(() => {
+    const openNodeForm = (event: Event) => {
+      const detail = (event as CustomEvent<{ templateId?: string; initialSource?: string }>).detail;
+      setFormLaunch(detail);
+    };
+    window.addEventListener("ladder-open-form", openNodeForm);
+    return () => window.removeEventListener("ladder-open-form", openNodeForm);
+  }, []);
+
   if (bundleLaunch !== undefined) {
     return (
       <Suspense fallback={<div className="workspace-loading">Opening bundle workspace…</div>}>
@@ -48,6 +59,7 @@ export default function App() {
       <Suspense fallback={<div className="workspace-loading">Opening form studio…</div>}>
         <StandaloneFormStudio
           initialProject={formLaunch.project}
+          initialSource={formLaunch.initialSource}
           initialTemplateId={formLaunch.templateId}
           onBack={() => setFormLaunch(undefined)}
         />

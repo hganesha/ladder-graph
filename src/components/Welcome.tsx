@@ -26,7 +26,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ARTIFACT_TEMPLATES } from "../generated/catalog";
+import { ARTIFACT_INDEX } from "../generated/catalog";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
 import { listProjects } from "../lib/persistence";
 import { roleSubcategory } from "../lib/roleCategories";
@@ -254,11 +254,11 @@ const WORKFLOW_AREAS = [
 type LibraryTab = "workflows" | "agents" | "forms" | "documents" | "ontologies";
 type ModalityFilter = "all" | InputModality;
 type GalleryView = "starters" | "recent";
-const BUNDLE_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "workflow-bundle");
-const FORM_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "form");
-const DOCUMENT_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "document");
-const ONTOLOGY_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "ontology");
-const FORM_INDUSTRY_BY_AREA: Record<string, string> = {
+const BUNDLE_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "workflow-bundle");
+const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form");
+const DOCUMENT_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "document");
+const ONTOLOGY_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "ontology");
+const ARTIFACT_INDUSTRY_BY_AREA: Record<string, string> = {
   "Energy & utilities": "energy",
   "Finance & risk": "fs",
   "Clinical & health sciences": "healthcare",
@@ -299,14 +299,16 @@ export function Welcome({
   const selectedAgents = roleTemplatesForSubject(selectedArea.name).filter(
     (agent) => modality === "all" || agent.modalities.includes(modality),
   );
-  const selectedFormIndustry = FORM_INDUSTRY_BY_AREA[selectedArea.name];
-  const selectedForms = FORM_TEMPLATES.filter((template) => !selectedFormIndustry || template.path.startsWith(`${selectedFormIndustry}/`));
-  const selectedDocuments = DOCUMENT_TEMPLATES.filter(
-    (template) => !selectedFormIndustry || template.path.startsWith(`${selectedFormIndustry}/`),
-  );
-  const selectedOntologies = ONTOLOGY_TEMPLATES.filter(
-    (template) => !selectedFormIndustry || template.path.startsWith(`${selectedFormIndustry}/`),
-  );
+  const selectedArtifactIndustry = ARTIFACT_INDUSTRY_BY_AREA[selectedArea.name];
+  const selectedForms = selectedArtifactIndustry
+    ? FORM_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
+    : [];
+  const selectedDocuments = selectedArtifactIndustry
+    ? DOCUMENT_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
+    : [];
+  const selectedOntologies = selectedArtifactIndustry
+    ? ONTOLOGY_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
+    : [];
   const SelectedAreaIcon = selectedArea.icon;
 
   const handleGalleryViewKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -626,6 +628,7 @@ export function Welcome({
                       </strong>
                     </button>
                   ))}
+                  {selectedForms.length === 0 && <p className="library-empty">No forms for this subject area.</p>}
                 </div>
               ) : activeLibraryTab === "documents" ? (
                 <div className="template-grid tabbed-template-grid form-template-grid">

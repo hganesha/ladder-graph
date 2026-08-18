@@ -69,6 +69,21 @@ describe("LGIR fallback compiler", () => {
     );
   });
 
+  it("validates and compiles node-attached form contracts", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    workflow.spec.nodes[0].formRefs = ["ladder://forms/docubricks/manufacturing/quality_inspection_report"];
+    const source = stringify(workflow);
+    const compiled = await compileFallback(source, "codex");
+
+    expect(compiled.ok).toBe(true);
+    expect(compiled.content).toContain("**Attached forms:** `ladder://forms/docubricks/manufacturing/quality_inspection_report`");
+    expect(compiled.capabilityReport.instructional).toContain("attached form contracts");
+
+    workflow.spec.nodes[0].formRefs = ["ladder://forms/"];
+    const invalid = await analyzeFallback(stringify(workflow));
+    expect(invalid.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG196" })]));
+  });
+
   it("rejects invalid aggregator and teacher-model configuration", async () => {
     const workflow = structuredClone(primitiveWorkflow);
     const aggregator = workflow.spec.nodes.find((node) => node.kind === "aggregator");

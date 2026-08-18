@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "npm run catalog:generate && tsc -b && vite build",
     "catalog:audit": "node scripts/audit-catalog.mjs --check",
-    "catalog:generate": "node scripts/generate-catalog-index.mjs && biome format --write src/generated/catalog.ts",
+    "catalog:generate": "node scripts/generate-catalog-index.mjs && biome format --write src/generated/catalog.ts src/generated/artifactCatalog.ts",
     "catalog:generate-roadmap": "node scripts/generate-roadmap-expansion.mjs && node scripts/normalize-capability-vocabulary.mjs && node scripts/mark-inline-catalog-roles.mjs && node scripts/update-agent-usage.mjs && npm run catalog:generate",
     "catalog:normalize-inputs": "node scripts/backfill-input-modalities.mjs",
     "catalog:normalize-capabilities": "node scripts/normalize-capability-vocabulary.mjs && npm run catalog:generate",

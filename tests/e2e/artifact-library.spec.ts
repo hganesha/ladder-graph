@@ -32,8 +32,30 @@ test("opens standalone form, document, and ontology workspaces from the artifact
   await page.getByRole("button", { name: "Open Manufacturing ontology ontology" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Manufacturing Ontology" })).toBeVisible();
   await expect(page.getByText("Valid ontology")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Ontology relationship canvas" })).toBeVisible();
+  await expect(page.getByLabel("Ontology selection inspector")).toContainText("Part or Material");
+  await page.locator(".react-flow__node").filter({ hasText: "Quality Inspection" }).click();
+  await expect(page.getByLabel("Ontology selection inspector")).toContainText("Quality Inspection");
+  await page.getByRole("button", { name: "Preview sliver" }).click();
+  await expect(page.locator(".ontology-sliver-result")).toBeVisible();
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath("manufacturing-ontology-studio.png"), fullPage: true });
 
   expect(consoleErrors).toEqual([]);
+});
+
+test("attaches and creates a form directly from a workflow node", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /new workflow/i }).click();
+  await page.locator(".task-node").filter({ hasText: "User brief" }).click();
+  await page.getByRole("tab", { name: "Contracts" }).click();
+
+  await page.getByLabel("Form to attach").selectOption({ label: "Quality Inspection Report" });
+  await page.getByRole("button", { name: "Attach", exact: true }).click();
+  await expect(page.getByText("1 attached")).toBeVisible();
+
+  await page.getByRole("button", { name: "Create form from node schema" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "User brief form" })).toBeVisible();
+  await expect(page.getByText("Standalone form project")).toBeVisible();
+  await expect(page.getByLabel("Workflow path")).toHaveValue("/spec/nodes/0/inputSchema/properties/text");
 });

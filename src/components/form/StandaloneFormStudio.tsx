@@ -1,21 +1,24 @@
 import { useMemo, useState } from "react";
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES } from "../../generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
 import { saveArtifactProject } from "../../lib/persistence";
 import type { ProjectRecord } from "../../types";
 import FormStudio from "./FormStudio";
 
 export default function StandaloneFormStudio({
   initialProject,
+  initialSource: providedSource,
   initialTemplateId,
   onBack,
 }: {
   initialProject?: ProjectRecord;
+  initialSource?: string;
   initialTemplateId?: string;
   onBack: () => void;
 }) {
   const template = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "form" && artifact.id === initialTemplateId);
-  const initialSource = initialProject?.yaml ?? template?.yaml ?? ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "form")?.yaml ?? "";
+  const initialSource =
+    initialProject?.yaml ?? providedSource ?? template?.yaml ?? ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "form")?.yaml ?? "";
   const [savedSource, setSavedSource] = useState(initialSource);
   const [projectId, setProjectId] = useState<string | null>(initialProject?.id ?? null);
   const [savedAt, setSavedAt] = useState<number | null>(initialProject?.updatedAt ?? null);

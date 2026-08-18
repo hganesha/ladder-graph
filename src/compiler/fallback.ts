@@ -186,6 +186,9 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
     }
     if (node.kind === "aggregator" && !AGGREGATIONS.has(node.config?.aggregation ?? ""))
       diagnostics.push(diagnostic("LG118", "error", path, "Aggregation strategy must be collect, merge, concat, or vote.", node.id));
+    const formRefs = node.formRefs ?? [];
+    if (new Set(formRefs).size !== formRefs.length || formRefs.some((ref) => !/^ladder:\/\/forms\/.+/u.test(ref)))
+      diagnostics.push(diagnostic("LG196", "error", path, "Attached forms must be unique, non-empty ladder://forms/ references.", node.id));
     if (node.kind === "condition") {
       const branches = node.config?.branches ?? [];
       if (!branches.length)
@@ -521,6 +524,7 @@ function renderNode(workflow: Workflow, node: LgirNode, index: number): string {
     : "Starts when the workflow begins";
   let body = `\n### ${index + 1}. ${node.name || node.id} (\`${node.id}\`)\n\n- **Kind:** \`${node.kind}\`\n- **Depends on:** ${depends}\n- **Purpose:** ${node.summary || "No summary provided."}\n`;
   if (node.config?.workingDirectory?.trim()) body += `- **Working directory:** \`${node.config.workingDirectory.trim()}\`\n`;
+  if (node.formRefs?.length) body += `- **Attached forms:** ${node.formRefs.map((ref) => `\`${ref}\``).join(", ")}\n`;
   if (node.kind === "agent" || node.kind === "evaluate" || node.kind === "teacher") {
     body += `- **Role:** ${node.role || "Focused workflow specialist"}\n- **Required skills:** ${list(node.capabilities?.skills)}\n- **Required connectors:** ${list(node.capabilities?.connectors)}\n- **Required tools:** ${list(node.capabilities?.tools)}\n- **Permissions:** ${list(node.capabilities?.permissions)}\n\n**Task instructions**\n\n${node.prompt}\n`;
     if (node.kind === "teacher")
@@ -573,6 +577,7 @@ function capabilities(workflow: Workflow, target: Target): CapabilityReport {
   if (workflow.spec.nodes.some((node) => node.kind === "teacher")) instructional.push("teacher-model feedback");
   if (workflow.spec.nodes.some((node) => node.config?.workingDirectory?.trim())) instructional.push("per-node working directories");
   if (workflow.spec.nodes.some((node) => node.capabilities?.connectors?.length)) instructional.push("declared connector availability");
+  if (workflow.spec.nodes.some((node) => node.formRefs?.length)) instructional.push("attached form contracts");
   if (isCodeTarget(target)) {
     return {
       target,

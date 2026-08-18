@@ -15,6 +15,10 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
   await expect(page.getByText("Semantic bindings")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("bundle-workspace.png"), fullPage: true });
 
+  await page.getByRole("tab", { name: "Workflow graph" }).click();
+  await expect(page.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeVisible();
+  await expect(page.getByLabel("Bundled workflow inspector")).toBeVisible();
+
   await page.getByRole("tab", { name: "Form preview" }).click();
   await expect(page.getByRole("heading", { name: "First Notice of Loss" })).toBeVisible();
   await page.getByLabel("Insurance policy number").fill("POL-1042");
@@ -22,7 +26,9 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
 
   await page.getByRole("tab", { name: "Ontology sliver" }).click();
   await expect(page.getByRole("heading", { name: "Insurance ontology sliver" })).toBeVisible();
-  await expect(page.getByText("Insurance Claim", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Ontology relationship canvas" })).toBeVisible();
+  await page.locator(".react-flow__node").filter({ hasText: "Insurance Claim" }).click();
+  await expect(page.getByLabel("Bundled ontology inspector")).toContainText("Insurance Claim");
 
   await page.getByRole("tab", { name: "Compiled output" }).click();
   await expect(page.getByRole("button", { name: /ladder.lock.json/ })).toBeVisible();

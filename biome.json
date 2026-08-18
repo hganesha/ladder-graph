@@ -54,7 +54,7 @@
       }
     },
     {
-      "includes": ["src/generated/catalog.ts"],
+      "includes": ["src/generated/catalog.ts", "src/generated/artifactCatalog.ts"],
       "files": {
         "maxSize": 4194304
       }

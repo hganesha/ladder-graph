@@ -60,6 +60,11 @@
               "prompt": { "type": "string" },
               "inputSchema": { "type": ["object", "null"] },
               "outputSchema": { "type": ["object", "null"] },
+              "formRefs": {
+                "type": "array",
+                "items": { "type": "string", "pattern": "^ladder://forms/.+" },
+                "uniqueItems": true
+              },
               "capabilities": {
                 "type": "object",
                 "additionalProperties": false,

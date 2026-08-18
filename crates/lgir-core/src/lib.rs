@@ -81,6 +81,8 @@ pub struct Node {
     #[serde(default)]
     pub output_schema: Value,
     #[serde(default)]
+    pub form_refs: Vec<String>,
+    #[serde(default)]
     pub capabilities: Capabilities,
     #[serde(default)]
     pub config: NodeConfig,
@@ -453,6 +455,12 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         if node.kind == "aggregator" && !allowed_aggregations.contains(node.config.aggregation.as_str()) {
             diagnostics.push(node_diag("LG118", "error", index, node, "Aggregation strategy must be collect, merge, concat, or vote."));
         }
+        let unique_form_refs: BTreeSet<&String> = node.form_refs.iter().collect();
+        if unique_form_refs.len() != node.form_refs.len()
+            || node.form_refs.iter().any(|form_ref| form_ref.strip_prefix("ladder://forms/").is_none_or(str::is_empty))
+        {
+            diagnostics.push(node_diag("LG196", "error", index, node, "Attached forms must be unique, non-empty ladder://forms/ references."));
+        }
         if node.kind == "condition" {
             if node.config.branches.is_empty() {
                 diagnostics.push(node_diag("LG160", "error", index, node, "Condition nodes require at least one declared branch token."));
@@ -738,6 +746,9 @@ fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
     if !node.config.working_directory.trim().is_empty() {
         output.push_str(&format!("- **Working directory:** `{}`\n", node.config.working_directory.trim()));
     }
+    if !node.form_refs.is_empty() {
+        output.push_str(&format!("- **Attached forms:** {}\n", node.form_refs.iter().map(|form_ref| format!("`{form_ref}`")).collect::<Vec<_>>().join(", ")));
+    }
     match node.kind.as_str() {
         "agent" | "evaluate" | "teacher" => {
             output.push_str(&format!("- **Role:** {}\n- **Required skills:** {}\n- **Required connectors:** {}\n- **Required tools:** {}\n- **Permissions:** {}\n\n**Task instructions**\n\n{}\n", if node.role.is_empty() { "Focused workflow specialist" } else { &node.role }, list_or_none(&node.capabilities.skills), list_or_none(&node.capabilities.connectors), list_or_none(&node.capabilities.tools), list_or_none(&node.capabilities.permissions), node.prompt));
@@ -986,6 +997,7 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
         if workflow.spec.nodes.iter().any(|n| n.kind == "teacher") { instructional.push("teacher-model feedback".into()); }
         if workflow.spec.nodes.iter().any(|n| !n.config.working_directory.trim().is_empty()) { instructional.push("per-node working directories".into()); }
         if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
+        if workflow.spec.nodes.iter().any(|n| !n.form_refs.is_empty()) { instructional.push("attached form contracts".into()); }
         return CapabilityReport {
             target: target.into(),
             native: vec!["typed workflow data".into(), "stable topological order".into(), "dependency map".into(), "pure readiness helper".into(), "capability templates".into()],
@@ -1003,6 +1015,7 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
     if workflow.spec.nodes.iter().any(|n| n.kind == "teacher") { instructional.push("teacher-model feedback".into()); }
     if workflow.spec.nodes.iter().any(|n| !n.config.working_directory.trim().is_empty()) { instructional.push("per-node working directories".into()); }
     if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
+    if workflow.spec.nodes.iter().any(|n| !n.form_refs.is_empty()) { instructional.push("attached form contracts".into()); }
     if target == "codex" { native.push("Agent Skills frontmatter".into()); }
     if target == "claude" { native.push("Claude Code skill frontmatter".into()); }
     if target == "hermes" {
@@ -1116,6 +1129,19 @@ spec:
         let second = compile(VALID, "codex");
         assert_eq!(first.content, second.content);
         assert!(first.content.contains("ladder-source-hash"));
+    }
+
+    #[test]
+    fn validates_and_compiles_attached_form_contracts() {
+        let source = VALID.replace("      name: Request", "      name: Request\n      formRefs: [ladder://forms/user/request]");
+        let analysis = analyze_inner(&source, Some("codex"));
+        assert!(analysis.ok, "{:?}", analysis.diagnostics);
+        let output = compile(&source, "codex");
+        assert!(output.content.contains("**Attached forms:** `ladder://forms/user/request`"));
+        assert!(output.capability_report.instructional.contains(&"attached form contracts".into()));
+
+        let invalid = source.replace("ladder://forms/user/request", "ladder://forms/");
+        assert!(analyze_inner(&invalid, None).diagnostics.iter().any(|diagnostic| diagnostic.code == "LG196"));
     }
 
     #[test]

@@ -32,6 +32,30 @@
       "description": "Portable financial-services semantics imported from the Lattice industry ontology.",
       "file": "ontologies/financial-services.yaml",
       "ref": "ladder://ontologies/builtin/financial-services"
+    },
+    {
+      "id": "energy",
+      "path": "energy/ontology",
+      "title": "Energy ontology",
+      "description": "Portable energy semantics imported from the Lattice industry ontology.",
+      "file": "ontologies/energy.yaml",
+      "ref": "ladder://ontologies/builtin/energy"
+    },
+    {
+      "id": "healthcare",
+      "path": "healthcare/ontology",
+      "title": "Healthcare ontology",
+      "description": "Portable healthcare semantics imported from the Lattice industry ontology.",
+      "file": "ontologies/healthcare.yaml",
+      "ref": "ladder://ontologies/builtin/healthcare"
+    },
+    {
+      "id": "real-estate",
+      "path": "real_estate/ontology",
+      "title": "Real estate ontology",
+      "description": "Portable real-estate semantics imported from the Lattice industry ontology.",
+      "file": "ontologies/real-estate.yaml",
+      "ref": "ladder://ontologies/builtin/real-estate"
     }
   ],
   "forms": [
@@ -518,6 +542,30 @@
       "description": "Borrower intake, KYC, collateral, credit analysis, approval, and financial-services ontology sliver.",
       "file": "bundles/commercial-credit-underwriting.yaml",
       "ref": "ladder://bundles/builtin/commercial-credit-underwriting"
+    },
+    {
+      "id": "energy-field-operations",
+      "path": "energy/field-operations/permit",
+      "title": "Energy field operations permit bundle",
+      "description": "Field service intake, drilling and production evidence, permit gates, and an energy ontology sliver.",
+      "file": "bundles/energy-field-operations.yaml",
+      "ref": "ladder://bundles/builtin/energy-field-operations"
+    },
+    {
+      "id": "healthcare-claims-audit",
+      "path": "healthcare/claims/audit",
+      "title": "Healthcare clinical claim audit bundle",
+      "description": "Clinical evidence, authorization, coding, claim review, and a healthcare ontology sliver.",
+      "file": "bundles/healthcare-claims-audit.yaml",
+      "ref": "ladder://bundles/builtin/healthcare-claims-audit"
+    },
+    {
+      "id": "real-estate-valuation-diligence",
+      "path": "real_estate/valuation/diligence",
+      "title": "Real estate valuation and diligence bundle",
+      "description": "Tenant certification, title and lease evidence, independent valuation, and a real-estate ontology sliver.",
+      "file": "bundles/real-estate-valuation-diligence.yaml",
+      "ref": "ladder://bundles/builtin/real-estate-valuation-diligence"
     }
   ],
   "workflows": [
