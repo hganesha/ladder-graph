@@ -1,0 +1,95 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: living-review-surveillance
+  title: Living systematic review surveillance + re-screening
+  description: Search for new citations, deduplicate and re-screen them against the registered protocol, and prepare an update only when eligible evidence could alter conclusions.
+  version: 1.0.0
+spec:
+  objective: Detect new eligible studies that could change review conclusions and produce an auditable update decision.
+  policies: { maxConcurrency: 5, onFailure: preserve-completed, requireApprovalFor: [update-approval] }
+  nodes:
+    - id: review-snapshot
+      kind: input
+      name: Current review state and registered search strategy
+      inputSchema:
+        type: object
+        required: [reviewId, lastSearchDate, searchStrategy, existingCitations, currentConclusions]
+        properties:
+          reviewId: { type: string }
+          lastSearchDate: { type: string, format: date }
+          searchStrategy: { type: string, contentMediaType: application/json }
+          existingCitations: { type: string, contentMediaType: application/json }
+          currentConclusions: { type: string }
+        x-ladder-input-mode: document
+    - id: poll-sources
+      kind: tool
+      name: Run the registered search from the last search date
+      summary: Host-resolved bibliographic search using the supplied registered strategy and date boundary.
+      capabilities:
+        skills: [research, evidence-provenance]
+        tools: [search]
+        connectors: [mcp:academic-research]
+        permissions: [read-only]
+    - id: dedup-against-existing
+      kind: transform
+      name: Remove citations already present in the review
+      config: { operation: deduplicate, expression: $.newCitations against $.existingCitations by doi,pmid,title,year }
+    - id: re-screen
+      kind: agent
+      name: Re-screen against the registered protocol
+      templateRef: clin-05
+      role: Independent systematic-review screener following a registered protocol.
+      prompt: Apply the supplied inclusion and exclusion criteria independently. Return include, exclude, or uncertain with criterion-level reasons, and never resolve uncertainty by inventing missing study details.
+      capabilities: { skills: [systematic-review-screening, protocol-adherence], tools: [read, classify], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: newly-included
+      kind: transform
+      name: Select newly included studies
+      config: { operation: filter, expression: $.reScreened where decision == include }
+    - id: impact-assessment
+      kind: agent
+      name: Assess impact on the existing synthesis
+      templateRef: clin-11
+      role: Senior evidence-synthesis reviewer assessing the impact of newly eligible studies.
+      prompt: >-
+        Compare newly eligible studies with the current synthesis outcome by outcome. Determine whether effect
+        direction, magnitude, precision, applicability, risk of bias, or certainty could change, and classify the
+        impact as none, minor, or major with source-linked rationale. Do not claim that conclusions changed without
+        a compatible synthesis or enough reported data.
+      capabilities:
+        skills: [clinical-evidence-appraisal, statistical-analysis, decision-analysis, uncertainty-calibration]
+        tools: [read, compare, calculate]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: impact-gate
+      kind: condition
+      name: Does the new evidence warrant an update package?
+      config:
+        expression: impactAssessment.impact
+        branches:
+          - { label: No material impact, when: none }
+          - { label: Minor impact, when: minor }
+          - { label: Major impact, when: major }
+    - id: prepare-update-package
+      kind: transform
+      name: Assemble the bounded update package
+      config: { operation: select, expression: $.newlyIncluded + $.impactAssessment + $.searchProvenance }
+    - id: update-approval
+      kind: approval
+      name: Review lead approves the surveillance decision or update package
+    - id: result
+      kind: output
+      name: Approved update package or up-to-date declaration
+  edges:
+    - { id: e1, from: review-snapshot, to: poll-sources, kind: data }
+    - { id: e2, from: poll-sources, to: dedup-against-existing, kind: data }
+    - { id: e3, from: dedup-against-existing, to: re-screen, kind: data }
+    - { id: e4, from: re-screen, to: newly-included, kind: data }
+    - { id: e5, from: newly-included, to: impact-assessment, kind: data }
+    - { id: e6, from: impact-assessment, to: impact-gate, kind: data }
+    - { id: e7, from: impact-gate, to: update-approval, kind: control, condition: none }
+    - { id: e8, from: impact-gate, to: prepare-update-package, kind: control, condition: minor }
+    - { id: e9, from: impact-gate, to: prepare-update-package, kind: control, condition: major }
+    - { id: e10, from: prepare-update-package, to: update-approval, kind: data }
+    - { id: e11, from: update-approval, to: result, kind: dependency, condition: approved }

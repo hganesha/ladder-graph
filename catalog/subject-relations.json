@@ -149,6 +149,7 @@
     "artifactPathPrefixes": ["legal/"]
   },
   "Clinical & health sciences": {
+    "agentPathPrefixes": ["research/clinical/"],
     "artifactPathPrefixes": ["healthcare/"]
   },
   "Finance & risk": {

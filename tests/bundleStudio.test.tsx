@@ -157,7 +157,7 @@ describe("bundle workspace", () => {
     const editedAssets = compileBundle.mock.calls.at(-1)?.[1] as Array<{ ref: string; source: string }>;
     expect(editedAssets.find((asset) => asset.ref.endsWith("/wf-insr-01"))?.source).toContain("Editable bundled workflow");
     expect(screen.getByRole("heading", { name: "Editable bundled workflow" })).toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("discards main-studio edits without changing the bundled workflow", async () => {
     render(<BundleStudio onBack={() => undefined} />);

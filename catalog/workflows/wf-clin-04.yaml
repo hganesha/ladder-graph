@@ -1,0 +1,109 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: risk-of-bias-dual-arbitration
+  title: Risk-of-bias dual assessment + adjudication
+  description: Independently assess risk of bias, preserve domain-level disagreements, and route unresolved judgments to senior adjudication.
+  version: 1.0.0
+spec:
+  objective: Produce instrument-correct risk-of-bias judgments with complete disagreement provenance.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [arbitration-sign-off] }
+  nodes:
+    - id: included-studies
+      kind: input
+      name: Included studies and risk-of-bias instrument
+      inputSchema:
+        type: object
+        required: [studies, instrument, instructions]
+        properties:
+          studies:
+            type: array
+            items: { type: string, contentMediaType: application/pdf }
+          instrument: { type: string, enum: [RoB2, ROBINS-I, QUADAS-2, NOS] }
+          instructions: { type: string }
+        x-ladder-input-mode: document
+    - id: rob-assessor-a
+      kind: agent
+      name: Independent risk-of-bias assessment A
+      templateRef: clin-09
+      role: Independent risk-of-bias assessor applying the declared instrument without seeing another assessor's judgment.
+      prompt: >-
+        Apply the declared risk-of-bias instrument at its required unit of analysis. Answer every applicable
+        signalling question using the instrument's exact response options, cite the supporting source text,
+        follow the instrument's judgment algorithm, and document any justified override. Do not convert missing
+        information into a favorable judgment or force one instrument's categories onto another.
+      capabilities:
+        skills: [clinical-evidence-appraisal, protocol-adherence, evidence-verification]
+        tools: [read, classify]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: rob-assessor-b
+      kind: agent
+      name: Independent risk-of-bias assessment B
+      templateRef: clin-09
+      role: Independent risk-of-bias assessor applying the declared instrument without seeing another assessor's judgment.
+      prompt: >-
+        Apply the declared risk-of-bias instrument at its required unit of analysis. Answer every applicable
+        signalling question using the instrument's exact response options, cite the supporting source text,
+        follow the instrument's judgment algorithm, and document any justified override. Do not convert missing
+        information into a favorable judgment or force one instrument's categories onto another.
+      capabilities:
+        skills: [clinical-evidence-appraisal, protocol-adherence, evidence-verification]
+        tools: [read, classify]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: domain-comparison
+      kind: aggregator
+      name: Preserve agreement and domain-level differences
+      config: { aggregation: vote }
+    - id: disagreement-gate
+      kind: evaluate
+      inlineRole: true
+      name: Identify unresolved instrument-level disagreements
+      role: Independent risk-of-bias disagreement evaluator
+      prompt: >-
+        Compare the paired assessments at the instrument's required unit of analysis. Preserve every
+        signalling-question answer, judgment, citation, and rationale. Return no-disputes only when the required
+        judgments agree; otherwise return has-disputes and list each disagreement without selecting a winner.
+      capabilities:
+        skills: [evaluation, evidence-verification]
+        tools: [read, compare]
+        permissions: [read-only]
+      outputSchema: { type: object }
+      config: { threshold: 1.0 }
+    - id: arbitrator
+      kind: agent
+      name: Senior risk-of-bias adjudication
+      templateRef: clin-10
+      role: Senior methodologist adjudicating unresolved risk-of-bias disagreements.
+      prompt: >-
+        Review each disputed judgment with both assessors' signalling-question answers, citations, and rationales.
+        Apply the declared instrument at the correct unit of analysis, issue the best-supported final judgment,
+        explain any algorithm override, and preserve both original positions in the audit trail. Mark genuinely
+        insufficient evidence as unresolved instead of manufacturing consensus.
+      capabilities:
+        skills: [clinical-evidence-appraisal, independent-review, evidence-verification]
+        tools: [read, classify]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: merge-consensus
+      kind: transform
+      name: Merge agreed and adjudicated judgments
+      config: { operation: merge, expression: $.agreed + $.adjudicated by result,domain }
+    - id: arbitration-sign-off
+      kind: approval
+      name: Lead methodologist approves judgments and unresolved-item log
+    - id: result
+      kind: output
+      name: Consensus risk-of-bias table with provenance
+  edges:
+    - { id: e1, from: included-studies, to: rob-assessor-a, kind: data }
+    - { id: e2, from: included-studies, to: rob-assessor-b, kind: data }
+    - { id: e3, from: rob-assessor-a, to: domain-comparison, kind: data }
+    - { id: e4, from: rob-assessor-b, to: domain-comparison, kind: data }
+    - { id: e5, from: domain-comparison, to: disagreement-gate, kind: data }
+    - { id: e6, from: disagreement-gate, to: merge-consensus, kind: control, condition: no-disputes }
+    - { id: e7, from: disagreement-gate, to: arbitrator, kind: control, condition: has-disputes }
+    - { id: e8, from: arbitrator, to: merge-consensus, kind: data }
+    - { id: e9, from: merge-consensus, to: arbitration-sign-off, kind: data }
+    - { id: e10, from: arbitration-sign-off, to: result, kind: dependency, condition: approved }

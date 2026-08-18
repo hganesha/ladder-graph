@@ -13,8 +13,8 @@ const expectedAreas = new Map([
 
 describe("completed catalog roadmap", () => {
   it("ships every remaining area and cross-area composite", () => {
-    expect(WORKFLOW_TEMPLATES).toHaveLength(135);
-    expect(ROLE_TEMPLATES).toHaveLength(375);
+    expect(WORKFLOW_TEMPLATES).toHaveLength(140);
+    expect(ROLE_TEMPLATES).toHaveLength(385);
     for (const [area, expected] of expectedAreas) {
       expect(
         WORKFLOW_TEMPLATES.filter((workflow) => workflow.area === area),
@@ -26,6 +26,14 @@ describe("completed catalog roadmap", () => {
       ).toHaveLength(expected.agents);
     }
     expect(WORKFLOW_TEMPLATES.filter((workflow) => workflow.id.startsWith("wf-cross-"))).toHaveLength(12);
+    expect(WORKFLOW_TEMPLATES.filter((workflow) => /^wf-clin-0[4-8]$/.test(workflow.id)).map((workflow) => workflow.id)).toEqual([
+      "wf-clin-04",
+      "wf-clin-05",
+      "wf-clin-06",
+      "wf-clin-07",
+      "wf-clin-08",
+    ]);
+    expect(ROLE_TEMPLATES.filter((agent) => /^clin-(09|1[0-6])$|^stat-0[12]$/.test(agent.id))).toHaveLength(10);
   });
 
   it("demonstrates real program composition and classifies every role node", () => {
