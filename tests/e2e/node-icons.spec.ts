@@ -49,13 +49,13 @@ test("persists and removes a custom ontology type icon", async ({ page }) => {
   await page.getByRole("button", { name: "New ontology" }).click();
 
   await page.getByRole("button", { name: /Automatic: boxes/i }).click();
-  await page.getByRole("textbox", { name: "Search icons" }).fill("map pin");
-  await page.getByRole("button", { name: "Use Map pin icon" }).click();
+  await page.getByRole("textbox", { name: "Search icons" }).fill("ambulance");
+  await page.getByRole("button", { name: "Use Ambulance icon" }).click();
 
-  await expect(page.locator('.ontology-graph-node svg[data-node-icon="map-pin"]')).toBeVisible();
-  await expect(page.getByLabel("Ontology YAML source")).toHaveValue(/icon:\n\s+set: lucide\n\s+name: map-pin/u);
+  await expect(page.locator('.ontology-graph-node svg[data-node-icon="ambulance"]')).toBeVisible();
+  await expect(page.getByLabel("Ontology YAML source")).toHaveValue(/icon:\n\s+set: lucide\n\s+name: ambulance/u);
 
-  await page.getByRole("button", { name: /map pin Custom Lucide icon/i }).click();
+  await page.getByRole("button", { name: /ambulance Custom Lucide icon/i }).click();
   await page
     .getByRole("dialog", { name: "Choose node icon" })
     .getByRole("button", { name: /Automatic/i })

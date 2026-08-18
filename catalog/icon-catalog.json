@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "set": "lucide",
   "packageVersion": "0.468.0",
+  "includeAllLucide": true,
   "aliases": {
     "building-2": "building",
     "contact": "contact-round",

@@ -4,6 +4,7 @@ import { ICON_CATALOG } from "../generated/iconCatalog";
 import { NodeIcon } from "./NodeIcon";
 
 const categories = ["all", ...new Set(ICON_CATALOG.map((icon) => icon.category))];
+const PAGE_SIZE = 160;
 
 export default function IconPicker({
   automaticName,
@@ -17,10 +18,11 @@ export default function IconPicker({
   onSelect: (name?: string) => void;
 }) {
   const [category, setCategory] = useState("all");
+  const [limit, setLimit] = useState(PAGE_SIZE);
   const [query, setQuery] = useState("");
   const searchInput = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
-  const icons = useMemo(
+  const matchingIcons = useMemo(
     () =>
       ICON_CATALOG.filter((icon) => {
         if (category !== "all" && icon.category !== category) return false;
@@ -29,6 +31,7 @@ export default function IconPicker({
       }),
     [category, deferredQuery],
   );
+  const icons = matchingIcons.slice(0, limit);
 
   useEffect(() => {
     searchInput.current?.focus();
@@ -54,12 +57,30 @@ export default function IconPicker({
         <label className="icon-picker-search">
           <Search size={14} />
           <span className="sr-only">Search icons</span>
-          <input ref={searchInput} onChange={(event) => setQuery(event.target.value)} placeholder="Search icons…" value={query} />
+          <input
+            aria-label="Search icons"
+            ref={searchInput}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setLimit(PAGE_SIZE);
+            }}
+            placeholder="Search icons…"
+            value={query}
+          />
+          <output>{matchingIcons.length.toLocaleString()} icons</output>
         </label>
         <fieldset className="icon-picker-categories">
           <legend className="sr-only">Icon categories</legend>
           {categories.map((item) => (
-            <button aria-pressed={category === item} key={item} onClick={() => setCategory(item)} type="button">
+            <button
+              aria-pressed={category === item}
+              key={item}
+              onClick={() => {
+                setCategory(item);
+                setLimit(PAGE_SIZE);
+              }}
+              type="button"
+            >
               {item}
             </button>
           ))}
@@ -86,6 +107,11 @@ export default function IconPicker({
             </button>
           ))}
           {!icons.length ? <p>No icons match that search.</p> : null}
+          {icons.length < matchingIcons.length ? (
+            <button className="icon-picker-more" onClick={() => setLimit((current) => current + PAGE_SIZE)} type="button">
+              Show {Math.min(PAGE_SIZE, matchingIcons.length - icons.length)} more
+            </button>
+          ) : null}
         </div>
       </section>
     </div>

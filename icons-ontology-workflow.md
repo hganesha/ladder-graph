@@ -215,3 +215,7 @@ Exit criterion: icons are visible on screen and in both export formats, no broke
 Ship the contract, renderer, and a small curated picker together behind no data migration. Start with automatic defaults plus roughly 100–200 approved choices. Measure the generated sprite, initial PWA download, picker-open time, and a representative 40-node graph before expanding the catalog or introducing category sprites.
 
 This preserves the proposal’s most important property—portable stable IDs—while fitting the repository’s actual compiler, PWA, React Flow, ontology slicing, and graph-export paths.
+
+## Follow-up expansion
+
+After the initial implementation, the selectable library was expanded at user request from 101 curated choices to all 1,544 icons in the pinned Lucide version. Curated icons retain their richer categories and search keywords; the remainder receive generated labels and token-based search metadata. The picker searches the complete library but renders results progressively in batches of 160. Its metadata remains in the lazy picker chunk, while the single generated sprite is approximately 389 KB before transfer compression and remains PWA-precached.
