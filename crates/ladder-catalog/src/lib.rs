@@ -773,7 +773,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::Workflow)
                 .count(),
-            125
+            131
         );
         assert_eq!(
             catalog
@@ -781,7 +781,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::AgentTemplate)
                 .count(),
-            359
+            367
         );
         assert_eq!(
             catalog
@@ -795,9 +795,25 @@ mod tests {
             catalog
                 .entries()
                 .iter()
+                .filter(|entry| entry.kind == CatalogKind::Form)
+                .count(),
+            26
+        );
+        assert_eq!(
+            catalog
+                .entries()
+                .iter()
+                .filter(|entry| entry.kind == CatalogKind::Document)
+                .count(),
+            39
+        );
+        assert_eq!(
+            catalog
+                .entries()
+                .iter()
                 .filter(|entry| entry.kind == CatalogKind::WorkflowBundle)
                 .count(),
-            7
+            22
         );
         assert!(
             catalog
