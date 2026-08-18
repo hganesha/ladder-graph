@@ -999,6 +999,17 @@
       "file": "workflows/multimodal-production.yaml"
     },
     {
+      "id": "laser-art-production",
+      "path": "research/multimodal/laser-art",
+      "area": "Multimodal",
+      "title": "Image + prompt → laser art variants",
+      "eyebrow": "Parallel fabrication prep",
+      "description": "Generate a master image, then prepare grayscale/dither, limited-palette, and vector variants in parallel.",
+      "topology": "Image generation + parallel fan-out",
+      "accent": "#a990f5",
+      "file": "workflows/laser-art-production.yaml"
+    },
+    {
       "id": "image-text-extraction",
       "path": "research/multimodal/understanding",
       "area": "Multimodal",
@@ -4901,6 +4912,30 @@
       "path": "research/multimodal/audio",
       "title": "Speech & Audio Specialist",
       "file": "agents/media-04.yaml"
+    },
+    {
+      "id": "laser-01",
+      "path": "research/multimodal/laser-art/generation",
+      "title": "Laser Art Image Generator",
+      "file": "agents/laser-01.yaml"
+    },
+    {
+      "id": "laser-02",
+      "path": "research/multimodal/laser-art/dither",
+      "title": "Grayscale & Dither Specialist",
+      "file": "agents/laser-02.yaml"
+    },
+    {
+      "id": "laser-03",
+      "path": "research/multimodal/laser-art/quantization",
+      "title": "Laser Palette Quantization Specialist",
+      "file": "agents/laser-03.yaml"
+    },
+    {
+      "id": "laser-04",
+      "path": "research/multimodal/laser-art/vectorization",
+      "title": "Laser Vectorization Specialist",
+      "file": "agents/laser-04.yaml"
     },
     {
       "id": "flt-01",

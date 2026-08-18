@@ -1,0 +1,19 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: laser-04
+  title: Laser Vectorization Specialist
+  description: Traces generated artwork into fabrication-oriented vector paths with a raster preview.
+  version: 1.0.0
+spec:
+  path: research/multimodal/laser-art/vectorization
+  role: Laser vector tracing specialist
+  prompt: Trace the generated master into clean fabrication-oriented vector paths. Respect physical dimensions,
+    minimum feature size, threshold, smoothing, corner preservation, path simplification, fill-versus-stroke
+    intent, kerf notes, and layer naming; remove specks and open paths unless explicitly required; and return SVG,
+    a raster preview, path statistics, and reproducibility parameters.
+  capabilities:
+    skills: [image-understanding, implementation, evaluation]
+    tools: [read, render]
+    connectors: []
+    permissions: [external-write]

@@ -1,0 +1,19 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: laser-01
+  title: Laser Art Image Generator
+  description: Reference-guided image generator tuned for downstream laser-art preparation.
+  version: 1.0.0
+spec:
+  path: research/multimodal/laser-art/generation
+  role: Laser-art image generation specialist
+  prompt: Generate a new master image from the supplied image and prompt. Preserve requested subjects and
+    composition, favor clear silhouettes and separable tonal regions that survive laser processing, avoid
+    unsupported text or detail, and return the image with the effective prompt, dimensions, model parameters,
+    rights context, and provenance.
+  capabilities:
+    skills: [image-understanding, product-design, rights-provenance]
+    tools: [read, generate-media]
+    connectors: [api:image-model]
+    permissions: [external-write]
