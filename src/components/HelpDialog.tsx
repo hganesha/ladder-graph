@@ -118,12 +118,15 @@ const HELP_PAGES: HelpPage[] = [
             Use a form, document, or ontology when shared structure matters without a workflow.
           </Card>
         </div>
-        <Callout icon={Sparkles} title="Start from the handoff" primary>
-          Ask what the receiving agent or application must understand, then build only the artifact needed to make that handoff unambiguous.
-        </Callout>
-        <div className="help-inline-note">
-          <LockKeyhole size={16} aria-hidden="true" />
-          <span>Artifacts can declare tools and permissions. Your host application still owns authorization and execution.</span>
+        <div className="help-overview-notes">
+          <Callout icon={Sparkles} title="Start from the handoff" primary>
+            Ask what the receiving agent or application must understand, then build only the artifact needed to make that handoff
+            unambiguous.
+          </Callout>
+          <div className="help-inline-note">
+            <LockKeyhole size={16} aria-hidden="true" />
+            <span>Artifacts can declare tools and permissions. Your host application still owns authorization and execution.</span>
+          </div>
         </div>
         <section aria-labelledby="help-use-title" className="help-use-section">
           <header>
@@ -176,37 +179,45 @@ const HELP_PAGES: HelpPage[] = [
             </div>
             <small>Hover a layer to emphasize detail</small>
           </figcaption>
-          <div className="help-architecture-stack">
-            <ArchitectureLayer icon={MonitorCog} standard="Presentation" title="Authoring interface" technology="React + TypeScript">
-              The gallery, graph canvas, YAML editors, and workflow, bundle, form, document, and ontology studios render entirely in the
-              client.
-            </ArchitectureLayer>
-            <ArchitectureLayer
-              icon={Combine}
-              standard="Application"
-              title="Workspace orchestration"
-              technology="Zustand + browser services"
-            >
-              Stores coordinate edits, selection, undo and redo, target choice, diagnostics, compilation requests, imports, exports, and
-              local autosave.
-            </ArchitectureLayer>
-            <ArchitectureLayer icon={Network} standard="Domain" title="Portable contracts" technology="LGIR + artifact schemas">
-              Versioned workflow, bundle, form, document, and ontology models are the source of truth across the visual UI, YAML,
-              validation, and exports.
-            </ArchitectureLayer>
-            <ArchitectureLayer icon={Cpu} standard="Domain service" title="In-browser compiler" technology="Web Worker → Rust/WASM">
-              A dedicated worker runs Rust lgir-core and ladder-artifacts compiled to WebAssembly for analysis, formatting, migration, and
-              compilation; a TypeScript implementation is the fallback.
-            </ArchitectureLayer>
-            <ArchitectureLayer
-              icon={Database}
-              standard="Infrastructure"
-              title="Local persistence"
-              technology="IndexedDB + OPFS + PWA cache"
-            >
-              Dexie stores projects, settings, templates, and asset metadata. OPFS stores revision bodies when available, and the service
-              worker caches the static application.
-            </ArchitectureLayer>
+          <div className="help-architecture-body">
+            <div className="help-architecture-stack">
+              <ArchitectureLayer icon={MonitorCog} standard="Presentation" title="Authoring interface" technology="React + TypeScript">
+                The gallery, graph canvas, YAML editors, and workflow, bundle, form, document, and ontology studios render entirely in the
+                client.
+              </ArchitectureLayer>
+              <ArchitectureLayer
+                icon={Combine}
+                standard="Application"
+                title="Workspace orchestration"
+                technology="Zustand + browser services"
+              >
+                Stores coordinate edits, selection, undo and redo, target choice, diagnostics, compilation requests, imports, exports, and
+                local autosave.
+              </ArchitectureLayer>
+              <ArchitectureLayer icon={Network} standard="Domain" title="Portable contracts" technology="LGIR + artifact schemas">
+                Versioned workflow, bundle, form, document, and ontology models are the source of truth across the visual UI, YAML,
+                validation, and exports.
+              </ArchitectureLayer>
+              <ArchitectureLayer icon={Cpu} standard="Domain service" title="In-browser compiler" technology="Web Worker → Rust/WASM">
+                A dedicated worker runs Rust lgir-core and ladder-artifacts compiled to WebAssembly for analysis, formatting, migration, and
+                compilation; a TypeScript implementation is the fallback.
+              </ArchitectureLayer>
+              <ArchitectureLayer
+                icon={Database}
+                standard="Infrastructure"
+                title="Local persistence"
+                technology="IndexedDB + OPFS + PWA cache"
+              >
+                Dexie stores projects, settings, templates, and asset metadata. OPFS stores revision bodies when available, and the service
+                worker caches the static application.
+              </ArchitectureLayer>
+            </div>
+            <div className="help-architecture-inspect" aria-hidden="true">
+              <Network size={25} />
+              <span>Layer detail</span>
+              <strong>Local-first, with explicit boundaries</strong>
+              <p>Hover a layer to see its responsibilities and implementation without leaving this system view.</p>
+            </div>
           </div>
           <div className="help-architecture-output">
             <FileOutput size={18} aria-hidden="true" />
@@ -217,23 +228,22 @@ const HELP_PAGES: HelpPage[] = [
             </div>
           </div>
         </figure>
-        <section className="help-architecture-companion" aria-labelledby="help-companion-architecture-title">
-          <PlugZap size={20} aria-hidden="true" />
-          <div>
-            <span>Optional external adapter</span>
-            <strong id="help-companion-architecture-title">Native Rust MCP companion</strong>
-            <p>
-              The browser explicitly publishes saved artifacts over an authenticated loopback bridge. Chat clients connect to the companion
-              over stdio for read-only catalog resources and tools; it does not read IndexedDB or OPFS directly.
-            </p>
+        <div className="help-architecture-support">
+          <section className="help-architecture-companion" aria-labelledby="help-companion-architecture-title">
+            <PlugZap size={20} aria-hidden="true" />
+            <div>
+              <span>Optional external adapter</span>
+              <strong id="help-companion-architecture-title">Native Rust MCP companion</strong>
+              <p>
+                The browser publishes saved artifacts over authenticated loopback. Chat clients connect over stdio; the companion never
+                reads browser storage directly.
+              </p>
+            </div>
+          </section>
+          <div className="help-inline-note">
+            <LockKeyhole size={16} aria-hidden="true" />
+            <span>The receiving host runs models and enforces tool, connector, and permission access.</span>
           </div>
-        </section>
-        <div className="help-inline-note">
-          <LockKeyhole size={16} aria-hidden="true" />
-          <span>
-            Ladder Graph compiles declarations. Model execution, tool calls, connector access, and permission enforcement belong to the
-            receiving host.
-          </span>
         </div>
       </>
     ),
@@ -657,13 +667,17 @@ export function HelpDialog({ onClose, initialTopic = "overview" }: { onClose: ()
               ))}
             </select>
           </label>
-          <article className="help-page" key={current.id}>
+          <article className="help-page" data-topic={current.id} key={current.id}>
             <header>
               <p className="eyebrow">{current.eyebrow}</p>
               <h2 id="help-title">{current.title}</h2>
               <p id="help-description">{current.description}</p>
             </header>
-            <div className="help-page-content">{current.content}</div>
+            <div
+              className={`help-page-content ${current.id === "overview" || current.id === "architecture" ? "help-page-content-fit" : ""}`}
+            >
+              {current.content}
+            </div>
           </article>
         </div>
         <footer className="help-dialog-footer">

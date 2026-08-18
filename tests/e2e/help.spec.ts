@@ -7,10 +7,12 @@ test("opens intro and help from the gallery and studio", async ({ page }) => {
   const galleryDialog = page.getByRole("dialog", { name: "What Ladder Graph makes" });
   await expect(galleryDialog).toBeVisible();
   await expect(galleryDialog.getByRole("navigation", { name: "Help topics" }).getByRole("button")).toHaveCount(9);
+  expect(await galleryDialog.locator(".help-page").evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(true);
   await galleryDialog.getByRole("button", { name: "How Ladder Graph is built" }).click();
   const architectureDialog = page.getByRole("dialog", { name: "How Ladder Graph is built" });
   await expect(architectureDialog.getByText("Web Worker → Rust/WASM")).toBeVisible();
   await expect(architectureDialog.getByText("Native Rust MCP companion")).toBeVisible();
+  expect(await architectureDialog.locator(".help-page").evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(true);
   await architectureDialog.getByRole("button", { name: "Close help" }).click();
   await expect(architectureDialog).toBeHidden();
 
