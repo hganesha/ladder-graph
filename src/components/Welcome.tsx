@@ -396,7 +396,7 @@ export function Welcome({
             <h1 id="gallery-title">Workflow library</h1>
             <p>Start from a proven workflow or agent template, or reopen work saved in this browser.</p>
           </div>
-          <div className="library-create-actions" aria-label="Create new project">
+          <nav className="library-create-actions" aria-label="Create new project">
             <button aria-label="New workflow" className="quiet-button new-workflow-button" onClick={onBlank} type="button">
               <Workflow size={15} aria-hidden="true" /> <span>New workflow</span>
             </button>
@@ -406,7 +406,7 @@ export function Welcome({
             <button aria-label="New ontology" className="quiet-button" onClick={() => onOntology(undefined, "__new__")} type="button">
               <Boxes size={15} aria-hidden="true" /> <span>New ontology</span>
             </button>
-          </div>
+          </nav>
         </div>
         <UniversalCatalogSearch
           onBrowseSubject={(subject) => {
@@ -415,7 +415,9 @@ export function Welcome({
           }}
           onCreateWithAgent={openAgentTemplate}
           onInspectDocument={(templateId) => onDocument(undefined, templateId)}
+          onOpenBundle={(templateId) => onBundle(undefined, templateId)}
           onOpenForm={(templateId) => onForm(undefined, templateId)}
+          onOpenOntology={(templateId) => onOntology(undefined, templateId)}
           onOpenWorkflow={openTemplate}
           onQueryChange={setCatalogQuery}
           query={catalogQuery}

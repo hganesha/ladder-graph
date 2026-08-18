@@ -54,6 +54,7 @@ export default function App() {
     content = (
       <Suspense fallback={<div className="workspace-loading">Opening bundle workspace…</div>}>
         <BundleStudio
+          key={bundleLaunch.project?.id ?? bundleLaunch.templateId ?? "new-bundle"}
           initialProject={bundleLaunch.project}
           initialTemplateId={bundleLaunch.templateId}
           onBack={() => setBundleLaunch(undefined)}
@@ -64,6 +65,7 @@ export default function App() {
     content = (
       <Suspense fallback={<div className="workspace-loading">Opening form studio…</div>}>
         <StandaloneFormStudio
+          key={formLaunch.project?.id ?? formLaunch.templateId ?? formLaunch.initialSource ?? "new-form"}
           initialProject={formLaunch.project}
           initialSource={formLaunch.initialSource}
           initialTemplateId={formLaunch.templateId}
@@ -75,6 +77,7 @@ export default function App() {
     content = (
       <Suspense fallback={<div className="workspace-loading">Opening {structuredLaunch.artifactKind} studio…</div>}>
         <StructuredArtifactStudio
+          key={`${structuredLaunch.artifactKind}:${structuredLaunch.project?.id ?? structuredLaunch.templateId ?? "new"}`}
           artifactKind={structuredLaunch.artifactKind}
           initialProject={structuredLaunch.project}
           initialTemplateId={structuredLaunch.templateId}
@@ -127,6 +130,11 @@ export default function App() {
             setFormLaunch(undefined);
             setStructuredLaunch({ artifactKind: "document", templateId });
           }}
+          onOpenBundle={(templateId) => {
+            setFormLaunch(undefined);
+            setStructuredLaunch(undefined);
+            setBundleLaunch({ templateId });
+          }}
           onOpenForm={(templateId) => {
             setBundleLaunch(undefined);
             setStructuredLaunch(undefined);
@@ -135,6 +143,11 @@ export default function App() {
           onOpenWorkflow={async (templateId) => {
             resetSpecialWorkspaces();
             await useStudioStore.getState().openTemplate(templateId);
+          }}
+          onOpenOntology={(templateId) => {
+            setBundleLaunch(undefined);
+            setFormLaunch(undefined);
+            setStructuredLaunch({ artifactKind: "ontology", templateId });
           }}
           subjects={CATALOG_SEARCH_SUBJECTS}
           variant="dialog"

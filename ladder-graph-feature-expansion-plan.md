@@ -34,9 +34,11 @@ Completed in the feature-expansion release:
 - curated manufacturing line qualification, legal regulatory-obligations, commercial-credit underwriting, energy field operations, healthcare claims audit, and real-estate valuation bundles in addition to insurance;
 - explicit workflow/form/document-to-ontology bindings and deterministic sliver compilation for every curated bundle;
 - a first-class bundle gallery, workflow-aware bundle recommendations, and correct reopening of saved bundle projects;
+- first-class blank bundle creation with editable identity/version and saved local workflows and artifacts available during assembly;
 - standalone, locally persisted form projects backed by the purpose-built visual form studio;
 - standalone document contract inspection and ontology type/property exploration with editable portable YAML and compiler diagnostics;
 - selectable ontology relationship canvases with type/relationship inspectors in both standalone and bundle workspaces, workflow-sliver impact previews, and guided warnings for removed ontology types, properties, and relationships;
+- blank ontology creation plus bounded RDF/XML OWL normalization for named classes, inheritance, datatype properties, and object properties, with an import report for omitted semantics;
 - direct catalog-form attachment to workflow nodes and first-class form creation seeded from node schemas;
 - a metadata-only startup artifact index with full YAML sources deferred to the artifact workspaces;
 - catalog snapshot and MCP discovery/retrieval for workflows, agents, ontologies, forms, documents, and workflow bundles;
@@ -730,7 +732,7 @@ Gate:
 
 ### Milestone 4 — First-class form studio
 
-**Status:** Complete for first-class form authoring, standalone saved form projects, bundle-owned editing, ontology-backed field creation, preview, source synchronization, diagnostics, and portable output. Direct node-level create/attach shortcuts remain a post-release convenience; bundle-level attachment is complete.
+**Status:** Complete for first-class form authoring, standalone saved form projects, bundle-owned editing, ontology-backed field creation, preview, source synchronization, diagnostics, portable output, and direct workflow-node create/attach shortcuts.
 
 **Relative effort:** Extra large
 
@@ -753,7 +755,7 @@ Gate:
 
 ### Milestone 5 — Ontology sliver studio
 
-**Status:** Complete for the release scope: searchable type/property exploration, relationship context, canonical source editing, compiler diagnostics, and deterministic bundle sliver selection. Large-graph layout and guided breaking-change migrations are post-release enhancements.
+**Status:** Complete for the release scope: blank ontology creation, bounded RDF/XML OWL import, searchable relationship canvases, type/property and relationship inspection, canonical source editing, compiler diagnostics, breaking-change guidance, and deterministic bundle sliver selection. Advanced large-graph clustering and automated migration rewriting remain post-release enhancements.
 
 **Relative effort:** Large
 
@@ -775,7 +777,7 @@ Gate:
 
 ### Milestone 6 — Catalog, MCP, and additional industries
 
-**Status:** Complete. The catalog and MCP expose all six artifact kinds, existing workflow behavior remains compatible, and manufacturing, legal, and commercial credit extend the insurance pilot without new artifact semantics.
+**Status:** Complete. The catalog and MCP expose all six artifact kinds, existing workflow behavior remains compatible, and manufacturing, legal, commercial credit, energy, healthcare, and real estate extend the insurance pilot without new artifact semantics.
 
 **Relative effort:** Large
 

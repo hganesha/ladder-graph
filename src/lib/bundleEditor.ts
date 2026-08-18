@@ -12,6 +12,8 @@ import type {
   WorkflowBundle,
 } from "../types";
 
+export type BundleWorkflowDescriptor = Pick<TemplateDefinition, "id" | "title" | "description">;
+
 export interface BundleAssetOption {
   ref: string;
   kind: "workflow" | "ontology" | "form" | "document";
@@ -63,7 +65,7 @@ function slug(value: string) {
     .toLowerCase();
 }
 
-export function createBundleForWorkflow(workflow: TemplateDefinition): WorkflowBundle {
+export function createBundleForWorkflow(workflow: BundleWorkflowDescriptor, reference = workflowRef(workflow.id)): WorkflowBundle {
   return {
     apiVersion: "ladder.dev/v1alpha1",
     kind: "WorkflowBundle",
@@ -74,7 +76,7 @@ export function createBundleForWorkflow(workflow: TemplateDefinition): WorkflowB
       version: "1.0.0",
     },
     spec: {
-      workflowRef: workflowRef(workflow.id),
+      workflowRef: reference,
       forms: [],
       documents: [],
       bindings: [],
@@ -82,16 +84,26 @@ export function createBundleForWorkflow(workflow: TemplateDefinition): WorkflowB
   };
 }
 
-export function replaceBundleWorkflow(bundle: WorkflowBundle, workflow: TemplateDefinition): WorkflowBundle {
+export function replaceBundleWorkflow(
+  bundle: WorkflowBundle,
+  workflow: BundleWorkflowDescriptor,
+  reference = workflowRef(workflow.id),
+): WorkflowBundle {
   const next = cloneBundle(bundle);
   const previousRef = next.spec.workflowRef;
   next.metadata.name = `${slug(workflow.id)}-bundle`;
   next.metadata.title = `${workflow.title} bundle`;
   next.metadata.description = `Portable assets and explicit bindings for ${workflow.title}.`;
-  next.spec.workflowRef = workflowRef(workflow.id);
+  next.spec.workflowRef = reference;
   next.spec.bindings = (next.spec.bindings ?? []).filter(
     (binding) => binding.source.ref !== previousRef && binding.target.ref !== previousRef,
   );
+  return next;
+}
+
+export function updateBundleMetadata(bundle: WorkflowBundle, metadata: WorkflowBundle["metadata"]): WorkflowBundle {
+  const next = cloneBundle(bundle);
+  next.metadata = { ...metadata };
   return next;
 }
 

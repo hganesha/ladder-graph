@@ -10,7 +10,7 @@ test("searches the universal catalog and opens global search", async ({ page }) 
   const search = page.getByRole("combobox", { name: "Search the Ladder catalog" });
   await search.fill("underw");
   await expect(page.getByRole("option", { name: /Insurance & underwriting, Subject areas, Browse subject/i })).toBeVisible();
-  await expect(page.locator(".catalog-result-group")).toHaveCount(5);
+  await expect(page.locator(".catalog-result-group")).toHaveCount(7);
   await expect(page.locator(".catalog-result-summary")).toContainText("underw");
 
   await page.keyboard.press(process.platform === "darwin" ? "Meta+k" : "Control+k");

@@ -80,7 +80,7 @@ The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `Workflow
 - deterministic ontology sliver closure from explicit type, property, relationship, form, document, and binding references;
 - cross-artifact JSON Pointer and ontology-property validation;
 - portable form JSON Schema and UI metadata, supporting document schemas, the unchanged workflow target, inclusion reasons, and a deterministic lockfile;
-- catalog-backed bundle assembly for any built-in workflow, with attach/remove controls for ontologies, forms, and documents;
+- first-class bundle creation from the gallery, editable bundle identity/version, and assembly from built-in or saved workflows and saved/catalog ontologies, forms, and documents;
 - a read-only workflow graph inside every bundle, with selectable node and edge contract inspection;
 - direct form attachment on workflow nodes and node-scoped form creation seeded from input/output contracts;
 - a visual binding inspector with selectable JSON Pointer endpoints, directions, ontology properties, and safe transforms;
@@ -91,6 +91,7 @@ The bundle compiler adds versioned `Ontology`, `Form`, `Document`, and `Workflow
 - deterministic `.ladderbundle.json` import/export with SHA-256 integrity checks;
 - a searchable, industry-filtered starter library containing all 55 classified DocuBricks schemas: 24 forms and 31 documents, plus two native Ladder forms;
 - standalone form authoring plus document-contract and ontology exploration workspaces, all with local persistence and compiler diagnostics;
+- blank ontology creation and bounded RDF/XML OWL import for named classes, inheritance, datatype properties, and object-property relationships, with explicit warnings for omitted complex axioms and unfetched imports;
 - workflow-aware recommendations that upgrade a generic workflow bundle to its curated domain pack when one exists.
 
 Regenerate the DocuBricks snapshot from a local checkout with:
@@ -115,7 +116,7 @@ See [ladder-graph-specs.md](ladder-graph-specs.md), [ARCHITECTURE.md](ARCHITECTU
 
 ## Security model
 
-Imported YAML is data, never code. Ladder Graph rejects custom tags, aliases, external references, arbitrary cycles, oversized documents, and unsupported transforms. Generated artifacts do not grant tools or permissions, and generated source is never executed by Ladder Graph. Browser storage is convenient local state, not a durable backup; export important workflows.
+Imported YAML and OWL are data, never code. Ladder Graph rejects custom tags, aliases, external references, arbitrary cycles, oversized documents, unsupported transforms, and OWL DTD/entity declarations. OWL imports are never fetched automatically. Generated artifacts do not grant tools or permissions, and generated source is never executed by Ladder Graph. Browser storage is convenient local state, not a durable backup; export important workflows.
 
 ## License
 
