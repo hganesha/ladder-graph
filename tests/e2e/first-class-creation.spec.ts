@@ -37,11 +37,12 @@ test("creates a bundle as a first-class project", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Facilities operations bundle" })).toBeVisible();
   await page.getByRole("tab", { name: "Workflow graph" }).click();
   await expect(page.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeVisible();
-  await page.getByRole("button", { name: "Edit workflow" }).click();
-  const sourceEditor = page.getByLabel("Bundled workflow YAML source");
-  const source = await sourceEditor.inputValue();
-  await sourceEditor.fill(source.replace(/title: .*/u, "title: Facilities editable workflow"));
-  await page.getByRole("button", { name: "Apply workflow changes" }).click();
+  await page.getByRole("button", { name: "Edit workflow", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Bundled workflow editor" })).toBeVisible();
+  await expect(page.getByLabel("Node and template palette")).toBeVisible();
+  await page.getByLabel("Workflow name").fill("Facilities editable workflow");
+  await page.getByLabel("Workflow name").blur();
+  await page.getByRole("button", { name: "Apply to bundle" }).click();
   await expect(page.getByRole("heading", { name: "Facilities editable workflow" })).toBeVisible();
 });
 
@@ -69,4 +70,23 @@ test("creates an ontology by importing OWL and saves it to My library", async ({
   await page.getByRole("button", { name: "Back" }).click();
   await page.getByRole("tab", { name: "Recent projects" }).click();
   await expect(page.getByRole("button", { name: /Facilities Ontology/ })).toBeVisible();
+});
+
+test("uses the available viewport for a new ontology workspace", async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1000 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "New ontology" }).click();
+
+  const preview = page.locator(".ontology-artifact-layout .structured-artifact-preview");
+  const source = page.locator(".ontology-artifact-layout .structured-artifact-source");
+  const workspace = page.locator(".ontology-artifact-layout .ontology-visual-workspace");
+  await expect(workspace).toBeVisible();
+
+  const [previewBox, sourceBox, workspaceBox] = await Promise.all([preview.boundingBox(), source.boundingBox(), workspace.boundingBox()]);
+  expect(previewBox).not.toBeNull();
+  expect(sourceBox).not.toBeNull();
+  expect(workspaceBox).not.toBeNull();
+  expect(sourceBox!.width).toBeLessThanOrEqual(440);
+  expect(workspaceBox!.width).toBeGreaterThan(previewBox!.width * 0.95);
+  expect(workspaceBox!.height).toBeGreaterThan(previewBox!.height * 0.75);
 });

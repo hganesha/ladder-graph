@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { parse, stringify } from "yaml";
+import { parse } from "yaml";
 import BundleStudio from "../src/components/BundleStudio";
 import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
 import { db } from "../src/lib/persistence";
@@ -48,14 +48,36 @@ spec:
   capabilityReport: { target: "codex", native: [], instructional: [], unsupported: [] },
 };
 
-const { analyzeArtifact, compileBundle } = vi.hoisted(() => ({ analyzeArtifact: vi.fn(), compileBundle: vi.fn() }));
+const { analyze, analyzeArtifact, compileBundle } = vi.hoisted(() => ({
+  analyze: vi.fn(),
+  analyzeArtifact: vi.fn(),
+  compileBundle: vi.fn(),
+}));
 
-vi.mock("../src/compiler/client", () => ({ compiler: { analyzeArtifact, compileBundle } }));
+vi.mock("../src/compiler/client", () => ({ compiler: { analyze, analyzeArtifact, compileBundle, runtime: "fallback" } }));
 
 describe("bundle workspace", () => {
   beforeEach(() => {
     compileBundle.mockReset();
     compileBundle.mockResolvedValue(compileResult);
+    analyze.mockReset();
+    analyze.mockImplementation(async (source: string) => {
+      const normalized = parse(source);
+      return {
+        ok: true,
+        sourceHash: "workflow-hash",
+        diagnostics: [],
+        normalized,
+        nodeOrder: normalized.spec.nodes.map((node: { id: string }) => node.id),
+        stats: {
+          nodes: normalized.spec.nodes.length,
+          edges: normalized.spec.edges.length,
+          agents: normalized.spec.nodes.filter((node: { kind: string }) => node.kind === "agent").length,
+          loops: normalized.spec.nodes.filter((node: { kind: string }) => node.kind === "loop").length,
+          maxParallelism: 1,
+        },
+      };
+    });
     analyzeArtifact.mockReset();
     analyzeArtifact.mockImplementation(async (source: string) => ({
       ok: true,
@@ -116,17 +138,20 @@ describe("bundle workspace", () => {
     expect(screen.getByText("Bundle validated: 2 deterministic files.")).toBeInTheDocument();
   });
 
-  it("edits the attached workflow source and recompiles it as a bundle-owned asset", async () => {
+  it("edits the attached workflow in the main studio and recompiles it as a bundle-owned asset", async () => {
     render(<BundleStudio onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
-    fireEvent.click(screen.getByRole("button", { name: "Edit workflow YAML" }));
-    const editor = screen.getByLabelText("Bundled workflow YAML source") as HTMLTextAreaElement;
-    const workflow = parse(editor.value);
-    workflow.metadata.title = "Editable bundled workflow";
-    fireEvent.change(editor, { target: { value: stringify(workflow) } });
-    fireEvent.click(screen.getByRole("button", { name: "Apply workflow changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit workflow" }));
+    expect(await screen.findByRole("dialog", { name: "Bundled workflow editor" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Node and template palette")).toBeInTheDocument();
+    expect(screen.getByText("Bundle workflow draft")).toBeInTheDocument();
+    const name = screen.getByLabelText("Workflow name");
+    fireEvent.change(name, { target: { value: "Editable bundled workflow" } });
+    fireEvent.blur(name);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Apply to bundle" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Apply to bundle" }));
 
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
     const editedAssets = compileBundle.mock.calls.at(-1)?.[1] as Array<{ ref: string; source: string }>;
@@ -134,21 +159,20 @@ describe("bundle workspace", () => {
     expect(screen.getByRole("heading", { name: "Editable bundled workflow" })).toBeInTheDocument();
   });
 
-  it("edits the attached workflow visually and recompiles the bundle-owned asset", async () => {
+  it("discards main-studio edits without changing the bundled workflow", async () => {
     render(<BundleStudio onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
-    fireEvent.click(screen.getByRole("button", { name: "Edit workflow visually" }));
-    fireEvent.change(screen.getByLabelText("Selected workflow node name"), { target: { value: "Visually edited intake" } });
-    fireEvent.click(screen.getByRole("button", { name: "Add Agent" }));
-    fireEvent.click(screen.getByRole("button", { name: "Apply visual changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit workflow" }));
+    const name = await screen.findByLabelText("Workflow name");
+    fireEvent.change(name, { target: { value: "Discarded workflow title" } });
+    fireEvent.blur(name);
+    fireEvent.click(screen.getByRole("button", { name: "Back to bundle" }));
 
-    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
-    const editedAssets = compileBundle.mock.calls.at(-1)?.[1] as Array<{ ref: string; source: string }>;
-    const editedWorkflow = editedAssets.find((asset) => asset.ref.endsWith("/wf-insr-01"))?.source;
-    expect(editedWorkflow).toContain("Visually edited intake");
-    expect(editedWorkflow).toContain("name: Agent");
+    expect(screen.queryByRole("dialog", { name: "Bundled workflow editor" })).not.toBeInTheDocument();
+    expect(compileBundle).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("heading", { name: "Discarded workflow title" })).not.toBeInTheDocument();
   });
 
   it("attaches, replaces, and removes the bundle ontology from the visual accordion", async () => {

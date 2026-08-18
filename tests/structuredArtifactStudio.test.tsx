@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 import StructuredArtifactStudio from "../src/components/artifacts/StructuredArtifactStudio";
+import { addOntologyRelationship, createBlankOntology } from "../src/lib/ontologyEditor";
 import { db } from "../src/lib/persistence";
 
 const { analyzeArtifact, sliceOntology } = vi.hoisted(() => ({ analyzeArtifact: vi.fn(), sliceOntology: vi.fn() }));
@@ -124,5 +125,19 @@ describe("structured artifact studio", () => {
     expect(source).toContain("id: entity-2.attribute");
     expect(source).toContain("dataType: integer");
     expect(source).toContain("label: Located at");
+  });
+
+  it("creates a relationship with the endpoints chosen on the graph canvas", () => {
+    const ontology = createBlankOntology();
+    ontology.spec.types.push({ id: "facility", label: "Facility", properties: [] });
+
+    const added = addOntologyRelationship(ontology, "entity", "facility");
+    expect(added.ontology.spec.relationships).toContainEqual(
+      expect.objectContaining({
+        id: added.relationshipId,
+        sourceTypeId: "entity",
+        targetTypeId: "facility",
+      }),
+    );
   });
 });

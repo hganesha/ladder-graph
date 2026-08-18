@@ -571,9 +571,19 @@ button:disabled {
 }
 .catalog-subject-group > header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+.catalog-subject-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.catalog-subject-title > svg {
+  flex: 0 0 auto;
+  color: #9ba8b1;
 }
 .catalog-subject-group > header h3 {
   margin: 0;
@@ -1987,6 +1997,16 @@ button:disabled {
   min-width: 0;
   min-height: 0;
 }
+.bundle-workflow-editor-overlay {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  background: var(--bg);
+}
+.studio-apply-button {
+  border-color: color-mix(in srgb, var(--green) 58%, var(--border));
+  background: color-mix(in srgb, var(--green) 14%, var(--surface));
+}
 .bundle-workflow-preview > header {
   display: flex;
   align-items: end;
@@ -2402,7 +2422,7 @@ button:disabled {
   min-height: 0;
 }
 .structured-artifact-layout.ontology-artifact-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 34vw);
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 440px);
 }
 .ontology-artifact-layout .structured-artifact-preview {
   display: flex;

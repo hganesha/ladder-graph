@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { Code2, Sparkles, Workflow } from "lucide-react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Welcome } from "../src/components/Welcome";
+import { Welcome, WORKFLOW_AREAS } from "../src/components/Welcome";
 import { ARTIFACT_INDEX } from "../src/generated/catalog";
 import { deleteProject, listProjects } from "../src/lib/persistence";
 import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../src/lib/roleTemplates";
@@ -30,6 +31,12 @@ describe("welcome gallery", () => {
     window.history.replaceState({}, "", "/");
     document.documentElement.dataset.theme = "light";
     useStudioStore.setState({ view: "gallery", analysis: null, projectId: null });
+  });
+
+  it("keeps the subject-specific icons in the generated catalog", () => {
+    expect(WORKFLOW_AREAS.find((area) => area.name === "Core patterns")?.icon).toBe(Sparkles);
+    expect(WORKFLOW_AREAS.find((area) => area.name === "Software engineering")?.icon).toBe(Code2);
+    expect(WORKFLOW_AREAS.every((area) => area.icon !== Workflow)).toBe(true);
   });
 
   it("chooses a subject area, switches starting-point tabs, and opens a template", () => {
@@ -118,6 +125,7 @@ describe("welcome gallery", () => {
       expect(groupSubjects).toEqual(alphabetically(groupSubjects));
 
       for (const group of groups) {
+        expect(group.querySelector("header svg")).toBeInTheDocument();
         const itemNames = within(group)
           .getAllByRole("button", { name: category.buttonName })
           .map((button) => category.itemName(button.getAttribute("aria-label")!));

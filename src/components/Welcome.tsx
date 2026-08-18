@@ -1,4 +1,41 @@
-import { ArrowRight, BookOpen, Bot, Boxes, Cable, ChevronDown, CircleHelp, FileText, PackageOpen, Trash2, Workflow } from "lucide-react";
+import {
+  ArrowRight,
+  Atom,
+  BadgeDollarSign,
+  Beaker,
+  BookOpen,
+  Bot,
+  Boxes,
+  Building2,
+  Cable,
+  Calculator,
+  Camera,
+  ChevronDown,
+  CircleHelp,
+  Code2,
+  Database,
+  Feather,
+  FileText,
+  GraduationCap,
+  HandCoins,
+  HardHat,
+  HeartPulse,
+  Images,
+  type LucideIcon,
+  Megaphone,
+  Microscope,
+  Music2,
+  Newspaper,
+  PackageOpen,
+  PenTool,
+  Plane,
+  Scale,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Trash2,
+  Workflow,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { ARTIFACT_INDEX, SUBJECT_AREAS } from "../generated/catalog";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
@@ -17,11 +54,68 @@ import { UniversalCatalogSearch } from "./UniversalCatalogSearch";
 const catalogLabelCollator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 const compareCatalogLabels = (left: string, right: string) => catalogLabelCollator.compare(left, right);
 
+const SUBJECT_AREA_ICONS: Record<string, LucideIcon> = {
+  "Accounting, tax & audit": Calculator,
+  "Agriculture & food systems": Beaker,
+  "Airline flight operations": Plane,
+  "Architecture & design": Building2,
+  "Astronomy & space": Sparkles,
+  "Biology & bioinformatics": Beaker,
+  "Chemistry & materials science": Beaker,
+  "Clinical & health sciences": HeartPulse,
+  "Core patterns": Sparkles,
+  "Crisis & emergency management": ShieldCheck,
+  "Customer success & support": Target,
+  "Data & analytics engineering": Database,
+  "DevOps & site reliability": Code2,
+  "Education & assessment": GraduationCap,
+  "Energy & utilities": Atom,
+  "Environmental & climate science": Atom,
+  "Event planning & hospitality": Target,
+  "Fashion & textiles": Sparkles,
+  "Film, video & post-production": Images,
+  "Finance & risk": BadgeDollarSign,
+  "Gaming & interactive media": Sparkles,
+  "Geospatial & earth observation": Images,
+  "Go-to-market": Megaphone,
+  "HR & talent operations": Target,
+  Humanities: BookOpen,
+  "Insurance & underwriting": ShieldCheck,
+  "Journalism & verification": Newspaper,
+  "Legal & contracts": Scale,
+  "Life sciences & GxP operations": Microscope,
+  "Linguistics & language preservation": Feather,
+  "Manufacturing & industrial operations": Building2,
+  "Marketing & growth": Megaphone,
+  Mathematics: Calculator,
+  Multimodal: Images,
+  Music: Music2,
+  "Oil & gas drilling & well operations": HardHat,
+  "Personal development": Target,
+  Photography: Camera,
+  Physics: Atom,
+  "Product design": PenTool,
+  "Product management": Boxes,
+  "Public sector procurement & grants": HandCoins,
+  "Quality assurance & compliance": ShieldCheck,
+  "Real estate & construction": Building2,
+  Research: Beaker,
+  "Robotics & embodied AI": Atom,
+  "Sales & business development": Megaphone,
+  "Scientific peer review & publishing": BookOpen,
+  Security: ShieldCheck,
+  "Social sciences & policy": BookOpen,
+  "Software engineering": Code2,
+  "Supply chain & logistics": Boxes,
+  "Transportation & mobility": Boxes,
+  Writing: Feather,
+};
+
 export const WORKFLOW_AREAS = SUBJECT_AREAS.map(({ name }) => ({
   name,
   label: name,
   description: `${WORKFLOW_TEMPLATES.filter((template) => template.area === name).length} workflows and ${roleTemplatesForSubject(name).length} reusable agents.`,
-  icon: Workflow,
+  icon: SUBJECT_AREA_ICONS[name] ?? Workflow,
 })).sort((left, right) => compareCatalogLabels(left.label, right.label));
 export const CATALOG_SEARCH_SUBJECTS = WORKFLOW_AREAS.map(({ name, description }) => ({ name, description }));
 
@@ -128,17 +222,23 @@ function CatalogItemCollection<T>({
 
   return (
     <div className="catalog-subject-groups">
-      {groupedItems.map(([subject, subjectItems]) => (
-        <section aria-label={`${subject} ${pluralLabel}`} className="catalog-subject-group" key={subject}>
-          <header>
-            <h3>{subject}</h3>
-            <span>
-              {subjectItems.length} {subjectItems.length === 1 ? singularLabel : pluralLabel}
-            </span>
-          </header>
-          <div className={gridClassName}>{subjectItems.map(renderItem)}</div>
-        </section>
-      ))}
+      {groupedItems.map(([subject, subjectItems]) => {
+        const SubjectIcon = SUBJECT_AREA_ICONS[subject] ?? Workflow;
+        return (
+          <section aria-label={`${subject} ${pluralLabel}`} className="catalog-subject-group" key={subject}>
+            <header>
+              <div className="catalog-subject-title">
+                <SubjectIcon aria-hidden="true" size={16} />
+                <h3>{subject}</h3>
+              </div>
+              <span>
+                {subjectItems.length} {subjectItems.length === 1 ? singularLabel : pluralLabel}
+              </span>
+            </header>
+            <div className={gridClassName}>{subjectItems.map(renderItem)}</div>
+          </section>
+        );
+      })}
     </div>
   );
 }
