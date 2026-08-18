@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   CircleDot,
   Combine,
+  Cpu,
+  Database,
   Download,
   FileCheck2,
   FileInput,
@@ -19,9 +21,11 @@ import {
   Library,
   Link2,
   LockKeyhole,
+  MonitorCog,
   Network,
   PackageOpen,
   Play,
+  PlugZap,
   ShieldCheck,
   Sparkles,
   WandSparkles,
@@ -29,7 +33,7 @@ import {
 } from "lucide-react";
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
 
-export type HelpTopicId = "overview" | "start" | "workflow" | "validate" | "bundle" | "forms" | "ontology" | "trust";
+export type HelpTopicId = "overview" | "architecture" | "start" | "workflow" | "validate" | "bundle" | "forms" | "ontology" | "trust";
 
 interface HelpPage {
   id: HelpTopicId;
@@ -67,6 +71,33 @@ const Callout = ({
   </div>
 );
 
+const ArchitectureLayer = ({
+  icon: Icon,
+  standard,
+  title,
+  technology,
+  children,
+}: {
+  icon: typeof Network;
+  standard: string;
+  title: string;
+  technology: string;
+  children: ReactNode;
+}) => (
+  <article className="help-architecture-layer">
+    <Icon size={19} aria-hidden="true" />
+    <span className="help-architecture-standard">{standard}</span>
+    <div className="help-architecture-label">
+      <h3>{title}</h3>
+      <strong>{technology}</strong>
+    </div>
+    <div className="help-architecture-detail">
+      <span>Hover detail</span>
+      <p>{children}</p>
+    </div>
+  </article>
+);
+
 const HELP_PAGES: HelpPage[] = [
   {
     id: "overview",
@@ -94,12 +125,122 @@ const HELP_PAGES: HelpPage[] = [
           <LockKeyhole size={16} aria-hidden="true" />
           <span>Artifacts can declare tools and permissions. Your host application still owns authorization and execution.</span>
         </div>
+        <section aria-labelledby="help-use-title" className="help-use-section">
+          <header>
+            <span>After you compile</span>
+            <h3 id="help-use-title">Put the artifact to work</h3>
+          </header>
+          <div className="help-use-grid">
+            <article>
+              <FileInput size={18} aria-hidden="true" />
+              <div>
+                <strong>Paste into a prompt</strong>
+                <p>Copy the compiled Markdown into a Codex, Claude, or Hermes Agent prompt, then add the task and inputs.</p>
+              </div>
+            </article>
+            <article>
+              <FileCheck2 size={18} aria-hidden="true" />
+              <div>
+                <strong>Keep as instructions</strong>
+                <p>Download the Markdown and place it in the host's project instructions or skill folder for repeat use.</p>
+              </div>
+            </article>
+            <article>
+              <Braces size={18} aria-hidden="true" />
+              <div>
+                <strong>Integrate in code</strong>
+                <p>Compile for Python or TypeScript, import the generated data module, and connect your own handlers and runtime.</p>
+              </div>
+            </article>
+          </div>
+          <p className="help-use-note">
+            Use the complete generated artifact. Agent-specific filenames and skill locations vary by host and project.
+          </p>
+        </section>
+      </>
+    ),
+  },
+  {
+    id: "architecture",
+    eyebrow: "02 · Orient",
+    title: "How Ladder Graph is built",
+    description:
+      "A layered, ports-and-adapters view of the local-first system. Authoring, compilation, and persistence stay in the browser; the optional MCP companion is a separate local process.",
+    content: (
+      <>
+        <figure className="help-architecture">
+          <figcaption>
+            <div>
+              <span>Browser boundary</span>
+              <strong>Installable web application</strong>
+            </div>
+            <small>Hover a layer to emphasize detail</small>
+          </figcaption>
+          <div className="help-architecture-stack">
+            <ArchitectureLayer icon={MonitorCog} standard="Presentation" title="Authoring interface" technology="React + TypeScript">
+              The gallery, graph canvas, YAML editors, and workflow, bundle, form, document, and ontology studios render entirely in the
+              client.
+            </ArchitectureLayer>
+            <ArchitectureLayer
+              icon={Combine}
+              standard="Application"
+              title="Workspace orchestration"
+              technology="Zustand + browser services"
+            >
+              Stores coordinate edits, selection, undo and redo, target choice, diagnostics, compilation requests, imports, exports, and
+              local autosave.
+            </ArchitectureLayer>
+            <ArchitectureLayer icon={Network} standard="Domain" title="Portable contracts" technology="LGIR + artifact schemas">
+              Versioned workflow, bundle, form, document, and ontology models are the source of truth across the visual UI, YAML,
+              validation, and exports.
+            </ArchitectureLayer>
+            <ArchitectureLayer icon={Cpu} standard="Domain service" title="In-browser compiler" technology="Web Worker → Rust/WASM">
+              A dedicated worker runs Rust lgir-core and ladder-artifacts compiled to WebAssembly for analysis, formatting, migration, and
+              compilation; a TypeScript implementation is the fallback.
+            </ArchitectureLayer>
+            <ArchitectureLayer
+              icon={Database}
+              standard="Infrastructure"
+              title="Local persistence"
+              technology="IndexedDB + OPFS + PWA cache"
+            >
+              Dexie stores projects, settings, templates, and asset metadata. OPFS stores revision bodies when available, and the service
+              worker caches the static application.
+            </ArchitectureLayer>
+          </div>
+          <div className="help-architecture-output">
+            <FileOutput size={18} aria-hidden="true" />
+            <div>
+              <span>Outbound adapters</span>
+              <strong>Portable files, never an agent runtime</strong>
+              <p>Markdown for Codex, Claude, and Hermes Agent; deterministic Python or TypeScript modules; schemas and bundle files.</p>
+            </div>
+          </div>
+        </figure>
+        <section className="help-architecture-companion" aria-labelledby="help-companion-architecture-title">
+          <PlugZap size={20} aria-hidden="true" />
+          <div>
+            <span>Optional external adapter</span>
+            <strong id="help-companion-architecture-title">Native Rust MCP companion</strong>
+            <p>
+              The browser explicitly publishes saved artifacts over an authenticated loopback bridge. Chat clients connect to the companion
+              over stdio for read-only catalog resources and tools; it does not read IndexedDB or OPFS directly.
+            </p>
+          </div>
+        </section>
+        <div className="help-inline-note">
+          <LockKeyhole size={16} aria-hidden="true" />
+          <span>
+            Ladder Graph compiles declarations. Model execution, tool calls, connector access, and permission enforcement belong to the
+            receiving host.
+          </span>
+        </div>
       </>
     ),
   },
   {
     id: "start",
-    eyebrow: "02 · Orient",
+    eyebrow: "03 · Orient",
     title: "Choose a starting point",
     description:
       "Start with the closest working shape, then replace its domain details. Begin blank only when the structure itself is new.",
@@ -128,7 +269,7 @@ const HELP_PAGES: HelpPage[] = [
   },
   {
     id: "workflow",
-    eyebrow: "03 · Workflows",
+    eyebrow: "04 · Workflows",
     title: "Design a workflow",
     description: "Build the smallest path that can complete the task. Add branching or iteration only where a decision truly requires it.",
     content: (
@@ -172,7 +313,7 @@ const HELP_PAGES: HelpPage[] = [
   },
   {
     id: "validate",
-    eyebrow: "04 · Workflows",
+    eyebrow: "05 · Workflows",
     title: "Validate and compile",
     description:
       "Treat validation as a design review. Fix blocking structure first, then decide whether each target warning is acceptable for your host.",
@@ -233,7 +374,7 @@ const HELP_PAGES: HelpPage[] = [
   },
   {
     id: "bundle",
-    eyebrow: "05 · Package",
+    eyebrow: "06 · Package",
     title: "Assemble a bundle",
     description:
       "Use a bundle when the workflow is not useful by itself. Package every contract the receiving system needs to interpret inputs, outputs, and domain terms.",
@@ -262,7 +403,7 @@ const HELP_PAGES: HelpPage[] = [
   },
   {
     id: "forms",
-    eyebrow: "06 · Package",
+    eyebrow: "07 · Package",
     title: "Forms and documents",
     description:
       "Use forms for structured collection and documents for durable records. Design the contract around the decision it supports, not the editor layout.",
@@ -301,7 +442,7 @@ const HELP_PAGES: HelpPage[] = [
   },
   {
     id: "ontology",
-    eyebrow: "07 · Package",
+    eyebrow: "08 · Package",
     title: "Model an ontology",
     description:
       "Use an ontology when several artifacts need the same meaning for entities, properties, and relationships. Model shared language, not every fact in the domain.",
@@ -330,7 +471,7 @@ const HELP_PAGES: HelpPage[] = [
   },
   {
     id: "trust",
-    eyebrow: "08 · Trust",
+    eyebrow: "09 · Trust",
     title: "Save, export and connect",
     description: "Separate convenient local state from durable backups, and declared connector requirements from real authorization.",
     content: (
@@ -395,7 +536,7 @@ const HELP_PAGES: HelpPage[] = [
 ];
 
 const HELP_GROUPS: { label: string; pageIds: HelpTopicId[] }[] = [
-  { label: "Orient", pageIds: ["overview", "start"] },
+  { label: "Orient", pageIds: ["overview", "architecture", "start"] },
   { label: "Workflows", pageIds: ["workflow", "validate"] },
   { label: "Package", pageIds: ["bundle", "forms", "ontology"] },
   { label: "Trust", pageIds: ["trust"] },

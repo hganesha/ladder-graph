@@ -5,11 +5,21 @@ import { HelpDialog } from "../src/components/HelpDialog";
 describe("intro and help dialog", () => {
   afterEach(cleanup);
 
-  it("presents eight task-oriented help topics and supports sequential navigation", () => {
+  it("presents nine task-oriented help topics and supports sequential navigation", () => {
     render(<HelpDialog onClose={() => undefined} />);
 
     expect(screen.getByRole("dialog", { name: "What Ladder Graph makes" })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Help topics" }).querySelectorAll("button")).toHaveLength(8);
+    expect(screen.getByRole("navigation", { name: "Help topics" }).querySelectorAll("button")).toHaveLength(9);
+    expect(screen.getByRole("heading", { name: "Put the artifact to work" })).toBeInTheDocument();
+    expect(screen.getByText("Paste into a prompt")).toBeInTheDocument();
+    expect(screen.getByText("Keep as instructions")).toBeInTheDocument();
+    expect(screen.getByText("Integrate in code")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    expect(screen.getByRole("heading", { name: "How Ladder Graph is built" })).toBeInTheDocument();
+    expect(screen.getByText("React + TypeScript")).toBeInTheDocument();
+    expect(screen.getByText("Web Worker → Rust/WASM")).toBeInTheDocument();
+    expect(screen.getByText("Native Rust MCP companion")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
     expect(screen.getByRole("heading", { name: "Choose a starting point" })).toBeInTheDocument();
