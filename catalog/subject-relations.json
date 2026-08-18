@@ -49,7 +49,8 @@
     "agentPathPrefixes": ["research/physics/"]
   },
   "Supply chain & logistics": {
-    "agentPathPrefixes": ["research/operations/supply-chain"]
+    "agentPathPrefixes": ["research/operations/supply-chain"],
+    "artifactPathPrefixes": ["consumer_goods/"]
   },
   "HR & talent operations": {
     "agentPathPrefixes": ["research/operations/talent"]
@@ -68,14 +69,15 @@
   },
   "Manufacturing & industrial operations": {
     "agentPathPrefixes": ["research/industry/manufacturing"],
-    "artifactPathPrefixes": ["manufacturing/"]
+    "artifactPathPrefixes": ["manufacturing/", "semiconductor_manufacturing/"]
   },
   "Energy & utilities": {
     "agentPathPrefixes": ["research/industry/energy"],
     "artifactPathPrefixes": ["energy/"]
   },
   "Transportation & mobility": {
-    "agentPathPrefixes": ["research/industry/mobility"]
+    "agentPathPrefixes": ["research/industry/mobility"],
+    "artifactPathPrefixes": ["telco/"]
   },
   "Real estate & construction": {
     "agentPathPrefixes": ["research/industry/built-environment"],
@@ -137,7 +139,8 @@
     "agentPathPrefixes": ["research/emerging/crisis"]
   },
   "Airline flight operations": {
-    "agentPathPrefixes": ["research/aviation/flight-operations"]
+    "agentPathPrefixes": ["research/aviation/flight-operations"],
+    "artifactPathPrefixes": ["airline/"]
   },
   "Oil & gas drilling & well operations": {
     "agentPathPrefixes": ["research/wells/drilling"]
@@ -151,6 +154,10 @@
   "Clinical & health sciences": {
     "agentPathPrefixes": ["research/clinical/"],
     "artifactPathPrefixes": ["healthcare/"]
+  },
+  "Life sciences & GxP operations": {
+    "agentPathPrefixes": ["research/life-sciences/"],
+    "artifactPathPrefixes": ["life_sciences/"]
   },
   "Finance & risk": {
     "artifactPathPrefixes": ["fs/"]

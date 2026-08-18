@@ -205,6 +205,27 @@ describe("welcome gallery", () => {
     }
   });
 
+  it("classifies every industry ontology under an existing subject area", () => {
+    render(<Welcome onBlank={() => undefined} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Ontologies" }));
+
+    for (const [ontologyId, area] of [
+      ["airline", "Airline flight operations"],
+      ["telco", "Transportation & mobility"],
+      ["semiconductor-manufacturing", "Manufacturing & industrial operations"],
+      ["consumer-goods", "Supply chain & logistics"],
+      ["life-sciences", "Life sciences & GxP operations"],
+    ] as const) {
+      const ontology = ARTIFACT_INDEX.find((artifact) => artifact.id === ontologyId);
+      expect(ontology).toBeDefined();
+      selectArea(area);
+      expect(screen.getByRole("button", { name: `Open ${ontology!.title} ontology` })).toBeInTheDocument();
+    }
+
+    selectArea(":all");
+    expect(screen.queryByRole("region", { name: "Uncategorized ontologies" })).not.toBeInTheDocument();
+  });
+
   it("offers first-class creation entry points for bundles and ontologies", () => {
     const onBlank = vi.fn();
     const onBundle = vi.fn();
