@@ -18,8 +18,10 @@ import {
 import { memo } from "react";
 import { inputContractLabel } from "../lib/inputContracts";
 import { NODE_META } from "../lib/nodeMeta";
+import { resolveAgentIcon } from "../lib/nodeIcons";
 import type { LgirNode } from "../types";
 import { InlineNodeField } from "./InlineNodeField";
+import { NodeIcon } from "./NodeIcon";
 
 export type WorkflowInlineEdit = (id: string, patch: Pick<Partial<LgirNode>, "name" | "summary">) => void;
 
@@ -49,6 +51,7 @@ const icons = {
 export const TaskNode = memo(function TaskNode({ data, selected }: NodeProps<TaskFlowNode>) {
   const meta = NODE_META[data.kind];
   const Icon = icons[data.kind];
+  const agentIcon = data.kind === "agent" ? resolveAgentIcon(data) : undefined;
   const incomplete =
     (data.kind === "agent" && !data.role) ||
     (data.kind === "teacher" && !data.config?.teacherModel) ||
@@ -70,7 +73,7 @@ export const TaskNode = memo(function TaskNode({ data, selected }: NodeProps<Tas
       <Handle type="target" position={Position.Left} className="node-handle" />
       <header>
         <span className="node-icon">
-          <Icon size={14} />
+          {agentIcon ? <NodeIcon name={agentIcon.name} size={14} /> : <Icon aria-hidden="true" size={14} />}
         </span>
         <span>{meta.label}</span>
         {incomplete && <AlertTriangle size={13} className="node-alert" aria-label="Incomplete configuration" />}

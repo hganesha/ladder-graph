@@ -12,10 +12,11 @@ import {
   ReactFlow,
   useNodesState,
 } from "@xyflow/react";
-import { Boxes } from "lucide-react";
 import { memo, useEffect, useMemo } from "react";
+import { resolveOntologyIcon } from "../../lib/nodeIcons";
 import type { Ontology, OntologyType } from "../../types";
 import { InlineNodeField } from "../InlineNodeField";
+import { NodeIcon } from "../NodeIcon";
 
 interface OntologyNodeData extends Record<string, unknown> {
   label: string;
@@ -23,6 +24,7 @@ interface OntologyNodeData extends Record<string, unknown> {
   typeId: string;
   propertyCount: number;
   matched: boolean;
+  iconName: string;
   onInlineEdit?: (id: string, patch: Pick<Partial<OntologyType>, "label" | "description">) => void;
 }
 
@@ -33,7 +35,7 @@ const OntologyTypeNode = memo(function OntologyTypeNode({ data, selected }: Node
     <article className={`ontology-graph-node ${selected ? "selected" : ""} ${data.matched ? "" : "dimmed"}`}>
       <Handle className="ontology-node-handle" position={Position.Left} type="target" />
       <header>
-        <Boxes size={13} />
+        <NodeIcon name={data.iconName} size={13} />
         <span>Entity type</span>
       </header>
       <InlineNodeField
@@ -103,6 +105,7 @@ function graphElements(
         typeId: type.id,
         propertyCount: type.properties.length,
         matched: matchedIds.has(type.id),
+        iconName: resolveOntologyIcon(type).name,
         onInlineEdit,
       },
       selected: type.id === selectedTypeId,

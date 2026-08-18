@@ -66,10 +66,20 @@
         "id": { "type": "string", "minLength": 1 },
         "label": { "type": "string", "minLength": 1 },
         "description": { "type": "string" },
+        "icon": { "$ref": "#/$defs/icon" },
         "aliases": { "type": "array", "items": { "type": "string" } },
         "parentTypeIds": { "type": "array", "items": { "type": "string" } },
         "properties": { "type": "array", "items": { "$ref": "#/$defs/property" } },
         "sourcePath": { "type": "string" }
+      }
+    },
+    "icon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["set", "name"],
+      "properties": {
+        "set": { "const": "lucide" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
       }
     },
     "relationship": {

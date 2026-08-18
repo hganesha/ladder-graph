@@ -1,4 +1,4 @@
-import type { Diagnostic, Target } from "../types";
+import type { Diagnostic, IconRef, Target } from "../types";
 
 export type ArtifactKind = "Ontology" | "Form" | "Document" | "WorkflowBundle";
 export type CatalogArtifactKind = "ontology" | "form" | "document" | "workflow-bundle";
@@ -51,6 +51,7 @@ export interface OntologyType {
   id: string;
   label: string;
   description?: string;
+  icon?: IconRef;
   aliases?: string[];
   parentTypeIds?: string[];
   properties: OntologyProperty[];

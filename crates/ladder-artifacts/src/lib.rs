@@ -158,6 +158,23 @@ mod tests {
     }
 
     #[test]
+    fn retains_ontology_icons_when_slicing() {
+        let mut ontology: Value = serde_yaml_ng::from_str(ONTOLOGY).unwrap();
+        let first_type = ontology.pointer_mut("/spec/types/0").unwrap();
+        first_type["icon"] = serde_json::json!({ "set": "lucide", "name": "file-check" });
+        let type_id = first_type["id"].as_str().unwrap().to_owned();
+        let source = serde_yaml_ng::to_string(&ontology).unwrap();
+        let result = analyze_artifact(&source);
+        assert!(result.ok, "{:?}", result.diagnostics);
+        assert_eq!(result.normalized.as_ref().unwrap().pointer("/spec/types/0/icon/name").and_then(Value::as_str), Some("file-check"));
+
+        let selection = serde_json::json!({ "typeIds": [type_id] });
+        let slice = slice_ontology(&source, &selection.to_string());
+        assert!(slice.ok, "{:?}", slice.diagnostics);
+        assert_eq!(slice.ontology.as_ref().unwrap().pointer("/spec/types/0/icon/name").and_then(Value::as_str), Some("file-check"));
+    }
+
+    #[test]
     fn shared_parity_fixtures_have_stable_results() {
         let fixtures: ParityFixture =
             serde_json::from_str(include_str!("../../../fixtures/artifacts/parity.json")).unwrap();

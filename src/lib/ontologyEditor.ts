@@ -95,7 +95,10 @@ export function addOntologyRelationship(
 export function updateOntologyType(ontology: Ontology, typeId: string, changes: Partial<OntologyType>) {
   const next = copy(ontology);
   const index = next.spec.types.findIndex((type) => type.id === typeId);
-  if (index >= 0) next.spec.types[index] = { ...next.spec.types[index], ...changes, id: typeId };
+  if (index >= 0) {
+    next.spec.types[index] = { ...next.spec.types[index], ...changes, id: typeId };
+    if (Object.hasOwn(changes, "icon") && changes.icon === undefined) delete next.spec.types[index].icon;
+  }
   return next;
 }
 

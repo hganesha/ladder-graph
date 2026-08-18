@@ -2,9 +2,32 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::sync::OnceLock;
 
 const API_VERSION: &str = "ladder.dev/v1alpha1";
 const COMPILER_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+pub fn is_known_icon_name(name: &str) -> bool {
+    static KNOWN_ICON_NAMES: OnceLock<BTreeSet<String>> = OnceLock::new();
+    KNOWN_ICON_NAMES
+        .get_or_init(|| {
+            let catalog: Value = serde_json::from_str(include_str!("../../../catalog/icon-catalog.json"))
+                .expect("the checked-in icon catalog must be valid JSON");
+            let mut names = catalog
+                .get("icons")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(|icon| icon.get("name").and_then(Value::as_str))
+                .map(str::to_owned)
+                .collect::<BTreeSet<_>>();
+            if let Some(aliases) = catalog.get("aliases").and_then(Value::as_object) {
+                names.extend(aliases.keys().cloned());
+            }
+            names
+        })
+        .contains(name)
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -67,6 +90,13 @@ pub struct ContractRef {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct IconRef {
+    pub set: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Node {
     pub id: String,
     pub kind: String,
@@ -78,6 +108,8 @@ pub struct Node {
     pub inline_role: bool,
     #[serde(default)]
     pub summary: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub icon: Option<IconRef>,
     #[serde(default)]
     pub role: String,
     #[serde(default)]
@@ -445,6 +477,17 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         }
         if node.kind == "agent" && node.role.trim().is_empty() {
             diagnostics.push(node_diag("LG113", "warning", index, node, "Add a role to make this agent's responsibility explicit."));
+        }
+        if let Some(icon) = &node.icon {
+            let valid_name = !icon.name.is_empty()
+                && icon.name.len() <= 64
+                && icon.name.split('-').all(|part| !part.is_empty() && part.chars().all(|character| character.is_ascii_lowercase() || character.is_ascii_digit()))
+                && is_known_icon_name(&icon.name);
+            if node.kind != "agent" {
+                diagnostics.push(node_diag("LG198", "error", index, node, "Only agent nodes may define an icon override."));
+            } else if icon.set != "lucide" || !valid_name {
+                diagnostics.push(node_diag("LG199", "warning", index, node, "Agent icons must use the lucide set and a canonical kebab-case name; the generic agent icon will be shown."));
+            }
         }
         if node.kind == "tool" && node.capabilities.tools.is_empty() {
             diagnostics.push(node_diag("LG114", "warning", index, node, "Tool requirement has no declared tool identifier."));
@@ -1154,6 +1197,30 @@ spec:
         let second = compile(VALID, "codex");
         assert_eq!(first.content, second.content);
         assert!(!first.content.contains("ladder-source-hash"));
+    }
+
+    #[test]
+    fn retains_agent_icons_and_rejects_icons_on_other_node_kinds() {
+        let source = VALID.replace(
+            "      name: Writer\n      role: Writer",
+            "      name: Writer\n      icon:\n        set: lucide\n        name: search\n      role: Writer",
+        );
+        let analysis = analyze_inner(&source, None);
+        assert!(analysis.ok, "{:?}", analysis.diagnostics);
+        let icon = analysis
+            .normalized
+            .as_ref()
+            .and_then(|workflow| workflow.spec.nodes.iter().find(|node| node.id == "writer"))
+            .and_then(|node| node.icon.as_ref())
+            .unwrap();
+        assert_eq!(icon.set, "lucide");
+        assert_eq!(icon.name, "search");
+
+        let invalid = VALID.replace(
+            "      name: Request",
+            "      name: Request\n      icon:\n        set: lucide\n        name: database",
+        );
+        assert!(analyze_inner(&invalid, None).diagnostics.iter().any(|diagnostic| diagnostic.code == "LG198"));
     }
 
     #[test]

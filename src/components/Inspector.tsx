@@ -4,6 +4,7 @@ import { stringify } from "yaml";
 import { ARTIFACT_INDEX } from "../generated/catalog";
 import { type CapabilityOption, recommendedCapabilities, TARGET_CAPABILITY_CATALOGS } from "../lib/capabilityCatalog";
 import { INPUT_CONTRACT_PRESETS, type InputModality, inputContractModality, inputContractSchema } from "../lib/inputContracts";
+import { resolveAgentIcon } from "../lib/nodeIcons";
 import { nodeContractRefs, workflowContractKind } from "../lib/workflowContracts";
 import { useStudioStore } from "../store/useStudioStore";
 import type {
@@ -17,6 +18,7 @@ import type {
   WorkflowContractRef,
   WorkflowContractUsage,
 } from "../types";
+import { IconControl } from "./IconControl";
 
 type FormNode = LgirNode & {
   capabilities: {
@@ -272,6 +274,17 @@ export function Inspector() {
                 onBlur={() => commit({ summary: draft.summary })}
               />
             </Field>
+            {draft.kind === "agent" ? (
+              <IconControl
+                automaticName={resolveAgentIcon({ ...draft, icon: undefined }).name}
+                label="Agent icon"
+                onChange={(icon) => {
+                  setDraft({ ...draft, icon });
+                  commit({ icon });
+                }}
+                value={draft.icon}
+              />
+            ) : null}
             {WORKING_DIRECTORY_KINDS.has(draft.kind) && (
               <Field label="Working folder">
                 <input

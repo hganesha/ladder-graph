@@ -4623,6 +4623,225 @@ button:disabled {
   border-radius: 7px;
   background: color-mix(in srgb, var(--node-color) 7%, #11161a);
 }
+.node-icon svg,
+.ontology-graph-node header svg,
+.node-icon-trigger svg,
+.icon-picker svg {
+  flex: none;
+}
+.node-icon-control {
+  display: grid;
+  gap: 6px;
+}
+.node-icon-control > span {
+  color: var(--dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.node-icon-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 7px 9px;
+  background: var(--surface-2);
+  color: var(--text);
+  text-align: left;
+}
+.node-icon-trigger:hover {
+  border-color: color-mix(in srgb, var(--cyan) 55%, var(--border-strong));
+  background: var(--surface-3);
+}
+.node-icon-trigger-preview {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 25%, var(--border));
+  border-radius: 8px;
+  color: var(--cyan);
+}
+.node-icon-trigger > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.node-icon-trigger strong {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.node-icon-trigger small {
+  color: var(--dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+}
+.icon-picker-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--muted);
+}
+.icon-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--bg) 76%, transparent);
+  backdrop-filter: blur(5px);
+}
+.icon-picker {
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  gap: 10px;
+  width: min(680px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 15px;
+  background: var(--surface);
+  box-shadow: 0 24px 80px color-mix(in srgb, var(--bg) 75%, transparent);
+}
+.icon-picker > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.icon-picker > header > div {
+  display: grid;
+  gap: 2px;
+}
+.icon-picker > header span {
+  color: var(--cyan);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.icon-picker > header strong {
+  font-size: 15px;
+}
+.icon-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  padding: 0 10px;
+  background: var(--surface-2);
+  color: var(--dim);
+}
+.icon-picker-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+.icon-picker-categories {
+  display: flex;
+  gap: 5px;
+  margin: 0;
+  border: 0;
+  padding: 0 0 2px;
+  overflow-x: auto;
+}
+.icon-picker-categories button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: transparent;
+  color: var(--dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.icon-picker-categories button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--cyan) 45%, var(--border));
+  background: color-mix(in srgb, var(--cyan) 10%, var(--surface));
+  color: var(--cyan);
+}
+.icon-picker-automatic {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 28%, var(--border));
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--cyan) 6%, var(--surface-2));
+  color: var(--cyan);
+  text-align: left;
+}
+.icon-picker-automatic span {
+  display: grid;
+  gap: 2px;
+}
+.icon-picker-automatic strong {
+  color: var(--text);
+  font-size: 9px;
+}
+.icon-picker-automatic small {
+  color: var(--dim);
+  font-size: 7px;
+}
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 6px;
+  min-height: 140px;
+  overflow-y: auto;
+  padding-right: 3px;
+  content-visibility: auto;
+}
+.icon-picker-grid button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  min-height: 76px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.icon-picker-grid button:hover,
+.icon-picker-grid button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--cyan) 55%, var(--border));
+  background: color-mix(in srgb, var(--cyan) 9%, var(--surface));
+  color: var(--cyan);
+}
+.icon-picker-grid button span {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.icon-picker-grid > p {
+  grid-column: 1 / -1;
+  align-self: center;
+  color: var(--dim);
+  text-align: center;
+}
 .node-alert {
   margin-left: auto;
   color: var(--gold);
