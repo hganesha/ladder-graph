@@ -939,6 +939,7 @@ export default function BundleStudio({
                   key={bundle.spec.workflowRef}
                   onApplySource={applyWorkflowSource}
                   source={workflowSource}
+                  target={target}
                   workflow={workflowDefinition}
                 />
               ) : (

@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Braces,
   Cable,
+  Check,
   CheckCircle2,
   ChevronDown,
   CircleHelp,
@@ -27,6 +28,8 @@ import { Brand } from "./Brand";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function StudioHeader({
+  onApply,
+  onBack,
   onHelp,
   onSearch,
   onStorage,
@@ -34,6 +37,8 @@ export function StudioHeader({
   mcpPaired,
   onExportImage,
 }: {
+  onApply?: () => void;
+  onBack?: () => void;
   onHelp: () => void;
   onSearch?: () => void;
   onStorage: () => void;
@@ -89,7 +94,12 @@ export function StudioHeader({
   return (
     <header className="studio-header">
       <div className="header-left">
-        <button className="icon-button" aria-label="Back to gallery" title="Back to gallery" onClick={() => state.setView("gallery")}>
+        <button
+          className="icon-button"
+          aria-label={onBack ? "Back to bundle" : "Back to gallery"}
+          title={onBack ? "Back to bundle" : "Back to gallery"}
+          onClick={onBack ?? (() => state.setView("gallery"))}
+        >
           <ArrowLeft size={16} />
         </button>
         <Brand compact />
@@ -230,6 +240,17 @@ export function StudioHeader({
           <WandSparkles size={15} />
           <span>{state.busy ? "Checking…" : "Compile"}</span>
         </button>
+        {onApply ? (
+          <button
+            className="compile-button studio-apply-button"
+            disabled={state.busy || !state.analysis?.ok}
+            onClick={onApply}
+            type="button"
+          >
+            <Check size={15} />
+            <span>Apply to bundle</span>
+          </button>
+        ) : null}
         <button
           className={`mcp-status-button ${mcpPaired ? "paired" : ""}`}
           title={mcpPaired ? "MCP paired — open companion settings" : "Set up MCP companion"}

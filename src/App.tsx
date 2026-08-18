@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
 import { Studio } from "./components/Studio";
 import { UniversalCatalogSearch } from "./components/UniversalCatalogSearch";
 import { CATALOG_SEARCH_SUBJECTS, Welcome } from "./components/Welcome";
@@ -23,14 +23,6 @@ export default function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        event.preventDefault();
-        void useStudioStore.getState().compile();
-      }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        void (event.shiftKey ? useStudioStore.getState().redo() : useStudioStore.getState().undo());
-      }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setCatalogSearchOpen(true);

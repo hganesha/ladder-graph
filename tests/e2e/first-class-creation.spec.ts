@@ -37,11 +37,12 @@ test("creates a bundle as a first-class project", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Facilities operations bundle" })).toBeVisible();
   await page.getByRole("tab", { name: "Workflow graph" }).click();
   await expect(page.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeVisible();
-  await page.getByRole("button", { name: "Edit workflow" }).click();
-  const sourceEditor = page.getByLabel("Bundled workflow YAML source");
-  const source = await sourceEditor.inputValue();
-  await sourceEditor.fill(source.replace(/title: .*/u, "title: Facilities editable workflow"));
-  await page.getByRole("button", { name: "Apply workflow changes" }).click();
+  await page.getByRole("button", { name: "Edit workflow", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Bundled workflow editor" })).toBeVisible();
+  await expect(page.getByLabel("Node and template palette")).toBeVisible();
+  await page.getByLabel("Workflow name").fill("Facilities editable workflow");
+  await page.getByLabel("Workflow name").blur();
+  await page.getByRole("button", { name: "Apply to bundle" }).click();
   await expect(page.getByRole("heading", { name: "Facilities editable workflow" })).toBeVisible();
 });
 
