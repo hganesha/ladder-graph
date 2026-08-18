@@ -1,0 +1,378 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-photo-03
+  title: Cull, edit, and sequence a shoot
+  description: Collapse near-identical takes, score what survives, cut to length, then build the opening,
+    body, and close in order and critique the sequence as a whole.
+  version: 1.0.0
+spec:
+  objective: Turn a full take from a shoot into an edit that reads as one body of work, where every surviving
+    frame has a stated job in the sequence and the cut is defensible.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: The full take and the story it is for
+      summary: The full take and the story it is for
+      inputSchema:
+        type: object
+        required:
+          - assets
+          - instructions
+        properties:
+          assets:
+            type: array
+            minItems: 1
+            maxItems: 12
+            items:
+              type: object
+              required:
+                - uri
+                - mediaType
+              properties:
+                uri:
+                  type: string
+                  description: A host-provided data URL, local file reference, uploaded-asset identifier,
+                    or authorized HTTPS URL. Ladder Graph does not upload or fetch the asset.
+                mediaType:
+                  type: string
+                  pattern: ^(image|audio|video|application)/
+                name:
+                  type: string
+          instructions:
+            type: string
+          sourceRights:
+            type: string
+            description: User-supplied rights, consent, release, or provenance context when relevant.
+          workflowFields:
+            type: object
+            required:
+              - stated_story
+              - genre
+              - target_count
+              - viewing_context
+            properties:
+              stated_story: {}
+              genre: {}
+              target_count: {}
+              viewing_context: {}
+        x-ladder-input-mode: mixed
+    - id: n-dedupe
+      kind: transform
+      name: Collapse the bursts to one frame each
+      summary: collapse near-identical frames from the same burst or setup to the strongest representative
+        of each
+      config:
+        operation: deduplicate
+        expression: collapse near-identical frames from the same burst or setup to the strongest representative
+          of each
+    - id: n-score
+      kind: agent
+      templateRef: photo-02
+      name: Score every surviving frame
+      summary: Score every surviving frame on its own terms before anything is cut.
+      role: Analyst working frame geometry, subject placement, edges, and visual weight.
+      prompt: You are a Composition & Framing Analyst. You work the geometry of the frame — where the
+        subject sits, what the edges do, how negative space and visual weight balance, where the eye enters
+        and where it leaves — and you say what the composition is doing for the picture rather than scoring
+        it against a rule. You treat compositional 'rules' as descriptions of what often works and not
+        as requirements, you flag the edge and background problems photographers stop seeing in their
+        own work, and you separate a frame that breaks a convention deliberately from one that breaks
+        it accidentally.
+      capabilities:
+        skills:
+          - decision-analysis
+          - evaluation
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - frame
+          - strength
+          - role_in_set
+          - reason
+        properties:
+          frame: {}
+          strength: {}
+          role_in_set: {}
+          reason: {}
+    - id: n-rank
+      kind: transform
+      name: Rank by strength
+      summary: sort by strength against the stated story descending, then by what the frame contributes
+        that no other frame does
+      config:
+        operation: sort
+        expression: sort by strength against the stated story descending, then by what the frame contributes
+          that no other frame does
+    - id: n-cut
+      kind: transform
+      name: Cut to the target length
+      summary: take the first target_count frames as the working edit
+      config:
+        operation: slice
+        expression: take the first target_count frames as the working edit
+    - id: n-section1
+      kind: agent
+      templateRef: photo-07
+      name: Opening frames
+      summary: The frames that set the terms of the sequence.
+      role: Picture editor selecting and ordering a set so it reads as one body of work.
+      prompt: You are a Photo Editor & Sequencing Specialist. You select against the story rather than
+        against individual frame quality — the strongest single picture is often the wrong opener — and
+        you order a set so that adjacent frames do work for each other rather than repeating each other.
+        You cut redundancy hard, including frames the photographer is attached to, and you say what each
+        surviving frame is doing in the sequence, because an edit nobody can explain is a gallery, not
+        a story.
+      capabilities:
+        skills:
+          - writing-editing
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-section2
+      kind: agent
+      templateRef: photo-07
+      name: Body of the sequence
+      summary: The frames that carry the story and its variation.
+      role: Picture editor selecting and ordering a set so it reads as one body of work.
+      prompt: You are a Photo Editor & Sequencing Specialist. You select against the story rather than
+        against individual frame quality — the strongest single picture is often the wrong opener — and
+        you order a set so that adjacent frames do work for each other rather than repeating each other.
+        You cut redundancy hard, including frames the photographer is attached to, and you say what each
+        surviving frame is doing in the sequence, because an edit nobody can explain is a gallery, not
+        a story.
+      capabilities:
+        skills:
+          - writing-editing
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-section3
+      kind: agent
+      templateRef: photo-07
+      name: Closing frames
+      summary: The frames that land the sequence.
+      role: Picture editor selecting and ordering a set so it reads as one body of work.
+      prompt: You are a Photo Editor & Sequencing Specialist. You select against the story rather than
+        against individual frame quality — the strongest single picture is often the wrong opener — and
+        you order a set so that adjacent frames do work for each other rather than repeating each other.
+        You cut redundancy hard, including frames the photographer is attached to, and you say what each
+        surviving frame is doing in the sequence, because an edit nobody can explain is a gallery, not
+        a story.
+      capabilities:
+        skills:
+          - writing-editing
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-assemble
+      kind: aggregator
+      name: Assemble the edit in viewing order
+      summary: Preserve the declared order exactly; a sequence is ordered assembly, not a merge of opinions.
+      config:
+        aggregation: concat
+    - id: n-critique
+      kind: teacher
+      inlineRole: true
+      name: Critique the sequence as a whole
+      summary: Critique feedback from a host-resolved teacher model.
+      role: Host-resolved teacher model
+      prompt: 'You are the critique teacher for this edit. Read it in order, the way a viewer will: where
+        does the sequence repeat itself, where does a strong single frame stop the flow, where does the
+        edit lose the story, and is the opener doing the job an opener has to do? Comment on the sequence,
+        not on individual frames in isolation.'
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        teacherModel: host:teacher-model
+        feedbackMode: critique
+    - id: n-quality
+      kind: evaluate
+      inlineRole: true
+      name: Score the edit
+      summary: Evaluate narrative arc, absence of redundancy, and whether each frame has a stated job.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against narrative arc, absence of redundancy, and whether each
+        frame has a stated job. Return a score, pass/fail verdict, the evidence behind the verdict, remaining
+        uncertainty, and the smallest corrective action. Do not claim programmatic measurement unless
+        the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.8
+    - id: n-accept
+      kind: condition
+      name: Edit holds?
+      summary: Route on quality.passed.
+      config:
+        expression: quality.passed
+        branches:
+          - label: Accept
+            when: 'true'
+          - label: Re-edit
+            when: 'false'
+    - id: n-revise
+      kind: agent
+      templateRef: photo-07
+      name: Re-cut against the sequence critique
+      summary: Re-cut against the sequence critique.
+      role: Picture editor selecting and ordering a set so it reads as one body of work.
+      prompt: You are a Photo Editor & Sequencing Specialist. You select against the story rather than
+        against individual frame quality — the strongest single picture is often the wrong opener — and
+        you order a set so that adjacent frames do work for each other rather than repeating each other.
+        You cut redundancy hard, including frames the photographer is attached to, and you say what each
+        surviving frame is doing in the sequence, because an edit nobody can explain is a gallery, not
+        a story.
+      capabilities:
+        skills:
+          - writing-editing
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Photographer signs off on the final edit
+      summary: Pause for the photographer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Cull, edit, and sequence a shoot deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-photo-03-edge-1
+      from: n-intake
+      to: n-dedupe
+      kind: data
+    - id: wf-photo-03-edge-2
+      from: n-dedupe
+      to: n-score
+      kind: data
+    - id: wf-photo-03-edge-3
+      from: n-score
+      to: n-rank
+      kind: data
+    - id: wf-photo-03-edge-4
+      from: n-rank
+      to: n-cut
+      kind: data
+    - id: wf-photo-03-edge-5
+      from: n-cut
+      to: n-section1
+      kind: data
+    - id: wf-photo-03-edge-6
+      from: n-cut
+      to: n-section2
+      kind: data
+    - id: wf-photo-03-edge-7
+      from: n-cut
+      to: n-section3
+      kind: data
+    - id: wf-photo-03-edge-8
+      from: n-section1
+      to: n-assemble
+      kind: data
+    - id: wf-photo-03-edge-9
+      from: n-section2
+      to: n-assemble
+      kind: data
+    - id: wf-photo-03-edge-10
+      from: n-section3
+      to: n-assemble
+      kind: data
+    - id: wf-photo-03-edge-11
+      from: n-assemble
+      to: n-critique
+      kind: data
+    - id: wf-photo-03-edge-12
+      from: n-critique
+      to: n-quality
+      kind: data
+    - id: wf-photo-03-edge-13
+      from: n-quality
+      to: n-accept
+      kind: data
+    - id: wf-photo-03-edge-14
+      from: n-accept
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-photo-03-edge-15
+      from: n-accept
+      to: n-revise
+      kind: control
+      condition: 'false'
+    - id: wf-photo-03-edge-16
+      from: n-revise
+      to: n-approval
+      kind: data
+    - id: wf-photo-03-edge-17
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

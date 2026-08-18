@@ -120,7 +120,7 @@ describe("bundle workspace", () => {
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
-    fireEvent.click(screen.getByRole("button", { name: "Edit workflow" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit workflow YAML" }));
     const editor = screen.getByLabelText("Bundled workflow YAML source") as HTMLTextAreaElement;
     const workflow = parse(editor.value);
     workflow.metadata.title = "Editable bundled workflow";
@@ -131,6 +131,41 @@ describe("bundle workspace", () => {
     const editedAssets = compileBundle.mock.calls.at(-1)?.[1] as Array<{ ref: string; source: string }>;
     expect(editedAssets.find((asset) => asset.ref.endsWith("/wf-insr-01"))?.source).toContain("Editable bundled workflow");
     expect(screen.getByRole("heading", { name: "Editable bundled workflow" })).toBeInTheDocument();
+  });
+
+  it("edits the attached workflow visually and recompiles the bundle-owned asset", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit workflow visually" }));
+    fireEvent.change(screen.getByLabelText("Selected workflow node name"), { target: { value: "Visually edited intake" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add Agent" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply visual changes" }));
+
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
+    const editedAssets = compileBundle.mock.calls.at(-1)?.[1] as Array<{ ref: string; source: string }>;
+    const editedWorkflow = editedAssets.find((asset) => asset.ref.endsWith("/wf-insr-01"))?.source;
+    expect(editedWorkflow).toContain("Visually edited intake");
+    expect(editedWorkflow).toContain("name: Agent");
+  });
+
+  it("attaches, replaces, and removes the bundle ontology from a dedicated selector", async () => {
+    render(<BundleStudio initialTemplateId="__new__" onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    const ontology = screen.getByLabelText("Bundle ontology");
+    expect(ontology).toHaveValue("");
+    fireEvent.change(ontology, { target: { value: "ladder://ontologies/builtin/insurance" } });
+    await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://ontologies/builtin/insurance"));
+
+    fireEvent.change(screen.getByLabelText("Bundle ontology"), {
+      target: { value: "ladder://ontologies/builtin/manufacturing" },
+    });
+    await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://ontologies/builtin/manufacturing"));
+
+    fireEvent.change(screen.getByLabelText("Bundle ontology"), { target: { value: "" } });
+    await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).not.toContain("ontology:"));
   });
 
   it("opens a selected curated bundle instead of always falling back to insurance", async () => {
@@ -194,7 +229,7 @@ spec:
     ]);
 
     render(<BundleStudio initialTemplateId="__new__" onBack={() => undefined} />);
-    await waitFor(() => expect(screen.getByRole("option", { name: /My library ·/ })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("option", { name: "My library · Draft, critique, revise" })).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText("Workflow"), { target: { value: "local-workflow" } });
     await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://workflows/local/local-workflow"));

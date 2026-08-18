@@ -1,0 +1,331 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-photo-01
+  title: Blind critique panel on a single frame
+  description: Four critics read the same photograph blind — light, composition, perspective, technical
+    — their notes stay attributable by dimension, and a teacher model weighs them against the stated intent
+    into a ranked revision plan.
+  version: 1.0.0
+spec:
+  objective: Give a photographer feedback that separates faults from choices, stays attributable to the
+    dimension it came from, and ends in a short ranked list of what to change rather than an undifferentiated
+    pile of observations.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: The photograph and the photographer's intent
+      summary: The photograph and the photographer's intent
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - instructions
+        properties:
+          asset:
+            type: string
+            contentMediaType: image/*
+            description: A host-provided data URL, local file reference, uploaded-asset identifier, or
+              authorized HTTPS URL. Ladder Graph does not upload or fetch the asset.
+          instructions:
+            type: string
+            description: What the workflow should assess, transform, or create, including the stated intent.
+          sourceRights:
+            type: string
+            description: User-supplied rights, consent, release, or provenance context when relevant.
+          workflowFields:
+            type: object
+            required:
+              - stated_intent
+              - genre
+              - capture_context
+              - intended_output
+            properties:
+              stated_intent: {}
+              genre: {}
+              capture_context: {}
+              intended_output: {}
+        x-ladder-input-mode: image
+    - id: n-critic1
+      kind: agent
+      templateRef: photo-01
+      name: Light and exposure critique
+      summary: Reads the light and what the exposure protected. Read independently, without sight of the
+        other critiques.
+      role: Critic reading the light in a frame — quality, direction, ratio, and what the exposure protected.
+      prompt: 'You are a Lighting & Exposure Critic. You describe the light actually in the frame — its
+        quality, direction, ratio, and colour — and judge the exposure by what it protected and what it
+        gave up, not by a histogram shape: a deliberately low-key frame with crushed shadows and a badly
+        underexposed one look similar in a thumbnail and are not the same picture. You judge against the
+        photographer''s stated intent and the conventions of the genre, you name the region you are talking
+        about, and you say plainly when the file you were given — a small preview, a baked JPEG, no EXIF
+        — cannot support the judgement being asked of you.'
+      capabilities:
+        skills:
+          - evaluation
+          - teaching
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - observations
+          - severity
+          - region
+          - intentional_or_fault
+        properties:
+          observations: {}
+          severity: {}
+          region: {}
+          intentional_or_fault: {}
+    - id: n-critic2
+      kind: agent
+      templateRef: photo-02
+      name: Composition and framing critique
+      summary: Works the geometry of the frame. Read independently, without sight of the other critiques.
+      role: Analyst working frame geometry, subject placement, edges, and visual weight.
+      prompt: You are a Composition & Framing Analyst. You work the geometry of the frame — where the
+        subject sits, what the edges do, how negative space and visual weight balance, where the eye enters
+        and where it leaves — and you say what the composition is doing for the picture rather than scoring
+        it against a rule. You treat compositional 'rules' as descriptions of what often works and not
+        as requirements, you flag the edge and background problems photographers stop seeing in their
+        own work, and you separate a frame that breaks a convention deliberately from one that breaks
+        it accidentally.
+      capabilities:
+        skills:
+          - decision-analysis
+          - evaluation
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - observations
+          - severity
+          - region
+          - intentional_or_fault
+        properties:
+          observations: {}
+          severity: {}
+          region: {}
+          intentional_or_fault: {}
+    - id: n-critic3
+      kind: agent
+      templateRef: photo-03
+      name: Perspective and lens critique
+      summary: Reads viewpoint, distance, and focal length. Read independently, without sight of the other
+        critiques.
+      role: Advisor on viewpoint, focal length, and the distortions each choice commits to.
+      prompt: 'You are a Perspective & Lens Advisor. You read camera height, distance, and focal length
+        from the picture''s geometry — compression, convergence, the relationship between foreground and
+        background — and you say which of those a different choice would have changed. You are the one
+        who has to say that perspective is fixed at the moment of exposure: a distance or viewpoint problem
+        cannot be corrected in processing, and telling a photographer otherwise wastes the reshoot they
+        should have been told to plan.'
+      capabilities:
+        skills:
+          - decision-analysis
+          - domain-analysis
+          - evaluation
+          - design-review
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - observations
+          - severity
+          - region
+          - intentional_or_fault
+        properties:
+          observations: {}
+          severity: {}
+          region: {}
+          intentional_or_fault: {}
+    - id: n-critic4
+      kind: agent
+      templateRef: photo-04
+      name: Focus and technical critique
+      summary: Separates technical faults from choices. Read independently, without sight of the other
+        critiques.
+      role: Inspector separating technical faults from stylistic choices in sharpness, motion, and noise.
+      prompt: 'You are a Focus & Technical Quality Inspector. You assess focus placement and depth of
+        field against what the picture is about, and you distinguish the causes that look alike at a glance
+        — missed focus, subject motion, camera shake, diffraction, over-sharpening, aggressive noise reduction
+        — because each one has a different fix and a different prevention. You separate a fault from a
+        choice: motion blur on a moving subject may be the picture, and you say which reading the evidence
+        in the frame supports rather than defaulting to ''soft''.'
+      capabilities:
+        skills:
+          - teaching
+          - video-processing
+          - decision-analysis
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - observations
+          - severity
+          - region
+          - intentional_or_fault
+        properties:
+          observations: {}
+          severity: {}
+          region: {}
+          intentional_or_fault: {}
+    - id: n-collect
+      kind: aggregator
+      name: Collect the critiques by dimension
+      summary: Source-tag every observation to the dimension it came from, so the photographer can see
+        which critic said what rather than one undifferentiated list.
+      config:
+        aggregation: collect
+    - id: n-synthesis
+      kind: teacher
+      inlineRole: true
+      name: Synthesize the critique
+      summary: Weigh the collected observations against the stated intent and genre, rather than treating
+        every note as equally important.
+      role: Host-resolved teacher model
+      prompt: 'You are the critique teacher for this frame. You have four independent readings and the
+        photographer''s stated intent. Weigh them: which observations actually matter for what this picture
+        is trying to be, which are true but irrelevant to the intent, and where do two critics disagree
+        about whether something is a fault or a choice? Return a synthesis that names the two or three
+        changes that would most improve the picture, and say explicitly what is already working and should
+        not be touched.'
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+      config:
+        teacherModel: host:teacher-model
+        feedbackMode: critique
+    - id: n-rank
+      kind: transform
+      name: Rank revisions by effect on the intent
+      summary: sort the revisions by effect on the stated intent descending, then by whether the change
+        is possible in processing
+      config:
+        operation: sort
+        expression: sort the revisions by effect on the stated intent descending, then by whether the
+          change is possible in processing
+    - id: n-plan
+      kind: agent
+      templateRef: photo-05
+      name: Revision plan and next-shot notes
+      summary: Turn the ranked critique into what to change, and what to leave alone.
+      role: Colourist judging white balance, tonal structure, skin, and consistency across a set.
+      prompt: You are a Colour & Tone Grading Reviewer. You judge white balance and tonal structure against
+        the intent and the output medium, pay particular attention to skin rendering and to colour casts
+        that only show in the neutrals, and you check a set for grade drift frame to frame rather than
+        judging each picture alone. You state which of your observations depend on the display and colour
+        space the file was prepared for, because a grade that is wrong on a calibrated display and a grade
+        that is wrong only on this viewer are different problems.
+      capabilities:
+        skills:
+          - evaluation
+          - teaching
+          - decision-analysis
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-approval
+      kind: approval
+      name: Photographer accepts the critique before anything is re-edited
+      summary: Pause for the photographer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Blind critique panel on a single frame deliverable, the evidence behind
+        it, and every unresolved item.
+  edges:
+    - id: wf-photo-01-edge-1
+      from: n-intake
+      to: n-critic1
+      kind: data
+    - id: wf-photo-01-edge-2
+      from: n-intake
+      to: n-critic2
+      kind: data
+    - id: wf-photo-01-edge-3
+      from: n-intake
+      to: n-critic3
+      kind: data
+    - id: wf-photo-01-edge-4
+      from: n-intake
+      to: n-critic4
+      kind: data
+    - id: wf-photo-01-edge-5
+      from: n-critic1
+      to: n-collect
+      kind: data
+    - id: wf-photo-01-edge-6
+      from: n-critic2
+      to: n-collect
+      kind: data
+    - id: wf-photo-01-edge-7
+      from: n-critic3
+      to: n-collect
+      kind: data
+    - id: wf-photo-01-edge-8
+      from: n-critic4
+      to: n-collect
+      kind: data
+    - id: wf-photo-01-edge-9
+      from: n-collect
+      to: n-synthesis
+      kind: data
+    - id: wf-photo-01-edge-10
+      from: n-synthesis
+      to: n-rank
+      kind: data
+    - id: wf-photo-01-edge-11
+      from: n-rank
+      to: n-plan
+      kind: data
+    - id: wf-photo-01-edge-12
+      from: n-plan
+      to: n-approval
+      kind: data
+    - id: wf-photo-01-edge-13
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

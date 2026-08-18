@@ -60,6 +60,12 @@ export function BundleAssetPicker({
   ]);
   const workflowId = workflowChoices.find((choice) => choice.ref === bundle.spec.workflowRef)?.id ?? workflowChoices[0]?.id ?? "";
   const workflow = workflowChoices.find((choice) => choice.id === workflowId) ?? bundleAsset(bundle.spec.workflowRef);
+  const ontologyTemplates = useMemo(
+    () =>
+      assetTemplates.filter((template) => template.kind === "ontology").toSorted((left, right) => left.title.localeCompare(right.title)),
+    [assetTemplates],
+  );
+  const attachedOntology = ontologyTemplates.find((template) => template.ref === bundle.spec.ontology?.ref);
   const recommendedBundle = useMemo(
     () =>
       ARTIFACT_TEMPLATES.filter((template) => template.kind === "workflow-bundle")
@@ -111,6 +117,34 @@ export function BundleAssetPicker({
         <small>{workflow?.description}</small>
       </label>
 
+      <label className="bundle-ontology-select">
+        <span>
+          <PackageOpen size={14} /> Ontology
+        </span>
+        <select
+          aria-label="Bundle ontology"
+          onChange={(event) => {
+            const nextRef = event.target.value;
+            const currentRef = bundle.spec.ontology?.ref;
+            if (!nextRef) {
+              if (currentRef) onDetach(currentRef);
+              return;
+            }
+            const template = ontologyTemplates.find((candidate) => candidate.ref === nextRef);
+            if (template) onAttach(template);
+          }}
+          value={bundle.spec.ontology?.ref ?? ""}
+        >
+          <option value="">No ontology attached</option>
+          {ontologyTemplates.map((template) => (
+            <option key={template.ref} value={template.ref}>
+              {template.ref.includes("/local/") ? `My library · ${template.title}` : template.title}
+            </option>
+          ))}
+        </select>
+        <small>{attachedOntology?.description ?? "Attach a catalog or saved ontology, then choose workflow sliver or full output."}</small>
+      </label>
+
       {recommendedBundle ? (
         <aside className="bundle-compatibility-card" aria-label="Curated bundle recommendation">
           <span>
@@ -134,7 +168,7 @@ export function BundleAssetPicker({
           <input
             aria-label="Search bundle assets"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search 55 DocuBricks schemas…"
+            placeholder="Search schemas…"
             type="search"
             value={query}
           />
