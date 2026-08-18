@@ -1,0 +1,101 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: insurance-claim-file
+  title: Insurance claim file
+  description: Supporting document contract normalized from DocuBricks; it is not rendered as a form.
+  version: 1.0.0
+  source:
+    system: docubricks
+    sourceId: insurance_insurance_claim_file_v1
+    sourcePath: Schemas/insurance/insurance_claim_file
+    sourceVersion: insurance_insurance_claim_file_v1
+spec:
+  documentType: insurance_claim_file
+  fields:
+    - id: claim-number
+      name: claim_number
+      label: Claim number
+      description: Claim number or file identifier.
+      dataType: string
+      required: true
+      ontologyPropertyRef: insurance_claim.claim_number
+    - id: policy-number
+      name: policy_number
+      label: Policy number
+      dataType: string
+      required: true
+      ontologyPropertyRef: insurance_policy.policy_number
+    - id: insured-name
+      name: insured_name
+      label: Insured name
+      dataType: string
+      ontologyPropertyRef: insured_party.insured_name
+    - id: claimant-name
+      name: claimant_name
+      label: Claimant name
+      dataType: string
+      ontologyPropertyRef: insured_party.claimant_name
+    - id: loss-date
+      name: loss_date
+      label: Loss date
+      dataType: date
+      required: true
+      ontologyPropertyRef: loss_event.loss_date
+    - id: loss-description
+      name: loss_description
+      label: Loss description
+      dataType: string
+      ontologyPropertyRef: loss_event.loss_description
+    - id: claim-status
+      name: claim_status
+      label: Claim status
+      dataType: string
+      ontologyPropertyRef: insurance_claim.claim_status
+    - id: reserve-amount
+      name: reserve_amount
+      label: Reserve amount
+      dataType: number
+      ontologyPropertyRef: insurance_claim.reserve_amount
+    - id: paid-amount
+      name: paid_amount
+      label: Paid amount
+      dataType: number
+      ontologyPropertyRef: insurance_claim.paid_amount
+    - id: coverage-position
+      name: coverage_position
+      label: Coverage position
+      dataType: string
+      ontologyPropertyRef: coverage.coverage_position
+  sections:
+    - id: document-details
+      title: Document details
+      fieldIds: [claim-number, loss-description, claim-status]
+    - id: policy-and-parties
+      title: Policy and parties
+      fieldIds: [policy-number, insured-name, claimant-name]
+    - id: loss-and-financials
+      title: Loss and financials
+      fieldIds: [loss-date, reserve-amount, paid-amount, coverage-position]
+  validationRules:
+    - id: claim-number-present
+      severity: error
+      description: Claim number is required.
+      supported: true
+      rule:
+        op: present
+        field: claim_number
+    - id: reserve-non-negative
+      severity: warning
+      description: Reserve amount should be non-negative when present.
+      supported: true
+      rule:
+        op: gte
+        left: { field: reserve_amount }
+        right: { value: 0 }
+  reviewPolicy:
+    lowConfidenceAction: human-review
+  outputSchema: {}
+  inertSourceMetadata:
+    promptId: prompt_v1.txt
+    modelRoutingId: model_routing.json

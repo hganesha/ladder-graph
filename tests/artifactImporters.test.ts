@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
+import latticeReport from "../catalog/imports/lattice-import-report.json";
 import { importDocuBricksSchema, importLatticeOntology } from "../src/compiler/artifacts/importers";
 
 describe("portable artifact importers", () => {
+  it("publishes a traceable report for every curated Lattice ontology import", () => {
+    expect(latticeReport.imports).toHaveLength(7);
+    expect(latticeReport.imports.every((entry) => entry.sourceDigest.startsWith("sha256:"))).toBe(true);
+    expect(latticeReport.imports.every((entry) => entry.omittedSemantics.includes("runtime behavior"))).toBe(true);
+  });
   it("imports only ontology semantics from a Lattice export", () => {
     const result = importLatticeOntology(
       JSON.stringify({

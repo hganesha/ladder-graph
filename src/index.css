@@ -711,20 +711,50 @@ button:disabled {
   gap: 7px;
   margin-top: 14px;
 }
-.recent-list button {
+.recent-project-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid #20292f;
+  border-radius: 10px;
+  background: #0c1114;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+.recent-project-card:hover,
+.recent-project-card:focus-within {
+  border-color: #3d4b53;
+  background: #10161a;
+}
+.recent-project-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
   width: 100%;
   text-align: left;
-  border: 1px solid #20292f;
-  border-radius: 10px;
+  border: 0;
   padding: 12px 14px;
-  background: #0c1114;
+  background: transparent;
 }
-.recent-list button:hover {
-  border-color: #3d4b53;
-  background: #10161a;
+.recent-project-delete {
+  display: grid;
+  width: 40px;
+  place-items: center;
+  border: 0;
+  border-left: 1px solid #20292f;
+  background: transparent;
+  color: #74818a;
+}
+.recent-project-delete:hover:not(:disabled),
+.recent-project-delete:focus-visible {
+  background: color-mix(in srgb, #e86b5d 12%, transparent);
+  color: #f08a7d;
+}
+.recent-project-delete:disabled {
+  cursor: wait;
+  opacity: 0.5;
 }
 .recent-list strong,
 .recent-list small {
@@ -737,6 +767,11 @@ button:disabled {
   margin-top: 4px;
   color: #6f7c84;
   font-size: 9px;
+}
+.recent-project-error {
+  margin-top: 12px;
+  color: #f08a7d;
+  font-size: 11px;
 }
 .recent-empty {
   display: grid;
@@ -2137,9 +2172,95 @@ button:disabled {
   padding: 6px 9px;
   font-size: 9px;
 }
+.ontology-view-switch {
+  display: inline-flex;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+}
+.ontology-view-switch button {
+  min-height: 28px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  padding: 5px 9px;
+  color: var(--dim);
+  background: transparent;
+  font: inherit;
+  font-size: 9px;
+  cursor: pointer;
+}
+.ontology-view-switch button:last-child {
+  border-right: 0;
+}
+.ontology-view-switch button.active {
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 12%, var(--surface));
+}
 .ontology-graph-canvas {
   min-width: 0;
   min-height: 520px;
+}
+.ontology-tree {
+  min-height: 520px;
+  margin: 0;
+  padding: 12px;
+  background: var(--bg);
+  list-style: none;
+}
+.ontology-tree > li {
+  border-bottom: 1px solid var(--border);
+}
+.ontology-tree > li > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 10px 8px;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.ontology-tree > li > button.active {
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 9%, transparent);
+}
+.ontology-tree > li > button > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+.ontology-tree small,
+.ontology-tree-count {
+  color: var(--dim);
+  font-size: 8px;
+}
+.ontology-tree-children {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px 10px 34px;
+  list-style: none;
+}
+.ontology-tree-children > li:not(.ontology-tree-relationships) {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  font-size: 9px;
+}
+.ontology-tree-relationships {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 5px;
+  color: var(--dim);
+  font-size: 8px;
 }
 .ontology-graph-node {
   position: relative;
@@ -2559,6 +2680,30 @@ button:disabled {
 }
 .ontology-sliver-result p {
   grid-column: 1 / -1;
+}
+.ontology-usage-list {
+  display: grid;
+  gap: 5px;
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ontology-usage-list li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: var(--surface-2);
+  font-size: 8px;
+}
+.ontology-usage-list li > span {
+  color: var(--cyan);
+  text-transform: uppercase;
 }
 .document-detail-card dl {
   display: grid;
@@ -5849,6 +5994,23 @@ button:disabled {
 :root[data-theme="light"] .recent-list button:hover {
   background: var(--surface-3);
   color: var(--text);
+}
+:root[data-theme="light"] .recent-project-card {
+  border-color: var(--border);
+  background: var(--surface);
+}
+:root[data-theme="light"] .recent-project-card:hover,
+:root[data-theme="light"] .recent-project-card:focus-within {
+  border-color: color-mix(in srgb, var(--muted) 55%, var(--border));
+}
+:root[data-theme="light"] .recent-project-delete {
+  border-left-color: var(--border);
+  color: var(--muted);
+}
+:root[data-theme="light"] .recent-project-delete:hover:not(:disabled),
+:root[data-theme="light"] .recent-project-delete:focus-visible {
+  background: color-mix(in srgb, #d84f42 10%, var(--surface));
+  color: #b83b31;
 }
 :root[data-theme="light"] .palette .role-category {
   border-color: var(--border);

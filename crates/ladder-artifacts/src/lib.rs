@@ -128,6 +128,7 @@ pub fn compile_bundle(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde::Deserialize;
 
     const ONTOLOGY: &str = include_str!("../../../catalog/ontologies/insurance.yaml");
     const FORM: &str = include_str!("../../../catalog/forms/first-notice-of-loss.yaml");
@@ -136,6 +137,17 @@ mod tests {
     const BUNDLE: &str = include_str!("../../../catalog/bundles/insurance-claim-review.yaml");
     const WORKFLOW: &str = include_str!("../../../catalog/workflows/wf-insr-01.yaml");
 
+    #[derive(Deserialize)]
+    struct ParityFixture {
+        cases: Vec<ParityCase>,
+    }
+
+    #[derive(Deserialize)]
+    struct ParityCase {
+        id: String,
+        source: String,
+    }
+
     #[test]
     fn parses_all_artifact_kinds() {
         for source in [ONTOLOGY, FORM, DOCUMENT, BUNDLE] {
@@ -143,6 +155,49 @@ mod tests {
             assert!(result.ok, "{:?}", result.diagnostics);
             assert!(!result.source_hash.is_empty());
         }
+    }
+
+    #[test]
+    fn shared_parity_fixtures_have_stable_results() {
+        let fixtures: ParityFixture =
+            serde_json::from_str(include_str!("../../../fixtures/artifacts/parity.json")).unwrap();
+        let expected = [
+            ("valid-minimal-ontology", true, Vec::<&str>::new()),
+            ("unsupported-api-version", false, vec!["LA101"]),
+            ("yaml-anchor-rejected", false, vec!["LA004"]),
+            ("remote-reference-rejected", false, vec!["LA005"]),
+        ];
+        for (case, (id, ok, codes)) in fixtures.cases.iter().zip(expected) {
+            assert_eq!(case.id, id);
+            let result = analyze_artifact(&case.source);
+            assert_eq!(result.ok, ok, "{}", case.id);
+            assert_eq!(
+                result
+                    .diagnostics
+                    .iter()
+                    .map(|diagnostic| diagnostic.code.as_str())
+                    .collect::<Vec<_>>(),
+                codes,
+                "{}",
+                case.id
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_ontology_collection_limits() {
+        let types = (0..=security::MAX_ONTOLOGY_TYPES)
+            .map(|index| serde_json::json!({ "id": format!("type-{index}"), "label": format!("Type {index}"), "properties": [] }))
+            .collect::<Vec<_>>();
+        let source = serde_yaml_ng::to_string(&serde_json::json!({
+            "apiVersion": API_VERSION,
+            "kind": "Ontology",
+            "metadata": { "name": "oversized-ontology", "version": "1.0.0" },
+            "spec": { "types": types, "relationships": [] }
+        }))
+        .unwrap();
+        let result = analyze_artifact(&source);
+        assert!(result.diagnostics.iter().any(|item| item.code == "LO100"));
     }
 
     #[test]
@@ -189,6 +244,14 @@ mod tests {
                 .iter()
                 .any(|item| item.path == "ontology/insurance-sliver.yaml")
         );
+        let ontology = result
+            .artifacts
+            .iter()
+            .find(|item| item.path == "ontology/insurance-sliver.yaml")
+            .unwrap();
+        let ontology_value: Value = serde_yaml_ng::from_str(&ontology.content).unwrap();
+        assert!(ontology_value.pointer("/metadata/source").is_none());
+        assert!(!ontology.content.contains("sourcePath:"));
         assert_eq!(
             result.lockfile.unwrap()["assets"].as_array().unwrap().len(),
             5

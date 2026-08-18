@@ -16,6 +16,7 @@ chrono = { version = "0.4", features = ["serde"] }
 directories = "6"
 hex = "0.4"
 ladder-catalog = { path = "../ladder-catalog" }
+ladder-artifacts = { path = "../ladder-artifacts" }
 lgir-core = { path = "../lgir-core" }
 rand = "0.9"
 rmcp = { version = "3.1.2", features = ["server", "transport-io"] }

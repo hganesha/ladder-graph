@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ladder.dev/schema/form-v1alpha1.schema.json",
+  "title": "Ladder Graph Form v1alpha1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "ladder.dev/v1alpha1" },
+    "kind": { "const": "Form" },
+    "metadata": { "$ref": "ontology-v1alpha1.schema.json#/$defs/metadata" },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "pages"],
+      "properties": {
+        "role": { "enum": ["start", "clarification", "review", "approval", "exception", "completion"] },
+        "pages": { "type": "array", "items": { "$ref": "#/$defs/page" } },
+        "submissionSchema": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "label", "dataType"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+        "label": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "helpText": { "type": "string" },
+        "dataType": { "enum": ["string", "integer", "number", "boolean", "date", "datetime", "array", "object"] },
+        "widget": { "enum": ["text", "textarea", "number", "date", "datetime", "select", "radio", "checkbox", "file"] },
+        "required": { "type": "boolean" },
+        "defaultValue": {},
+        "allowedValues": { "type": "array", "items": { "type": ["string", "number", "boolean"] } },
+        "format": { "type": "string" },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" },
+        "minLength": { "type": "integer", "minimum": 0 },
+        "maxLength": { "type": "integer", "minimum": 0 },
+        "ontologyPropertyRef": { "type": "string" },
+        "workflowPath": { "type": "string" },
+        "accessibilityLabel": { "type": "string" },
+        "errorMessage": { "type": "string" },
+        "visibleWhen": { "type": "object" },
+        "enabledWhen": { "type": "object" },
+        "span": { "enum": [1, 2] }
+      }
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "fields"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "sections"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "sections": { "type": "array", "items": { "$ref": "#/$defs/section" } }
+      }
+    }
+  }
+}

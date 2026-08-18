@@ -19,6 +19,12 @@ const requested = (valueAfter("--industries") ?? "energy,financial-services,heal
 if (!sourcePath) throw new Error("Usage: node scripts/import-lattice-ontologies.mjs --source <contract-registry.json>");
 
 const registry = JSON.parse(await readFile(sourcePath, "utf8"));
+const report = {
+  schemaVersion: 1,
+  source: path.resolve(sourcePath),
+  generatedAt: new Date().toISOString(),
+  imports: [],
+};
 for (const industry of requested) {
   const workspaceId = `workspace-${industry}`;
   const sourceOntology = registry.workspaces?.[workspaceId]?.ontology;
@@ -41,7 +47,19 @@ for (const industry of requested) {
 
   const outputPath = path.resolve("catalog/ontologies", `${imported.artifact.metadata.name}.yaml`);
   await writeFile(outputPath, stringify(imported.artifact, { lineWidth: 110 }), "utf8");
+  report.imports.push({
+    workspaceId,
+    artifact: `ladder://ontologies/builtin/${imported.artifact.metadata.name}`,
+    sourceDigest: digest,
+    typeCount: imported.artifact.spec.types.length,
+    relationshipCount: imported.artifact.spec.relationships.length,
+    output: path.relative(process.cwd(), outputPath),
+    omittedSemantics: ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"],
+  });
   console.log(
     `Imported ${workspaceId}: ${imported.artifact.spec.types.length} types, ${imported.artifact.spec.relationships.length} relationships -> ${outputPath}`,
   );
 }
+const reportPath = path.resolve("catalog/imports/lattice-import-report.json");
+await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+console.log(`Wrote Lattice ontology import report -> ${reportPath}`);

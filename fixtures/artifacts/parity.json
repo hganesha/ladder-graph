@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "valid-minimal-ontology",
+      "source": "apiVersion: ladder.dev/v1alpha1\nkind: Ontology\nmetadata:\n  name: parity-ontology\n  title: Parity ontology\n  version: 1.0.0\nspec:\n  types:\n    - id: subject\n      label: Subject\n      properties: []\n  relationships: []\n"
+    },
+    {
+      "id": "unsupported-api-version",
+      "source": "apiVersion: ladder.dev/v9\nkind: Ontology\nmetadata:\n  name: parity-ontology\n  version: 1.0.0\nspec:\n  types: []\n  relationships: []\n"
+    },
+    {
+      "id": "yaml-anchor-rejected",
+      "source": "apiVersion: ladder.dev/v1alpha1\nkind: Ontology\nmetadata: &metadata\n  name: parity-ontology\n  version: 1.0.0\ncopy: *metadata\nspec:\n  types: []\n  relationships: []\n"
+    },
+    {
+      "id": "remote-reference-rejected",
+      "source": "apiVersion: ladder.dev/v1alpha1\nkind: Form\nmetadata:\n  name: parity-form\n  version: 1.0.0\nspec:\n  role: start\n  schema:\n    $ref: https://example.com/form.json\n  pages: []\n"
+    }
+  ]
+}

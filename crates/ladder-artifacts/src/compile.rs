@@ -77,6 +77,24 @@ fn collect_property_refs(value: &Value, result: &mut BTreeSet<String>) {
     }
 }
 
+fn agent_ontology(mut ontology: Value) -> Value {
+    if let Some(metadata) = ontology.get_mut("metadata").and_then(Value::as_object_mut) {
+        metadata.remove("source");
+    }
+    fn remove_source_paths(value: &mut Value) {
+        match value {
+            Value::Array(items) => items.iter_mut().for_each(remove_source_paths),
+            Value::Object(map) => {
+                map.remove("sourcePath");
+                map.values_mut().for_each(remove_source_paths);
+            }
+            _ => {}
+        }
+    }
+    remove_source_paths(&mut ontology);
+    ontology
+}
+
 fn fields(value: &Value) -> Vec<&Value> {
     match value.get("kind").and_then(Value::as_str) {
         Some("Form") => value
@@ -319,6 +337,7 @@ pub fn compile(source: &str, resolved_assets_json: &str, target: &str) -> Bundle
                 source_hash: value_hash(&reasons),
             });
         }
+        let output = agent_ontology(output);
         let name = output
             .pointer("/metadata/name")
             .and_then(Value::as_str)

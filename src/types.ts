@@ -197,6 +197,13 @@ export interface TemplateDefinition {
   yaml: string;
 }
 
+export interface SubjectAreaDefinition {
+  name: string;
+  agentPathPrefixes: string[];
+  agentIds: string[];
+  artifactPathPrefixes: string[];
+}
+
 export type InputModality = "text" | "image" | "audio" | "video" | "document" | "mixed";
 
 export interface RoleTemplate {

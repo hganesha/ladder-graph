@@ -20,7 +20,7 @@ interface PublishResponse {
   entries: number;
 }
 
-function workflowMetadata(source: string, fallback: string) {
+function artifactMetadata(source: string, fallback: string) {
   try {
     const document = parseDocument(source, { uniqueKeys: true, strict: true });
     if (document.errors.length) return { title: fallback, description: "", version: "" };
@@ -115,10 +115,10 @@ export async function publishToCompanion(): Promise<PublishResponse> {
 
   const entries = [
     ...projects.map((project) => {
-      const metadata = workflowMetadata(project.lastValidYaml, project.name);
+      const metadata = artifactMetadata(project.lastValidYaml, project.name);
       return {
         id: project.id,
-        kind: "workflow",
+        kind: project.artifactKind ?? "workflow",
         scope: "user",
         ...metadata,
         tags: ["project"],
@@ -129,7 +129,7 @@ export async function publishToCompanion(): Promise<PublishResponse> {
       };
     }),
     ...templates.map((template) => {
-      const metadata = workflowMetadata(template.yaml, template.title);
+      const metadata = artifactMetadata(template.yaml, template.title);
       return {
         id: template.id,
         kind: template.kind ?? "workflow",
@@ -151,7 +151,7 @@ export async function publishToCompanion(): Promise<PublishResponse> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      schemaVersion: 1,
+      schemaVersion: 2,
       installationId: id,
       publishedAt,
       revision: "",

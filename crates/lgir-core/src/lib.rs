@@ -5,7 +5,6 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 const API_VERSION: &str = "ladder.dev/v1alpha1";
 const COMPILER_VERSION: &str = env!("CARGO_PKG_VERSION");
-const DOCS_AS_OF: &str = "2026-08-15";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -797,16 +796,15 @@ fn compile_workflow(workflow: &Workflow, target: &str, order: &[String]) -> Stri
     let description = if target == "hermes" {
         if hermes_description.len() > 60 { "Run this structured agent workflow.".to_string() } else { hermes_description }
     } else { source_description.to_string() };
-    let source_hash = hash_workflow(workflow);
     let metadata = if target == "hermes" {
-        format!("version: 1.0.0\nmetadata:\n  hermes:\n    tags: [ladder-graph, workflow, orchestration]\n    category: orchestration\n  ladder-target: {target}\n  ladder-source-hash: {source_hash}\n  ladder-compiler: {COMPILER_VERSION}\n  target-docs-as-of: {DOCS_AS_OF}")
+        "version: 1.0.0\nmetadata:\n  hermes:\n    tags: [ladder-graph, workflow, orchestration]\n    category: orchestration\n".to_string()
     } else {
-        format!("metadata:\n  ladder-target: {target}\n  ladder-source-hash: {source_hash}\n  ladder-compiler: {COMPILER_VERSION}\n  target-docs-as-of: {DOCS_AS_OF}")
+        String::new()
     };
     let hermes_setup = if target == "hermes" {
         format!("\n\n## Hermes setup\n\nSave this document as `~/.hermes/skills/ladder-graph/{}/SKILL.md`. Before use, confirm every named toolset and MCP server is enabled for the active Hermes profile. Configure OpenRouter separately; never place provider credentials in this skill.\n", workflow.metadata.name)
     } else { String::new() };
-    let mut content = format!("---\nname: {}\ndescription: {}\n{}\n---\n\n# {}\n\n> Compiled by Ladder Graph for {}. This file is instruction-only: it does not grant permissions, execute tools, or contact a model provider.{}\n\n## Objective\n\n{}\n\n## Operating rules\n\n1. Respect the dependency order and pass only the named outputs required by downstream work.\n2. Run independent ready nodes in parallel when the current client supports it; otherwise preserve their independence while running them sequentially.\n3. Treat schemas, approvals, and loop bounds as mandatory instructions. Stop and explain any capability the environment cannot provide.\n4. Do not broaden tool permissions. Never execute code embedded in this workflow definition.\n5. On failure, follow `{}` and preserve useful completed outputs. Maximum concurrency is {}.\n\n## Workflow\n", workflow.metadata.name, yaml_scalar(&description), metadata, title, title_case(target), hermes_setup, workflow.spec.objective, workflow.spec.policies.on_failure, workflow.spec.policies.max_concurrency);
+    let mut content = format!("---\nname: {}\ndescription: {}\n{}---\n\n# {}{}\n\n## Objective\n\n{}\n\n## Operating rules\n\n1. Respect the dependency order and pass only the named outputs required by downstream work.\n2. Run independent ready nodes in parallel when the current client supports it; otherwise preserve their independence while running them sequentially.\n3. Treat schemas, approvals, and loop bounds as mandatory instructions. Stop and explain any capability the environment cannot provide.\n4. Do not broaden tool permissions. Never execute code embedded in this workflow definition.\n5. On failure, follow `{}` and preserve useful completed outputs. Maximum concurrency is {}.\n\n## Workflow\n", workflow.metadata.name, yaml_scalar(&description), metadata, title, hermes_setup, workflow.spec.objective, workflow.spec.policies.on_failure, workflow.spec.policies.max_concurrency);
     let skill_location = match target { "codex" => ".agents/skills/", "claude" => ".claude/skills/", "hermes" => "~/.hermes/skills/", _ => "configured skills" };
     let connector_rule = if target == "hermes" { "Confirm required Hermes toolsets with `hermes tools`, and use only configured MCP servers or OpenRouter profiles." } else { "Use only configured connectors." };
     content = content.replacen("\n\n## Workflow\n", &format!("\n6. Resolve named skills from the active {} catalog (including `{}`). {} If a required skill or connector is unavailable, stop that node and report the missing capability.\n\n## Workflow\n", title_case(target), skill_location, connector_rule), 1);
@@ -1128,7 +1126,7 @@ spec:
         let first = compile(VALID, "codex");
         let second = compile(VALID, "codex");
         assert_eq!(first.content, second.content);
-        assert!(first.content.contains("ladder-source-hash"));
+        assert!(!first.content.contains("ladder-source-hash"));
     }
 
     #[test]
@@ -1218,7 +1216,7 @@ spec:
         let second = compile(VALID, "hermes");
         assert_eq!(first.content, second.content);
         assert_eq!(first.suggested_filename, "smoke-test.hermes.md");
-        assert!(first.content.contains("ladder-target: hermes"));
+        assert!(!first.content.contains("ladder-source-hash"));
         assert!(first.capability_report.native.contains(&"Hermes Agent SKILL.md metadata".into()));
         assert!(first.content.contains("~/.hermes/skills/ladder-graph/smoke-test/SKILL.md"));
         assert_eq!(first.adapter_version, "hermes-skill-v1");

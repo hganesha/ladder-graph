@@ -50,6 +50,30 @@ function canonicalJson(value: unknown) {
   return JSON.stringify(canonical(value), null, 2);
 }
 
+function agentOntology(ontology: Ontology): Ontology {
+  const { source: _source, ...metadata } = ontology.metadata;
+  return {
+    ...ontology,
+    metadata,
+    spec: {
+      types: ontology.spec.types.map((type) => {
+        const { sourcePath: _typeSourcePath, ...content } = type;
+        return {
+          ...content,
+          properties: type.properties.map((property) => {
+            const { sourcePath: _propertySourcePath, ...propertyContent } = property;
+            return propertyContent;
+          }),
+        };
+      }),
+      relationships: ontology.spec.relationships.map((relationship) => {
+        const { sourcePath: _relationshipSourcePath, ...content } = relationship;
+        return content;
+      }),
+    },
+  };
+}
+
 async function hash(value: unknown): Promise<string> {
   const bytes = new TextEncoder().encode(JSON.stringify(canonical(value)));
   if (globalThis.crypto?.subtle) {
@@ -300,6 +324,7 @@ export async function analyzeArtifactFallback<T extends LadderArtifact = LadderA
 ): Promise<ArtifactAnalysisResult<T>> {
   const parsed = secureParse(source);
   const diagnostics = [...parsed.diagnostics];
+  if (diagnostics.length > 0) return { ok: false, sourceHash: "", diagnostics };
   if (!validateEnvelope(parsed.value, diagnostics)) return { ok: false, sourceHash: "", diagnostics };
   const artifact = parsed.value;
   if (artifact.kind === "Ontology") validateOntology(artifact, diagnostics);
@@ -442,7 +467,7 @@ export async function sliceOntologyFallback(source: string, selection: OntologyS
       ...ontology.metadata,
       name: `${ontology.metadata.name}-sliver`,
       title: `${ontology.metadata.title ?? ontology.metadata.name} sliver`,
-      description: `Deterministic sliver of ${ontology.metadata.name}; selection sha256:${selectionHash}.`,
+      description: `Selected context from ${ontology.metadata.name}.`,
     },
     spec: { types: slicedTypes, relationships: slicedRelationships },
   };
@@ -662,11 +687,12 @@ export async function compileBundleFallback(
         sourceHash: await hash(sliver.inclusionReasons),
       });
     }
+    const ontologyContent = agentOntology(outputOntology);
     compiled.push({
-      path: `ontology/${outputOntology.metadata.name}.yaml`,
+      path: `ontology/${ontologyContent.metadata.name}.yaml`,
       mimeType: "application/yaml",
-      content: stringify(outputOntology, { lineWidth: 110 }),
-      sourceHash: await hash(outputOntology),
+      content: stringify(ontologyContent, { lineWidth: 110 }),
+      sourceHash: await hash(ontologyContent),
     });
   }
   for (const attachment of [...(bundle.spec.forms ?? [])].sort((left, right) => left.ref.localeCompare(right.ref))) {

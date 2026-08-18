@@ -1,0 +1,79 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: insurance-claim-review
+  title: Insurance claim review bundle
+  description: Claim intake, supporting contract, ontology sliver, independent review, and approval output.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-insr-01
+  ontology:
+    ref: ladder://ontologies/builtin/insurance
+    mode: sliver
+    selection:
+      typeIds: []
+      propertyRefs:
+        - insurance_claim.claim_number
+        - insurance_policy.policy_number
+        - loss_event.loss_date
+        - loss_event.loss_description
+        - coverage.coverage_position
+        - claim_adjustment.recommended_reserve
+      relationshipIds:
+        - governs
+        - arises_from
+        - evaluated_as
+        - contains
+  forms:
+    - ref: ladder://forms/builtin/first-notice-of-loss
+      role: start
+    - ref: ladder://forms/builtin/claim-review-decision
+      role: approval
+  documents:
+    - ref: ladder://documents/builtin/insurance-claim-file
+      role: supporting
+  bindings:
+    - id: claim-file-to-intake
+      description: Provide the normalized claim-file contract to the workflow intake.
+      source:
+        ref: ladder://documents/builtin/insurance-claim-file
+        path: /spec
+      target:
+        ref: ladder://workflows/builtin/wf-insr-01
+        path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/claim_documentation
+      direction: input
+    - id: policy-wording-to-intake
+      source:
+        ref: ladder://forms/builtin/first-notice-of-loss
+        path: /spec/pages/0/sections/2/fields/0
+      target:
+        ref: ladder://workflows/builtin/wf-insr-01
+        path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/policy_wording
+      ontologyPropertyRef: insurance_policy.policy_provisions_cited
+      direction: input
+    - id: loss-evidence-to-intake
+      source:
+        ref: ladder://forms/builtin/first-notice-of-loss
+        path: /spec/pages/0/sections/1
+      target:
+        ref: ladder://workflows/builtin/wf-insr-01
+        path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/loss_evidence
+      direction: input
+    - id: history-to-intake
+      source:
+        ref: ladder://forms/builtin/first-notice-of-loss
+        path: /spec/pages/0/sections/2/fields/1
+      target:
+        ref: ladder://workflows/builtin/wf-insr-01
+        path: /spec/nodes/0/inputSchema/properties/workflowFields/properties/prior_claims_history
+      ontologyPropertyRef: loss_event.loss_history_summary
+      direction: input
+    - id: determination-to-decision
+      source:
+        ref: ladder://workflows/builtin/wf-insr-01
+        path: /spec/nodes/1/outputSchema/properties/determination
+      target:
+        ref: ladder://forms/builtin/claim-review-decision
+        path: /spec/pages/0/sections/0/fields/0
+      ontologyPropertyRef: coverage.coverage_position
+      direction: approval

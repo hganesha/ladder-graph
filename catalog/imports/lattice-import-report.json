@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "source": "portable Lattice contract-registry export",
+  "generatedAt": "2026-08-17T00:00:00.000Z",
+  "imports": [
+    { "workspaceId": "workspace-insurance", "artifact": "ladder://ontologies/builtin/insurance", "sourceDigest": "sha256:93226bf29c075ba5b3715b39e94d68df1d6adf68c69e4e980d9cbd90b7231a56", "typeCount": 7, "relationshipCount": 6, "output": "catalog/ontologies/insurance.yaml", "omittedSemantics": ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"] },
+    { "workspaceId": "workspace-manufacturing", "artifact": "ladder://ontologies/builtin/manufacturing", "sourceDigest": "sha256:b5a9bfad2a50a504903baf93be8d955d6f9120e595ff14821d41a0b274370769", "typeCount": 17, "relationshipCount": 14, "output": "catalog/ontologies/manufacturing.yaml", "omittedSemantics": ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"] },
+    { "workspaceId": "workspace-legal", "artifact": "ladder://ontologies/builtin/legal", "sourceDigest": "sha256:4ef4fd96a56fa6717e72de9f1d25668c6a0676a469635143f9776735b2422392", "typeCount": 14, "relationshipCount": 12, "output": "catalog/ontologies/legal.yaml", "omittedSemantics": ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"] },
+    { "workspaceId": "workspace-financial-services", "artifact": "ladder://ontologies/builtin/financial-services", "sourceDigest": "sha256:4369408a56aee642f3815bf2cc0d4f4ab8f7fc06d49a4e9ad74058c0a4f8d9c3", "typeCount": 31, "relationshipCount": 26, "output": "catalog/ontologies/financial-services.yaml", "omittedSemantics": ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"] },
+    { "workspaceId": "workspace-energy", "artifact": "ladder://ontologies/builtin/energy", "sourceDigest": "sha256:edb4eab64c4b8b1bca56a39f74250d6ba9defcc7d5778fc397526167847bd4c4", "typeCount": 14, "relationshipCount": 11, "output": "catalog/ontologies/energy.yaml", "omittedSemantics": ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"] },
+    { "workspaceId": "workspace-healthcare", "artifact": "ladder://ontologies/builtin/healthcare", "sourceDigest": "sha256:7f02edc146b82cb4a9e6c0c36c9b5011db0b30d31d2e606e8fed52716e4e2fa4", "typeCount": 15, "relationshipCount": 13, "output": "catalog/ontologies/healthcare.yaml", "omittedSemantics": ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"] },
+    { "workspaceId": "workspace-real-estate", "artifact": "ladder://ontologies/builtin/real-estate", "sourceDigest": "sha256:e4b18456eb9c227b95de046a723afd7da3da6eddc81d5798e4d6b9d68a6a8402", "typeCount": 17, "relationshipCount": 15, "output": "catalog/ontologies/real-estate.yaml", "omittedSemantics": ["policies", "evidence", "runtime behavior", "governance workflows", "source bindings"] }
+  ]
+}

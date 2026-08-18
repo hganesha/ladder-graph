@@ -3,8 +3,7 @@ import { expect, test } from "@playwright/test";
 const openInsuranceBundle = async (page: import("@playwright/test").Page) => {
   await page.goto("/");
   await page.getByLabel("Subject area").selectOption("Insurance & underwriting");
-  await page.getByRole("tab", { name: "Bundles" }).click();
-  await page.getByRole("button", { name: /Insurance claim review/ }).click();
+  await page.getByRole("button", { name: "Open Insurance claim review bundle" }).click();
 };
 
 test("compiles and explores the insurance workflow bundle", async ({ page }, testInfo) => {
@@ -37,8 +36,9 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
   await expect(page.getByLabel("Bundled ontology inspector")).toContainText("Insurance Claim");
 
   await page.getByRole("tab", { name: "Compiled output" }).click();
-  await expect(page.getByRole("button", { name: /ladder.lock.json/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /first-notice-of-loss.schema.json/ })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Agent-ready content" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Workflow instructions" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /First Notice Of Loss input contract/i })).toBeVisible();
 
   expect(consoleErrors).toEqual([]);
 });
@@ -72,7 +72,7 @@ test("authors a domain-bound form field and recompiles it into the bundle", asyn
   await page.getByRole("button", { name: "Apply to bundle" }).click();
   await expect(page.getByText(/deterministic files/)).toBeVisible();
   await page.getByRole("tab", { name: "Compiled output" }).click();
-  await page.getByRole("button", { name: /first-notice-of-loss.schema.json/ }).click();
+  await page.getByRole("button", { name: /First Notice Of Loss input contract/i }).click();
   await expect(page.getByText(/Claim reference/)).toBeVisible();
 
   expect(consoleErrors).toEqual([]);
@@ -101,8 +101,8 @@ test("assembles and binds a bundle around another catalog workflow", async ({ pa
   await page.screenshot({ path: testInfo.outputPath("general-bundle-builder.png"), fullPage: true });
 
   await page.getByRole("tab", { name: "Compiled output" }).click();
-  await expect(page.getByRole("button", { name: /ladder.lock.json/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /first-notice-of-loss.schema.json/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Workflow instructions" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /First Notice Of Loss input contract/i })).toBeVisible();
   expect(consoleErrors).toEqual([]);
 });
 

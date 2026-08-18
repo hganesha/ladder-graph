@@ -44,8 +44,8 @@ import type {
 } from "../types";
 import { Brand } from "./Brand";
 import { BindingInspector } from "./bundle/BindingInspector";
-import { BundleAssetPicker } from "./bundle/BundleAssetPicker";
 import type { BundleWorkflowChoice } from "./bundle/BundleAssetPicker";
+import { BundleAssetPicker } from "./bundle/BundleAssetPicker";
 import { BundleHistoryDialog } from "./bundle/BundleHistoryDialog";
 import { BundleIdentityEditor } from "./bundle/BundleIdentityEditor";
 import { BundleOntologyPreview } from "./bundle/BundleOntologyPreview";
@@ -71,14 +71,46 @@ function downloadArtifact(artifact: CompiledArtifact) {
   URL.revokeObjectURL(url);
 }
 
+function artifactLabel(artifact: CompiledArtifact) {
+  const name =
+    artifact.path
+      .split("/")
+      .at(-1)
+      ?.replace(/\.(?:schema|ui)\.json$|\.(?:json|yaml|md)$/u, "") ?? "content";
+  const title = name
+    .replace(/\.(?:codex|claude|hermes)$/u, "")
+    .split("-")
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+  if (artifact.path.startsWith("workflow/")) return "Workflow instructions";
+  if (artifact.path.startsWith("forms/") && artifact.path.endsWith(".schema.json")) return `${title} input contract`;
+  if (artifact.path.startsWith("forms/") && artifact.path.endsWith(".ui.json")) return `${title} form presentation`;
+  if (artifact.path.startsWith("documents/")) return `${title} document contract`;
+  if (artifact.path.startsWith("ontology/")) return `${title} ontology context`;
+  return title;
+}
+
 function OutputBrowser({ result }: { result: BundleCompileResult | null }) {
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const selected = result?.artifacts.find((artifact) => artifact.path === selectedPath) ?? result?.artifacts[0];
-  if (!result) return <div className="bundle-empty-state">Compile the bundle to inspect its portable files.</div>;
+  const artifacts = useMemo(
+    () =>
+      (result?.artifacts ?? [])
+        .filter(
+          (artifact) => artifact.path !== "bundle.yaml" && artifact.path !== "ladder.lock.json" && !artifact.path.endsWith(".reasons.json"),
+        )
+        .sort((left, right) => {
+          const priority = (path: string) => (path.startsWith("workflow/") ? 0 : path.startsWith("forms/") ? 1 : 2);
+          return priority(left.path) - priority(right.path) || left.path.localeCompare(right.path);
+        }),
+    [result],
+  );
+  const selected = artifacts.find((artifact) => artifact.path === selectedPath) ?? artifacts[0];
+  if (!result) return <div className="bundle-empty-state">Compile the bundle to inspect its agent-ready content.</div>;
+  if (!artifacts.length) return <div className="bundle-empty-state">No agent-ready content was emitted.</div>;
   return (
     <div className="output-browser">
-      <nav aria-label="Compiled files">
-        {result.artifacts.map((artifact) => (
+      <nav aria-label="Agent-ready content">
+        {artifacts.map((artifact) => (
           <button
             className={artifact.path === selected?.path ? "active" : undefined}
             key={artifact.path}
@@ -86,16 +118,16 @@ function OutputBrowser({ result }: { result: BundleCompileResult | null }) {
             type="button"
           >
             {artifact.mimeType.includes("json") ? <FileJson2 size={14} /> : <FileText size={14} />}
-            <span>{artifact.path}</span>
+            <span>{artifactLabel(artifact)}</span>
           </button>
         ))}
       </nav>
       {selected ? (
-        <section aria-label={`Preview of ${selected.path}`}>
+        <section aria-label={`Preview of ${artifactLabel(selected)}`}>
           <header>
             <div>
-              <strong>{selected.path}</strong>
-              <small>{selected.mimeType}</small>
+              <strong>{artifactLabel(selected)}</strong>
+              <small>Agent-ready content</small>
             </div>
             <button className="quiet-button" onClick={() => downloadArtifact(selected)} type="button">
               <Download size={14} /> Download
