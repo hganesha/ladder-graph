@@ -234,11 +234,6 @@ export default function StructuredArtifactStudio({
       relationshipId: added.relationshipId,
     });
   };
-  const connectTypes = (sourceTypeId: string, targetTypeId: string) => {
-    if (artifact?.kind !== "Ontology") return;
-    const added = addOntologyRelationship(artifact, sourceTypeId, targetTypeId);
-    commitOntology(added.ontology, { typeId: sourceTypeId, relationshipId: added.relationshipId });
-  };
   const previewSliver = async () => {
     if (artifact?.kind !== "Ontology" || !selectedOntologyType) return;
     setSliceLoading(true);
@@ -359,7 +354,7 @@ export default function StructuredArtifactStudio({
             onClick={() => void save()}
             type="button"
           >
-            <Save size={14} /> Save {artifactKind}
+            <Save size={14} /> {artifactKind === "ontology" ? "Save" : `Save ${artifactKind}`}
           </button>
         </div>
       </header>
@@ -405,7 +400,7 @@ export default function StructuredArtifactStudio({
         ) : null}
 
         <section className="structured-artifact-preview" aria-label={`${label} preview`}>
-          <header>
+          <header className={artifactKind === "ontology" ? "structured-artifact-accessible-title" : undefined}>
             <span className="eyebrow">{sourceSystem ? `${sourceSystem} source` : "Portable artifact"}</span>
             <h1>{titleFor(artifact, artifactKind)}</h1>
             <p>{artifact?.metadata.description}</p>
@@ -499,7 +494,11 @@ export default function StructuredArtifactStudio({
                 {ontologyView === "graph" ? (
                   <OntologyCanvas
                     ontology={artifact}
-                    onConnect={connectTypes}
+                    onConnectTypes={(sourceTypeId, targetTypeId) => {
+                      const added = addOntologyRelationship(artifact, sourceTypeId);
+                      const next = updateOntologyRelationship(added.ontology, added.relationshipId, { targetTypeId });
+                      commitOntology(next, { typeId: sourceTypeId, relationshipId: added.relationshipId });
+                    }}
                     onSelectRelationship={(id) => {
                       const relationship = artifact.spec.relationships.find((candidate) => candidate.id === id);
                       setSelectedRelationshipId(id);

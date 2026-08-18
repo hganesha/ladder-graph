@@ -2425,17 +2425,26 @@ button:disabled {
   grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 440px);
 }
 .ontology-artifact-layout .structured-artifact-preview {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
 }
-.ontology-artifact-layout .ontology-visual-workspace {
-  width: 100%;
-  max-width: none;
-  min-height: max(620px, calc(100dvh - var(--header-h) - 132px));
-  margin: 0;
+.structured-artifact-accessible-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
-.ontology-artifact-layout .structured-artifact-preview > header,
+.ontology-artifact-layout .owl-import-report,
 .ontology-artifact-layout .ontology-breaking-change {
-  max-width: 1400px;
+  width: calc(100% - 24px);
+  max-width: none;
+  margin: 12px 12px 0;
 }
 .owl-import-report {
   display: flex;
@@ -2476,10 +2485,12 @@ button:disabled {
 .ontology-visual-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
-  gap: 14px;
-  max-width: 1400px;
-  min-height: 620px;
-  margin: 0 auto;
+  flex: 1;
+  gap: 0;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
 }
 .ontology-canvas-panel {
   display: grid;
@@ -2487,8 +2498,8 @@ button:disabled {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 13px;
+  border: 0;
+  border-radius: 0;
   background: var(--bg);
 }
 .ontology-canvas-panel > header {
@@ -2554,11 +2565,33 @@ button:disabled {
   background: color-mix(in srgb, var(--cyan) 12%, var(--surface));
 }
 .ontology-graph-canvas {
+  position: relative;
   min-width: 0;
-  min-height: 520px;
+  min-height: 0;
+  height: 100%;
+}
+.ontology-canvas-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  max-width: calc(100% - 96px);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
 }
 .ontology-tree {
-  min-height: 520px;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
   margin: 0;
   padding: 12px;
   background: var(--bg);
@@ -2678,7 +2711,10 @@ button:disabled {
   min-width: 0;
   margin: 0;
   overflow-y: auto;
+  border-width: 0 0 0 1px;
+  border-radius: 0;
   padding: 18px;
+  box-shadow: none;
 }
 .ontology-selection-inspector .artifact-property-grid {
   grid-template-columns: 1fr;
