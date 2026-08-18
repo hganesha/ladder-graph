@@ -10,14 +10,17 @@ import {
   Combine,
   Download,
   FileCheck2,
+  FileInput,
+  FileOutput,
   FileUp,
   GitBranch,
   Github,
   HardDrive,
   Library,
+  Link2,
   LockKeyhole,
   Network,
-  PanelRight,
+  PackageOpen,
   Play,
   ShieldCheck,
   Sparkles,
@@ -25,44 +28,109 @@ import {
   X,
 } from "lucide-react";
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
-import { Brand } from "./Brand";
+
+export type HelpTopicId = "overview" | "start" | "workflow" | "validate" | "bundle" | "forms" | "ontology" | "trust";
 
 interface HelpPage {
+  id: HelpTopicId;
   eyebrow: string;
   title: string;
   description: string;
   content: ReactNode;
 }
 
-const BUILD_STEPS = [
-  {
-    icon: Library,
-    title: "Open a starter workflow",
-    copy: "Choose a familiar pattern from the gallery. Starting from a working shape is faster than building from a blank canvas.",
-  },
-  {
-    icon: CircleDot,
-    title: "Select a node",
-    copy: "Click a node on the canvas to edit its role, instructions, inputs, outputs, and required capabilities in the Inspector.",
-  },
-  {
-    icon: GitBranch,
-    title: "Connect the work",
-    copy: "Use dependency edges to order work, data edges to pass a typed value, and control edges to route a condition.",
-  },
-  {
-    icon: Braces,
-    title: "Check the source",
-    copy: "Canvas, Split, and YAML views show the same workflow. Use Split when you want to see how a visual edit changes the YAML.",
-  },
-];
+const Card = ({ icon: Icon, title, children }: { icon: typeof Network; title: string; children: ReactNode }) => (
+  <article className="help-card">
+    <Icon size={18} aria-hidden="true" />
+    <h3>{title}</h3>
+    <p>{children}</p>
+  </article>
+);
+
+const Callout = ({
+  icon: Icon,
+  title,
+  children,
+  primary = false,
+}: {
+  icon: typeof Network;
+  title: string;
+  children: ReactNode;
+  primary?: boolean;
+}) => (
+  <div className={`help-callout ${primary ? "help-callout-primary" : ""}`}>
+    <Icon size={18} aria-hidden="true" />
+    <div>
+      <strong>{title}</strong>
+      <p>{children}</p>
+    </div>
+  </div>
+);
 
 const HELP_PAGES: HelpPage[] = [
   {
-    eyebrow: "01 · Start here",
-    title: "Build your first workflow",
+    id: "overview",
+    eyebrow: "01 · Orient",
+    title: "What Ladder Graph makes",
     description:
-      "Ladder Graph helps you design, validate, and compile agent workflows. It creates instructions or code for another tool to run—it never runs agents or contacts a model provider.",
+      "Choose the artifact that matches the handoff you need. Ladder Graph creates portable, inspectable files; it does not run agents or contact a model provider.",
+    content: (
+      <>
+        <div className="help-card-grid help-card-grid-three">
+          <Card icon={Network} title="Workflow">
+            Use when another tool needs ordered roles, typed handoffs, decisions, or bounded loops.
+          </Card>
+          <Card icon={PackageOpen} title="Bundle">
+            Use when a workflow must travel with forms, documents, ontology context, and explicit bindings.
+          </Card>
+          <Card icon={FileCheck2} title="Contract">
+            Use a form, document, or ontology when shared structure matters without a workflow.
+          </Card>
+        </div>
+        <Callout icon={Sparkles} title="Start from the handoff" primary>
+          Ask what the receiving agent or application must understand, then build only the artifact needed to make that handoff unambiguous.
+        </Callout>
+        <div className="help-inline-note">
+          <LockKeyhole size={16} aria-hidden="true" />
+          <span>Artifacts can declare tools and permissions. Your host application still owns authorization and execution.</span>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "start",
+    eyebrow: "02 · Orient",
+    title: "Choose a starting point",
+    description:
+      "Start with the closest working shape, then replace its domain details. Begin blank only when the structure itself is new.",
+    content: (
+      <>
+        <div className="help-card-grid help-card-grid-three">
+          <Card icon={Library} title="Use a starter">
+            Pick a template with the same flow of work, even if its subject is different.
+          </Card>
+          <Card icon={HardDrive} title="Reopen local work">
+            Use My library when you already have a saved project or revision to continue.
+          </Card>
+          <Card icon={Play} title="Begin blank">
+            Add the smallest valid path first, then introduce branching and iteration deliberately.
+          </Card>
+        </div>
+        <Callout icon={CheckCircle2} title="A starter saves structure, not wording">
+          Keep its useful topology or contract shape. Replace sample roles, instructions, fields, and descriptions with your own.
+        </Callout>
+        <div className="help-inline-note">
+          <FileUp size={16} aria-hidden="true" />
+          <span>Import YAML, JSON, or OWL when the source already represents the artifact you want to continue.</span>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "workflow",
+    eyebrow: "03 · Workflows",
+    title: "Design a workflow",
+    description: "Build the smallest path that can complete the task. Add branching or iteration only where a decision truly requires it.",
     content: (
       <>
         <figure className="help-flow">
@@ -88,85 +156,26 @@ const HELP_PAGES: HelpPage[] = [
             );
           })}
         </figure>
-        <div className="help-callout help-callout-primary">
-          <Sparkles size={18} aria-hidden="true" />
-          <div>
-            <strong>The fastest way to begin</strong>
-            <p>Open a starter workflow whose shape resembles your task, then replace its roles and instructions with your own.</p>
-          </div>
-        </div>
         <div className="help-card-grid help-card-grid-three">
-          <article className="help-card">
-            <Library size={18} aria-hidden="true" />
-            <h3>Start with a shape</h3>
-            <p>Templates include useful patterns such as draft-and-critique, parallel review, research, and approval gates.</p>
-          </article>
-          <article className="help-card">
-            <FileCheck2 size={18} aria-hidden="true" />
-            <h3>Catch structural errors</h3>
-            <p>Validation finds broken connections, invalid contracts, and loops that could continue forever.</p>
-          </article>
-          <article className="help-card">
-            <WandSparkles size={18} aria-hidden="true" />
-            <h3>Compile one artifact</h3>
-            <p>Choose a target and receive one self-contained Markdown, Python, or TypeScript file.</p>
-          </article>
+          <Card icon={CircleDot} title="Define responsibility">
+            Each node should own one outcome. Put success criteria in the instructions, not only the label.
+          </Card>
+          <Card icon={GitBranch} title="Choose the edge">
+            Use dependency for order, data for typed values, and control for a conditional route.
+          </Card>
+          <Card icon={Combine} title="Bound every loop">
+            Give revisions an exit condition and a maximum count so the handoff cannot run forever.
+          </Card>
         </div>
       </>
     ),
   },
   {
-    eyebrow: "02 · Build",
-    title: "Build on the canvas",
-    description: "Most edits follow the same four-step path. The canvas and YAML remain synchronized while you work.",
-    content: (
-      <>
-        <ol className="help-step-grid">
-          {BUILD_STEPS.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <li key={step.title}>
-                <span className="help-step-number">{String(index + 1).padStart(2, "0")}</span>
-                <Icon size={18} aria-hidden="true" />
-                <strong>{step.title}</strong>
-                <p>{step.copy}</p>
-              </li>
-            );
-          })}
-        </ol>
-        <figure className="help-landmarks">
-          <figcaption className="sr-only">Studio layout</figcaption>
-          <div>
-            <Library size={17} aria-hidden="true" />
-            <strong>Library</strong>
-            <span>Add nodes and workflow shapes</span>
-          </div>
-          <div className="help-landmark-canvas">
-            <Network size={19} aria-hidden="true" />
-            <strong>Canvas / Split / YAML</strong>
-            <span>Arrange the workflow and inspect its source</span>
-          </div>
-          <div>
-            <PanelRight size={17} aria-hidden="true" />
-            <strong>Inspector</strong>
-            <span>Configure the selected node</span>
-          </div>
-        </figure>
-        <div className="help-inline-note">
-          <Combine size={16} aria-hidden="true" />
-          <span>
-            Begin with <strong>Input → Agent → Output</strong>. Add conditions, loops, joins, and approvals only when the workflow needs
-            them.
-          </span>
-        </div>
-      </>
-    ),
-  },
-  {
-    eyebrow: "03 · Validate",
-    title: "Fix issues before compiling",
+    id: "validate",
+    eyebrow: "04 · Workflows",
+    title: "Validate and compile",
     description:
-      "The status button in the header shows whether the workflow is valid. Errors block compilation; warnings call attention to risks but do not block it.",
+      "Treat validation as a design review. Fix blocking structure first, then decide whether each target warning is acceptable for your host.",
     content: (
       <>
         <div className="help-diagnostic-example">
@@ -180,53 +189,24 @@ const HELP_PAGES: HelpPage[] = [
             <Network size={28} aria-hidden="true" />
             <span>
               <strong>Revision can continue forever</strong>
-              <p>This loop needs an iteration limit and an exit condition before the workflow can compile.</p>
+              <p>Add an iteration limit and an exit condition before compiling.</p>
             </span>
             <span className="help-repair-example" aria-hidden="true">
-              <WandSparkles size={14} aria-hidden="true" /> Apply safe repair
+              <WandSparkles size={14} /> Apply safe repair
             </span>
           </div>
         </div>
-        <ol className="help-action-list">
-          <li>
-            <span>1</span>
-            <div>
-              <strong>Open the status button</strong>
-              <p>Read the explanation and select the affected node or source path.</p>
-            </div>
-          </li>
-          <li>
-            <span>2</span>
-            <div>
-              <strong>Apply a safe repair when offered</strong>
-              <p>The repair edits the workflow for you. Review the change in Split or YAML view.</p>
-            </div>
-          </li>
-          <li>
-            <span>3</span>
-            <div>
-              <strong>Check the capability label</strong>
-              <p>“Instructional” means the target is told what to do, but your host application does not mechanically enforce it.</p>
-            </div>
-          </li>
-        </ol>
-        <div className="help-callout">
-          <CheckCircle2 size={17} aria-hidden="true" />
-          <div>
-            <strong>Ready to compile</strong>
-            <p>Continue when the header says Valid. Review any remaining warnings before exporting the artifact.</p>
-          </div>
+        <div className="help-card-grid help-card-grid-three">
+          <Card icon={AlertTriangle} title="Resolve errors">
+            Errors block compilation. Select the affected node or source path and fix the underlying structure.
+          </Card>
+          <Card icon={FileCheck2} title="Review warnings">
+            Warnings identify risk or target limits. They require a decision, not automatic dismissal.
+          </Card>
+          <Card icon={Download} title="Choose the consumer">
+            Compile for the environment that will actually read and enforce the artifact.
+          </Card>
         </div>
-      </>
-    ),
-  },
-  {
-    eyebrow: "04 · Compile",
-    title: "Choose a target and export",
-    description:
-      "Select the environment that will consume the workflow. Ladder Graph validates target support, then creates one file for you to copy or download.",
-    content: (
-      <>
         <ul className="help-targets" aria-label="Compile targets">
           <li>Codex</li>
           <li>Claude</li>
@@ -234,112 +214,85 @@ const HELP_PAGES: HelpPage[] = [
           <li>Python</li>
           <li>TypeScript</li>
         </ul>
-        <ol className="help-compile-path">
-          <li>
-            <span>
-              <CircleDot size={17} aria-hidden="true" />
-            </span>
-            <div>
-              <strong>Choose the target</strong>
-              <p>Use the target menu in the header before compiling.</p>
-            </div>
-          </li>
-          <li>
-            <span>
-              <WandSparkles size={17} aria-hidden="true" />
-            </span>
-            <div>
-              <strong>Select Compile</strong>
-              <p>Errors must be fixed first. Warnings remain visible for review.</p>
-            </div>
-          </li>
-          <li>
-            <span>
-              <FileCheck2 size={17} aria-hidden="true" />
-            </span>
-            <div>
-              <strong>Review target support</strong>
-              <p>The capability report explains how each requested feature is represented.</p>
-            </div>
-          </li>
-          <li>
-            <span>
-              <Download size={17} aria-hidden="true" />
-            </span>
-            <div>
-              <strong>Copy or download</strong>
-              <p>Install the Markdown in your agent harness or import the generated module into your application.</p>
-            </div>
-          </li>
-        </ol>
-        <section className="help-capabilities" aria-labelledby="help-capabilities-title">
-          <h3 className="sr-only" id="help-capabilities-title">
-            Capability report labels
-          </h3>
+        <section className="help-capabilities" aria-label="Capability report labels">
           <div>
             <span className="help-capability-native">Native</span>
-            <p>The target directly supports this feature.</p>
+            <p>The target directly supports it.</p>
           </div>
           <div>
             <span className="help-capability-instructional">Instructional</span>
-            <p>The artifact describes the behavior in instructions.</p>
+            <p>The artifact asks the host to enforce it.</p>
           </div>
           <div>
             <span className="help-capability-unsupported">Unsupported</span>
-            <p>Change the workflow or choose another target.</p>
+            <p>Change the design or target.</p>
           </div>
         </section>
       </>
     ),
   },
   {
-    eyebrow: "05 · Save safely",
-    title: "Keep a durable copy",
+    id: "bundle",
+    eyebrow: "05 · Package",
+    title: "Assemble a bundle",
     description:
-      "Projects and revisions are saved in this browser. That is convenient local state, not a backup—export important workflows as YAML.",
+      "Use a bundle when the workflow is not useful by itself. Package every contract the receiving system needs to interpret inputs, outputs, and domain terms.",
     content: (
       <>
-        <div className="help-safety-grid">
-          <article>
-            <HardDrive size={20} aria-hidden="true" />
-            <div>
-              <strong>Saved locally</strong>
-              <p>No account or cloud sync is required. Clearing site data can remove your projects.</p>
-            </div>
-          </article>
-          <article>
-            <Download size={20} aria-hidden="true" />
-            <div>
-              <strong>Export a backup</strong>
-              <p>Use Export YAML for any workflow you would be unhappy to lose.</p>
-            </div>
-          </article>
-          <article>
-            <FileUp size={20} aria-hidden="true" />
-            <div>
-              <strong>Imports stay data</strong>
-              <p>Imported YAML is validated and displayed. It is never executed as shell, Python, JavaScript, or HTML.</p>
-            </div>
-          </article>
-          <article>
-            <LockKeyhole size={20} aria-hidden="true" />
-            <div>
-              <strong>Permissions stay external</strong>
-              <p>Artifacts can name required skills and connectors, but cannot install them or grant access.</p>
-            </div>
-          </article>
+        <div className="help-card-grid help-card-grid-three">
+          <Card icon={Network} title="Choose the workflow">
+            The workflow is the plan and the bundle's primary dependency.
+          </Card>
+          <Card icon={FileInput} title="Attach contracts">
+            Add only forms, documents, and ontology context the workflow actually uses.
+          </Card>
+          <Card icon={Link2} title="Bind exact references">
+            Connect workflow values to the fields or ontology properties that define them.
+          </Card>
         </div>
+        <Callout icon={PackageOpen} title="Compile the package together" primary>
+          Bundle diagnostics catch missing assets and broken bindings. Export only after the package is valid for the selected target.
+        </Callout>
+        <div className="help-inline-note">
+          <CheckCircle2 size={16} aria-hidden="true" />
+          <span>A smaller bundle is easier to review. Prefer explicit bindings over carrying an entire catalog “just in case.”</span>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "forms",
+    eyebrow: "06 · Package",
+    title: "Forms and documents",
+    description:
+      "Use forms for structured collection and documents for durable records. Design the contract around the decision it supports, not the editor layout.",
+    content: (
+      <>
+        <div className="help-card-grid help-card-grid-three">
+          <Card icon={FileInput} title="Collect">
+            Ask only for fields needed by the next workflow step. Mark required data deliberately.
+          </Card>
+          <Card icon={Braces} title="Constrain">
+            Choose data types, enum values, and safe validation another system can enforce.
+          </Card>
+          <Card icon={FileOutput} title="Hand off">
+            Preview the human experience, then export schema and presentation contracts together.
+          </Card>
+        </div>
+        <Callout icon={CircleDot} title="Write help for the decision">
+          Field help should explain format, evidence, or consequence. Do not repeat the field label.
+        </Callout>
         <div className="help-checklist">
-          <strong>Before you leave</strong>
+          <strong>Before applying a form</strong>
           <ul>
             <li>
-              <Check size={14} aria-hidden="true" /> The header says Valid
+              <Check size={14} /> Required fields are truly required
             </li>
             <li>
-              <Check size={14} aria-hidden="true" /> Target capability warnings are understood
+              <Check size={14} /> Preview works at narrow width
             </li>
             <li>
-              <Check size={14} aria-hidden="true" /> Important work has been exported as YAML
+              <Check size={14} /> Output names match bindings
             </li>
           </ul>
         </div>
@@ -347,30 +300,110 @@ const HELP_PAGES: HelpPage[] = [
     ),
   },
   {
-    eyebrow: "06 · About",
-    title: "About Ladder Graph",
-    description: "An open-source visual studio for designing, validating, and compiling agent workflows.",
-    content: (<div className="help-about-card">
-        <div>
-       <Brand compact />
+    id: "ontology",
+    eyebrow: "07 · Package",
+    title: "Model an ontology",
+    description:
+      "Use an ontology when several artifacts need the same meaning for entities, properties, and relationships. Model shared language, not every fact in the domain.",
+    content: (
+      <>
+        <div className="help-card-grid help-card-grid-three">
+          <Card icon={CircleDot} title="Types">
+            Name stable entities that forms, documents, and workflows refer to.
+          </Card>
+          <Card icon={Braces} title="Properties">
+            Define reusable identifiers and values with explicit types and cardinality.
+          </Card>
+          <Card icon={Network} title="Relationships">
+            Connect types when the relationship changes interpretation or validation.
+          </Card>
         </div>
-        <div className="help-about-copy">
-          <span>Created by</span>
-          <strong>Hari Venkataraman with Codex</strong>
-          <p>Explore the source, follow development, or contribute on GitHub.</p>
+        <Callout icon={Sparkles} title="Prefer a focused sliver" primary>
+          When a workflow needs only part of an ontology, export the relevant types and relationships instead of the full model.
+        </Callout>
+        <div className="help-inline-note">
+          <AlertTriangle size={16} aria-hidden="true" />
+          <span>Renaming shared IDs can break forms, documents, and bindings. Review usage before saving a breaking change.</span>
         </div>
-        <a href="https://github.com/hganesha/ladder-graph" rel="noreferrer" target="_blank">
-          <Github size={17} aria-hidden="true" />
-          View on GitHub
-          <ArrowRight size={15} aria-hidden="true" />
-        </a>
-      </div>
+      </>
+    ),
+  },
+  {
+    id: "trust",
+    eyebrow: "08 · Trust",
+    title: "Save, export and connect",
+    description: "Separate convenient local state from durable backups, and declared connector requirements from real authorization.",
+    content: (
+      <>
+        <div className="help-safety-grid">
+          <article>
+            <HardDrive size={20} aria-hidden="true" />
+            <div>
+              <strong>Save locally</strong>
+              <p>Projects and revisions live in this browser. Clearing site data can remove them.</p>
+            </div>
+          </article>
+          <article>
+            <Download size={20} aria-hidden="true" />
+            <div>
+              <strong>Export a backup</strong>
+              <p>Export important work in its portable source or bundle format.</p>
+            </div>
+          </article>
+          <article>
+            <FileUp size={20} aria-hidden="true" />
+            <div>
+              <strong>Import as data</strong>
+              <p>Imported source is parsed and validated; it is never executed as code.</p>
+            </div>
+          </article>
+          <article>
+            <Link2 size={20} aria-hidden="true" />
+            <div>
+              <strong>Connect explicitly</strong>
+              <p>MCP pairing enables approved file workflows; it does not grant arbitrary access.</p>
+            </div>
+          </article>
+        </div>
+        <div className="help-checklist">
+          <strong>Before handoff</strong>
+          <ul>
+            <li>
+              <Check size={14} /> Validation is understood
+            </li>
+            <li>
+              <Check size={14} /> A durable export exists
+            </li>
+            <li>
+              <Check size={14} /> The host owns every permission
+            </li>
+          </ul>
+        </div>
+        <div className="help-about-card help-about-card-compact">
+          <div className="help-about-copy">
+            <span>Open source</span>
+            <strong>Ladder Graph</strong>
+            <p>Inspect the implementation, follow development, or contribute.</p>
+          </div>
+          <a href="https://github.com/hganesha/ladder-graph" rel="noreferrer" target="_blank">
+            <Github size={17} aria-hidden="true" /> View on GitHub <ArrowRight size={15} aria-hidden="true" />
+          </a>
+        </div>
+      </>
     ),
   },
 ];
 
-export function HelpDialog({ onClose }: { onClose: () => void }) {
-  const [page, setPage] = useState(0);
+const HELP_GROUPS: { label: string; pageIds: HelpTopicId[] }[] = [
+  { label: "Orient", pageIds: ["overview", "start"] },
+  { label: "Workflows", pageIds: ["workflow", "validate"] },
+  { label: "Package", pageIds: ["bundle", "forms", "ontology"] },
+  { label: "Trust", pageIds: ["trust"] },
+];
+const PAGE_INDEX = new Map(HELP_PAGES.map((item, index) => [item.id, index]));
+
+export function HelpDialog({ onClose, initialTopic = "overview" }: { onClose: () => void; initialTopic?: HelpTopicId }) {
+  const [page, setPage] = useState(() => PAGE_INDEX.get(initialTopic) ?? 0);
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const current = HELP_PAGES[page];
@@ -410,7 +443,7 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
   const keepFocusInside = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key !== "Tab") return;
     const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-      'button:not([disabled]):not([tabindex="-1"]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      'button:not([disabled]):not([tabindex="-1"]), [href], select:not([disabled]), [tabindex]:not([tabindex="-1"])',
     );
     if (!focusable?.length) return;
     const first = focusable[0];
@@ -443,7 +476,7 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
             </span>
             <span>
               <strong>Intro &amp; help</strong>
-              <small>Ladder Graph essentials</small>
+              <small>Choose a task, not a tour</small>
             </span>
           </div>
           <div className="help-header-actions">
@@ -455,18 +488,35 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </header>
-
         <div className="help-dialog-body">
-          <nav aria-label="Help pages" className="help-page-nav">
-            {HELP_PAGES.map((item, index) => (
-              <button aria-current={page === index ? "page" : undefined} key={item.title} onClick={() => setPage(index)} type="button">
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{item.title}</strong>
-              </button>
+          <nav aria-label="Help topics" className="help-page-nav">
+            {HELP_GROUPS.map((group) => (
+              <section className="help-nav-group" key={group.label}>
+                <h3>{group.label}</h3>
+                {group.pageIds.map((id) => {
+                  const index = PAGE_INDEX.get(id) ?? 0;
+                  const item = HELP_PAGES[index];
+                  return (
+                    <button aria-current={page === index ? "page" : undefined} key={item.id} onClick={() => setPage(index)} type="button">
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <strong>{item.title}</strong>
+                    </button>
+                  );
+                })}
+              </section>
             ))}
           </nav>
-
-          <article className="help-page" key={current.title}>
+          <label className="help-topic-picker">
+            <span>Help topic</span>
+            <select aria-label="Help topic" onChange={(event) => setPage(Number(event.target.value))} value={page}>
+              {HELP_PAGES.map((item, index) => (
+                <option key={item.id} value={index}>
+                  {String(index + 1).padStart(2, "0")} · {item.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <article className="help-page" key={current.id}>
             <header>
               <p className="eyebrow">{current.eyebrow}</p>
               <h2 id="help-title">{current.title}</h2>
@@ -475,7 +525,6 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
             <div className="help-page-content">{current.content}</div>
           </article>
         </div>
-
         <footer className="help-dialog-footer">
           <span>
             <kbd>←</kbd>
