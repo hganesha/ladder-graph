@@ -14,13 +14,16 @@ import {
 } from "@xyflow/react";
 import { Boxes } from "lucide-react";
 import { memo, useEffect, useMemo } from "react";
-import type { Ontology } from "../../types";
+import type { Ontology, OntologyType } from "../../types";
+import { InlineNodeField } from "../InlineNodeField";
 
 interface OntologyNodeData extends Record<string, unknown> {
   label: string;
+  description?: string;
   typeId: string;
   propertyCount: number;
   matched: boolean;
+  onInlineEdit?: (id: string, patch: Pick<Partial<OntologyType>, "label" | "description">) => void;
 }
 
 type OntologyFlowNode = Node<OntologyNodeData, "ontologyType">;
@@ -33,7 +36,25 @@ const OntologyTypeNode = memo(function OntologyTypeNode({ data, selected }: Node
         <Boxes size={13} />
         <span>Entity type</span>
       </header>
-      <strong>{data.label}</strong>
+      <InlineNodeField
+        as="strong"
+        editable={Boolean(data.onInlineEdit)}
+        label="entity name"
+        onCommit={(label) => data.onInlineEdit?.(data.typeId, { label })}
+        placeholder="Untitled entity"
+        showAffordance={selected}
+        value={data.label}
+      />
+      <InlineNodeField
+        as="p"
+        editable={Boolean(data.onInlineEdit)}
+        label="entity details"
+        multiline
+        onCommit={(description) => data.onInlineEdit?.(data.typeId, { description })}
+        placeholder="Add details"
+        showAffordance={selected}
+        value={data.description}
+      />
       <footer>
         <code>{data.typeId}</code>
         <span>{data.propertyCount} properties</span>
@@ -45,11 +66,17 @@ const OntologyTypeNode = memo(function OntologyTypeNode({ data, selected }: Node
 
 const nodeTypes = { ontologyType: OntologyTypeNode };
 
-function graphElements(ontology: Ontology, query: string, selectedTypeId: string | null, selectedRelationshipId: string | null) {
+function graphElements(
+  ontology: Ontology,
+  query: string,
+  selectedTypeId: string | null,
+  selectedRelationshipId: string | null,
+  onInlineEdit?: (id: string, patch: Pick<Partial<OntologyType>, "label" | "description">) => void,
+) {
   const graph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   graph.setGraph({ rankdir: "LR", ranksep: 85, nodesep: 42, marginx: 32, marginy: 32, ranker: "network-simplex" });
   const nodeWidth = 210;
-  const nodeHeight = 92;
+  const nodeHeight = 124;
   const normalizedQuery = query.trim().toLowerCase();
   const matchedIds = new Set(
     ontology.spec.types
@@ -70,7 +97,14 @@ function graphElements(ontology: Ontology, query: string, selectedTypeId: string
       id: type.id,
       type: "ontologyType",
       position: { x: position.x - nodeWidth / 2, y: position.y - nodeHeight / 2 },
-      data: { label: type.label, typeId: type.id, propertyCount: type.properties.length, matched: matchedIds.has(type.id) },
+      data: {
+        label: type.label,
+        description: type.description,
+        typeId: type.id,
+        propertyCount: type.properties.length,
+        matched: matchedIds.has(type.id),
+        onInlineEdit,
+      },
       selected: type.id === selectedTypeId,
     };
   });
@@ -97,6 +131,7 @@ export function OntologyCanvas({
   selectedTypeId,
   onSelectRelationship,
   onSelectType,
+  onUpdateType,
 }: {
   ontology: Ontology;
   onConnectTypes?: (sourceTypeId: string, targetTypeId: string) => void;
@@ -105,10 +140,11 @@ export function OntologyCanvas({
   selectedTypeId: string | null;
   onSelectRelationship: (id: string) => void;
   onSelectType: (id: string) => void;
+  onUpdateType?: (id: string, patch: Pick<Partial<OntologyType>, "label" | "description">) => void;
 }) {
   const { edges, nodes: layoutNodes } = useMemo(
-    () => graphElements(ontology, query, selectedTypeId, selectedRelationshipId),
-    [ontology, query, selectedRelationshipId, selectedTypeId],
+    () => graphElements(ontology, query, selectedTypeId, selectedRelationshipId, onUpdateType),
+    [ontology, onUpdateType, query, selectedRelationshipId, selectedTypeId],
   );
   const [nodes, setNodes, onNodesChange] = useNodesState<OntologyFlowNode>(layoutNodes);
 
@@ -149,7 +185,9 @@ export function OntologyCanvas({
         <Controls showInteractive={false} />
         <MiniMap nodeColor="var(--cyan)" pannable zoomable />
       </ReactFlow>
-      <div className="ontology-canvas-hint">Drag nodes · connect handles to create relationships · click edges to inspect</div>
+      <div className="ontology-canvas-hint">
+        Double-click text to edit · drag nodes · connect handles to create relationships · click edges to inspect
+      </div>
     </section>
   );
 }

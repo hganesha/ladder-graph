@@ -508,6 +508,9 @@ export default function StructuredArtifactStudio({
                       setSelectedId(id);
                       setSelectedRelationshipId(null);
                     }}
+                    onUpdateType={(id, patch) =>
+                      commitOntology(updateOntologyType(artifact, id, patch), { typeId: id, relationshipId: null })
+                    }
                     query={query}
                     selectedRelationshipId={selectedRelationshipId}
                     selectedTypeId={selectedRelationship ? null : (selectedOntologyType?.id ?? null)}
