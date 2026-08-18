@@ -90,14 +90,19 @@ async function opfsRoot(): Promise<FileSystemDirectoryHandle | null> {
 }
 
 async function writeOpfs(key: string, content: string) {
-  const root = await opfsRoot();
-  if (!root) return false;
-  const revisions = await root.getDirectoryHandle("revisions", { create: true });
-  const file = await revisions.getFileHandle(`${key}.yaml`, { create: true });
-  const stream = await file.createWritable();
-  await stream.write(content);
-  await stream.close();
-  return true;
+  try {
+    const root = await opfsRoot();
+    if (!root) return false;
+    const revisions = await root.getDirectoryHandle("revisions", { create: true });
+    const file = await revisions.getFileHandle(`${key}.yaml`, { create: true });
+    const stream = await file.createWritable();
+    await stream.write(content);
+    await stream.close();
+    return true;
+  } catch {
+    await deleteOpfs(key);
+    return false;
+  }
 }
 
 async function readOpfs(key: string) {
@@ -109,6 +114,41 @@ async function readOpfs(key: string) {
     return await (await file.getFile()).text();
   } catch {
     return undefined;
+  }
+}
+
+async function deleteOpfs(key: string) {
+  try {
+    const root = await opfsRoot();
+    if (!root) return;
+    const revisions = await root.getDirectoryHandle("revisions");
+    await revisions.removeEntry(`${key}.yaml`);
+  } catch {
+    // A missing OPFS directory or file is already the desired state.
+  }
+}
+
+export async function sweepOrphanedRevisionBodies() {
+  const root = await opfsRoot();
+  if (!root) return 0;
+  try {
+    const revisionsDirectory = await root.getDirectoryHandle("revisions");
+    const records = await db.revisions.toArray();
+    const activeFiles = new Set(records.filter((record) => record.body === undefined).map((record) => `${record.storageKey}.yaml`));
+    const entries = (
+      revisionsDirectory as FileSystemDirectoryHandle & {
+        entries(): AsyncIterableIterator<[string, FileSystemHandle]>;
+      }
+    ).entries();
+    let removed = 0;
+    for await (const [name, handle] of entries) {
+      if (handle.kind !== "file" || !name.endsWith(".yaml") || activeFiles.has(name)) continue;
+      await revisionsDirectory.removeEntry(name);
+      removed += 1;
+    }
+    return removed;
+  } catch {
+    return 0;
   }
 }
 
@@ -159,7 +199,11 @@ export async function saveArtifactProject({
     body: storedInOpfs ? undefined : revisionContent,
   });
   const old = (await db.revisions.where("projectId").equals(project.id).toArray()).sort((left, right) => right.createdAt - left.createdAt);
-  if (old.length > 30) await db.revisions.bulkDelete(old.slice(30).map((item) => item.id));
+  if (old.length > 30) {
+    const stale = old.slice(30);
+    await db.revisions.bulkDelete(stale.map((item) => item.id));
+    await Promise.all(stale.map((item) => deleteOpfs(item.storageKey)));
+  }
   return project;
 }
 
@@ -227,11 +271,13 @@ export async function deleteSetting(key: string) {
 }
 
 export async function deleteProject(id: string) {
+  const revisions = await db.revisions.where("projectId").equals(id).toArray();
   await db.transaction("rw", db.projects, db.revisions, db.bundleAssets, async () => {
     await db.projects.delete(id);
     await db.revisions.where("projectId").equals(id).delete();
     await db.bundleAssets.where("projectId").equals(id).delete();
   });
+  await Promise.all(revisions.map((revision) => deleteOpfs(revision.storageKey)));
 }
 
 export async function requestPersistentStorage() {

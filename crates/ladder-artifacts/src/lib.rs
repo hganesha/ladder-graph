@@ -166,12 +166,28 @@ mod tests {
         let source = serde_yaml_ng::to_string(&ontology).unwrap();
         let result = analyze_artifact(&source);
         assert!(result.ok, "{:?}", result.diagnostics);
-        assert_eq!(result.normalized.as_ref().unwrap().pointer("/spec/types/0/icon/name").and_then(Value::as_str), Some("file-check"));
+        assert_eq!(
+            result
+                .normalized
+                .as_ref()
+                .unwrap()
+                .pointer("/spec/types/0/icon/name")
+                .and_then(Value::as_str),
+            Some("file-check")
+        );
 
         let selection = serde_json::json!({ "typeIds": [type_id] });
         let slice = slice_ontology(&source, &selection.to_string());
         assert!(slice.ok, "{:?}", slice.diagnostics);
-        assert_eq!(slice.ontology.as_ref().unwrap().pointer("/spec/types/0/icon/name").and_then(Value::as_str), Some("file-check"));
+        assert_eq!(
+            slice
+                .ontology
+                .as_ref()
+                .unwrap()
+                .pointer("/spec/types/0/icon/name")
+                .and_then(Value::as_str),
+            Some("file-check")
+        );
     }
 
     #[test]

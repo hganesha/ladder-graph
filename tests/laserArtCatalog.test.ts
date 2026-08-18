@@ -26,8 +26,6 @@ describe("laser art catalog", () => {
 
     expect(roleRefs).toEqual(["laser-01", "laser-02", "laser-03", "laser-04"]);
     expect(ROLE_TEMPLATES.filter((agent) => agent.id.startsWith("laser-")).map((agent) => agent.id)).toEqual(roleRefs);
-    expect(ROLE_TEMPLATES.filter((agent) => roleRefs.includes(agent.id)).every((agent) => agent.modalities.includes("image"))).toBe(
-      true,
-    );
+    expect(ROLE_TEMPLATES.filter((agent) => roleRefs.includes(agent.id)).every((agent) => agent.modalities.includes("image"))).toBe(true);
   });
 });

@@ -1,5 +1,43 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { db, listBundleAssets, listRevisions, loadRevision, saveArtifactProject, saveBundleAssets } from "../src/lib/persistence";
+import {
+  db,
+  deleteProject,
+  listBundleAssets,
+  listRevisions,
+  loadRevision,
+  saveArtifactProject,
+  saveBundleAssets,
+  sweepOrphanedRevisionBodies,
+} from "../src/lib/persistence";
+
+function installOpfs() {
+  const files = new Map<string, string>();
+  const directory = {
+    async getFileHandle(name: string) {
+      return {
+        async createWritable() {
+          return {
+            async write(content: string) {
+              files.set(name, content);
+            },
+            async close() {},
+          };
+        },
+      };
+    },
+    async removeEntry(name: string) {
+      files.delete(name);
+    },
+    async *entries() {
+      for (const name of files.keys()) yield [name, { kind: "file" }] as const;
+    },
+  };
+  Object.defineProperty(navigator, "storage", {
+    configurable: true,
+    value: { getDirectory: async () => ({ getDirectoryHandle: async () => directory }) },
+  });
+  return files;
+}
 
 afterEach(async () => {
   await db.bundleAssets.clear();
@@ -36,5 +74,31 @@ describe("bundle persistence", () => {
     const revisions = await listRevisions(project.id);
     expect(revisions).toHaveLength(1);
     expect(await loadRevision(revisions[0])).toBe('{"kind":"LadderBundleArchive"}\n');
+  });
+
+  it("reclaims pruned, deleted, and orphaned OPFS revision bodies", async () => {
+    const files = installOpfs();
+    let projectId: string | null = null;
+    for (let index = 0; index < 31; index += 1) {
+      const project = await saveArtifactProject({
+        projectId,
+        name: "Revision cleanup",
+        yaml: `kind: Workflow\nrevision: ${index}\n`,
+        lastValidYaml: `kind: Workflow\nrevision: ${index}\n`,
+        target: "codex",
+        valid: true,
+        artifactKind: "workflow",
+      });
+      projectId = project.id;
+    }
+
+    expect(await listRevisions(projectId!)).toHaveLength(30);
+    expect(files.size).toBe(30);
+    files.set("unreferenced.yaml", "orphan");
+    expect(await sweepOrphanedRevisionBodies()).toBe(1);
+    expect(files.has("unreferenced.yaml")).toBe(false);
+
+    await deleteProject(projectId!);
+    expect(files.size).toBe(0);
   });
 });

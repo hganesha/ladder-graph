@@ -4,6 +4,17 @@ pub const MAX_SOURCE_BYTES: usize = 2_000_000;
 pub const MAX_ONTOLOGY_TYPES: usize = 1_000;
 pub const MAX_ONTOLOGY_RELATIONSHIPS: usize = 2_000;
 
+fn contains_yaml_tag(value: &serde_yaml_ng::Value) -> bool {
+    match value {
+        serde_yaml_ng::Value::Tagged(_) => true,
+        serde_yaml_ng::Value::Sequence(values) => values.iter().any(contains_yaml_tag),
+        serde_yaml_ng::Value::Mapping(values) => values
+            .iter()
+            .any(|(key, value)| contains_yaml_tag(key) || contains_yaml_tag(value)),
+        _ => false,
+    }
+}
+
 pub fn validate_source(source: &str) -> Result<(), Diagnostic> {
     if source.len() > MAX_SOURCE_BYTES {
         return Err(diagnostic(
@@ -13,7 +24,9 @@ pub fn validate_source(source: &str) -> Result<(), Diagnostic> {
             "Artifact source exceeds the 2 MB import limit.",
         ));
     }
-    if source.contains("!!") || source.contains("!<") {
+    if serde_yaml_ng::from_str::<serde_yaml_ng::Value>(source)
+        .is_ok_and(|value| contains_yaml_tag(&value))
+    {
         return Err(diagnostic(
             "LA002",
             "error",
@@ -66,11 +79,16 @@ mod tests {
     #[test]
     fn rejects_executable_yaml_features_and_remote_references() {
         for (source, code) in [
-            ("value: !!python/object:example {}", "LA002"),
+            ("value: !custom example", "LA002"),
             ("value: &shared {}\ncopy: *shared", "LA004"),
             ("schema:\n  $ref: https://example.com/schema.json", "LA005"),
         ] {
             assert_eq!(validate_source(source).unwrap_err().code, code);
         }
+    }
+
+    #[test]
+    fn allows_tag_like_text_in_scalars_and_comments() {
+        assert!(validate_source("title: \"Ship it!!\"\n# !!python is documentation\n").is_ok());
     }
 }

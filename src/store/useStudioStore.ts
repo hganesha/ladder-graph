@@ -102,9 +102,57 @@ function patchYaml(source: string, path: (string | number)[], value: unknown) {
   return document.toString({ indent: 2, lineWidth: 100 });
 }
 
+function editYaml(source: string, edit: (document: ReturnType<typeof parseDocument>) => void) {
+  const document = parseDocument(source, { keepSourceTokens: true });
+  if (document.errors.length) throw new Error(document.errors[0].message);
+  edit(document);
+  return document.toString({ indent: 2, lineWidth: 100 });
+}
+
+function patchNodePositions(source: string, workflow: Workflow, positions: Record<string, { x: number; y: number }>) {
+  return editYaml(source, (document) => {
+    workflow.spec.nodes.forEach((node, index) => {
+      const position = positions[node.id];
+      if (position) document.setIn(["spec", "nodes", index, "position"], position);
+    });
+  });
+}
+
+function nextEdgeId(edges: LgirEdge[], from: string, to: string) {
+  const part = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "node";
+  const base = `edge-${part(from)}-${part(to)}`;
+  const ids = new Set(edges.map((edge) => edge.id));
+  if (!ids.has(base)) return base;
+  let suffix = 2;
+  while (ids.has(`${base}-${suffix}`)) suffix += 1;
+  return `${base}-${suffix}`;
+}
+
 function projectName(source: string) {
   const metadata = parseWorkflow(source)?.metadata;
   return metadata?.title?.trim() || metadata?.name || "untitled-workflow";
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function runtimeDiagnostic(code: string, severity: Diagnostic["severity"], message: string): Diagnostic {
+  return { code, severity, path: "/", message };
+}
+
+function failedAnalysis(error: unknown): AnalysisResult {
+  return {
+    ok: false,
+    sourceHash: "",
+    diagnostics: [runtimeDiagnostic("LG900", "error", `Compiler unavailable: ${errorMessage(error)}`)],
+    nodeOrder: [],
+    stats: { nodes: 0, edges: 0, agents: 0, loops: 0, maxParallelism: 0 },
+  };
 }
 
 async function analyzeAndPersist(
@@ -115,7 +163,13 @@ async function analyzeAndPersist(
 ) {
   const revision = ++runtime.analysisRevision;
   set({ busy: true });
-  const analysis = await compiler.analyze(source, get().target);
+  let analysis: AnalysisResult;
+  try {
+    analysis = await compiler.analyze(source, get().target);
+  } catch (error) {
+    if (revision === runtime.analysisRevision) set({ analysis: failedAnalysis(error), busy: false });
+    return;
+  }
   if (revision !== runtime.analysisRevision) return;
   const valid = Boolean(analysis.normalized);
   const lastValidSource = analysis.ok ? source : get().lastValidSource;
@@ -123,17 +177,31 @@ async function analyzeAndPersist(
   if (!runtime.persist) return;
   if (runtime.saveTimer) clearTimeout(runtime.saveTimer);
   runtime.saveTimer = setTimeout(async () => {
-    const state = get();
-    const project = await saveProject(
-      state.projectId,
-      projectName(state.source),
-      state.source,
-      state.lastValidSource,
-      state.target,
-      valid && analysis.ok,
-    );
-    set({ projectId: project.id, savedAt: project.updatedAt });
-    if (!state.projectId) void requestPersistentStorage();
+    try {
+      const state = get();
+      const project = await saveProject(
+        state.projectId,
+        projectName(state.source),
+        state.source,
+        state.lastValidSource,
+        state.target,
+        valid && analysis.ok,
+      );
+      set({ projectId: project.id, savedAt: project.updatedAt });
+      if (!state.projectId) void requestPersistentStorage();
+    } catch (error) {
+      const current = get().analysis;
+      if (!current) return;
+      set({
+        analysis: {
+          ...current,
+          diagnostics: [
+            ...current.diagnostics.filter((diagnostic) => diagnostic.code !== "LG901"),
+            runtimeDiagnostic("LG901", "warning", `Could not save locally: ${errorMessage(error)}`),
+          ],
+        },
+      });
+    }
   }, 500);
 }
 
@@ -272,12 +340,36 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
     },
     compile: async () => {
       set({ busy: true });
-      const result = await compiler.compile(get().source, get().target);
-      set({ compileResult: result, outputOpen: true, busy: false, runtime: compiler.runtime });
+      try {
+        const result = await compiler.compile(get().source, get().target);
+        set({ compileResult: result, outputOpen: true, runtime: compiler.runtime });
+      } catch (error) {
+        const target = get().target;
+        set({
+          compileResult: {
+            ok: false,
+            content: "",
+            suggestedFilename: "",
+            mimeType: "text/plain",
+            sourceHash: "",
+            compilerVersion: "unavailable",
+            adapterVersion: "unavailable",
+            capabilityReport: { target, native: [], instructional: [], unsupported: ["compiler unavailable"] },
+            diagnostics: [runtimeDiagnostic("LG902", "error", `Compilation failed: ${errorMessage(error)}`)],
+          },
+          outputOpen: true,
+        });
+      } finally {
+        set({ busy: false });
+      }
     },
     format: async () => {
-      const result = await compiler.format(get().source);
-      if (result.ok) await get().setSource(result.content);
+      try {
+        const result = await compiler.format(get().source);
+        if (result.ok) await get().setSource(result.content);
+      } catch (error) {
+        set({ analysis: failedAnalysis(error), busy: false });
+      }
     },
     selectNode: (selectedNodeId) => set({ selectedNodeId, selectedEdgeId: null, inspectorOpen: true }),
     selectEdge: (selectedEdgeId) => set({ selectedEdgeId, selectedNodeId: null, inspectorOpen: true }),
@@ -290,9 +382,11 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
     patchWorkflowMetadata: async (patch) => {
       const workflow = parseWorkflow(get().source);
       if (!workflow) return;
-      let source = get().source;
-      Object.entries(patch).forEach(([key, value]) => {
-        source = patchYaml(source, ["metadata", key], value);
+      const source = editYaml(get().source, (document) => {
+        Object.entries(patch).forEach(([key, value]) => {
+          if (value === undefined) document.deleteIn(["metadata", key]);
+          else document.setIn(["metadata", key], value);
+        });
       });
       await get().setSource(source);
     },
@@ -312,13 +406,14 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
       if (group?.kind === "group" && patch.config) {
         const nextGroup = { ...group, ...patch, config: { ...group.config, ...patch.config } };
         const groupPosition = group.position ?? { x: 0, y: 0 };
-        const nodes = workflow.spec.nodes.map((node) => {
+        const positions: Record<string, { x: number; y: number }> = {};
+        workflow.spec.nodes.forEach((node) => {
           const memberIndex = nextGroup.config?.members?.indexOf(node.id) ?? -1;
-          if (memberIndex < 0) return node.id === id ? nextGroup : node;
+          if (memberIndex < 0) return;
           const relative = groupMemberPosition(nextGroup, memberIndex);
-          return { ...node, position: { x: groupPosition.x + relative.x, y: groupPosition.y + relative.y } };
+          positions[node.id] = { x: groupPosition.x + relative.x, y: groupPosition.y + relative.y };
         });
-        source = patchYaml(source, ["spec", "nodes"], nodes);
+        source = patchNodePositions(source, workflow, positions);
       }
       await get().setSource(source);
     },
@@ -339,8 +434,24 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
       const workflow = parseWorkflow(get().source);
       if (!workflow || (!nodeIds.length && !edgeIds.length)) return;
       const next = deleteWorkflowElements(workflow, nodeIds, edgeIds);
-      let source = patchYaml(get().source, ["spec", "nodes"], next.spec.nodes);
-      source = patchYaml(source, ["spec", "edges"], next.spec.edges);
+      const retainedNodeIds = new Set(next.spec.nodes.map((node) => node.id));
+      const retainedEdgeIds = new Set(next.spec.edges.map((edge) => edge.id));
+      const source = editYaml(get().source, (document) => {
+        workflow.spec.edges
+          .map((edge, index) => ({ edge, index }))
+          .filter(({ edge }) => !retainedEdgeIds.has(edge.id))
+          .reverse()
+          .forEach(({ index }) => {
+            document.deleteIn(["spec", "edges", index]);
+          });
+        workflow.spec.nodes
+          .map((node, index) => ({ node, index }))
+          .filter(({ node }) => !retainedNodeIds.has(node.id))
+          .reverse()
+          .forEach(({ index }) => {
+            document.deleteIn(["spec", "nodes", index]);
+          });
+      });
       set({ selectedNodeId: null, selectedEdgeId: null });
       await get().setSource(source);
     },
@@ -357,17 +468,21 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
             : workflow.spec.nodes.find(
                 (candidate) => candidate.kind === "group" && candidate.config?.members?.includes(selected?.id ?? ""),
               );
-      let nodes = [...workflow.spec.nodes, node];
+      let activeGroupMembers: string[] | undefined;
       if (activeGroup) {
         const members = [...(activeGroup.config?.members ?? []), node.id];
+        activeGroupMembers = members;
         const relative = groupMemberPosition(activeGroup, members.length - 1);
         const groupPosition = activeGroup.position ?? { x: 0, y: 0 };
         node.position = { x: groupPosition.x + relative.x, y: groupPosition.y + relative.y };
-        nodes = nodes.map((candidate) =>
-          candidate.id === activeGroup.id ? { ...candidate, config: { ...candidate.config, members } } : candidate,
-        );
       }
-      const source = patchYaml(get().source, ["spec", "nodes"], nodes);
+      const source = editYaml(get().source, (document) => {
+        if (activeGroup && activeGroupMembers) {
+          const groupIndex = workflow.spec.nodes.findIndex((candidate) => candidate.id === activeGroup.id);
+          document.setIn(["spec", "nodes", groupIndex, "config", "members"], activeGroupMembers);
+        }
+        document.addIn(["spec", "nodes"], node);
+      });
       set({ selectedNodeId: node.id, selectedEdgeId: null });
       await get().setSource(source);
     },
@@ -386,7 +501,7 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
         permissions: [...(role.permissions ?? ["read-only"])],
         customizations: {},
       };
-      const source = patchYaml(get().source, ["spec", "nodes"], [...workflow.spec.nodes, node]);
+      const source = editYaml(get().source, (document) => document.addIn(["spec", "nodes"], node));
       set({ selectedNodeId: node.id, selectedEdgeId: null });
       await get().setSource(source);
     },
@@ -394,23 +509,34 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
       const workflow = parseWorkflow(get().source);
       if (!workflow) return;
       const materialized = materializeMacro(workflow, macro);
-      let source = patchYaml(get().source, ["spec", "nodes"], materialized.nodes);
-      source = patchYaml(source, ["spec", "edges"], materialized.edges);
+      const existingNodeIds = new Set(workflow.spec.nodes.map((node) => node.id));
+      const existingEdgeIds = new Set(workflow.spec.edges.map((edge) => edge.id));
+      const source = editYaml(get().source, (document) => {
+        materialized.nodes
+          .filter((node) => !existingNodeIds.has(node.id))
+          .forEach((node) => {
+            document.addIn(["spec", "nodes"], node);
+          });
+        materialized.edges
+          .filter((edge) => !existingEdgeIds.has(edge.id))
+          .forEach((edge) => {
+            document.addIn(["spec", "edges"], edge);
+          });
+      });
       await get().setSource(source);
     },
     connect: async (edge) => {
       const workflow = parseWorkflow(get().source);
       if (!workflow) return;
-      const item: LgirEdge = { ...edge, id: `edge-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` };
-      const source = patchYaml(get().source, ["spec", "edges"], [...workflow.spec.edges, item]);
+      const item: LgirEdge = { ...edge, id: nextEdgeId(workflow.spec.edges, edge.from, edge.to) };
+      const source = editYaml(get().source, (document) => document.addIn(["spec", "edges"], item));
       set({ selectedEdgeId: item.id, selectedNodeId: null, inspectorOpen: true });
       await get().setSource(source);
     },
     updatePositions: async (positions) => {
       const workflow = parseWorkflow(get().source);
       if (!workflow) return;
-      const nodes = workflow.spec.nodes.map((node) => (positions[node.id] ? { ...node, position: positions[node.id] } : node));
-      const source = patchYaml(get().source, ["spec", "nodes"], nodes);
+      const source = patchNodePositions(get().source, workflow, positions);
       await get().setSource(source, false);
     },
     adjustNodeSpacing: async (direction) => {
@@ -420,7 +546,11 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
       const next = Math.max(0.8, Math.min(1.6, Number((current + direction * 0.2).toFixed(1))));
       if (next === current) return;
       const nodes = scaleNodeSpacing(workflow.spec.nodes, next / current);
-      const source = patchYaml(get().source, ["spec", "nodes"], nodes);
+      const positions: Record<string, { x: number; y: number }> = {};
+      nodes.forEach((node) => {
+        if (node.position) positions[node.id] = node.position;
+      });
+      const source = patchNodePositions(get().source, workflow, positions);
       set({ nodeSpacing: next });
       await get().setSource(source);
     },

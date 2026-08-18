@@ -1038,6 +1038,45 @@ button:disabled {
   color: var(--muted);
   background: var(--bg);
 }
+
+.recovery-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.recovery-card {
+  width: min(680px, 100%);
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.recovery-card h1 {
+  margin: 8px 0 12px;
+}
+
+.recovery-card pre {
+  overflow: auto;
+  margin: 18px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .bundle-workspace {
   display: grid;
   grid-template-rows: var(--header-h) minmax(0, 1fr);

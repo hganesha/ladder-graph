@@ -767,54 +767,27 @@ mod tests {
     #[test]
     fn embeds_the_active_builtin_catalog() {
         let catalog = Catalog::load(None).unwrap();
-        assert_eq!(
-            catalog
+        let manifest: Value =
+            serde_json::from_str(include_str!("../../../catalog/manifest.json")).unwrap();
+        for (kind, manifest_key) in [
+            (CatalogKind::Workflow, "workflows"),
+            (CatalogKind::AgentTemplate, "agents"),
+            (CatalogKind::Ontology, "ontologies"),
+            (CatalogKind::Form, "forms"),
+            (CatalogKind::Document, "documents"),
+            (CatalogKind::WorkflowBundle, "bundles"),
+        ] {
+            let embedded = catalog
                 .entries()
                 .iter()
-                .filter(|entry| entry.kind == CatalogKind::Workflow)
-                .count(),
-            131
-        );
-        assert_eq!(
-            catalog
-                .entries()
-                .iter()
-                .filter(|entry| entry.kind == CatalogKind::AgentTemplate)
-                .count(),
-            367
-        );
-        assert_eq!(
-            catalog
-                .entries()
-                .iter()
-                .filter(|entry| entry.kind == CatalogKind::Ontology)
-                .count(),
-            7
-        );
-        assert_eq!(
-            catalog
-                .entries()
-                .iter()
-                .filter(|entry| entry.kind == CatalogKind::Form)
-                .count(),
-            26
-        );
-        assert_eq!(
-            catalog
-                .entries()
-                .iter()
-                .filter(|entry| entry.kind == CatalogKind::Document)
-                .count(),
-            43
-        );
-        assert_eq!(
-            catalog
-                .entries()
-                .iter()
-                .filter(|entry| entry.kind == CatalogKind::WorkflowBundle)
-                .count(),
-            22
-        );
+                .filter(|entry| entry.kind == kind)
+                .count();
+            let declared = manifest[manifest_key].as_array().unwrap().len();
+            assert_eq!(
+                embedded, declared,
+                "embedded {manifest_key} must match the manifest"
+            );
+        }
         assert!(
             catalog
                 .resolve(
