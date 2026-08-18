@@ -383,7 +383,7 @@ const HELP_PAGES: HelpPage[] = [
           <div className="help-about-copy">
             <span>Open source</span>
             <strong>Ladder Graph</strong>
-            <p>Inspect the implementation, follow development, or contribute.</p>
+            <p>Developed by Hari Venkataraman with Codex. Inspect the implementation, follow development, or contribute.</p>
           </div>
           <a href="https://github.com/hganesha/ladder-graph" rel="noreferrer" target="_blank">
             <Github size={17} aria-hidden="true" /> View on GitHub <ArrowRight size={15} aria-hidden="true" />
