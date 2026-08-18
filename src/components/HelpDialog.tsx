@@ -92,7 +92,7 @@ const ArchitectureLayer = ({
       <strong>{technology}</strong>
     </div>
     <div className="help-architecture-detail">
-      <span>Hover detail</span>
+      <span>details</span>
       <p>{children}</p>
     </div>
   </article>
