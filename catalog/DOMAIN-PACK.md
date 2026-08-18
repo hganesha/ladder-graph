@@ -9,12 +9,12 @@ Companion documents: [ladder-graph-library-expansion.md](ladder-graph-library-ex
 
 | | Before | Added | After |
 | --- | ---: | ---: | ---: |
-| Workflow templates | 29 | 56 | 85 |
-| Agent templates | 119 | 168 | 287 |
-| Subject areas | 15 | 28 | 43 |
-| Role categories | 10 | 6 | 16 |
+| Workflow templates | 29 | 70 | 99 |
+| Agent templates | 119 | 192 | 311 |
+| Subject areas | 15 | 31 | 46 |
+| Role categories | 10 | 9 | 19 |
 
-Every file is canonical `catalog/` YAML registered in `catalog/manifest.json`, so `npm run catalog:generate` picks the pack up with no bespoke adapter and no TypeScript change beyond the six new role categories.
+Every file is canonical `catalog/` YAML registered in `catalog/manifest.json`, so `npm run catalog:generate` picks the pack up with no bespoke adapter and no TypeScript change beyond the nine new role categories.
 
 ## 2. Primitive coverage
 
@@ -22,15 +22,33 @@ The expansion proposal's finding was that 8 of 14 node kinds, 0 of 4 aggregation
 
 | Surface | Coverage in this pack |
 | --- | --- |
-| Node kinds | 14 of 14 — `agent` (174), `aggregator` (34), `approval` (56), `condition` (56), `evaluate` (25), `group` (10), `input` (56), `join` (7), `loop` (11), `output` (56), `subgraph` (5), `teacher` (14), `tool` (11), `transform` (50) |
-| Aggregation strategies | 4 of 4 — `collect` (11), `concat` (4), `merge` (10), `vote` (9) |
-| Transform operations | 7 of 7 — `deduplicate` (6), `filter` (7), `merge` (5), `rename` (5), `select` (13), `slice` (7), `sort` (7) |
-| Group configurations | 4 of 4 — `parallel/aggregate` (4), `parallel/serialize` (1), `sequential/aggregate` (1), `sequential/serialize` (4) |
-| Teacher feedback modes | 3 of 3 — `critique` (4), `rubric` (5), `score` (5) |
+| Node kinds | 14 of 14 — `agent` (229), `aggregator` (42), `approval` (77), `condition` (69), `evaluate` (30), `group` (13), `input` (70), `join` (8), `loop` (15), `output` (70), `subgraph` (5), `teacher` (17), `tool` (13), `transform` (61) |
+| Aggregation strategies | 4 of 4 — `collect` (15), `concat` (5), `merge` (10), `vote` (12) |
+| Transform operations | 7 of 7 — `deduplicate` (7), `filter` (8), `merge` (5), `rename` (5), `select` (17), `slice` (9), `sort` (10) |
+| Group configurations | 4 of 4 — `parallel/aggregate` (5), `parallel/serialize` (1), `sequential/aggregate` (1), `sequential/serialize` (6) |
+| Teacher feedback modes | 3 of 3 — `critique` (6), `rubric` (6), `score` (5) |
 
 Selection rule applied per the proposal: a template earns its place only if it opens value the library cannot currently serve **and** exercises a primitive, strategy, or shape nothing else exercises. Every workflow below names the primitive it lights up.
 
-The three core patterns the proposal asked for first are present as reusable shapes rather than one-off templates: blind dual read → discordance resolution (4 workflows), independent re-derivation (5), and the verified citation/claim gate (6). The remaining eight shapes compose from the same primitives.
+The three core patterns the proposal asked for first are present as reusable shapes rather than one-off templates: blind dual read → discordance resolution (4 workflows), independent re-derivation (7), and the verified citation/claim gate (6).
+
+Three further shapes were added for safety-critical operations, where the decision structure itself is the control:
+
+| Shape | What it encodes | Used by |
+| --- | --- | --- |
+| Barrier verification + hard stop | Each barrier verified by a separate agent against its own evidence; results are source-tagged by `aggregator: collect`, and a single unverified barrier routes to a rectification path that never reaches the release approval. Release requires two approvals in order. | 3 workflows |
+| Ordered authority chain | Preparation runs as a sequential/serialize `group`, a conflict check deconflicts simultaneous activity, then three `approval` nodes fire in the order the procedure requires — the chain cannot be reordered or skipped. | 2 workflows |
+| Go / hold / no-go + contingency | Assessment against criteria declared before the decision point, a four-branch `condition`, a bounded hold-and-reassess `loop`, and a pre-planned contingency path so no-go is a planned outcome rather than a failure. | 2 workflows |
+
+Three more were added for creative critique on typed media contracts, where the input is an asset rather than text:
+
+| Shape | What it encodes | Used by |
+| --- | --- | --- |
+| Blind critique panel + synthesis | Each dimension is critiqued independently on the same asset, `aggregator: collect` keeps every observation attributable to the dimension it came from, and a `teacher: critique` weighs them against the maker's stated intent instead of returning an undifferentiated list. | 1 workflow |
+| Cull + ordered sequence | `transform: deduplicate` collapses near-identical takes, sort and slice cut to length, and `aggregator: concat` assembles the surviving pieces in declared viewing order for a critique of the sequence rather than of individual pieces. | 1 workflow |
+| Outlier vote + rework loop | Reviewers call outliers against a reference independently, `aggregator: vote` keeps a contested item contested, and a bounded `loop` reworks until the set coheres. | 1 workflow |
+
+Media contracts in this pack: `image` 2, `mixed` 4, `document` 48, `text` 16. The photography area is the first place in the library where the input contract carries an asset, its rights and provenance field, and the workflow fields together.
 
 ## 3. Areas, workflows, and agents
 
@@ -298,13 +316,52 @@ The three core patterns the proposal asked for first are present as reusable sha
 | Incident intake → dispatch with coverage gate | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
 | Multi-agency resource reconciliation | Merge transform + exceptions | `transform: merge`, `aggregator: collect` |
 
+### Safety-critical operations
+
+#### Airline flight operations
+
+`research/aviation/flight-operations` — Flight Dispatcher, Flight Planning & Fuel Analyst, Aviation Meteorologist, Aircraft Performance Engineer, NOTAM & Airspace Compliance Analyst, Crew Legality & Fatigue Analyst, MEL & Airworthiness Controller, Flight Safety & FDM Analyst
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Dispatch release + barrier verification | Barrier verification + hard stop | `aggregator: collect` per barrier, blocking `condition`, two sequential `approval` nodes |
+| Fuel plan + independent re-derivation | Dual derivation + tie-out | `tool` node, `transform: select`, `aggregator: vote` on scalars |
+| Departure go / hold / no-go | Go / hold / no-go + contingency | multi-branch `condition`, bounded `loop` hold, planned contingency path |
+| Deferral and maintenance release authority chain | Ordered authority chain | `group` (sequential/serialize), three ordered `approval` nodes |
+
+#### Oil & gas drilling & well operations
+
+`research/wells/drilling` — Well Planning Engineer, Directional Drilling & Anti-Collision Analyst, Geomechanics & Pore Pressure Analyst, Well Control & Barrier Engineer, Casing & Cementing Engineer, Drilling Performance Engineer, Well Integrity & Abandonment Analyst, Drilling HSE & Permit Coordinator
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Anti-collision clearance + independent re-derivation | Dual derivation + tie-out | `tool` node, `transform: select`, `aggregator: vote` on scalars |
+| Well control barrier verification | Barrier verification + hard stop | `aggregator: collect` per barrier, blocking `condition`, two sequential `approval` nodes |
+| Permit to work + simultaneous operations gate | Ordered authority chain | `group` (sequential/serialize), three ordered `approval` nodes |
+| Drill-ahead go / hold / no-go | Go / hold / no-go + contingency | multi-branch `condition`, bounded `loop` hold, planned contingency path |
+
+### Creative, social & cultural
+
+#### Photography
+
+`research/visual/photography` — Lighting & Exposure Critic, Composition & Framing Analyst, Perspective & Lens Advisor, Focus & Technical Quality Inspector, Colour & Tone Grading Reviewer, Retouching & Disclosure Reviewer, Photo Editor & Sequencing Specialist, Brief, Rights & Deliverable Compliance Checker
+
+| Workflow | Topology | Primitive it lights up |
+| --- | --- | --- |
+| Blind critique panel on a single frame | Blind critique panel + synthesis | **`image` contract**, `aggregator: collect` by dimension, `teacher: critique`, `transform: sort` |
+| Fix in camera or fix in post | Scored queue + routing | `transform: filter` / `sort` / `slice`, `join: first` |
+| Cull, edit, and sequence a shoot | Cull + ordered sequence | **`mixed` contract**, `transform: deduplicate/sort/slice`, `aggregator: concat`, `teacher: critique` |
+| Grade consistency across a set | Outlier vote + rework loop | **`mixed` contract**, `aggregator: vote` with ties preserved, bounded `loop` |
+| Commercial delivery gate | Barrier verification + hard stop | `aggregator: collect` per barrier, blocking `condition`, two sequential `approval` nodes |
+| Development loop against stated intent | Blind panel + teacher loop | `group` (parallel), `teacher: rubric`, bounded `loop` |
+
 ## 4. Guardrails
 
-Every workflow ends at a named professional-review `approval` node listed in `spec.policies.requireApprovalFor`, positioned so the released output cannot bypass it. Areas touching regulated or consequential decisions carry their non-claim in the workflow objective, which survives compilation into every target — the variant interpretation workflow states that it structures interpretation for a qualified professional and is not a diagnostic device, and the tax, claims, and valuation roles state the same boundary in their prompts.
+Every workflow ends at a named professional-review `approval` node listed in `spec.policies.requireApprovalFor`, positioned so the released output cannot bypass it. Areas touching regulated or consequential decisions carry their non-claim in the workflow objective, which survives compilation into every target — the variant interpretation workflow states that it structures interpretation for a qualified professional and is not a diagnostic device; the dispatch release and well control workflows state that they structure verification for licensed or accountable personnel and do not themselves authorize a flight or an operation.
 
 Roles handling personal or health data declare `pii-restricted` or `phi-restricted` permissions; roles that can affect physical systems or people declare `explicit-authorization-required`. A reviewer reads the handling constraint off the node rather than inferring it from the prompt.
 
-Where a workflow depends on a deterministic calculation, simulation, or instrument run, it declares a `tool` node whose summary states plainly that Ladder Graph does not execute it — closing the prose-only tooling gap the proposal identified. Consistent with the product line, every catalog entry remains an authoring suggestion: Ladder Graph does not inspect configuration, install skills, or verify that any declared capability exists.
+Where a workflow depends on a deterministic calculation, simulation, or instrument run, it declares a `tool` node whose summary states plainly that Ladder Graph does not execute it — closing the prose-only tooling gap the proposal identified. The aviation and well-control tool nodes go further and state that no computed figure may be presented as a certified performance result or a survey of record. Consistent with the product line, every catalog entry remains an authoring suggestion: Ladder Graph does not inspect configuration, install skills, or verify that any declared capability exists.
 
 ## 5. Applying the pack
 
@@ -313,4 +370,4 @@ npm run catalog:generate   # regenerates src/generated/catalog.ts from catalog/
 npm run check              # typecheck, tests, build
 ```
 
-`scripts/generate-catalog-index.mjs` asserts that the files on disk match `catalog/manifest.json` exactly. This pack was validated against that assertion, against the checked-in JSON Schema at `public/schema/lgir-v1alpha1.schema.json`, and against the TypeScript parity compiler in `src/compiler/fallback.ts`: 56 of 56 workflows analyze with zero errors and zero warnings.
+`scripts/generate-catalog-index.mjs` asserts that the files on disk match `catalog/manifest.json` exactly. This pack was validated against that assertion, against the checked-in JSON Schema at `public/schema/lgir-v1alpha1.schema.json`, and against the TypeScript parity compiler in `src/compiler/fallback.ts`: 70 of 70 workflows analyze with zero errors and zero warnings.
