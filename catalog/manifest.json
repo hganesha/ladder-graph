@@ -2277,6 +2277,61 @@
       "topology": "All-settled scan + approval-gated dispatch",
       "accent": "#5f9eea",
       "file": "workflows/wf-office-04.yaml"
+    },
+    {
+      "id": "wf-clin-04",
+      "path": "research/clinical/evidence/wf-clin-04",
+      "area": "Clinical & health sciences",
+      "title": "Risk-of-bias dual assessment + adjudication",
+      "eyebrow": "Independent appraisal",
+      "description": "Independently assess risk of bias, preserve domain-level disagreements, and route unresolved judgments to senior adjudication.",
+      "topology": "Blind dual assessment + adjudication",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-04.yaml"
+    },
+    {
+      "id": "wf-clin-05",
+      "path": "research/clinical/evidence/wf-clin-05",
+      "area": "Clinical & health sciences",
+      "title": "Living systematic review surveillance + re-screening",
+      "eyebrow": "Living evidence surveillance",
+      "description": "Search for new citations, deduplicate and re-screen them against the registered protocol, and prepare an update only when eligible evidence could alter conclusions.",
+      "topology": "Search + screen + impact branch",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-05.yaml"
+    },
+    {
+      "id": "wf-clin-06",
+      "path": "research/clinical/evidence/wf-clin-06",
+      "area": "Clinical & health sciences",
+      "title": "Dual data extraction + field-level reconciliation",
+      "eyebrow": "Duplicate extraction",
+      "description": "Extract outcome data independently, surface field-level discrepancies, and reconcile them through a bounded, provenance-preserving review.",
+      "topology": "Blind dual extraction + bounded reconciliation",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-06.yaml"
+    },
+    {
+      "id": "wf-clin-07",
+      "path": "research/clinical/evidence/wf-clin-07",
+      "area": "Clinical & health sciences",
+      "title": "GRADE certainty rating + structured deliberation",
+      "eyebrow": "Certainty assessment",
+      "description": "Rate certainty independently by outcome, surface domain-level disagreement, and preserve the rationale behind an approved Summary-of-Findings table.",
+      "topology": "Blind dual rating + deliberation",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-07.yaml"
+    },
+    {
+      "id": "wf-clin-08",
+      "path": "research/clinical/evidence/wf-clin-08",
+      "area": "Clinical & health sciences",
+      "title": "Small-study effects + publication-bias sensitivity",
+      "eyebrow": "Meta-analysis diagnostics",
+      "description": "Gate asymmetry diagnostics on adequate study counts, select tests compatible with each meta-analysis, and report robustness without treating asymmetry as proof of publication bias.",
+      "topology": "Power gate + diagnostics + sensitivity branch",
+      "accent": "#55b9a8",
+      "file": "workflows/wf-clin-08.yaml"
     }
   ],
   "agents": [
@@ -4529,6 +4584,66 @@
       "path": "office/productivity/briefing",
       "title": "Daily Briefing Editor",
       "file": "agents/offc-08.yaml"
+    },
+    {
+      "id": "clin-09",
+      "path": "research/clinical/evidence",
+      "title": "Risk-of-Bias Assessor",
+      "file": "agents/clin-09.yaml"
+    },
+    {
+      "id": "clin-10",
+      "path": "research/clinical/evidence",
+      "title": "Risk-of-Bias Adjudicator",
+      "file": "agents/clin-10.yaml"
+    },
+    {
+      "id": "clin-11",
+      "path": "research/clinical/evidence",
+      "title": "Evidence Synthesis Impact Assessor",
+      "file": "agents/clin-11.yaml"
+    },
+    {
+      "id": "clin-12",
+      "path": "research/clinical/evidence",
+      "title": "Systematic Review Data Extractor",
+      "file": "agents/clin-12.yaml"
+    },
+    {
+      "id": "clin-13",
+      "path": "research/clinical/evidence",
+      "title": "Data Extraction Reconciler",
+      "file": "agents/clin-13.yaml"
+    },
+    {
+      "id": "clin-14",
+      "path": "research/clinical/evidence",
+      "title": "GRADE Certainty Rater",
+      "file": "agents/clin-14.yaml"
+    },
+    {
+      "id": "clin-15",
+      "path": "research/clinical/evidence",
+      "title": "GRADE Deliberation Methodologist",
+      "file": "agents/clin-15.yaml"
+    },
+    {
+      "id": "clin-16",
+      "path": "research/clinical/evidence",
+      "title": "Publication Bias Interpretation Methodologist",
+      "file": "agents/clin-16.yaml"
+    },
+    {
+      "id": "stat-01",
+      "path": "research/clinical/statistics",
+      "title": "Publication Bias Diagnostician",
+      "file": "agents/stat-01.yaml"
+    },
+    {
+      "id": "stat-02",
+      "path": "research/clinical/statistics",
+      "title": "Meta-analysis Sensitivity Analyst",
+      "file": "agents/stat-02.yaml"
     }
   ]
 }

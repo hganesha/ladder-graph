@@ -15,8 +15,8 @@ describe("agent template palette", () => {
   it("surfaces the expanded role count and researched specialists", () => {
     render(<Palette />);
 
-    expect(ROLE_TEMPLATES).toHaveLength(375);
-    expect(screen.getByText("375 agents")).toBeInTheDocument();
+    expect(ROLE_TEMPLATES).toHaveLength(385);
+    expect(screen.getByText("385 agents")).toBeInTheDocument();
     const macros = screen.getByLabelText("Visual macros");
     const primitives = screen.getByLabelText("Primitives");
     const agents = screen.getByLabelText("Agent templates");
@@ -45,6 +45,7 @@ describe("agent template palette", () => {
     expect(screen.getByLabelText("Creative & social agent templates (30)")).toBeInTheDocument();
     expect(screen.getByLabelText("Professional services agent templates (18)")).toBeInTheDocument();
     expect(screen.getByLabelText("Emerging agent templates (18)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Clinical & health sciences agent templates (18)")).toBeInTheDocument();
     expect(screen.getByLabelText("Office productivity agent templates (8)")).toBeInTheDocument();
     expect(screen.getByText("Requirements Analyst")).toBeInTheDocument();
     expect(screen.getByText("Penetration Tester / Red Team Operator")).toBeInTheDocument();
@@ -55,6 +56,7 @@ describe("agent template palette", () => {
     expect(screen.getByText("Trigonometry Problem Solver & Tutor")).toBeInTheDocument();
     expect(screen.getByText("Melody & Harmonic Co-Composer")).toBeInTheDocument();
     expect(screen.getByText("Quantum Mechanics Tutor")).toBeInTheDocument();
+    expect(screen.getByText("GRADE Certainty Rater")).toBeInTheDocument();
   });
 
   it("finds a researched role through the visible library search", () => {
@@ -103,7 +105,7 @@ describe("agent template palette", () => {
       ["Professional services", 18],
       ["Emerging", 18],
       ["Legal & contracts", 7],
-      ["Clinical & health sciences", 8],
+      ["Clinical & health sciences", 18],
       ["Data & analytics engineering", 6],
       ["Education & assessment", 6],
       ["Finance & risk", 7],

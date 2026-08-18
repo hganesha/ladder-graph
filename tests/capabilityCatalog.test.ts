@@ -11,7 +11,7 @@ describe("target capability catalogs", () => {
       connector.id.startsWith("api:openrouter/"),
     );
 
-    expect(researchedRoles).toHaveLength(359);
+    expect(researchedRoles).toHaveLength(369);
     expect(new Set(roleIds).size).toBe(roleIds.length);
     expect(openRouterProfiles).toHaveLength(15);
     expect(new Set(openRouterProfiles.map((connector) => connector.id)).size).toBe(openRouterProfiles.length);

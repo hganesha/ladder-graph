@@ -1,0 +1,123 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: publication-bias-detection
+  title: Small-study effects + publication-bias sensitivity
+  description: Gate asymmetry diagnostics on adequate study counts, select tests compatible with each meta-analysis, and report robustness without treating asymmetry as proof of publication bias.
+  version: 1.0.0
+spec:
+  objective: Produce cautious, outcome-level small-study-effect diagnostics and sensitivity conclusions with explicit limitations.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [bias-lead-approval] }
+  nodes:
+    - id: meta-analysis-input
+      kind: input
+      name: Meta-analytic estimates, study-level data, and analysis plan
+      inputSchema:
+        type: object
+        required: [outcomeEstimates, studyLevelData, analysisPlan]
+        properties:
+          outcomeEstimates: { type: string, contentMediaType: application/json }
+          studyLevelData: { type: string, contentMediaType: application/json }
+          analysisPlan: { type: string, contentMediaType: application/json }
+        x-ladder-input-mode: document
+    - id: power-check
+      kind: evaluate
+      inlineRole: true
+      name: Check whether asymmetry testing is adequately powered
+      role: Independent statistical feasibility evaluator
+      prompt: >-
+        Count compatible studies for each outcome and return has-testable when at least one outcome has 10 or more
+        studies. Label outcomes with fewer than 10 studies as underpowered for funnel-plot-asymmetry testing,
+        retain them in the limitations report, and do not interpret a non-significant test as evidence that
+        reporting bias is absent.
+      capabilities:
+        skills: [evaluation, statistical-validation]
+        tools: [read, calculate]
+        permissions: [read-only]
+      outputSchema: { type: object }
+      config: { threshold: 10 }
+    - id: run-tests
+      kind: agent
+      name: Run compatible small-study-effect diagnostics
+      templateRef: stat-01
+      role: Meta-analysis statistician running small-study-effect and funnel-plot-asymmetry diagnostics.
+      prompt: >-
+        For each adequately powered outcome, choose funnel-plot-asymmetry tests that match the outcome type, effect
+        measure, and heterogeneity; do not mechanically apply every available test. Report estimates, uncertainty,
+        p-values, assumptions, and a funnel-plot or equivalent diagnostic when possible. Treat asymmetry as a
+        small-study-effect signal with multiple possible causes, not proof of publication bias, and label analyses
+        with fewer than 10 studies as underpowered.
+      capabilities:
+        skills: [statistical-analysis, statistical-validation, evidence-verification]
+        tools: [read, calculate, render]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: bias-gate
+      kind: evaluate
+      inlineRole: true
+      name: Identify outcomes requiring sensitivity analysis
+      role: Independent small-study-effect signal evaluator
+      prompt: >-
+        Evaluate each adequately powered outcome using the prespecified analysis plan, the compatibility and
+        assumptions of each diagnostic, and the observed heterogeneity. Return no-signal when no outcome warrants
+        sensitivity analysis; otherwise return has-signal with the exact outcomes, statistics, and alternative
+        explanations that must be tested.
+      capabilities:
+        skills: [evaluation, statistical-validation, uncertainty-calibration]
+        tools: [read, compare]
+        permissions: [read-only]
+      outputSchema: { type: object }
+      config: { threshold: 0.1 }
+    - id: sensitivity
+      kind: agent
+      name: Run prespecified robustness analyses
+      templateRef: stat-02
+      role: Meta-analysis statistician evaluating robustness under declared sensitivity scenarios.
+      prompt: >-
+        For each flagged outcome, run only prespecified and methodologically compatible sensitivity analyses, such
+        as influence diagnostics, leave-one-out analysis, alternative estimators, or a cautiously interpreted
+        trim-and-fill analysis. Compare effect direction, magnitude, interval estimates, and decision thresholds
+        with the primary model. Return robust, fragile, or reversed with assumptions and limitations; do not use a
+        fail-safe N or an imputed funnel as proof that missing evidence has been resolved.
+      capabilities:
+        skills: [statistical-analysis, statistical-validation, uncertainty-calibration]
+        tools: [read, calculate]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: recommendation
+      kind: agent
+      name: Interpret diagnostics and formulate review caveats
+      templateRef: clin-16
+      role: Senior methodologist interpreting publication-bias diagnostics for a systematic review.
+      prompt: >-
+        Interpret the small-study-effect diagnostics and sensitivity analyses outcome by outcome. Distinguish
+        funnel-plot asymmetry from proven publication bias, consider heterogeneity and other plausible causes, and
+        state whether to report the original estimate, an adjusted estimate, or both. Explain any implication for
+        certainty of evidence and give a plain-language caveat tied to the actual test statistics, assumptions, and
+        limitations.
+      capabilities:
+        skills: [clinical-evidence-appraisal, statistical-analysis, uncertainty-calibration, writing-editing]
+        tools: [read, compare]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: merge-report
+      kind: transform
+      name: Merge unflagged, underpowered, and sensitivity-reported outcomes
+      config: { operation: merge, expression: $.unflagged + $.underpowered + $.sensitivityReported by outcome }
+    - id: bias-lead-approval
+      kind: approval
+      name: Review lead approves the diagnostics, caveats, and limitations
+    - id: result
+      kind: output
+      name: Approved small-study-effect diagnostics and sensitivity report
+  edges:
+    - { id: e1, from: meta-analysis-input, to: power-check, kind: data }
+    - { id: e2, from: power-check, to: run-tests, kind: control, condition: has-testable }
+    - { id: e3, from: power-check, to: bias-lead-approval, kind: control, condition: all-underpowered }
+    - { id: e4, from: run-tests, to: bias-gate, kind: data }
+    - { id: e5, from: bias-gate, to: merge-report, kind: control, condition: no-signal }
+    - { id: e6, from: bias-gate, to: sensitivity, kind: control, condition: has-signal }
+    - { id: e7, from: sensitivity, to: recommendation, kind: data }
+    - { id: e8, from: recommendation, to: merge-report, kind: data }
+    - { id: e9, from: merge-report, to: bias-lead-approval, kind: data }
+    - { id: e10, from: bias-lead-approval, to: result, kind: dependency, condition: approved }

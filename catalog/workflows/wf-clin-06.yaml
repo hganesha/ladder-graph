@@ -1,0 +1,138 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: dual-data-extraction-reconciliation
+  title: Dual data extraction + field-level reconciliation
+  description: Extract outcome data independently, surface field-level discrepancies, and reconcile them through a bounded, provenance-preserving review.
+  version: 1.0.0
+spec:
+  objective: Produce a verified evidence table in which every field is populated or explicitly justified as missing.
+  policies: { maxConcurrency: 4, onFailure: preserve-completed, requireApprovalFor: [extraction-lock] }
+  nodes:
+    - id: included-studies
+      kind: input
+      name: Included reports and piloted extraction form
+      inputSchema:
+        type: object
+        required: [studies, extractionForm, instructions]
+        properties:
+          studies:
+            type: array
+            items: { type: string, contentMediaType: application/pdf }
+          extractionForm: { type: string, contentMediaType: application/json }
+          instructions: { type: string }
+        x-ladder-input-mode: document
+    - id: extractor-a
+      kind: agent
+      name: Independent data extraction A
+      templateRef: clin-12
+      role: Independent systematic-review data extractor following a piloted extraction form.
+      prompt: >-
+        Extract every field defined by the supplied form from each report independently. Preserve the study,
+        report, page, table, arm, outcome, and time-point provenance needed to interpret each value. For numerical
+        outcomes capture the effect or raw value, dispersion, and sample size exactly as reported. Mark unavailable
+        or ambiguous fields with a reason; do not infer, convert, or impute unless the protocol explicitly defines
+        the calculation.
+      capabilities:
+        skills: [protocol-adherence, evidence-verification, quantitative-analysis]
+        tools: [read, extract]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: extractor-b
+      kind: agent
+      name: Independent data extraction B
+      templateRef: clin-12
+      role: Independent systematic-review data extractor following a piloted extraction form.
+      prompt: >-
+        Extract every field defined by the supplied form from each report independently. Preserve the study,
+        report, page, table, arm, outcome, and time-point provenance needed to interpret each value. For numerical
+        outcomes capture the effect or raw value, dispersion, and sample size exactly as reported. Mark unavailable
+        or ambiguous fields with a reason; do not infer, convert, or impute unless the protocol explicitly defines
+        the calculation.
+      capabilities:
+        skills: [protocol-adherence, evidence-verification, quantitative-analysis]
+        tools: [read, extract]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: field-comparison
+      kind: aggregator
+      name: Preserve paired field values and discrepancies
+      config: { aggregation: collect }
+    - id: discrepancy-classify
+      kind: evaluate
+      inlineRole: true
+      name: Classify field-level discrepancies
+      role: Independent extraction discrepancy classifier
+      prompt: >-
+        Compare paired values by study, report, arm, outcome, time point, and extraction field. Classify each
+        mismatch as trivial formatting, substantive disagreement, or missing on one or both sides. Preserve both
+        original values and citations, and return passed only when no substantive or unexplained missing-field
+        discrepancy remains.
+      capabilities:
+        skills: [evaluation, evidence-verification]
+        tools: [read, compare]
+        permissions: [read-only]
+      outputSchema: { type: object }
+      config: { threshold: 1.0 }
+    - id: reconcile-fields
+      kind: agent
+      name: Reconcile substantive and missing-field discrepancies
+      templateRef: clin-13
+      role: Senior reviewer resolving systematic-review data extraction discrepancies.
+      prompt: >-
+        Re-read the cited source for every substantive or missing-field discrepancy, apply the extraction form and
+        protocol, and record the supported consensus value with a concise rationale. Preserve both original
+        extractions and their provenance. If the reports do not resolve the discrepancy, keep it explicit for study
+        author contact or lead-reviewer decision rather than choosing a convenient value.
+      capabilities:
+        skills: [independent-review, evidence-verification, quantitative-analysis]
+        tools: [read, compare]
+        permissions: [read-only]
+      outputSchema: { type: object }
+    - id: merge-extraction
+      kind: transform
+      name: Merge agreed and reconciled fields
+      config: { operation: merge, expression: $.agreed + $.reconciled by study,report,arm,outcome,timePoint,field }
+    - id: completeness-check
+      kind: evaluate
+      inlineRole: true
+      name: Verify field completeness and missingness reasons
+      role: Independent extraction completeness auditor
+      prompt: >-
+        Check the merged evidence table against every field in the extraction form. Return passed only when every
+        required field is populated or carries an explicit, source-consistent missingness reason, and list every
+        unresolved discrepancy without filling it.
+      capabilities:
+        skills: [evaluation, evidence-verification]
+        tools: [read, validate]
+        permissions: [read-only]
+      outputSchema: { type: object }
+      config: { threshold: 1.0 }
+    - id: reconciliation-loop
+      kind: loop
+      name: Bounded extraction reconciliation
+      config:
+        body: [reconcile-fields, merge-extraction, completeness-check]
+        exitCondition: completeness-check.passed == true
+        maxIterations: 2
+        onExhausted: warn
+    - id: extraction-lock
+      kind: approval
+      name: Lead reviewer locks the evidence table and accepts unresolved items
+    - id: result
+      kind: output
+      name: Verified evidence table with field-level provenance
+  edges:
+    - { id: e1, from: included-studies, to: extractor-a, kind: data }
+    - { id: e2, from: included-studies, to: extractor-b, kind: data }
+    - { id: e3, from: extractor-a, to: field-comparison, kind: data }
+    - { id: e4, from: extractor-b, to: field-comparison, kind: data }
+    - { id: e5, from: field-comparison, to: discrepancy-classify, kind: data }
+    - { id: e6, from: discrepancy-classify, to: reconcile-fields, kind: data }
+    - { id: e7, from: reconcile-fields, to: merge-extraction, kind: data }
+    - { id: e8, from: merge-extraction, to: completeness-check, kind: data }
+    - { id: e9, from: completeness-check, to: reconciliation-loop, kind: control, condition: failed }
+    - { id: e10, from: completeness-check, to: extraction-lock, kind: control, condition: passed }
+    - { id: e11, from: reconciliation-loop, to: extraction-lock, kind: control, condition: loop_exit }
+    - { id: e12, from: reconciliation-loop, to: extraction-lock, kind: control, condition: loop_exhausted }
+    - { id: e13, from: extraction-lock, to: result, kind: dependency, condition: approved }
