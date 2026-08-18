@@ -1,5 +1,7 @@
-import { ArrowLeft, Download, Monitor, Redo2, Save, Smartphone, Undo2 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { ArrowLeft, Download, Monitor, Redo2, Save, Smartphone, Undo2, Upload } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { compiler } from "../../compiler/client";
+import { importFormJson } from "../../lib/formJsonImport";
 import { createFormOutputFiles } from "../../lib/formOutputs";
 import { useFormStore } from "../../store/useFormStore";
 import { Brand } from "../Brand";
@@ -48,6 +50,10 @@ export default function FormStudio({
   const setViewport = useFormStore((state) => state.setViewport);
   const undo = useFormStore((state) => state.undo);
   const redo = useFormStore((state) => state.redo);
+  const setSource = useFormStore((state) => state.setSource);
+  const [importMessage, setImportMessage] = useState("");
+  const [importError, setImportError] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
   const errorCount = diagnostics.filter((item) => item.severity === "error").length;
   const dirty = source !== initialSource;
   const shortcutState = useRef({ busy, errorCount, onSave, source });
@@ -96,6 +102,36 @@ export default function FormStudio({
             <Redo2 size={15} />
           </button>
           <ThemeToggle compact />
+          <button aria-label="Import JSON" className="quiet-button" onClick={() => fileRef.current?.click()} type="button">
+            <Upload size={14} /> Import JSON
+          </button>
+          <input
+            accept=".json,application/json,application/schema+json"
+            hidden
+            onChange={async (event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              try {
+                if (file.size > 2_000_000) throw new Error("Import is larger than 2 MB.");
+                const imported = importFormJson(await file.text(), file.name);
+                const analysis = await compiler.analyzeArtifact(imported.source);
+                if (!analysis.ok) {
+                  const firstError = analysis.diagnostics.find((diagnostic) => diagnostic.severity === "error");
+                  throw new Error(firstError?.message ?? "The JSON does not describe a valid form.");
+                }
+                await setSource(imported.source);
+                setImportError("");
+                setImportMessage(`Imported ${imported.fieldCount} ${imported.fieldCount === 1 ? "field" : "fields"} from ${file.name}.`);
+              } catch (error) {
+                setImportMessage("");
+                setImportError(error instanceof Error ? error.message : "JSON import failed.");
+              } finally {
+                event.target.value = "";
+              }
+            }}
+            ref={fileRef}
+            type="file"
+          />
           <button
             className="quiet-button"
             disabled={!form || Boolean(errorCount)}
@@ -128,29 +164,36 @@ export default function FormStudio({
             </button>
           ))}
         </div>
-        {mode === "preview" ? (
-          <fieldset className="form-viewport-control">
-            <legend className="sr-only">Preview width</legend>
-            <button
-              aria-label="Desktop preview"
-              className={viewport === "desktop" ? "active" : undefined}
-              onClick={() => setViewport("desktop")}
-              type="button"
-            >
-              <Monitor size={14} /> Desktop
-            </button>
-            <button
-              aria-label="Narrow preview"
-              className={viewport === "narrow" ? "active" : undefined}
-              onClick={() => setViewport("narrow")}
-              type="button"
-            >
-              <Smartphone size={14} /> Narrow
-            </button>
-          </fieldset>
-        ) : (
-          <span className="form-save-status">{busy ? "Validating…" : `${errorCount} errors · ${dirty ? "draft" : "saved"}`}</span>
-        )}
+        <div>
+          {importError || importMessage ? (
+            <span className={importError ? "form-import-status error" : "form-import-status"} role={importError ? "alert" : "status"}>
+              {importError || importMessage}
+            </span>
+          ) : null}
+          {mode === "preview" ? (
+            <fieldset className="form-viewport-control">
+              <legend className="sr-only">Preview width</legend>
+              <button
+                aria-label="Desktop preview"
+                className={viewport === "desktop" ? "active" : undefined}
+                onClick={() => setViewport("desktop")}
+                type="button"
+              >
+                <Monitor size={14} /> Desktop
+              </button>
+              <button
+                aria-label="Narrow preview"
+                className={viewport === "narrow" ? "active" : undefined}
+                onClick={() => setViewport("narrow")}
+                type="button"
+              >
+                <Smartphone size={14} /> Narrow
+              </button>
+            </fieldset>
+          ) : (
+            <span className="form-save-status">{busy ? "Validating…" : `${errorCount} errors · ${dirty ? "draft" : "saved"}`}</span>
+          )}
+        </div>
       </div>
 
       <div className="form-studio-layout">
