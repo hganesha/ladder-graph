@@ -839,7 +839,7 @@ export default function BundleStudio({
               </button>
             ))}
           </div>
-          <div className="bundle-tab-panel" role="tabpanel">
+          <div className={tab === "workflow" ? "bundle-tab-panel bundle-tab-panel-workflow" : "bundle-tab-panel"} role="tabpanel">
             {tab === "bundle" ? (
               <div className="bundle-builder">
                 <BundleIdentityEditor bundle={bundle} onChange={(metadata) => applyBundle(updateBundleMetadata(bundle, metadata))} />

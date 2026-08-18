@@ -84,6 +84,7 @@ describe("bundle workspace", () => {
     expect(screen.queryByText("ladder.lock.json")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
+    expect(screen.getByRole("tabpanel")).toHaveClass("bundle-tab-panel-workflow");
     expect(screen.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeInTheDocument();
     expect(screen.getByLabelText("Bundled workflow inspector")).toBeInTheDocument();
 
