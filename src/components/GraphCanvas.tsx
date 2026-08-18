@@ -11,7 +11,7 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import { Trash2 } from "lucide-react";
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import "@xyflow/react/dist/style.css";
 import { exportGraphImage, type GraphImageFormat } from "../lib/graphImage";
 import { groupDimensions } from "../lib/layout";
@@ -19,13 +19,13 @@ import { NODE_META } from "../lib/nodeMeta";
 import { useStudioStore } from "../store/useStudioStore";
 import type { LgirEdge, LgirNode } from "../types";
 import { type GroupFlowData, GroupNode } from "./GroupNode";
-import { TaskNode } from "./TaskNode";
+import { type TaskFlowData, TaskNode, type WorkflowInlineEdit } from "./TaskNode";
 
-export type TaskFlowNode = Node<LgirNode, "task">;
+export type TaskFlowNode = Node<TaskFlowData, "task">;
 export type GroupFlowNode = Node<GroupFlowData, "group">;
 export type WorkflowFlowNode = TaskFlowNode | GroupFlowNode;
 
-export function toFlowNodes(nodes: LgirNode[]): WorkflowFlowNode[] {
+export function toFlowNodes(nodes: LgirNode[], onInlineEdit?: WorkflowInlineEdit): WorkflowFlowNode[] {
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const owner = new Map<string, LgirNode>();
   nodes
@@ -45,7 +45,7 @@ export function toFlowNodes(nodes: LgirNode[]): WorkflowFlowNode[] {
           id: node.id,
           type: "group",
           position,
-          data: { ...node, memberCount: node.config?.members?.filter((id) => byId.has(id)).length ?? 0 },
+          data: { ...node, memberCount: node.config?.members?.filter((id) => byId.has(id)).length ?? 0, onInlineEdit },
           style: dimensions,
           zIndex: -1,
         } satisfies GroupFlowNode;
@@ -56,7 +56,7 @@ export function toFlowNodes(nodes: LgirNode[]): WorkflowFlowNode[] {
         id: node.id,
         type: "task",
         position: group ? { x: position.x - groupPosition.x, y: position.y - groupPosition.y } : position,
-        data: node,
+        data: { ...node, onInlineEdit },
         parentId: group?.id,
         extent: group ? "parent" : undefined,
         zIndex: 2,
@@ -131,8 +131,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
   const selectedEdgeId = useStudioStore((state) => state.selectedEdgeId);
   const connect = useStudioStore((state) => state.connect);
   const deleteElements = useStudioStore((state) => state.deleteElements);
+  const patchNode = useStudioStore((state) => state.patchNode);
   const updatePositions = useStudioStore((state) => state.updatePositions);
-  const sourceNodes = useMemo(() => toFlowNodes(workflow?.spec.nodes ?? []), [workflow]);
+  const onInlineEdit = useCallback<WorkflowInlineEdit>((id, patch) => void patchNode(id, patch), [patchNode]);
+  const sourceNodes = useMemo(() => toFlowNodes(workflow?.spec.nodes ?? [], onInlineEdit), [onInlineEdit, workflow]);
   const sourceEdges = useMemo(() => toFlowEdges(workflow?.spec.edges ?? [], workflow?.spec.nodes ?? []), [workflow]);
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowFlowNode>(sourceNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(sourceEdges);
@@ -277,7 +279,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
         </button>
       )}
       <div className="canvas-hint">
-        <span className="desktop-canvas-hint">drag nodes · click edges to inspect · select + delete · connect handles · ⌘↵ compile</span>
+        <span className="desktop-canvas-hint">double-click text to edit · drag nodes · connect handles · select + delete · ⌘↵ compile</span>
         <span className="mobile-canvas-hint">drag to pan · pinch to zoom</span>
       </div>
     </section>

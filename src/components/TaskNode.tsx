@@ -6,8 +6,8 @@ import {
   CircleDot,
   Combine,
   Database,
-  GraduationCap,
   GitBranch,
+  GraduationCap,
   IterationCcw,
   LayoutPanelTop,
   LogIn,
@@ -16,11 +16,18 @@ import {
   Wrench,
 } from "lucide-react";
 import { memo } from "react";
-import { NODE_META } from "../lib/nodeMeta";
 import { inputContractLabel } from "../lib/inputContracts";
+import { NODE_META } from "../lib/nodeMeta";
 import type { LgirNode } from "../types";
+import { InlineNodeField } from "./InlineNodeField";
 
-type TaskFlowNode = Node<LgirNode, "task">;
+export type WorkflowInlineEdit = (id: string, patch: Pick<Partial<LgirNode>, "name" | "summary">) => void;
+
+export type TaskFlowData = LgirNode & {
+  onInlineEdit?: WorkflowInlineEdit;
+};
+
+type TaskFlowNode = Node<TaskFlowData, "task">;
 
 const icons = {
   input: LogIn,
@@ -68,8 +75,25 @@ export const TaskNode = memo(function TaskNode({ data, selected }: NodeProps<Tas
         <span>{meta.label}</span>
         {incomplete && <AlertTriangle size={13} className="node-alert" aria-label="Incomplete configuration" />}
       </header>
-      <h3>{data.name}</h3>
-      <p>{data.summary || meta.hint}</p>
+      <InlineNodeField
+        as="h3"
+        editable={Boolean(data.onInlineEdit)}
+        label="node name"
+        onCommit={(name) => data.onInlineEdit?.(data.id, { name })}
+        placeholder="Untitled node"
+        showAffordance={selected}
+        value={data.name}
+      />
+      <InlineNodeField
+        as="p"
+        editable={Boolean(data.onInlineEdit)}
+        label="node details"
+        multiline
+        onCommit={(summary) => data.onInlineEdit?.(data.id, { summary })}
+        placeholder={meta.hint}
+        showAffordance={selected}
+        value={data.summary}
+      />
       <footer>
         {data.kind === "agent" || data.kind === "evaluate" ? (
           <span>{data.role || "Role needed"}</span>

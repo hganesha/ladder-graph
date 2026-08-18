@@ -2655,7 +2655,7 @@ button:disabled {
   display: grid;
   gap: 7px;
   width: 210px;
-  min-height: 92px;
+  min-height: 124px;
   border: 1px solid color-mix(in srgb, var(--cyan) 38%, var(--border));
   border-radius: 10px;
   padding: 10px 11px;
@@ -2689,6 +2689,17 @@ button:disabled {
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.ontology-graph-node > p {
+  display: -webkit-box;
+  min-height: 26px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .ontology-graph-node footer {
   color: var(--dim);
@@ -4612,6 +4623,83 @@ button:disabled {
   font-weight: 560;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.inline-node-value[role="button"] {
+  cursor: text;
+}
+.inline-node-value[role="button"]:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+.inline-node-value > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inline-node-value.placeholder > span {
+  opacity: 0.72;
+}
+.task-node h3.inline-node-value,
+.group-node header strong.inline-node-value,
+.ontology-graph-node > strong.inline-node-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-node p.inline-node-value,
+.group-node > p.inline-node-value,
+.ontology-graph-node > p.inline-node-value {
+  position: relative;
+}
+.inline-node-pencil {
+  flex: 0 0 auto;
+  opacity: 0.58;
+}
+.inline-node-editor {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--node-color, var(--cyan)) 72%, var(--border));
+  border-radius: 6px;
+  padding: 4px 6px;
+  color: var(--text);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--node-color, var(--cyan)) 14%, transparent);
+  font: inherit;
+  line-height: 1.35;
+  outline: none;
+  resize: none;
+}
+.task-node > .inline-node-editor {
+  margin: 8px 0 3px;
+  font-size: 13px;
+}
+.task-node > textarea.inline-node-editor {
+  min-height: 42px;
+  margin-top: 0;
+  font-size: 10px;
+}
+.group-node header .inline-node-editor {
+  max-width: 230px;
+  color: #dce8ec;
+  font-family: "Syne", sans-serif;
+  font-size: 13px;
+}
+.group-node > .inline-node-editor {
+  position: absolute;
+  top: 62px;
+  left: 20px;
+  z-index: 3;
+  width: min(310px, calc(100% - 80px));
+  min-height: 48px;
+  font-size: 9px;
+}
+.ontology-graph-node > .inline-node-editor {
+  font-size: 11px;
+}
+.ontology-graph-node > textarea.inline-node-editor {
+  min-height: 35px;
+  font-size: 9px;
 }
 .task-node p {
   display: -webkit-box;

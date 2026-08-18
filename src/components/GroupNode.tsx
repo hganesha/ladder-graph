@@ -2,9 +2,12 @@ import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { Braces, GitMerge, Layers3 } from "lucide-react";
 import { memo } from "react";
 import type { LgirNode } from "../types";
+import { InlineNodeField } from "./InlineNodeField";
+import type { WorkflowInlineEdit } from "./TaskNode";
 
 export type GroupFlowData = LgirNode & {
   memberCount: number;
+  onInlineEdit?: WorkflowInlineEdit;
 };
 
 type GroupFlowNode = Node<GroupFlowData, "group">;
@@ -22,12 +25,29 @@ export const GroupNode = memo(function GroupNode({ data, selected }: NodeProps<G
       <Handle id="output" type="source" position={Position.Right} className="group-handle group-output-handle" />
       <header>
         <span className="group-kicker">Group</span>
-        <strong>{data.name}</strong>
+        <InlineNodeField
+          as="strong"
+          editable={Boolean(data.onInlineEdit)}
+          label="group name"
+          onCommit={(name) => data.onInlineEdit?.(data.id, { name })}
+          placeholder="Untitled group"
+          showAffordance={selected}
+          value={data.name}
+        />
         <span className="group-mode">
           <ExecutionIcon size={13} /> {parallel ? "parallel" : "sequential"}
         </span>
       </header>
-      <p>{data.summary}</p>
+      <InlineNodeField
+        as="p"
+        editable={Boolean(data.onInlineEdit)}
+        label="group details"
+        multiline
+        onCommit={(summary) => data.onInlineEdit?.(data.id, { summary })}
+        placeholder="Add details"
+        showAffordance={selected}
+        value={data.summary}
+      />
       <div className="group-port-label group-input-label">input</div>
       <div className="group-port-label group-exit-label">
         <Braces size={12} /> {exit}
