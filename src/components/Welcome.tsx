@@ -40,14 +40,107 @@ type GalleryView = "starters" | "recent";
 const BUNDLE_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "workflow-bundle").sort((left, right) =>
   compareCatalogLabels(left.title, right.title),
 );
-const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form");
-const DOCUMENT_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "document");
-const ONTOLOGY_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "ontology");
+const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form").sort((left, right) =>
+  compareCatalogLabels(left.title, right.title),
+);
+const DOCUMENT_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "document").sort((left, right) =>
+  compareCatalogLabels(left.title, right.title),
+);
+const ONTOLOGY_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "ontology").sort((left, right) =>
+  compareCatalogLabels(left.title, right.title),
+);
 
 function artifactsForSubject<T extends { path: string }>(templates: T[], subject: string): T[] {
   if (subject === ALL_SUBJECT_AREA.name) return templates;
   const prefixes = SUBJECT_AREAS.find((area) => area.name === subject)?.artifactPathPrefixes ?? [];
   return templates.filter((template) => prefixes.some((prefix) => template.path.startsWith(prefix)));
+}
+
+function pathMatchesPrefix(path: string, prefix: string): boolean {
+  const normalizedPrefix = prefix.replace(/\/+$/, "");
+  return path === normalizedPrefix || path.startsWith(`${normalizedPrefix}/`);
+}
+
+function subjectForAgent(agent: (typeof ROLE_TEMPLATES)[number]): string {
+  const declaredArea = agent.areas.find((area) => SUBJECT_AREAS.some((subject) => subject.name === area));
+  if (declaredArea) return declaredArea;
+
+  const explicitlyAssignedArea = SUBJECT_AREAS.find((subject) => subject.agentIds.includes(agent.id));
+  if (explicitlyAssignedArea) return explicitlyAssignedArea.name;
+
+  return (
+    SUBJECT_AREAS.flatMap((subject) =>
+      subject.agentPathPrefixes.map((prefix) => ({ name: subject.name, prefix: prefix.replace(/\/+$/, "") })),
+    )
+      .filter(({ prefix }) => pathMatchesPrefix(agent.path, prefix))
+      .sort((left, right) => right.prefix.length - left.prefix.length || compareCatalogLabels(left.name, right.name))[0]?.name ??
+    "Uncategorized"
+  );
+}
+
+function subjectForArtifact(artifact: (typeof ARTIFACT_INDEX)[number]): string {
+  return (
+    SUBJECT_AREAS.flatMap((subject) =>
+      subject.artifactPathPrefixes.map((prefix) => ({ name: subject.name, prefix: prefix.replace(/\/+$/, "") })),
+    )
+      .filter(({ prefix }) => pathMatchesPrefix(artifact.path, prefix))
+      .sort((left, right) => right.prefix.length - left.prefix.length || compareCatalogLabels(left.name, right.name))[0]?.name ??
+    "Uncategorized"
+  );
+}
+
+function CatalogItemCollection<T>({
+  emptyMessage,
+  gridClassName,
+  groupBySubject,
+  items,
+  pluralLabel,
+  renderItem,
+  singularLabel,
+  subjectForItem,
+}: {
+  emptyMessage: string;
+  gridClassName: string;
+  groupBySubject: boolean;
+  items: T[];
+  pluralLabel: string;
+  renderItem: (item: T) => React.ReactNode;
+  singularLabel: string;
+  subjectForItem: (item: T) => string;
+}) {
+  if (items.length === 0) {
+    return (
+      <div className={gridClassName}>
+        <p className="library-empty">{emptyMessage}</p>
+      </div>
+    );
+  }
+
+  if (!groupBySubject) return <div className={gridClassName}>{items.map(renderItem)}</div>;
+
+  const groupedItems = Array.from(
+    items.reduce((groups, item) => {
+      const subject = subjectForItem(item);
+      groups.set(subject, [...(groups.get(subject) ?? []), item]);
+      return groups;
+    }, new Map<string, T[]>()),
+  ).sort(([left], [right]) => compareCatalogLabels(left, right));
+
+  return (
+    <div className="catalog-subject-groups">
+      {groupedItems.map(([subject, subjectItems]) => (
+        <section aria-label={`${subject} ${pluralLabel}`} className="catalog-subject-group" key={subject}>
+          <header>
+            <h3>{subject}</h3>
+            <span>
+              {subjectItems.length} {subjectItems.length === 1 ? singularLabel : pluralLabel}
+            </span>
+          </header>
+          <div className={gridClassName}>{subjectItems.map(renderItem)}</div>
+        </section>
+      ))}
+    </div>
+  );
 }
 
 function subjectItemCount(subject: string): number {
@@ -394,8 +487,13 @@ export function Welcome({
                 </div>
               </div>
               {activeLibraryTab === "workflows" ? (
-                <div className="template-grid tabbed-template-grid">
-                  {selectedTemplates.map((template) => (
+                <CatalogItemCollection
+                  emptyMessage="No workflows match this modality."
+                  gridClassName="template-grid tabbed-template-grid"
+                  groupBySubject={allSubjectsSelected}
+                  items={selectedTemplates}
+                  pluralLabel="workflows"
+                  renderItem={(template) => (
                     <button
                       aria-label={`Open ${template.title} in studio`}
                       className="template-card"
@@ -419,9 +517,10 @@ export function Welcome({
                         Open in studio <ArrowRight size={14} />
                       </strong>
                     </button>
-                  ))}
-                  {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
-                </div>
+                  )}
+                  singularLabel="workflow"
+                  subjectForItem={(template) => template.area}
+                />
               ) : activeLibraryTab === "bundles" ? (
                 <section className="curated-bundles" aria-labelledby="curated-bundles-title">
                   <header>
@@ -433,8 +532,13 @@ export function Welcome({
                       {selectedBundles.length} {selectedBundles.length === 1 ? "bundle" : "bundles"}
                     </span>
                   </header>
-                  <div className="bundle-launch-grid">
-                    {selectedBundles.map((template) => (
+                  <CatalogItemCollection
+                    emptyMessage="No bundles for this subject area."
+                    gridClassName="bundle-launch-grid"
+                    groupBySubject={allSubjectsSelected}
+                    items={selectedBundles}
+                    pluralLabel="bundles"
+                    renderItem={(template) => (
                       <button
                         aria-label={`Open ${template.title}`}
                         className="bundle-launch-card"
@@ -454,13 +558,19 @@ export function Welcome({
                           Open <ArrowRight size={15} />
                         </span>
                       </button>
-                    ))}
-                  </div>
-                  {selectedBundles.length === 0 && <p className="library-empty">No bundles for this subject area.</p>}
+                    )}
+                    singularLabel="bundle"
+                    subjectForItem={subjectForArtifact}
+                  />
                 </section>
               ) : activeLibraryTab === "agents" ? (
-                <div className="template-grid tabbed-template-grid agent-template-grid">
-                  {selectedAgents.map((agent) => (
+                <CatalogItemCollection
+                  emptyMessage="No agents match this modality."
+                  gridClassName="template-grid tabbed-template-grid agent-template-grid"
+                  groupBySubject={allSubjectsSelected}
+                  items={selectedAgents}
+                  pluralLabel="agents"
+                  renderItem={(agent) => (
                     <button
                       aria-label={`Start workflow with ${agent.name}`}
                       className="template-card agent-template-card"
@@ -486,12 +596,18 @@ export function Welcome({
                         Create workflow <ArrowRight size={14} />
                       </strong>
                     </button>
-                  ))}
-                  {selectedAgents.length === 0 && <p className="library-empty">No agents match this modality.</p>}
-                </div>
+                  )}
+                  singularLabel="agent"
+                  subjectForItem={subjectForAgent}
+                />
               ) : activeLibraryTab === "forms" ? (
-                <div className="template-grid tabbed-template-grid form-template-grid">
-                  {selectedForms.map((form) => (
+                <CatalogItemCollection
+                  emptyMessage="No forms for this subject area."
+                  gridClassName="template-grid tabbed-template-grid form-template-grid"
+                  groupBySubject={allSubjectsSelected}
+                  items={selectedForms}
+                  pluralLabel="forms"
+                  renderItem={(form) => (
                     <button
                       aria-label={`Open ${form.title} form`}
                       className="template-card form-template-card"
@@ -511,12 +627,18 @@ export function Welcome({
                         Open form studio <ArrowRight size={14} />
                       </strong>
                     </button>
-                  ))}
-                  {selectedForms.length === 0 && <p className="library-empty">No forms for this subject area.</p>}
-                </div>
+                  )}
+                  singularLabel="form"
+                  subjectForItem={subjectForArtifact}
+                />
               ) : activeLibraryTab === "documents" ? (
-                <div className="template-grid tabbed-template-grid form-template-grid">
-                  {selectedDocuments.map((document) => (
+                <CatalogItemCollection
+                  emptyMessage="No document contracts for this subject area."
+                  gridClassName="template-grid tabbed-template-grid form-template-grid"
+                  groupBySubject={allSubjectsSelected}
+                  items={selectedDocuments}
+                  pluralLabel="documents"
+                  renderItem={(document) => (
                     <button
                       aria-label={`Open ${document.title} document`}
                       className="template-card form-template-card"
@@ -536,12 +658,18 @@ export function Welcome({
                         Inspect document schema <ArrowRight size={14} />
                       </strong>
                     </button>
-                  ))}
-                  {selectedDocuments.length === 0 && <p className="library-empty">No document contracts for this subject area.</p>}
-                </div>
+                  )}
+                  singularLabel="document"
+                  subjectForItem={subjectForArtifact}
+                />
               ) : (
-                <div className="template-grid tabbed-template-grid form-template-grid">
-                  {selectedOntologies.map((ontology) => (
+                <CatalogItemCollection
+                  emptyMessage="No ontology for this subject area."
+                  gridClassName="template-grid tabbed-template-grid form-template-grid"
+                  groupBySubject={allSubjectsSelected}
+                  items={selectedOntologies}
+                  pluralLabel="ontologies"
+                  renderItem={(ontology) => (
                     <button
                       aria-label={`Open ${ontology.title} ontology`}
                       className="template-card form-template-card"
@@ -561,9 +689,10 @@ export function Welcome({
                         Explore ontology <ArrowRight size={14} />
                       </strong>
                     </button>
-                  ))}
-                  {selectedOntologies.length === 0 && <p className="library-empty">No ontology for this subject area.</p>}
-                </div>
+                  )}
+                  singularLabel="ontology"
+                  subjectForItem={subjectForArtifact}
+                />
               )}
             </section>
           </section>
