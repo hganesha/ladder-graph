@@ -222,17 +222,23 @@ function CatalogItemCollection<T>({
 
   return (
     <div className="catalog-subject-groups">
-      {groupedItems.map(([subject, subjectItems]) => (
-        <section aria-label={`${subject} ${pluralLabel}`} className="catalog-subject-group" key={subject}>
-          <header>
-            <h3>{subject}</h3>
-            <span>
-              {subjectItems.length} {subjectItems.length === 1 ? singularLabel : pluralLabel}
-            </span>
-          </header>
-          <div className={gridClassName}>{subjectItems.map(renderItem)}</div>
-        </section>
-      ))}
+      {groupedItems.map(([subject, subjectItems]) => {
+        const SubjectIcon = SUBJECT_AREA_ICONS[subject] ?? Workflow;
+        return (
+          <section aria-label={`${subject} ${pluralLabel}`} className="catalog-subject-group" key={subject}>
+            <header>
+              <div className="catalog-subject-title">
+                <SubjectIcon aria-hidden="true" size={16} />
+                <h3>{subject}</h3>
+              </div>
+              <span>
+                {subjectItems.length} {subjectItems.length === 1 ? singularLabel : pluralLabel}
+              </span>
+            </header>
+            <div className={gridClassName}>{subjectItems.map(renderItem)}</div>
+          </section>
+        );
+      })}
     </div>
   );
 }

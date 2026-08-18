@@ -125,6 +125,7 @@ describe("welcome gallery", () => {
       expect(groupSubjects).toEqual(alphabetically(groupSubjects));
 
       for (const group of groups) {
+        expect(group.querySelector("header svg")).toBeInTheDocument();
         const itemNames = within(group)
           .getAllByRole("button", { name: category.buttonName })
           .map((button) => category.itemName(button.getAttribute("aria-label")!));

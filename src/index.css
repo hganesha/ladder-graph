@@ -571,9 +571,19 @@ button:disabled {
 }
 .catalog-subject-group > header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+.catalog-subject-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.catalog-subject-title > svg {
+  flex: 0 0 auto;
+  color: #9ba8b1;
 }
 .catalog-subject-group > header h3 {
   margin: 0;
