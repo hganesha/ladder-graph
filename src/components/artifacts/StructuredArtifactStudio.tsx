@@ -343,7 +343,7 @@ export default function StructuredArtifactStudio({
             onClick={() => void save()}
             type="button"
           >
-            <Save size={14} /> Save {artifactKind}
+            <Save size={14} /> {artifactKind === "ontology" ? "Save" : `Save ${artifactKind}`}
           </button>
         </div>
       </header>
@@ -389,7 +389,7 @@ export default function StructuredArtifactStudio({
         ) : null}
 
         <section className="structured-artifact-preview" aria-label={`${label} preview`}>
-          <header>
+          <header className={artifactKind === "ontology" ? "structured-artifact-accessible-title" : undefined}>
             <span className="eyebrow">{sourceSystem ? `${sourceSystem} source` : "Portable artifact"}</span>
             <h1>{titleFor(artifact, artifactKind)}</h1>
             <p>{artifact?.metadata.description}</p>

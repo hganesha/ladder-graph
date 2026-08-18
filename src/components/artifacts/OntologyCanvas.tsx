@@ -12,7 +12,7 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import { Boxes } from "lucide-react";
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import type { Ontology } from "../../types";
 
 interface OntologyNodeData extends Record<string, unknown> {
@@ -90,6 +90,7 @@ function graphElements(ontology: Ontology, query: string, selectedTypeId: string
 
 export function OntologyCanvas({
   ontology,
+  onConnectTypes,
   query,
   selectedRelationshipId,
   selectedTypeId,
@@ -98,6 +99,7 @@ export function OntologyCanvas({
   onConnect,
 }: {
   ontology: Ontology;
+  onConnectTypes?: (sourceTypeId: string, targetTypeId: string) => void;
   query: string;
   selectedRelationshipId: string | null;
   selectedTypeId: string | null;
@@ -105,10 +107,27 @@ export function OntologyCanvas({
   onSelectType: (id: string) => void;
   onConnect?: (sourceTypeId: string, targetTypeId: string) => void;
 }) {
-  const { edges, nodes } = useMemo(
+  const { edges, nodes: layoutNodes } = useMemo(
     () => graphElements(ontology, query, selectedTypeId, selectedRelationshipId),
     [ontology, query, selectedRelationshipId, selectedTypeId],
   );
+  const [nodes, setNodes, onNodesChange] = useNodesState<OntologyFlowNode>(layoutNodes);
+
+  useEffect(() => {
+    setNodes((currentNodes) => {
+      const currentById = new Map(currentNodes.map((node) => [node.id, node]));
+      return layoutNodes.map((node) => {
+        const current = currentById.get(node.id);
+        return current ? { ...node, position: current.position } : node;
+      });
+    });
+  }, [layoutNodes, setNodes]);
+
+  const connect = (connection: Connection) => {
+    if (!connection.source || !connection.target || !onConnectTypes) return;
+    onConnectTypes(connection.source, connection.target);
+  };
+
   return (
     <section className="ontology-graph-canvas" aria-label="Ontology relationship canvas">
       <ReactFlow
@@ -126,12 +145,14 @@ export function OntologyCanvas({
         }}
         onEdgeClick={(_, edge) => onSelectRelationship(edge.id)}
         onNodeClick={(_, node) => onSelectType(node.id)}
+        onNodesChange={onNodesChange}
         proOptions={{ hideAttribution: true }}
       >
         <Background color="var(--graph-grid)" gap={24} size={1} />
         <Controls showInteractive={false} />
-        <MiniMap nodeColor="var(--cyan)" />
+        <MiniMap nodeColor="var(--cyan)" pannable zoomable />
       </ReactFlow>
+      <div className="ontology-canvas-hint">Drag nodes · connect handles to create relationships · click edges to inspect</div>
     </section>
   );
 }
