@@ -214,7 +214,7 @@ const HELP_PAGES: HelpPage[] = [
             </div>
             <div className="help-architecture-inspect" aria-hidden="true">
               <Brand />
-              <span>Layer detail</span>
+              <span></span>
               <strong>Local-first, with explicit boundaries</strong>
               <p>Hover a layer to see its responsibilities and implementation without leaving this system view.</p>
             </div>
