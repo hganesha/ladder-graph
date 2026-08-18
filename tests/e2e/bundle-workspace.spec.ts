@@ -109,6 +109,29 @@ test("authors a domain-bound form field and recompiles it into the bundle", asyn
   expect(consoleErrors).toEqual([]);
 });
 
+test("creates a bundle-owned form from scratch", async ({ page }, testInfo) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await openInsuranceBundle(page);
+  await expect(page.getByText(/^\d+ deterministic files$/)).toBeVisible();
+  await page.getByRole("button", { name: /^Forms,/ }).click();
+  await page.getByRole("region", { name: "Forms library" }).screenshot({ path: testInfo.outputPath("new-bundle-form.png") });
+  await page.getByRole("button", { name: "New form" }).click();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Untitled form" })).toBeVisible();
+  await page.getByRole("button", { name: "Add field to Section 1" }).click();
+  await page.getByLabel("Label", { exact: true }).fill("Custom intake field");
+  await page.getByLabel("Label", { exact: true }).press("Tab");
+  await page.getByRole("button", { name: "Apply to bundle" }).click();
+
+  await expect(page.getByRole("tab", { name: "Form preview" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByLabel("Custom intake field")).toBeVisible();
+  expect(consoleErrors).toEqual([]);
+});
+
 test("assembles and binds a bundle around another catalog workflow", async ({ page }, testInfo) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {

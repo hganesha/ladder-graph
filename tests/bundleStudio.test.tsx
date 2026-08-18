@@ -261,6 +261,32 @@ spec:
     expect(screen.getAllByRole("region", { name: /^(Ontologies|Forms|Documents) library$/ })).toHaveLength(1);
   });
 
+  it("creates a blank bundle-owned form and opens it in the visual editor", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: /^Forms,/ }));
+    fireEvent.click(screen.getByRole("button", { name: "New form" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Untitled form" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add field to Section 1" }));
+    expect((await screen.findAllByText("New field")).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: "Apply to bundle" }));
+
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
+    expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://forms/local/insurance-claim-review-form");
+    expect(compileBundle.mock.calls.at(-1)?.[1]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ref: "ladder://forms/local/insurance-claim-review-form",
+          source: expect.stringContaining("label: New field"),
+        }),
+      ]),
+    );
+    expect(screen.getByRole("tab", { name: "Form preview" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("New field")).toBeInTheDocument();
+  });
+
   it("switches between deterministic sliver and full ontology compilation", async () => {
     render(<BundleStudio onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
@@ -334,7 +360,7 @@ spec:
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
 
     const search = screen.getByLabelText("Search bundle assets");
-    expect(search).toHaveAttribute("placeholder", "Search 55 DocuBricks schemas…");
+    expect(search).toHaveAttribute("placeholder", "Search schemas…");
     fireEvent.change(search, { target: { value: "mortgage application" } });
     expect(screen.getByText("Mortgage Application")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Attach Mortgage Application" }));
