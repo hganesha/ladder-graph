@@ -1,8 +1,9 @@
-import { AlertTriangle, ArrowLeft, CheckCircle2, FileText, Plus, Save, Search, Upload } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, Plus, Save, Search, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parse, stringify } from "yaml";
 import { compiler } from "../../compiler/client";
 import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
+import { downloadText } from "../../lib/download";
 import {
   addOntologyProperty,
   addOntologyRelationship,
@@ -13,6 +14,7 @@ import {
   updateOntologyType,
 } from "../../lib/ontologyEditor";
 import { ontologyUsage as buildOntologyUsage, usageForType } from "../../lib/ontologyUsage";
+import { exportOntologyToOwl } from "../../lib/owlExport";
 import { importOwlRdfXml, type OwlImportResult } from "../../lib/owlImport";
 import { saveArtifactProject } from "../../lib/persistence";
 import { useOntologyStore } from "../../store/useOntologyStore";
@@ -285,6 +287,12 @@ export default function StructuredArtifactStudio({
     }
   };
 
+  const exportOwl = () => {
+    if (artifact?.kind !== "Ontology" || errors.length > 0 || validating) return;
+    const filename = `${artifact.metadata.name.replace(/[^a-zA-Z0-9._-]+/g, "-") || "ontology"}.owl`;
+    downloadText(filename, exportOntologyToOwl(artifact), "application/rdf+xml;charset=utf-8");
+  };
+
   return (
     <main className="structured-artifact-studio">
       <header className="structured-artifact-header">
@@ -334,6 +342,14 @@ export default function StructuredArtifactStudio({
               </button>
               <button className="quiet-button ontology-header-action" onClick={() => owlInput.current?.click()} type="button">
                 <Upload size={14} /> Import OWL
+              </button>
+              <button
+                className="quiet-button ontology-header-action"
+                disabled={artifact?.kind !== "Ontology" || validating || errors.length > 0}
+                onClick={exportOwl}
+                type="button"
+              >
+                <Download size={14} /> Export OWL
               </button>
             </>
           ) : null}
