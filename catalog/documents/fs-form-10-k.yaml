@@ -1,0 +1,308 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: fs-form-10-k
+  title: Form 10-K Annual Report
+  description: SEC Form 10-K (10K) extraction contract for filing identity, Parts I-IV disclosures, financial statements, exhibits, and signatures; it is not a filing-preparation checklist.
+  version: 1.0.0
+  source:
+    system: ladder
+    sourceId: standard-financial-services/form-10-k
+    sourcePath: https://www.sec.gov/files/form10-k.pdf
+    sourceVersion: SEC-1673-02-25
+spec:
+  documentType: sec_form_10_k
+  sections:
+    - id: filing-identity
+      title: Filing identity and cover
+      fieldIds: [registrant-name, cik, commission-file-number, fiscal-year-end, period-of-report, filing-date, accepted-at, accession-number, form-type, amendment-indicator, state-of-incorporation, employer-identification-number-masked, principal-address, registrant-phone, filer-status, emerging-growth-company, shell-company, trading-securities, aggregate-market-value-non-affiliates, shares-outstanding, incorporated-by-reference]
+    - id: part-i
+      title: Part I
+      fieldIds: [business, risk-factors, unresolved-staff-comments, cybersecurity, properties, legal-proceedings, mine-safety-disclosures]
+    - id: part-ii
+      title: Part II
+      fieldIds: [market-and-shareholder-matters, management-discussion-and-analysis, market-risk-disclosures, financial-statements, accountant-changes-or-disagreements, controls-and-procedures, other-information, foreign-jurisdiction-inspection-disclosure]
+    - id: part-iii
+      title: Part III
+      fieldIds: [directors-officers-and-governance, executive-compensation, beneficial-ownership, related-party-transactions-and-independence, principal-accountant-fees]
+    - id: part-iv
+      title: Part IV, exhibits, and signatures
+      fieldIds: [exhibits-and-financial-statement-schedules, form-10-k-summary, auditor-name, auditor-opinion, signatories]
+  fields:
+    - id: registrant-name
+      name: registrant_name
+      label: Registrant name
+      dataType: string
+      required: true
+      sourcePath: /cover/registrant_name
+    - id: cik
+      name: cik
+      label: Central Index Key (CIK)
+      dataType: string
+      required: true
+      sourcePath: /cover/cik
+    - id: commission-file-number
+      name: commission_file_number
+      label: Commission file number
+      dataType: string
+      sourcePath: /cover/commission_file_number
+    - id: fiscal-year-end
+      name: fiscal_year_end
+      label: Fiscal year end
+      dataType: date
+      required: true
+      sourcePath: /cover/fiscal_year_end
+    - id: period-of-report
+      name: period_of_report
+      label: Period of report
+      dataType: date
+      required: true
+      sourcePath: /filing/period_of_report
+    - id: filing-date
+      name: filing_date
+      label: Filing date
+      dataType: date
+      required: true
+      sourcePath: /filing/filing_date
+    - id: accepted-at
+      name: accepted_at
+      label: Accepted timestamp
+      dataType: datetime
+      sourcePath: /filing/accepted_at
+    - id: accession-number
+      name: accession_number
+      label: SEC accession number
+      dataType: string
+      required: true
+      sourcePath: /filing/accession_number
+    - id: form-type
+      name: form_type
+      label: Form type
+      description: 10-K, 10-K/A, or transition-report designation as stated.
+      dataType: string
+      required: true
+      sourcePath: /filing/form_type
+    - id: amendment-indicator
+      name: amendment_indicator
+      label: Amendment indicator
+      dataType: boolean
+      sourcePath: /filing/amendment_indicator
+    - id: state-of-incorporation
+      name: state_of_incorporation
+      label: State or jurisdiction of incorporation
+      dataType: string
+      sourcePath: /cover/state_of_incorporation
+    - id: employer-identification-number-masked
+      name: employer_identification_number_masked
+      label: Employer identification number (masked)
+      dataType: string
+      sourcePath: /cover/employer_identification_number_masked
+    - id: principal-address
+      name: principal_address
+      label: Principal executive office address
+      dataType: string
+      sourcePath: /cover/principal_address
+    - id: registrant-phone
+      name: registrant_phone
+      label: Registrant phone
+      dataType: string
+      sourcePath: /cover/registrant_phone
+    - id: filer-status
+      name: filer_status
+      label: Filer status
+      description: Large accelerated, accelerated, non-accelerated, smaller reporting company, or another indicated status.
+      dataType: string
+      sourcePath: /cover/filer_status
+    - id: emerging-growth-company
+      name: emerging_growth_company
+      label: Emerging growth company
+      dataType: boolean
+      sourcePath: /cover/emerging_growth_company
+    - id: shell-company
+      name: shell_company
+      label: Shell company
+      dataType: boolean
+      sourcePath: /cover/shell_company
+    - id: trading-securities
+      name: trading_securities
+      label: Registered securities and exchanges
+      description: Security title, trading symbol, and exchange rows from the cover page.
+      dataType: array
+      sourcePath: /cover/trading_securities
+    - id: aggregate-market-value-non-affiliates
+      name: aggregate_market_value_non_affiliates
+      label: Aggregate market value held by non-affiliates
+      dataType: number
+      sourcePath: /cover/aggregate_market_value_non_affiliates
+    - id: shares-outstanding
+      name: shares_outstanding
+      label: Shares outstanding by class
+      dataType: array
+      sourcePath: /cover/shares_outstanding
+    - id: incorporated-by-reference
+      name: incorporated_by_reference
+      label: Documents incorporated by reference
+      dataType: array
+      sourcePath: /cover/incorporated_by_reference
+    - id: business
+      name: business
+      label: Item 1 — Business
+      dataType: string
+      sourcePath: /part_i/item_1_business
+    - id: risk-factors
+      name: risk_factors
+      label: Item 1A — Risk factors
+      dataType: array
+      sourcePath: /part_i/item_1a_risk_factors
+    - id: unresolved-staff-comments
+      name: unresolved_staff_comments
+      label: Item 1B — Unresolved staff comments
+      dataType: string
+      sourcePath: /part_i/item_1b_unresolved_staff_comments
+    - id: cybersecurity
+      name: cybersecurity
+      label: Item 1C — Cybersecurity
+      dataType: string
+      sourcePath: /part_i/item_1c_cybersecurity
+    - id: properties
+      name: properties
+      label: Item 2 — Properties
+      dataType: string
+      sourcePath: /part_i/item_2_properties
+    - id: legal-proceedings
+      name: legal_proceedings
+      label: Item 3 — Legal proceedings
+      dataType: array
+      sourcePath: /part_i/item_3_legal_proceedings
+    - id: mine-safety-disclosures
+      name: mine_safety_disclosures
+      label: Item 4 — Mine safety disclosures
+      dataType: string
+      sourcePath: /part_i/item_4_mine_safety_disclosures
+    - id: market-and-shareholder-matters
+      name: market_and_shareholder_matters
+      label: Item 5 — Market and shareholder matters
+      dataType: string
+      sourcePath: /part_ii/item_5_market_and_shareholder_matters
+    - id: management-discussion-and-analysis
+      name: management_discussion_and_analysis
+      label: Item 7 — Management’s discussion and analysis
+      dataType: string
+      sourcePath: /part_ii/item_7_management_discussion_and_analysis
+    - id: market-risk-disclosures
+      name: market_risk_disclosures
+      label: Item 7A — Market risk disclosures
+      dataType: string
+      sourcePath: /part_ii/item_7a_market_risk_disclosures
+    - id: financial-statements
+      name: financial_statements
+      label: Item 8 — Financial statements and supplementary data
+      dataType: array
+      sourcePath: /part_ii/item_8_financial_statements
+    - id: accountant-changes-or-disagreements
+      name: accountant_changes_or_disagreements
+      label: Item 9 — Accountant changes or disagreements
+      dataType: string
+      sourcePath: /part_ii/item_9_accountant_changes_or_disagreements
+    - id: controls-and-procedures
+      name: controls_and_procedures
+      label: Item 9A — Controls and procedures
+      dataType: string
+      sourcePath: /part_ii/item_9a_controls_and_procedures
+    - id: other-information
+      name: other_information
+      label: Item 9B — Other information
+      dataType: string
+      sourcePath: /part_ii/item_9b_other_information
+    - id: foreign-jurisdiction-inspection-disclosure
+      name: foreign_jurisdiction_inspection_disclosure
+      label: Item 9C — Foreign jurisdiction inspection disclosure
+      dataType: string
+      sourcePath: /part_ii/item_9c_foreign_jurisdiction_inspection_disclosure
+    - id: directors-officers-and-governance
+      name: directors_officers_and_governance
+      label: Item 10 — Directors, officers, and governance
+      dataType: string
+      sourcePath: /part_iii/item_10_directors_officers_and_governance
+    - id: executive-compensation
+      name: executive_compensation
+      label: Item 11 — Executive compensation
+      dataType: string
+      sourcePath: /part_iii/item_11_executive_compensation
+    - id: beneficial-ownership
+      name: beneficial_ownership
+      label: Item 12 — Beneficial ownership
+      dataType: string
+      sourcePath: /part_iii/item_12_beneficial_ownership
+    - id: related-party-transactions-and-independence
+      name: related_party_transactions_and_independence
+      label: Item 13 — Related-party transactions and independence
+      dataType: string
+      sourcePath: /part_iii/item_13_related_party_transactions_and_independence
+    - id: principal-accountant-fees
+      name: principal_accountant_fees
+      label: Item 14 — Principal accountant fees and services
+      dataType: string
+      sourcePath: /part_iii/item_14_principal_accountant_fees
+    - id: exhibits-and-financial-statement-schedules
+      name: exhibits_and_financial_statement_schedules
+      label: Item 15 — Exhibits and financial statement schedules
+      dataType: array
+      sourcePath: /part_iv/item_15_exhibits_and_financial_statement_schedules
+    - id: form-10-k-summary
+      name: form_10_k_summary
+      label: Item 16 — Form 10-K summary
+      dataType: string
+      sourcePath: /part_iv/item_16_form_10_k_summary
+    - id: auditor-name
+      name: auditor_name
+      label: Independent auditor name
+      dataType: string
+      sourcePath: /financial_statements/auditor_name
+    - id: auditor-opinion
+      name: auditor_opinion
+      label: Auditor opinion
+      dataType: string
+      sourcePath: /financial_statements/auditor_opinion
+    - id: signatories
+      name: signatories
+      label: Signatories
+      dataType: array
+      sourcePath: /signatures/signatories
+  validationRules:
+    - id: registrant-name-present
+      severity: error
+      description: The registrant name is required.
+      supported: true
+      rule: { op: present, field: registrant_name }
+    - id: cik-present
+      severity: error
+      description: The registrant CIK is required.
+      supported: true
+      rule: { op: present, field: cik }
+    - id: period-of-report-present
+      severity: error
+      description: The period of report is required.
+      supported: true
+      rule: { op: present, field: period_of_report }
+    - id: accession-number-present
+      severity: error
+      description: The SEC accession number is required.
+      supported: true
+      rule: { op: present, field: accession_number }
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.9
+    fieldConfidence:
+      registrant_name: { minConfidence: 0.98, reviewOnBreach: true, regulatoryRequired: true }
+      cik: { minConfidence: 0.98, reviewOnBreach: true, regulatoryRequired: true }
+      period_of_report: { minConfidence: 0.98, reviewOnBreach: true, regulatoryRequired: true }
+      filing_date: { minConfidence: 0.98, reviewOnBreach: true, regulatoryRequired: true }
+      accession_number: { minConfidence: 0.98, reviewOnBreach: true, regulatoryRequired: true }
+      form_type: { minConfidence: 0.98, reviewOnBreach: true, regulatoryRequired: true }
+  outputSchema: {}
+  inertSourceMetadata:
+    authority: U.S. Securities and Exchange Commission
+    sourceUrl: https://www.sec.gov/files/form10-k.pdf
+    scopeNote: Extraction aid only; not a filing-preparation checklist or compliance determination.
+

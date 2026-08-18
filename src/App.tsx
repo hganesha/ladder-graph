@@ -41,6 +41,15 @@ export default function App() {
     return () => window.removeEventListener("ladder-open-form", openNodeForm);
   }, []);
 
+  useEffect(() => {
+    const openNodeDocument = (event: Event) => {
+      const detail = (event as CustomEvent<{ templateId?: string }>).detail;
+      setStructuredLaunch({ artifactKind: "document", ...detail });
+    };
+    window.addEventListener("ladder-open-document", openNodeDocument);
+    return () => window.removeEventListener("ladder-open-document", openNodeDocument);
+  }, []);
+
   let content: ReactNode;
   if (bundleLaunch !== undefined) {
     content = (

@@ -13,8 +13,8 @@ const expectedAreas = new Map([
 
 describe("completed catalog roadmap", () => {
   it("ships every remaining area and cross-area composite", () => {
-    expect(WORKFLOW_TEMPLATES).toHaveLength(131);
-    expect(ROLE_TEMPLATES).toHaveLength(367);
+    expect(WORKFLOW_TEMPLATES).toHaveLength(135);
+    expect(ROLE_TEMPLATES).toHaveLength(375);
     for (const [area, expected] of expectedAreas) {
       expect(
         WORKFLOW_TEMPLATES.filter((workflow) => workflow.area === area),
@@ -47,7 +47,7 @@ describe("completed catalog roadmap", () => {
       return workflow.spec.nodes.flatMap((node) => node.capabilities?.skills ?? []);
     });
     const skills = new Set([...workflowSkills, ...ROLE_TEMPLATES.flatMap((agent) => agent.skills)]);
-    expect(skills.size).toBe(75);
+    expect(skills.size).toBe(83);
     expect(skills.size).toBeLessThanOrEqual(150);
     expect(WORKFLOW_TEMPLATES.some((workflow) => workflow.modalities.includes("video"))).toBe(true);
   });

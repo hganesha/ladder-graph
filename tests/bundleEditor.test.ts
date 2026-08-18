@@ -4,6 +4,7 @@ import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
 import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
 import {
   attachBundleArtifact,
+  attachReferencedWorkflowContracts,
   bindingPathOptions,
   createBundleForWorkflow,
   detachBundleArtifact,
@@ -11,7 +12,7 @@ import {
   replaceBundleWorkflow,
   resolveBundleAssets,
 } from "../src/lib/bundleEditor";
-import type { WorkflowBundle } from "../src/types";
+import type { Workflow, WorkflowBundle } from "../src/types";
 
 describe("general bundle editing", () => {
   it("creates a portable bundle around any catalog workflow", () => {
@@ -56,5 +57,23 @@ describe("general bundle editing", () => {
       target: { ref: bundle.spec.workflowRef },
       direction: "input",
     });
+  });
+
+  it("packages catalog contracts referenced by workflow nodes", () => {
+    const workflowTemplate = WORKFLOW_TEMPLATES.find((template) => template.id === "evidence-research");
+    const form = ARTIFACT_TEMPLATES.find((template) => template.id === "first-notice-of-loss");
+    const document = ARTIFACT_TEMPLATES.find((template) => template.id === "fs-income-statement");
+    if (!workflowTemplate || !form || !document) throw new Error("Expected contract fixtures.");
+    const workflow = parse(workflowTemplate.yaml) as Workflow;
+    workflow.spec.nodes[0].contractRefs = [
+      { ref: form.ref, usage: "human-interaction" },
+      { ref: document.ref, usage: "evidence" },
+    ];
+
+    const result = attachReferencedWorkflowContracts(createBundleForWorkflow(workflowTemplate), workflow, ARTIFACT_TEMPLATES);
+
+    expect(result.attached.map((template) => template.ref)).toEqual([form.ref, document.ref]);
+    expect(result.bundle.spec.forms?.map((asset) => asset.ref)).toContain(form.ref);
+    expect(result.bundle.spec.documents?.map((asset) => asset.ref)).toContain(document.ref);
   });
 });

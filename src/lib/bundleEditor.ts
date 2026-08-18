@@ -1,6 +1,7 @@
 import { parse } from "yaml";
 import { ARTIFACT_TEMPLATES } from "../generated/artifactCatalog";
 import { WORKFLOW_TEMPLATES } from "../generated/catalog";
+import { nodeContractRefs } from "./workflowContracts";
 import type {
   ArtifactTemplateDefinition,
   BundleBinding,
@@ -152,6 +153,25 @@ export function attachBundleArtifact(bundle: WorkflowBundle, template: ArtifactT
     }
   }
   return next;
+}
+
+export function attachReferencedWorkflowContracts(bundle: WorkflowBundle, workflow: Workflow, templates: ArtifactTemplateDefinition[]) {
+  let next = bundle;
+  const attachedRefs = new Set([
+    ...(bundle.spec.forms ?? []).map((asset) => asset.ref),
+    ...(bundle.spec.documents ?? []).map((asset) => asset.ref),
+  ]);
+  const referencedRefs = new Set(workflow.spec.nodes.flatMap((node) => nodeContractRefs(node).map((contract) => contract.ref)));
+  const attached: ArtifactTemplateDefinition[] = [];
+  for (const ref of referencedRefs) {
+    if (attachedRefs.has(ref)) continue;
+    const template = templates.find((candidate) => (candidate.kind === "form" || candidate.kind === "document") && candidate.ref === ref);
+    if (!template) continue;
+    next = attachBundleArtifact(next, template);
+    attachedRefs.add(ref);
+    attached.push(template);
+  }
+  return { bundle: next, attached };
 }
 
 export function detachBundleArtifact(bundle: WorkflowBundle, ref: string): WorkflowBundle {

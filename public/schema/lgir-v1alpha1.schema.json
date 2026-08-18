@@ -60,6 +60,19 @@
               "prompt": { "type": "string" },
               "inputSchema": { "type": ["object", "null"] },
               "outputSchema": { "type": ["object", "null"] },
+              "contractRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["ref", "usage"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref": { "type": "string", "pattern": "^ladder://(?:forms|documents)/.+" },
+                    "usage": { "enum": ["human-interaction", "input", "output", "evidence"] }
+                  }
+                },
+                "uniqueItems": true
+              },
               "formRefs": {
                 "type": "array",
                 "items": { "type": "string", "pattern": "^ladder://forms/.+" },

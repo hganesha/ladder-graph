@@ -1,0 +1,233 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: fs-profit-and-loss-statement
+  title: Profit and Loss (P&L) Statement
+  description: Management P&L contract for extracting actual, budget, forecast, and variance performance by reporting period or business unit.
+  version: 1.0.0
+  source:
+    system: ladder
+    sourceId: standard-financial-services/profit-and-loss-statement
+    sourceVersion: 1.0.0
+spec:
+  documentType: profit_and_loss_statement
+  sections:
+    - id: report-identity
+      title: Report identity
+      fieldIds: [entity-name, business-unit, period-start-date, period-end-date, reporting-cadence, currency, scale, accounting-basis, scenario, comparative-scenario]
+    - id: actual-results
+      title: Actual results
+      fieldIds: [revenue, cost-of-goods-sold, gross-profit, payroll-expense, sales-and-marketing-expense, research-and-development-expense, general-and-administrative-expense, other-operating-expense, total-operating-expenses, ebitda, depreciation-and-amortization, operating-profit, other-income-expense, profit-before-tax, income-tax-expense, net-profit]
+    - id: plan-and-variance
+      title: Plan and variance
+      fieldIds: [budget-revenue, budget-operating-expenses, budget-ebitda, revenue-variance, operating-expense-variance, ebitda-variance, line-items]
+  fields:
+    - id: entity-name
+      name: entity_name
+      label: Entity name
+      dataType: string
+      required: true
+      sourcePath: /report/entity_name
+    - id: business-unit
+      name: business_unit
+      label: Business unit
+      description: Department, segment, location, product, or consolidated scope.
+      dataType: string
+      sourcePath: /report/business_unit
+    - id: period-start-date
+      name: period_start_date
+      label: Period start date
+      dataType: date
+      required: true
+      sourcePath: /report/period_start_date
+    - id: period-end-date
+      name: period_end_date
+      label: Period end date
+      dataType: date
+      required: true
+      sourcePath: /report/period_end_date
+    - id: reporting-cadence
+      name: reporting_cadence
+      label: Reporting cadence
+      description: Monthly, quarterly, year-to-date, annual, or another stated cadence.
+      dataType: string
+      sourcePath: /report/reporting_cadence
+    - id: currency
+      name: currency
+      label: Reporting currency
+      dataType: string
+      required: true
+      sourcePath: /report/currency
+    - id: scale
+      name: scale
+      label: Presentation scale
+      dataType: string
+      sourcePath: /report/scale
+    - id: accounting-basis
+      name: accounting_basis
+      label: Accounting basis
+      description: Accrual, cash, management-adjusted, GAAP, IFRS, or another stated basis.
+      dataType: string
+      sourcePath: /report/accounting_basis
+    - id: scenario
+      name: scenario
+      label: Primary scenario
+      description: Actual, budget, forecast, or another scenario represented by the primary values.
+      dataType: string
+      sourcePath: /report/scenario
+    - id: comparative-scenario
+      name: comparative_scenario
+      label: Comparative scenario
+      description: Budget, forecast, prior period, or another comparison basis.
+      dataType: string
+      sourcePath: /report/comparative_scenario
+    - id: revenue
+      name: revenue
+      label: Revenue
+      dataType: number
+      required: true
+      sourcePath: /actual/revenue
+    - id: cost-of-goods-sold
+      name: cost_of_goods_sold
+      label: Cost of goods sold
+      dataType: number
+      sourcePath: /actual/cost_of_goods_sold
+    - id: gross-profit
+      name: gross_profit
+      label: Gross profit
+      dataType: number
+      sourcePath: /actual/gross_profit
+    - id: payroll-expense
+      name: payroll_expense
+      label: Payroll expense
+      dataType: number
+      sourcePath: /actual/payroll_expense
+    - id: sales-and-marketing-expense
+      name: sales_and_marketing_expense
+      label: Sales and marketing expense
+      dataType: number
+      sourcePath: /actual/sales_and_marketing_expense
+    - id: research-and-development-expense
+      name: research_and_development_expense
+      label: Research and development expense
+      dataType: number
+      sourcePath: /actual/research_and_development_expense
+    - id: general-and-administrative-expense
+      name: general_and_administrative_expense
+      label: General and administrative expense
+      dataType: number
+      sourcePath: /actual/general_and_administrative_expense
+    - id: other-operating-expense
+      name: other_operating_expense
+      label: Other operating expense
+      dataType: number
+      sourcePath: /actual/other_operating_expense
+    - id: total-operating-expenses
+      name: total_operating_expenses
+      label: Total operating expenses
+      dataType: number
+      sourcePath: /actual/total_operating_expenses
+    - id: ebitda
+      name: ebitda
+      label: EBITDA
+      dataType: number
+      sourcePath: /actual/ebitda
+    - id: depreciation-and-amortization
+      name: depreciation_and_amortization
+      label: Depreciation and amortization
+      dataType: number
+      sourcePath: /actual/depreciation_and_amortization
+    - id: operating-profit
+      name: operating_profit
+      label: Operating profit
+      dataType: number
+      sourcePath: /actual/operating_profit
+    - id: other-income-expense
+      name: other_income_expense
+      label: Other income or expense
+      dataType: number
+      sourcePath: /actual/other_income_expense
+    - id: profit-before-tax
+      name: profit_before_tax
+      label: Profit before tax
+      dataType: number
+      sourcePath: /actual/profit_before_tax
+    - id: income-tax-expense
+      name: income_tax_expense
+      label: Income tax expense
+      dataType: number
+      sourcePath: /actual/income_tax_expense
+    - id: net-profit
+      name: net_profit
+      label: Net profit
+      dataType: number
+      required: true
+      sourcePath: /actual/net_profit
+    - id: budget-revenue
+      name: budget_revenue
+      label: Budget revenue
+      dataType: number
+      sourcePath: /plan/budget_revenue
+    - id: budget-operating-expenses
+      name: budget_operating_expenses
+      label: Budget operating expenses
+      dataType: number
+      sourcePath: /plan/budget_operating_expenses
+    - id: budget-ebitda
+      name: budget_ebitda
+      label: Budget EBITDA
+      dataType: number
+      sourcePath: /plan/budget_ebitda
+    - id: revenue-variance
+      name: revenue_variance
+      label: Revenue variance
+      dataType: number
+      sourcePath: /variance/revenue_variance
+    - id: operating-expense-variance
+      name: operating_expense_variance
+      label: Operating expense variance
+      dataType: number
+      sourcePath: /variance/operating_expense_variance
+    - id: ebitda-variance
+      name: ebitda_variance
+      label: EBITDA variance
+      dataType: number
+      sourcePath: /variance/ebitda_variance
+    - id: line-items
+      name: line_items
+      label: P&L line items
+      description: Ordered line items with actual, comparison, variance, and source location when available.
+      dataType: array
+      sourcePath: /line_items
+  validationRules:
+    - id: entity-name-present
+      severity: error
+      description: The reporting entity is required.
+      supported: true
+      rule: { op: present, field: entity_name }
+    - id: period-end-present
+      severity: error
+      description: The reporting period end date is required.
+      supported: true
+      rule: { op: present, field: period_end_date }
+    - id: revenue-present
+      severity: error
+      description: Revenue is required for a P&L extraction.
+      supported: true
+      rule: { op: present, field: revenue }
+    - id: net-profit-present
+      severity: error
+      description: Net profit is required for a P&L extraction.
+      supported: true
+      rule: { op: present, field: net_profit }
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.85
+    fieldConfidence:
+      period_end_date: { minConfidence: 0.95, reviewOnBreach: true }
+      revenue: { minConfidence: 0.9, reviewOnBreach: true }
+      total_operating_expenses: { minConfidence: 0.9, reviewOnBreach: true }
+      ebitda: { minConfidence: 0.9, reviewOnBreach: true }
+      net_profit: { minConfidence: 0.9, reviewOnBreach: true }
+  outputSchema: {}
+

@@ -1,0 +1,165 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-office-04
+  title: Automatic action detection and dispatch
+  description: Scan authorized office sources, detect evidence-backed commitments, reconcile tasks, and require approval before external writes.
+  version: 1.0.0
+spec:
+  objective: Maintain a trustworthy action register without silently converting mentions, suggestions, or uncertain ownership into tasks.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - action-approval
+  nodes:
+    - id: scan-request
+      kind: input
+      name: Action scan scope
+      inputSchema:
+        type: object
+        required: [dateRange, sourceScope]
+        properties:
+          dateRange: { type: object }
+          sourceScope: { type: object }
+          minimumConfidence: { type: number, minimum: 0, maximum: 1 }
+          destinationProjects: { type: array, items: { type: string } }
+        x-ladder-input-mode: text
+    - id: email
+      kind: agent
+      templateRef: offc-01
+      name: Scan email for action evidence
+      role: Email specialist who turns correspondence into a source-linked, decision-ready view without sending messages.
+      prompt: >-
+        You are an Email Agent. Read only the authorized mailbox scope, group messages by thread, distinguish requests
+        from FYIs, identify deadlines and unanswered questions, and cite the message, sender, and timestamp behind every
+        conclusion. Treat quoted text as prior context rather than a new request. Draft replies only when asked, label
+        drafts clearly, and never send, delete, archive, or change mailbox state.
+      capabilities:
+        skills: [correspondence-triage, office-context-retrieval, evidence-grounding]
+        tools: [read, search]
+        connectors: [mcp:email]
+        permissions: [read-only]
+        customizations:
+          mcp:email:
+            template: host:office-email
+            instructions: Bind the installed Codex Gmail/Outlook app or Claude mail connector and search only the approved window and folders.
+      outputSchema: { type: object }
+    - id: collaboration
+      kind: agent
+      templateRef: offc-03
+      name: Scan workplace chat for action evidence
+      role: Workplace chat specialist who reconstructs decisions and requests without treating every mention as an action.
+      prompt: >-
+        You are a Collaboration Feed Agent. Review only authorized channels and direct-message scopes, collapse repeated
+        discussion into threads, and extract decisions, explicit requests, blockers, commitments, and material updates.
+        Cite the channel, message identifier, author, and timestamp. Distinguish a direct assignment from a mention,
+        suggestion, or quoted message, and never post, react, edit, or change channel state.
+      capabilities:
+        skills: [workplace-communication-analysis, office-context-retrieval, evidence-grounding]
+        tools: [read, search]
+        connectors: [mcp:work-chat]
+        permissions: [read-only]
+        customizations:
+          mcp:work-chat:
+            template: host:office-chat
+            instructions: Bind the installed Codex Slack/Teams app or Claude collaboration connector and retain message IDs.
+      outputSchema: { type: object }
+    - id: meetings
+      kind: agent
+      templateRef: offc-04
+      name: Scan meeting records for action evidence
+      role: Meeting analyst who turns transcripts and notes into faithful summaries without inventing consensus.
+      prompt: >-
+        You are a Meeting Intelligence Agent. Reconcile the authorized transcript, notes, agenda, and meeting metadata;
+        identify attendees, decisions, rationale, disagreements, risks, open questions, and follow-ups. Cite timestamps or
+        note references for consequential claims, preserve uncertainty when speakers or wording are unclear, and never
+        infer consensus, ownership, or a deadline that participants did not establish.
+      capabilities:
+        skills: [meeting-summarization, evidence-grounding, communication]
+        tools: [read, search]
+        connectors: [mcp:meeting-transcript, mcp:calendar]
+        permissions: [read-only]
+        customizations:
+          mcp:meeting-transcript:
+            template: host:meeting-transcript
+            instructions: Bind the installed Codex or Claude meeting-record connector and inspect only meetings in the approved window.
+      outputSchema: { type: object }
+    - id: source-join
+      kind: join
+      name: Preserve completed and unavailable scans
+      config: { join: allSettled }
+    - id: detect
+      kind: agent
+      templateRef: offc-05
+      name: Normalize action candidates
+      role: Commitment analyst who detects actionable work without turning vague language into tasks.
+      prompt: >-
+        You are an Action Detection Agent. Extract only explicit requests, promises, decisions requiring follow-through,
+        and unresolved blockers from supplied evidence. For each candidate retain source, verbatim evidence reference,
+        proposed owner, due date, confidence, dependencies, and status. Mark missing ownership or dates as unresolved,
+        merge duplicates without losing sources, and never create tasks, events, or messages.
+      capabilities:
+        skills: [action-item-extraction, task-reconciliation, evidence-grounding]
+        tools: [read]
+        connectors: []
+        permissions: [read-only]
+        customizations:
+          action-item-extraction:
+            template: host:action-item-extraction
+            instructions: Use the installed Codex or Claude action-detection skill; do not promote candidates below the requested confidence threshold.
+      outputSchema: { type: object }
+    - id: reconcile
+      kind: agent
+      templateRef: offc-06
+      name: Reconcile with existing tasks
+      role: Task-system specialist who prepares precise create, update, and close proposals without applying them.
+      prompt: >-
+        You are a Task Agent. Compare detected commitments with authorized task systems, identify duplicates and stale
+        records, and prepare the smallest set of proposed creates, updates, links, or closures. Preserve the original
+        evidence and project context, never guess an owner or due date, and return an explicit change set for human
+        approval. Do not write to the task system yourself.
+      capabilities:
+        skills: [task-reconciliation, action-item-extraction, operations-planning]
+        tools: [read, search]
+        connectors: [mcp:task-management]
+        permissions: [read-only]
+        customizations:
+          mcp:task-management:
+            template: host:office-tasks
+            instructions: Bind the installed Codex or Claude task connector in read-only mode and preserve stable task IDs.
+      outputSchema:
+        type: object
+        required: [proposedChanges, unresolvedCandidates, sourceCoverage]
+        properties:
+          proposedChanges: { type: array, items: { type: object } }
+          unresolvedCandidates: { type: array, items: { type: object } }
+          sourceCoverage: { type: array, items: { type: object } }
+    - id: action-approval
+      kind: approval
+      name: User approves the exact action change set
+      summary: Display creates, updates, closures, owners, dates, evidence, destinations, and unresolved candidates.
+    - id: dispatch
+      kind: tool
+      name: Host applies approved task changes
+      summary: Apply only the approved change set and return per-item receipts or failures.
+      capabilities:
+        skills: []
+        tools: [write]
+        connectors: [mcp:task-management, mcp:calendar, mcp:email]
+        permissions: [external-write]
+    - id: result
+      kind: output
+      name: Action register and dispatch receipts
+  edges:
+    - { id: e1, from: scan-request, to: email, kind: data }
+    - { id: e2, from: scan-request, to: collaboration, kind: data }
+    - { id: e3, from: scan-request, to: meetings, kind: data }
+    - { id: e4, from: email, to: source-join, kind: data }
+    - { id: e5, from: collaboration, to: source-join, kind: data }
+    - { id: e6, from: meetings, to: source-join, kind: data }
+    - { id: e7, from: source-join, to: detect, kind: data }
+    - { id: e8, from: detect, to: reconcile, kind: data }
+    - { id: e9, from: reconcile, to: action-approval, kind: dependency }
+    - { id: e10, from: action-approval, to: dispatch, kind: control, condition: approved }
+    - { id: e11, from: dispatch, to: result, kind: data }

@@ -310,6 +310,38 @@
       "ref": "ladder://documents/docubricks/energy/well_completion_report"
     },
     {
+      "id": "fs-balance-sheet",
+      "path": "fs/financial_reporting/balance_sheet",
+      "title": "Balance Sheet",
+      "description": "Point-in-time financial-statement contract for assets, liabilities, equity, and balance-check totals.",
+      "file": "documents/fs-balance-sheet.yaml",
+      "ref": "ladder://documents/builtin/fs-balance-sheet"
+    },
+    {
+      "id": "fs-form-10-k",
+      "path": "fs/regulatory_reporting/form_10_k",
+      "title": "Form 10-K Annual Report",
+      "description": "SEC Form 10-K (10K) extraction contract for filing identity, Parts I-IV disclosures, financial statements, exhibits, and signatures.",
+      "file": "documents/fs-form-10-k.yaml",
+      "ref": "ladder://documents/builtin/fs-form-10-k"
+    },
+    {
+      "id": "fs-income-statement",
+      "path": "fs/financial_reporting/income_statement",
+      "title": "Income Statement",
+      "description": "External financial-statement contract for period revenue, expenses, profit, and earnings-per-share measures.",
+      "file": "documents/fs-income-statement.yaml",
+      "ref": "ladder://documents/builtin/fs-income-statement"
+    },
+    {
+      "id": "fs-profit-and-loss-statement",
+      "path": "fs/management_reporting/profit_and_loss_statement",
+      "title": "Profit and Loss (P&L) Statement",
+      "description": "Management P&L contract for actual, budget, forecast, and variance performance by period or business unit.",
+      "file": "documents/fs-profit-and-loss-statement.yaml",
+      "ref": "ladder://documents/builtin/fs-profit-and-loss-statement"
+    },
+    {
       "id": "docubricks-fs-collateral-schedule",
       "path": "fs/commercial_lending/collateral_schedule",
       "title": "Collateral Schedule",
@@ -2201,6 +2233,50 @@
       "topology": "Governed specialist workflow",
       "accent": "#df8c68",
       "file": "workflows/wf-cross-12.yaml"
+    },
+    {
+      "id": "wf-office-01",
+      "path": "office/productivity/wf-office-01",
+      "area": "Office productivity",
+      "title": "Summarize my day — pre-day or post-day",
+      "eyebrow": "Daily command center",
+      "description": "Gather authorized office signals in parallel and produce a source-linked morning briefing or end-of-day review.",
+      "topology": "All-settled collection + contextual synthesis",
+      "accent": "#5f9eea",
+      "file": "workflows/wf-office-01.yaml"
+    },
+    {
+      "id": "wf-office-02",
+      "path": "office/productivity/wf-office-02",
+      "area": "Office productivity",
+      "title": "Previous-night preparation",
+      "eyebrow": "Tomorrow readiness",
+      "description": "Build tomorrow's preparation pack from the calendar, correspondence, tasks, and minimum relevant documents.",
+      "topology": "All-settled collection + preparation pack",
+      "accent": "#5f9eea",
+      "file": "workflows/wf-office-02.yaml"
+    },
+    {
+      "id": "wf-office-03",
+      "path": "office/productivity/wf-office-03",
+      "area": "Office productivity",
+      "title": "Meeting summary and follow-through",
+      "eyebrow": "Meeting intelligence",
+      "description": "Reconcile meeting evidence, extract actions, draft a follow-up, and require approval before publishing or sending it.",
+      "topology": "Evidence synthesis + approval-gated publish",
+      "accent": "#5f9eea",
+      "file": "workflows/wf-office-03.yaml"
+    },
+    {
+      "id": "wf-office-04",
+      "path": "office/productivity/wf-office-04",
+      "area": "Office productivity",
+      "title": "Automatic action detection and dispatch",
+      "eyebrow": "Commitment capture",
+      "description": "Scan authorized office sources, detect evidence-backed commitments, reconcile tasks, and require approval before external writes.",
+      "topology": "All-settled scan + approval-gated dispatch",
+      "accent": "#5f9eea",
+      "file": "workflows/wf-office-04.yaml"
     }
   ],
   "agents": [
@@ -4405,6 +4481,54 @@
       "path": "research/life-sciences/suppliers",
       "title": "Supplier Qualification Auditor (GxP)",
       "file": "agents/gxp-08.yaml"
+    },
+    {
+      "id": "offc-01",
+      "path": "office/productivity/email",
+      "title": "Email Agent",
+      "file": "agents/offc-01.yaml"
+    },
+    {
+      "id": "offc-02",
+      "path": "office/productivity/calendar",
+      "title": "Calendar Agent",
+      "file": "agents/offc-02.yaml"
+    },
+    {
+      "id": "offc-03",
+      "path": "office/productivity/collaboration",
+      "title": "Collaboration Feed Agent",
+      "file": "agents/offc-03.yaml"
+    },
+    {
+      "id": "offc-04",
+      "path": "office/productivity/meetings",
+      "title": "Meeting Intelligence Agent",
+      "file": "agents/offc-04.yaml"
+    },
+    {
+      "id": "offc-05",
+      "path": "office/productivity/actions",
+      "title": "Action Detection Agent",
+      "file": "agents/offc-05.yaml"
+    },
+    {
+      "id": "offc-06",
+      "path": "office/productivity/tasks",
+      "title": "Task Agent",
+      "file": "agents/offc-06.yaml"
+    },
+    {
+      "id": "offc-07",
+      "path": "office/productivity/context",
+      "title": "Work Context Agent",
+      "file": "agents/offc-07.yaml"
+    },
+    {
+      "id": "offc-08",
+      "path": "office/productivity/briefing",
+      "title": "Daily Briefing Editor",
+      "file": "agents/offc-08.yaml"
     }
   ]
 }

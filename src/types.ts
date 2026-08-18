@@ -73,6 +73,13 @@ export interface CapabilityCustomization {
   instructions: string;
 }
 
+export type WorkflowContractUsage = "human-interaction" | "input" | "output" | "evidence";
+
+export interface WorkflowContractRef {
+  ref: string;
+  usage: WorkflowContractUsage;
+}
+
 export interface LgirNode {
   [key: string]: unknown;
   id: string;
@@ -85,6 +92,8 @@ export interface LgirNode {
   prompt?: string;
   inputSchema?: Record<string, unknown> | null;
   outputSchema?: Record<string, unknown> | null;
+  contractRefs?: WorkflowContractRef[];
+  /** @deprecated Use contractRefs. Retained for existing workflow files. */
   formRefs?: string[];
   capabilities?: Partial<Capabilities>;
   config?: NodeConfig;

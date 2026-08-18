@@ -1,0 +1,227 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: fs-balance-sheet
+  title: Balance Sheet
+  description: Point-in-time financial-statement contract for extracting assets, liabilities, equity, and balance-check totals.
+  version: 1.0.0
+  source:
+    system: ladder
+    sourceId: standard-financial-services/balance-sheet
+    sourceVersion: 1.0.0
+spec:
+  documentType: balance_sheet
+  sections:
+    - id: statement-identity
+      title: Statement identity
+      fieldIds: [entity-name, as-of-date, comparative-as-of-date, currency, scale, accounting-standard, audited]
+    - id: assets
+      title: Assets
+      fieldIds: [cash-and-equivalents, accounts-receivable, inventory, other-current-assets, total-current-assets, property-plant-equipment, goodwill, intangible-assets, other-noncurrent-assets, total-assets]
+    - id: liabilities
+      title: Liabilities
+      fieldIds: [accounts-payable, short-term-debt, other-current-liabilities, total-current-liabilities, long-term-debt, other-noncurrent-liabilities, total-liabilities]
+    - id: equity-and-detail
+      title: Equity and detail
+      fieldIds: [common-stock, additional-paid-in-capital, retained-earnings, accumulated-other-comprehensive-income, treasury-stock, total-equity, total-liabilities-and-equity, line-items]
+  fields:
+    - id: entity-name
+      name: entity_name
+      label: Entity name
+      dataType: string
+      required: true
+      sourcePath: /statement/entity_name
+    - id: as-of-date
+      name: as_of_date
+      label: As-of date
+      dataType: date
+      required: true
+      sourcePath: /statement/as_of_date
+    - id: comparative-as-of-date
+      name: comparative_as_of_date
+      label: Comparative as-of date
+      dataType: date
+      sourcePath: /statement/comparative_as_of_date
+    - id: currency
+      name: currency
+      label: Reporting currency
+      dataType: string
+      required: true
+      sourcePath: /statement/currency
+    - id: scale
+      name: scale
+      label: Presentation scale
+      dataType: string
+      sourcePath: /statement/scale
+    - id: accounting-standard
+      name: accounting_standard
+      label: Accounting standard
+      dataType: string
+      sourcePath: /statement/accounting_standard
+    - id: audited
+      name: audited
+      label: Audited
+      dataType: boolean
+      sourcePath: /statement/audited
+    - id: cash-and-equivalents
+      name: cash_and_equivalents
+      label: Cash and cash equivalents
+      dataType: number
+      sourcePath: /assets/cash_and_equivalents
+    - id: accounts-receivable
+      name: accounts_receivable
+      label: Accounts receivable
+      dataType: number
+      sourcePath: /assets/accounts_receivable
+    - id: inventory
+      name: inventory
+      label: Inventory
+      dataType: number
+      sourcePath: /assets/inventory
+    - id: other-current-assets
+      name: other_current_assets
+      label: Other current assets
+      dataType: number
+      sourcePath: /assets/other_current_assets
+    - id: total-current-assets
+      name: total_current_assets
+      label: Total current assets
+      dataType: number
+      sourcePath: /assets/total_current_assets
+    - id: property-plant-equipment
+      name: property_plant_equipment
+      label: Property, plant, and equipment
+      dataType: number
+      sourcePath: /assets/property_plant_equipment
+    - id: goodwill
+      name: goodwill
+      label: Goodwill
+      dataType: number
+      sourcePath: /assets/goodwill
+    - id: intangible-assets
+      name: intangible_assets
+      label: Intangible assets
+      dataType: number
+      sourcePath: /assets/intangible_assets
+    - id: other-noncurrent-assets
+      name: other_noncurrent_assets
+      label: Other noncurrent assets
+      dataType: number
+      sourcePath: /assets/other_noncurrent_assets
+    - id: total-assets
+      name: total_assets
+      label: Total assets
+      dataType: number
+      required: true
+      sourcePath: /assets/total_assets
+    - id: accounts-payable
+      name: accounts_payable
+      label: Accounts payable
+      dataType: number
+      sourcePath: /liabilities/accounts_payable
+    - id: short-term-debt
+      name: short_term_debt
+      label: Short-term debt
+      dataType: number
+      sourcePath: /liabilities/short_term_debt
+    - id: other-current-liabilities
+      name: other_current_liabilities
+      label: Other current liabilities
+      dataType: number
+      sourcePath: /liabilities/other_current_liabilities
+    - id: total-current-liabilities
+      name: total_current_liabilities
+      label: Total current liabilities
+      dataType: number
+      sourcePath: /liabilities/total_current_liabilities
+    - id: long-term-debt
+      name: long_term_debt
+      label: Long-term debt
+      dataType: number
+      sourcePath: /liabilities/long_term_debt
+    - id: other-noncurrent-liabilities
+      name: other_noncurrent_liabilities
+      label: Other noncurrent liabilities
+      dataType: number
+      sourcePath: /liabilities/other_noncurrent_liabilities
+    - id: total-liabilities
+      name: total_liabilities
+      label: Total liabilities
+      dataType: number
+      required: true
+      sourcePath: /liabilities/total_liabilities
+    - id: common-stock
+      name: common_stock
+      label: Common stock
+      dataType: number
+      sourcePath: /equity/common_stock
+    - id: additional-paid-in-capital
+      name: additional_paid_in_capital
+      label: Additional paid-in capital
+      dataType: number
+      sourcePath: /equity/additional_paid_in_capital
+    - id: retained-earnings
+      name: retained_earnings
+      label: Retained earnings
+      dataType: number
+      sourcePath: /equity/retained_earnings
+    - id: accumulated-other-comprehensive-income
+      name: accumulated_other_comprehensive_income
+      label: Accumulated other comprehensive income
+      dataType: number
+      sourcePath: /equity/accumulated_other_comprehensive_income
+    - id: treasury-stock
+      name: treasury_stock
+      label: Treasury stock
+      dataType: number
+      sourcePath: /equity/treasury_stock
+    - id: total-equity
+      name: total_equity
+      label: Total equity
+      dataType: number
+      required: true
+      sourcePath: /equity/total_equity
+    - id: total-liabilities-and-equity
+      name: total_liabilities_and_equity
+      label: Total liabilities and equity
+      dataType: number
+      required: true
+      sourcePath: /totals/total_liabilities_and_equity
+    - id: line-items
+      name: line_items
+      label: Statement line items
+      description: Ordered balance-sheet line items with current and comparative values and source location when available.
+      dataType: array
+      sourcePath: /line_items
+  validationRules:
+    - id: entity-name-present
+      severity: error
+      description: The reporting entity is required.
+      supported: true
+      rule: { op: present, field: entity_name }
+    - id: as-of-date-present
+      severity: error
+      description: The balance-sheet date is required.
+      supported: true
+      rule: { op: present, field: as_of_date }
+    - id: total-assets-present
+      severity: error
+      description: Total assets are required.
+      supported: true
+      rule: { op: present, field: total_assets }
+    - id: total-liabilities-and-equity-present
+      severity: error
+      description: Total liabilities and equity are required.
+      supported: true
+      rule: { op: present, field: total_liabilities_and_equity }
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.85
+    fieldConfidence:
+      as_of_date: { minConfidence: 0.95, reviewOnBreach: true }
+      total_assets: { minConfidence: 0.9, reviewOnBreach: true }
+      total_liabilities: { minConfidence: 0.9, reviewOnBreach: true }
+      total_equity: { minConfidence: 0.9, reviewOnBreach: true }
+      total_liabilities_and_equity: { minConfidence: 0.9, reviewOnBreach: true }
+  outputSchema: {}
+

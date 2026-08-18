@@ -1,0 +1,152 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-office-02
+  title: Previous-night preparation
+  description: Build tomorrow's preparation pack from the calendar, correspondence, tasks, and minimum relevant documents.
+  version: 1.0.0
+spec:
+  objective: End the evening with a realistic plan for tomorrow, preparation packets for important meetings, and explicit unresolved gaps.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: request
+      kind: input
+      name: Tomorrow-preparation request
+      inputSchema:
+        type: object
+        required: [date]
+        properties:
+          date: { type: string }
+          priorities: { type: array, items: { type: string } }
+          workingHours: { type: string }
+          sourceScope: { type: object }
+        x-ladder-input-mode: text
+    - id: calendar
+      kind: agent
+      templateRef: offc-02
+      name: Inspect tomorrow's schedule
+      role: Calendar specialist who explains schedule pressure and meeting preparation needs without changing events.
+      prompt: >-
+        You are a Calendar Agent. Inspect only the authorized date range, preserve event time zones, and identify
+        preparation needs, conflicts, missing buffers, travel constraints, focus-time erosion, and events awaiting a
+        response. Link each observation to its event identifier and start time. Never accept, decline, create, move, or
+        cancel an event; propose changes as recommendations until an approval-gated action step executes them.
+      capabilities:
+        skills: [calendar-planning, office-context-retrieval, operations-planning]
+        tools: [read, search]
+        connectors: [mcp:calendar]
+        permissions: [read-only]
+        customizations:
+          mcp:calendar:
+            template: host:office-calendar
+            instructions: Resolve to the installed Codex or Claude calendar connector for the explicitly supplied date range.
+      outputSchema: { type: object }
+    - id: email
+      kind: agent
+      templateRef: offc-01
+      name: Find meeting and deadline context
+      role: Email specialist who turns correspondence into a source-linked, decision-ready view without sending messages.
+      prompt: >-
+        You are an Email Agent. Read only the authorized mailbox scope, group messages by thread, distinguish requests
+        from FYIs, identify deadlines and unanswered questions, and cite the message, sender, and timestamp behind every
+        conclusion. Treat quoted text as prior context rather than a new request. Draft replies only when asked, label
+        drafts clearly, and never send, delete, archive, or change mailbox state.
+      capabilities:
+        skills: [correspondence-triage, office-context-retrieval, evidence-grounding]
+        tools: [read, search]
+        connectors: [mcp:email]
+        permissions: [read-only]
+        customizations:
+          mcp:email:
+            template: host:office-email
+            instructions: Resolve to the installed Codex or Claude email connector and search only threads related to tomorrow's events and deadlines.
+      outputSchema: { type: object }
+    - id: tasks
+      kind: agent
+      templateRef: offc-06
+      name: Reconcile tomorrow's planned work
+      role: Task-system specialist who prepares precise create, update, and close proposals without applying them.
+      prompt: >-
+        You are a Task Agent. Compare detected commitments with authorized task systems, identify duplicates and stale
+        records, and prepare the smallest set of proposed creates, updates, links, or closures. Preserve the original
+        evidence and project context, never guess an owner or due date, and return an explicit change set for human
+        approval. Do not write to the task system yourself.
+      capabilities:
+        skills: [task-reconciliation, action-item-extraction, operations-planning]
+        tools: [read, search]
+        connectors: [mcp:task-management]
+        permissions: [read-only]
+        customizations:
+          mcp:task-management:
+            template: host:office-tasks
+            instructions: Resolve to the installed Codex or Claude task connector and retain the task system's stable IDs.
+      outputSchema: { type: object }
+    - id: source-join
+      kind: join
+      name: Preserve available preparation sources
+      config: { join: allSettled }
+    - id: context
+      kind: agent
+      templateRef: offc-07
+      name: Assemble meeting preparation context
+      role: Work-context curator who retrieves relevant documents without widening the authorized scope.
+      prompt: >-
+        You are a Work Context Agent. Retrieve only documents and project records relevant to the supplied meetings,
+        tasks, people, and date range. Prefer current authoritative sources, label stale or conflicting versions, cite
+        document identifiers and modification times, and return concise context snippets rather than full unrelated
+        documents. Never change files, permissions, sharing, or project records.
+      capabilities:
+        skills: [office-context-retrieval, evidence-provenance, privacy-review]
+        tools: [read, search]
+        connectors: [mcp:office-documents]
+        permissions: [read-only]
+        customizations:
+          mcp:office-documents:
+            template: host:office-documents
+            instructions: Resolve to installed Codex or Claude document connectors and retrieve only items referenced by the preparation sources.
+      outputSchema: { type: object }
+    - id: preparation-pack
+      kind: agent
+      templateRef: offc-08
+      name: Compose tomorrow's preparation pack
+      role: Executive briefing editor who prioritizes evidence-linked work and makes missing-source coverage visible.
+      prompt: >-
+        You are a Daily Briefing Editor. Synthesize the supplied office-source envelopes into a short, prioritized brief
+        for the requested mode. For a pre-day brief, cover schedule, preparation, must-do work, waiting items, risks, and
+        protected focus time. For a post-day review, cover completed outcomes, decisions, new commitments, unresolved
+        items, and the first moves for tomorrow. Cite source references, expose unavailable sources, and do not perform
+        any external action.
+      capabilities:
+        skills: [daily-briefing, decision-framing, communication]
+        tools: [read]
+        connectors: []
+        permissions: [read-only]
+        customizations:
+          daily-briefing:
+            template: host:previous-night-prep
+            instructions: Resolve to the installed Codex or Claude planning skill and render one preparation card per important event plus a realistic day plan.
+      outputSchema:
+        type: object
+        required: [tomorrowPlan, meetingPreparation, unresolvedGaps, unavailableSources]
+        properties:
+          tomorrowPlan: { type: array, items: { type: object } }
+          meetingPreparation: { type: array, items: { type: object } }
+          unresolvedGaps: { type: array, items: { type: object } }
+          unavailableSources: { type: array, items: { type: string } }
+    - id: result
+      kind: output
+      name: Tomorrow preparation pack
+  edges:
+    - { id: e1, from: request, to: calendar, kind: data }
+    - { id: e2, from: request, to: email, kind: data }
+    - { id: e3, from: request, to: tasks, kind: data }
+    - { id: e4, from: calendar, to: source-join, kind: data }
+    - { id: e5, from: email, to: source-join, kind: data }
+    - { id: e6, from: tasks, to: source-join, kind: data }
+    - { id: e7, from: source-join, to: context, kind: data }
+    - { id: e8, from: source-join, to: preparation-pack, kind: data }
+    - { id: e9, from: context, to: preparation-pack, kind: data }
+    - { id: e10, from: preparation-pack, to: result, kind: data }

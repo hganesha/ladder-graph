@@ -4,8 +4,19 @@ import { stringify } from "yaml";
 import { ARTIFACT_INDEX } from "../generated/catalog";
 import { type CapabilityOption, recommendedCapabilities, TARGET_CAPABILITY_CATALOGS } from "../lib/capabilityCatalog";
 import { INPUT_CONTRACT_PRESETS, type InputModality, inputContractModality, inputContractSchema } from "../lib/inputContracts";
+import { nodeContractRefs, workflowContractKind } from "../lib/workflowContracts";
 import { useStudioStore } from "../store/useStudioStore";
-import type { CapabilityCustomization, EdgeKind, FormFieldType, FormRole, LadderForm, LgirEdge, LgirNode } from "../types";
+import type {
+  CapabilityCustomization,
+  EdgeKind,
+  FormFieldType,
+  FormRole,
+  LadderForm,
+  LgirEdge,
+  LgirNode,
+  WorkflowContractRef,
+  WorkflowContractUsage,
+} from "../types";
 
 type FormNode = LgirNode & {
   capabilities: {
@@ -20,6 +31,8 @@ type FormNode = LgirNode & {
 
 const WORKING_DIRECTORY_KINDS = new Set<LgirNode["kind"]>(["agent", "tool", "evaluate", "teacher"]);
 const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form");
+const DOCUMENT_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "document");
+const CONTRACT_TEMPLATES = [...FORM_TEMPLATES, ...DOCUMENT_TEMPLATES];
 const FORM_DATA_TYPES = new Set<FormFieldType>(["string", "integer", "number", "boolean", "date", "datetime", "array", "object"]);
 
 function slug(value: string) {
@@ -130,7 +143,8 @@ export function Inspector() {
   const selected = useMemo(() => workflow?.spec.nodes.find((node) => node.id === selectedId), [workflow, selectedId]);
   const selectedEdge = useMemo(() => workflow?.spec.edges.find((edge) => edge.id === selectedEdgeId), [workflow, selectedEdgeId]);
   const [draft, setDraft] = useState<FormNode | null>(selected ? normalized(selected) : null);
-  const [formToAttach, setFormToAttach] = useState(FORM_TEMPLATES[0]?.id ?? "");
+  const [contractToAttach, setContractToAttach] = useState(CONTRACT_TEMPLATES[0]?.id ?? "");
+  const [contractUsage, setContractUsage] = useState<WorkflowContractUsage>("human-interaction");
   useEffect(() => setDraft(selected ? normalized(selected) : null), [selected]);
 
   if (selectedEdge) {
@@ -209,17 +223,23 @@ export function Inspector() {
     setDraft({ ...draft, formRefs });
     commit({ formRefs });
   };
+  const updateContractRefs = (contractRefs: WorkflowContractRef[]) => {
+    setDraft({ ...draft, contractRefs });
+    commit({ contractRefs });
+  };
   const openForm = (detail: { templateId?: string; initialSource?: string }) =>
     window.dispatchEvent(new CustomEvent("ladder-open-form", { detail }));
-  const attachSelectedForm = () => {
-    const template = FORM_TEMPLATES.find((form) => form.id === formToAttach);
-    if (!template || draft.formRefs?.includes(template.ref)) return;
-    updateFormRefs([...(draft.formRefs ?? []), template.ref]);
+  const openDocument = (detail: { templateId: string }) => window.dispatchEvent(new CustomEvent("ladder-open-document", { detail }));
+  const attachSelectedContract = () => {
+    const template = CONTRACT_TEMPLATES.find((artifact) => artifact.id === contractToAttach);
+    if (!template || nodeContractRefs(draft).some((contract) => contract.ref === template.ref)) return;
+    updateContractRefs([...(draft.contractRefs ?? []), { ref: template.ref, usage: contractUsage }]);
   };
   const createNodeForm = () => {
     const nodeIndex = workflow?.spec.nodes.findIndex((node) => node.id === draft.id) ?? -1;
     const generated = formSourceForNode(draft, Math.max(0, nodeIndex));
-    if (!draft.formRefs?.includes(generated.ref)) updateFormRefs([...(draft.formRefs ?? []), generated.ref]);
+    if (!nodeContractRefs(draft).some((contract) => contract.ref === generated.ref))
+      updateContractRefs([...(draft.contractRefs ?? []), { ref: generated.ref, usage: "human-interaction" }]);
     openForm({ initialSource: generated.source });
   };
 
@@ -335,31 +355,43 @@ export function Inspector() {
             <section className="node-form-contracts" aria-labelledby="node-form-contracts-title">
               <header>
                 <div>
-                  <span>Human interaction</span>
-                  <strong id="node-form-contracts-title">Attached forms</strong>
+                  <span>Workflow inputs and evidence</span>
+                  <strong id="node-form-contracts-title">Attached contracts</strong>
                 </div>
-                <small>{draft.formRefs?.length ?? 0} attached</small>
+                <small>{nodeContractRefs(draft).length} attached</small>
               </header>
-              {(draft.formRefs ?? []).map((ref) => {
-                const template = FORM_TEMPLATES.find((form) => form.ref === ref);
+              {nodeContractRefs(draft).map((contract) => {
+                const template = CONTRACT_TEMPLATES.find((artifact) => artifact.ref === contract.ref);
+                const kind = workflowContractKind(contract.ref);
+                const isLegacyForm = !draft.contractRefs?.some((candidate) => candidate.ref === contract.ref);
                 return (
-                  <div className="node-form-reference" key={ref}>
+                  <div className="node-form-reference" key={contract.ref}>
                     <span>
-                      <strong>{template?.title ?? ref.split("/").at(-1)?.replaceAll("-", " ")}</strong>
-                      <small>{ref}</small>
+                      <strong>{template?.title ?? contract.ref.split("/").at(-1)?.replaceAll("-", " ")}</strong>
+                      <small>
+                        {kind ?? "contract"} · {contract.usage}
+                        {isLegacyForm ? " · legacy" : ""}
+                      </small>
+                      <small>{contract.ref}</small>
                     </span>
                     {template ? (
                       <button
-                        aria-label={`Open ${template.title} form`}
-                        onClick={() => openForm({ templateId: template.id })}
+                        aria-label={`Open ${template.title} ${template.kind}`}
+                        onClick={() =>
+                          template.kind === "form" ? openForm({ templateId: template.id }) : openDocument({ templateId: template.id })
+                        }
                         type="button"
                       >
                         <ExternalLink size={13} />
                       </button>
                     ) : null}
                     <button
-                      aria-label={`Remove form ${template?.title ?? ref}`}
-                      onClick={() => updateFormRefs((draft.formRefs ?? []).filter((item) => item !== ref))}
+                      aria-label={`Remove contract ${template?.title ?? contract.ref}`}
+                      onClick={() =>
+                        isLegacyForm
+                          ? updateFormRefs((draft.formRefs ?? []).filter((item) => item !== contract.ref))
+                          : updateContractRefs((draft.contractRefs ?? []).filter((item) => item.ref !== contract.ref))
+                      }
                       type="button"
                     >
                       <X size={13} />
@@ -368,14 +400,41 @@ export function Inspector() {
                 );
               })}
               <div className="node-form-attach">
-                <select aria-label="Form to attach" onChange={(event) => setFormToAttach(event.target.value)} value={formToAttach}>
-                  {FORM_TEMPLATES.map((form) => (
-                    <option key={form.id} value={form.id}>
-                      {form.title}
-                    </option>
-                  ))}
+                <select
+                  aria-label="Form or document to attach"
+                  onChange={(event) => {
+                    const template = CONTRACT_TEMPLATES.find((artifact) => artifact.id === event.target.value);
+                    setContractToAttach(event.target.value);
+                    setContractUsage(template?.kind === "document" ? "evidence" : "human-interaction");
+                  }}
+                  value={contractToAttach}
+                >
+                  <optgroup label="Forms">
+                    {FORM_TEMPLATES.map((form) => (
+                      <option key={form.id} value={form.id}>
+                        {form.title}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Documents">
+                    {DOCUMENT_TEMPLATES.map((document) => (
+                      <option key={document.id} value={document.id}>
+                        {document.title}
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
-                <button className="quiet-button" disabled={!formToAttach} onClick={attachSelectedForm} type="button">
+                <select
+                  aria-label="Contract usage"
+                  onChange={(event) => setContractUsage(event.target.value as WorkflowContractUsage)}
+                  value={contractUsage}
+                >
+                  <option value="human-interaction">Human interaction</option>
+                  <option value="input">Input</option>
+                  <option value="output">Output</option>
+                  <option value="evidence">Evidence</option>
+                </select>
+                <button className="quiet-button" disabled={!contractToAttach} onClick={attachSelectedContract} type="button">
                   <Plus size={13} /> Attach
                 </button>
               </div>
@@ -383,7 +442,7 @@ export function Inspector() {
                 <Sparkles size={14} /> Create form from node schema
               </button>
               <p className="field-help">
-                Form references compile with the workflow. Creating a form opens a standalone project seeded from this node’s contract.
+                Form and document references compile with the workflow. Bundles package the referenced assets for portable delivery.
               </p>
             </section>
             {draft.kind === "input" && (

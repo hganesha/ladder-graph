@@ -84,6 +84,32 @@ describe("LGIR fallback compiler", () => {
     expect(invalid.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG196" })]));
   });
 
+  it("validates and compiles unified form and document contracts", async () => {
+    const workflow = structuredClone(primitiveWorkflow);
+    workflow.spec.nodes[0].contractRefs = [
+      { ref: "ladder://forms/docubricks/manufacturing/quality_inspection_report", usage: "human-interaction" },
+      { ref: "ladder://documents/builtin/fs-income-statement", usage: "evidence" },
+    ];
+    const compiled = await compileFallback(stringify(workflow), "codex");
+
+    expect(compiled.ok).toBe(true);
+    expect(compiled.content).toContain(
+      "**Attached contracts:** `ladder://forms/docubricks/manufacturing/quality_inspection_report` (human-interaction), `ladder://documents/builtin/fs-income-statement` (evidence)",
+    );
+    expect(compiled.capabilityReport.instructional).toContain("attached artifact contracts");
+
+    workflow.spec.nodes[0].contractRefs = [{ ref: "ladder://documents/", usage: "evidence" }];
+    const invalidRef = await analyzeFallback(stringify(workflow));
+    expect(invalidRef.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG197" })]));
+
+    workflow.spec.nodes[0].contractRefs = [
+      { ref: "ladder://documents/builtin/fs-income-statement", usage: "evidence" },
+      { ref: "ladder://documents/builtin/fs-income-statement", usage: "input" },
+    ];
+    const duplicate = await analyzeFallback(stringify(workflow));
+    expect(duplicate.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LG197" })]));
+  });
+
   it("rejects invalid aggregator and teacher-model configuration", async () => {
     const workflow = structuredClone(primitiveWorkflow);
     const aggregator = workflow.spec.nodes.find((node) => node.kind === "aggregator");

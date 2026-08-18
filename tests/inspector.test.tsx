@@ -40,7 +40,7 @@ describe("input contract inspector", () => {
     );
   });
 
-  it("attaches catalog forms and creates a node-scoped form contract", () => {
+  it("attaches catalog forms and documents and creates a node-scoped form contract", () => {
     const workflow = parse(WORKFLOW_TEMPLATES[0].yaml) as Workflow;
     const input = workflow.spec.nodes.find((node) => node.kind === "input");
     if (!input) throw new Error("An input node is required.");
@@ -58,10 +58,21 @@ describe("input contract inspector", () => {
     useStudioStore.setState({ analysis, selectedNodeId: input.id, selectedEdgeId: null, inspectorTab: "contracts", patchNode });
 
     render(<Inspector />);
-    fireEvent.change(screen.getByLabelText("Form to attach"), { target: { value: "docubricks-manufacturing-quality-inspection-report" } });
+    const contractSelector = screen.getByLabelText("Form or document to attach");
+    fireEvent.change(contractSelector, { target: { value: "docubricks-manufacturing-quality-inspection-report" } });
     fireEvent.click(screen.getByRole("button", { name: "Attach" }));
     expect(patchNode).toHaveBeenCalledWith(input.id, {
-      formRefs: ["ladder://forms/docubricks/manufacturing/quality_inspection_report"],
+      contractRefs: [{ ref: "ladder://forms/docubricks/manufacturing/quality_inspection_report", usage: "human-interaction" }],
+    });
+
+    fireEvent.change(contractSelector, { target: { value: "fs-income-statement" } });
+    expect(screen.getByLabelText("Contract usage")).toHaveValue("evidence");
+    fireEvent.click(screen.getByRole("button", { name: "Attach" }));
+    expect(patchNode).toHaveBeenLastCalledWith(input.id, {
+      contractRefs: [
+        { ref: "ladder://forms/docubricks/manufacturing/quality_inspection_report", usage: "human-interaction" },
+        { ref: "ladder://documents/builtin/fs-income-statement", usage: "evidence" },
+      ],
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Create form from node schema" }));

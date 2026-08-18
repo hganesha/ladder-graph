@@ -3,6 +3,7 @@ import { Braces, GitFork, Network, Pencil } from "lucide-react";
 import { useMemo, useState } from "react";
 import { autoLayout } from "../../lib/layout";
 import { NODE_META } from "../../lib/nodeMeta";
+import { nodeContractRefs } from "../../lib/workflowContracts";
 import { createStudioStore, StudioStoreProvider } from "../../store/useStudioStore";
 import type { Target, Workflow } from "../../types";
 import { toFlowEdges, toFlowNodes, workflowNodeTypes } from "../GraphCanvas";
@@ -122,8 +123,8 @@ export function BundleWorkflowPreview({
                   <dd>{selectedNode.outputSchema ? "Declared" : "None"}</dd>
                 </div>
                 <div>
-                  <dt>Attached forms</dt>
-                  <dd>{selectedNode.formRefs?.length ?? 0}</dd>
+                  <dt>Attached contracts</dt>
+                  <dd>{nodeContractRefs(selectedNode).length}</dd>
                 </div>
               </dl>
               {selectedNode.prompt ? <pre>{selectedNode.prompt}</pre> : null}

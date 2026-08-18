@@ -1,0 +1,120 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-office-03
+  title: Meeting summary and follow-through
+  description: Reconcile meeting evidence, extract actions, draft a follow-up, and require approval before publishing or sending it.
+  version: 1.0.0
+spec:
+  objective: Produce a faithful meeting record and an approval-gated follow-up with evidence-linked decisions and commitments.
+  policies:
+    maxConcurrency: 2
+    onFailure: stop
+    requireApprovalFor:
+      - publish-approval
+  nodes:
+    - id: meeting-input
+      kind: input
+      name: Meeting evidence and delivery preference
+      inputSchema:
+        type: object
+        required: [asset, instructions]
+        properties:
+          asset:
+            type: string
+            contentMediaType: audio/*
+          instructions: { type: string }
+          notes: { type: string }
+          meetingId: { type: string }
+          publishTargets: { type: array, items: { type: string } }
+        x-ladder-input-mode: mixed
+    - id: summary
+      kind: agent
+      templateRef: offc-04
+      name: Reconcile and summarize the meeting
+      role: Meeting analyst who turns transcripts and notes into faithful summaries without inventing consensus.
+      prompt: >-
+        You are a Meeting Intelligence Agent. Reconcile the authorized transcript, notes, agenda, and meeting metadata;
+        identify attendees, decisions, rationale, disagreements, risks, open questions, and follow-ups. Cite timestamps or
+        note references for consequential claims, preserve uncertainty when speakers or wording are unclear, and never
+        infer consensus, ownership, or a deadline that participants did not establish.
+      capabilities:
+        skills: [meeting-summarization, evidence-grounding, communication]
+        tools: [read, search]
+        connectors: [mcp:meeting-transcript, mcp:calendar]
+        permissions: [read-only]
+        customizations:
+          meeting-summarization:
+            template: host:meeting-summary
+            instructions: Use the installed Codex or Claude meeting-summary skill and retain timestamps or note anchors.
+          mcp:meeting-transcript:
+            template: host:meeting-transcript
+            instructions: Bind the authorized transcript source available to Codex or Claude; do not fetch unrelated recordings.
+      outputSchema: { type: object }
+    - id: actions
+      kind: agent
+      templateRef: offc-05
+      name: Detect meeting commitments
+      role: Commitment analyst who detects actionable work without turning vague language into tasks.
+      prompt: >-
+        You are an Action Detection Agent. Extract only explicit requests, promises, decisions requiring follow-through,
+        and unresolved blockers from supplied evidence. For each candidate retain source, verbatim evidence reference,
+        proposed owner, due date, confidence, dependencies, and status. Mark missing ownership or dates as unresolved,
+        merge duplicates without losing sources, and never create tasks, events, or messages.
+      capabilities:
+        skills: [action-item-extraction, task-reconciliation, evidence-grounding]
+        tools: [read]
+        connectors: []
+        permissions: [read-only]
+        customizations:
+          action-item-extraction:
+            template: host:action-item-extraction
+            instructions: Resolve to the installed Codex or Claude action-extraction skill, preserving evidence and uncertainty.
+      outputSchema: { type: object }
+    - id: draft-follow-up
+      kind: agent
+      templateRef: offc-01
+      name: Draft the meeting follow-up
+      role: Email specialist who turns correspondence into a source-linked, decision-ready view without sending messages.
+      prompt: >-
+        You are an Email Agent. Read only the authorized mailbox scope, group messages by thread, distinguish requests
+        from FYIs, identify deadlines and unanswered questions, and cite the message, sender, and timestamp behind every
+        conclusion. Treat quoted text as prior context rather than a new request. Draft replies only when asked, label
+        drafts clearly, and never send, delete, archive, or change mailbox state.
+      capabilities:
+        skills: [correspondence-triage, office-context-retrieval, evidence-grounding]
+        tools: [read]
+        connectors: [mcp:email, mcp:work-chat]
+        permissions: [read-only]
+        customizations:
+          mcp:email:
+            template: host:office-email
+            instructions: Use the installed Codex or Claude email connector only to resolve participant addresses and existing thread context; return a draft.
+          mcp:work-chat:
+            template: host:office-chat
+            instructions: Use the installed Codex or Claude chat connector only to resolve the requested destination; return a draft.
+      outputSchema: { type: object }
+    - id: publish-approval
+      kind: approval
+      name: User approves follow-up and destinations
+      summary: Show the summary, actions, exact message, recipients, and target systems before any write.
+    - id: publish
+      kind: tool
+      name: Host publishes approved meeting record
+      summary: Send or publish exactly the approved content through host-provided connectors.
+      capabilities:
+        skills: []
+        tools: [send, write]
+        connectors: [mcp:email, mcp:work-chat, mcp:office-documents]
+        permissions: [external-write]
+    - id: result
+      kind: output
+      name: Meeting record and publication receipt
+  edges:
+    - { id: e1, from: meeting-input, to: summary, kind: data }
+    - { id: e2, from: summary, to: actions, kind: data }
+    - { id: e3, from: summary, to: draft-follow-up, kind: data }
+    - { id: e4, from: actions, to: draft-follow-up, kind: data }
+    - { id: e5, from: draft-follow-up, to: publish-approval, kind: dependency }
+    - { id: e6, from: publish-approval, to: publish, kind: control, condition: approved }
+    - { id: e7, from: publish, to: result, kind: data }
