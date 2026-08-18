@@ -14,12 +14,15 @@ import { StorageDialog } from "./StorageDialog";
 import { ThemeToggle } from "./ThemeToggle";
 import { UniversalCatalogSearch } from "./UniversalCatalogSearch";
 
+const catalogLabelCollator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+const compareCatalogLabels = (left: string, right: string) => catalogLabelCollator.compare(left, right);
+
 export const WORKFLOW_AREAS = SUBJECT_AREAS.map(({ name }) => ({
   name,
   label: name,
   description: `${WORKFLOW_TEMPLATES.filter((template) => template.area === name).length} workflows and ${roleTemplatesForSubject(name).length} reusable agents.`,
   icon: Workflow,
-}));
+})).sort((left, right) => compareCatalogLabels(left.label, right.label));
 export const CATALOG_SEARCH_SUBJECTS = WORKFLOW_AREAS.map(({ name, description }) => ({ name, description }));
 
 const ALL_SUBJECT_AREA = {
@@ -29,11 +32,14 @@ const ALL_SUBJECT_AREA = {
   icon: Workflow,
 };
 const SUBJECT_AREA_OPTIONS = [ALL_SUBJECT_AREA, ...WORKFLOW_AREAS];
-const DEFAULT_SUBJECT_AREA = WORKFLOW_AREAS[0]?.name ?? ALL_SUBJECT_AREA.name;
+const DEFAULT_SUBJECT_AREA =
+  WORKFLOW_AREAS.find((area) => area.name === "Core patterns")?.name ?? WORKFLOW_AREAS[0]?.name ?? ALL_SUBJECT_AREA.name;
 type LibraryTab = "workflows" | "bundles" | "agents" | "forms" | "documents" | "ontologies";
 type ModalityFilter = "all" | InputModality;
 type GalleryView = "starters" | "recent";
-const BUNDLE_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "workflow-bundle");
+const BUNDLE_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "workflow-bundle").sort((left, right) =>
+  compareCatalogLabels(left.title, right.title),
+);
 const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form");
 const DOCUMENT_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "document");
 const ONTOLOGY_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "ontology");
@@ -95,10 +101,10 @@ export function Welcome({
   const selectedTemplates = WORKFLOW_TEMPLATES.filter(
     (template) =>
       (allSubjectsSelected || template.area === selectedArea.name) && (modality === "all" || template.modalities.includes(modality)),
-  );
-  const selectedAgents = (allSubjectsSelected ? ROLE_TEMPLATES : roleTemplatesForSubject(selectedArea.name)).filter(
-    (agent) => modality === "all" || agent.modalities.includes(modality),
-  );
+  ).sort((left, right) => compareCatalogLabels(left.title, right.title));
+  const selectedAgents = (allSubjectsSelected ? ROLE_TEMPLATES : roleTemplatesForSubject(selectedArea.name))
+    .filter((agent) => modality === "all" || agent.modalities.includes(modality))
+    .sort((left, right) => compareCatalogLabels(left.name, right.name));
   const selectedBundles = artifactsForSubject(BUNDLE_TEMPLATES, selectedArea.name);
   const selectedForms = artifactsForSubject(FORM_TEMPLATES, selectedArea.name);
   const selectedDocuments = artifactsForSubject(DOCUMENT_TEMPLATES, selectedArea.name);
