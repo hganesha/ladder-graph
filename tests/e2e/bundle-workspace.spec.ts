@@ -20,6 +20,7 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
   await expect(page.getByRole("heading", { name: "Attached assets" })).toBeVisible();
   await expect(page.getByText("Semantic bindings")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("bundle-workspace.png"), fullPage: true });
+  await page.locator(".bundle-assets-editor").screenshot({ path: testInfo.outputPath("bundle-assets-accordion.png") });
 
   await page.getByRole("button", { name: "Compile bundle" }).click();
   await expect(page.getByRole("tab", { name: "Compiled output" })).toHaveAttribute("aria-selected", "true");
@@ -108,6 +109,29 @@ test("authors a domain-bound form field and recompiles it into the bundle", asyn
   expect(consoleErrors).toEqual([]);
 });
 
+test("creates a bundle-owned form from scratch", async ({ page }, testInfo) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await openInsuranceBundle(page);
+  await expect(page.getByText(/^\d+ deterministic files$/)).toBeVisible();
+  await page.getByRole("button", { name: /^Forms,/ }).click();
+  await page.getByRole("region", { name: "Forms library" }).screenshot({ path: testInfo.outputPath("new-bundle-form.png") });
+  await page.getByRole("button", { name: "New form" }).click();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Untitled form" })).toBeVisible();
+  await page.getByRole("button", { name: "Add field to Section 1" }).click();
+  await page.getByLabel("Label", { exact: true }).fill("Custom intake field");
+  await page.getByLabel("Label", { exact: true }).press("Tab");
+  await page.getByRole("button", { name: "Apply to bundle" }).click();
+
+  await expect(page.getByRole("tab", { name: "Form preview" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByLabel("Custom intake field")).toBeVisible();
+  expect(consoleErrors).toEqual([]);
+});
+
 test("assembles and binds a bundle around another catalog workflow", async ({ page }, testInfo) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
@@ -120,7 +144,8 @@ test("assembles and binds a bundle around another catalog workflow", async ({ pa
   await page.getByRole("button", { name: "New", exact: true }).click();
   await page.getByLabel("Workflow", { exact: true }).selectOption("evidence-research");
   await expect(page.getByRole("heading", { name: "Evidence research bundle" })).toBeVisible();
-  await page.getByLabel("Bundle ontology").selectOption("ladder://ontologies/builtin/insurance");
+  await page.getByRole("button", { name: "Attach Insurance ontology" }).click();
+  await page.getByRole("button", { name: /^Forms,/ }).click();
   await page.getByRole("button", { name: "Attach First Notice of Loss" }).click();
   await page.getByRole("button", { name: "Add binding" }).click();
 

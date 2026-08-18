@@ -1,4 +1,4 @@
-import { FileJson2, FileText, GitFork, PackageOpen, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { ChevronDown, FileJson2, FileText, GitFork, PackageOpen, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { parse } from "yaml";
 import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
@@ -18,8 +18,10 @@ interface BundleAssetPickerProps {
   onAttach: (template: ArtifactTemplateDefinition) => void;
   onDetach: (ref: string) => void;
   onNew: () => void;
+  onNewForm: () => void;
   onRestoreStarter: () => void;
   onUseCuratedBundle: (template: ArtifactTemplateDefinition) => void;
+  onOntologyModeChange: (mode: "full" | "sliver") => void;
   starterLabel: string;
   onWorkflowChange: (workflowId: string) => void;
   workflowChoices: BundleWorkflowChoice[];
@@ -31,6 +33,12 @@ const kindLabel = {
   ontology: "Ontologies",
   form: "Forms",
   document: "Documents",
+};
+
+const kindDescription = {
+  ontology: "Semantic types and relationships",
+  form: "Structured user-input contracts",
+  document: "Supporting document schemas",
 };
 
 const kindIcon = {
@@ -45,14 +53,17 @@ export function BundleAssetPicker({
   onAttach,
   onDetach,
   onNew,
+  onNewForm,
   onRestoreStarter,
   onUseCuratedBundle,
+  onOntologyModeChange,
   starterLabel,
   onWorkflowChange,
   workflowChoices,
 }: BundleAssetPickerProps) {
   const [query, setQuery] = useState("");
   const [industry, setIndustry] = useState("all");
+  const [openKind, setOpenKind] = useState<(typeof artifactKinds)[number]>("ontology");
   const attached = new Set([
     bundle.spec.ontology?.ref,
     ...(bundle.spec.forms ?? []).map((asset) => asset.ref),
@@ -60,12 +71,6 @@ export function BundleAssetPicker({
   ]);
   const workflowId = workflowChoices.find((choice) => choice.ref === bundle.spec.workflowRef)?.id ?? workflowChoices[0]?.id ?? "";
   const workflow = workflowChoices.find((choice) => choice.id === workflowId) ?? bundleAsset(bundle.spec.workflowRef);
-  const ontologyTemplates = useMemo(
-    () =>
-      assetTemplates.filter((template) => template.kind === "ontology").toSorted((left, right) => left.title.localeCompare(right.title)),
-    [assetTemplates],
-  );
-  const attachedOntology = ontologyTemplates.find((template) => template.ref === bundle.spec.ontology?.ref);
   const recommendedBundle = useMemo(
     () =>
       ARTIFACT_TEMPLATES.filter((template) => template.kind === "workflow-bundle")
@@ -85,6 +90,8 @@ export function BundleAssetPicker({
         (!normalizedQuery || `${template.title} ${template.description} ${template.path}`.toLowerCase().includes(normalizedQuery)),
     );
   }, [assetTemplates, industry, query]);
+  const availableKinds = artifactKinds.filter((kind) => filteredTemplates.some((template) => template.kind === kind));
+  const visibleOpenKind = availableKinds.includes(openKind) ? openKind : availableKinds[0];
 
   return (
     <section className="bundle-assets-editor" aria-labelledby="bundle-assets-title">
@@ -115,34 +122,6 @@ export function BundleAssetPicker({
           ))}
         </select>
         <small>{workflow?.description}</small>
-      </label>
-
-      <label className="bundle-ontology-select">
-        <span>
-          <PackageOpen size={14} /> Ontology
-        </span>
-        <select
-          aria-label="Bundle ontology"
-          onChange={(event) => {
-            const nextRef = event.target.value;
-            const currentRef = bundle.spec.ontology?.ref;
-            if (!nextRef) {
-              if (currentRef) onDetach(currentRef);
-              return;
-            }
-            const template = ontologyTemplates.find((candidate) => candidate.ref === nextRef);
-            if (template) onAttach(template);
-          }}
-          value={bundle.spec.ontology?.ref ?? ""}
-        >
-          <option value="">No ontology attached</option>
-          {ontologyTemplates.map((template) => (
-            <option key={template.ref} value={template.ref}>
-              {template.ref.includes("/local/") ? `My library · ${template.title}` : template.title}
-            </option>
-          ))}
-        </select>
-        <small>{attachedOntology?.description ?? "Attach a catalog or saved ontology, then choose workflow sliver or full output."}</small>
       </label>
 
       {recommendedBundle ? (
@@ -184,38 +163,112 @@ export function BundleAssetPicker({
         <small>{filteredTemplates.length} matching assets</small>
       </fieldset>
 
-      <div className="bundle-asset-groups">
+      <div className="bundle-asset-accordion">
         {artifactKinds.map((kind) => {
           const Icon = kindIcon[kind];
           const templates = filteredTemplates.filter((template) => template.kind === kind);
           if (templates.length === 0) return null;
+          const attachedCount = templates.filter((template) => attached.has(template.ref)).length;
+          const isOpen = visibleOpenKind === kind;
+          const panelId = `bundle-${kind}-assets`;
           return (
-            <fieldset key={kind}>
-              <legend>
-                {kindLabel[kind]} <span>{templates.length}</span>
-              </legend>
-              {templates.map((template) => {
-                const isAttached = attached.has(template.ref);
-                return (
-                  <article className={isAttached ? "attached" : undefined} key={template.ref}>
-                    <Icon size={15} />
-                    <span>
-                      <strong>{template.title}</strong>
-                      <small>{template.description}</small>
-                      {template.ref.includes("/docubricks/") ? <em>DocuBricks · {template.path.split("/")[0]}</em> : null}
-                    </span>
-                    <button
-                      aria-label={`${isAttached ? "Remove" : "Attach"} ${template.title}`}
-                      className={isAttached ? "icon-button danger" : "icon-button"}
-                      onClick={() => (isAttached ? onDetach(template.ref) : onAttach(template))}
-                      type="button"
-                    >
-                      {isAttached ? <Trash2 size={13} /> : <Plus size={13} />}
-                    </button>
-                  </article>
-                );
-              })}
-            </fieldset>
+            <section className={isOpen ? "bundle-asset-group open" : "bundle-asset-group"} key={kind}>
+              <button
+                aria-controls={panelId}
+                aria-expanded={isOpen}
+                aria-label={`${kindLabel[kind]}, ${templates.length} available, ${attachedCount} attached`}
+                className="bundle-asset-group-trigger"
+                onClick={() => setOpenKind(kind)}
+                type="button"
+              >
+                <span className="bundle-asset-kind-icon">
+                  <Icon size={17} />
+                </span>
+                <span className="bundle-asset-kind-copy">
+                  <strong>{kindLabel[kind]}</strong>
+                  <small>{kindDescription[kind]}</small>
+                </span>
+                <span className="bundle-asset-kind-metrics">
+                  <strong>{attachedCount}</strong>
+                  <small>attached</small>
+                  <span>{templates.length} available</span>
+                </span>
+                <ChevronDown aria-hidden="true" className="bundle-asset-chevron" size={16} />
+              </button>
+              {isOpen ? (
+                <section aria-label={`${kindLabel[kind]} library`} className="bundle-asset-group-panel" id={panelId}>
+                  {kind === "form" ? (
+                    <div className="bundle-new-asset-card">
+                      <span className="bundle-asset-kind-icon">
+                        <FileText size={17} />
+                      </span>
+                      <span>
+                        <strong>Start from a blank form</strong>
+                        <small>Create pages, sections, fields, and ontology mappings in the visual editor.</small>
+                      </span>
+                      <button className="compile-button" onClick={onNewForm} type="button">
+                        <Plus size={13} /> New form
+                      </button>
+                    </div>
+                  ) : null}
+                  {kind === "ontology" && bundle.spec.ontology ? (
+                    <div className="bundle-ontology-output-control">
+                      <span>
+                        <small>Attached ontology</small>
+                        <strong>{bundleAsset(bundle.spec.ontology.ref)?.title ?? bundle.spec.ontology.ref}</strong>
+                      </span>
+                      <fieldset className="ontology-mode-control">
+                        <legend>Compiled output</legend>
+                        <button
+                          className={bundle.spec.ontology.mode === "sliver" ? "active" : undefined}
+                          onClick={() => onOntologyModeChange("sliver")}
+                          type="button"
+                        >
+                          Workflow sliver
+                        </button>
+                        <button
+                          className={bundle.spec.ontology.mode === "full" ? "active" : undefined}
+                          onClick={() => onOntologyModeChange("full")}
+                          type="button"
+                        >
+                          Full ontology
+                        </button>
+                      </fieldset>
+                    </div>
+                  ) : null}
+                  <div className="bundle-asset-card-grid">
+                    {templates.map((template) => {
+                      const isAttached = attached.has(template.ref);
+                      return (
+                        <article className={isAttached ? "attached" : undefined} key={template.ref}>
+                          <span className="bundle-asset-card-icon">
+                            <Icon size={16} />
+                          </span>
+                          <span className="bundle-asset-card-copy">
+                            <strong>{template.title}</strong>
+                            <small>{template.description}</small>
+                            <span className="bundle-asset-card-tags">
+                              {isAttached ? <em>Attached</em> : null}
+                              {template.ref.includes("/docubricks/") ? <em>DocuBricks · {template.path.split("/")[0]}</em> : null}
+                            </span>
+                          </span>
+                          <button
+                            aria-label={`${isAttached ? "Remove" : "Attach"} ${template.title}`}
+                            aria-pressed={isAttached}
+                            className={isAttached ? "bundle-asset-action danger" : "bundle-asset-action"}
+                            onClick={() => (isAttached ? onDetach(template.ref) : onAttach(template))}
+                            type="button"
+                          >
+                            {isAttached ? <Trash2 size={12} /> : <Plus size={12} />}
+                            {isAttached ? "Remove" : "Attach"}
+                          </button>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+            </section>
           );
         })}
         {filteredTemplates.length === 0 ? (

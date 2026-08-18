@@ -150,21 +150,17 @@ describe("bundle workspace", () => {
     expect(editedWorkflow).toContain("name: Agent");
   });
 
-  it("attaches, replaces, and removes the bundle ontology from a dedicated selector", async () => {
+  it("attaches, replaces, and removes the bundle ontology from the visual accordion", async () => {
     render(<BundleStudio initialTemplateId="__new__" onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
 
-    const ontology = screen.getByLabelText("Bundle ontology");
-    expect(ontology).toHaveValue("");
-    fireEvent.change(ontology, { target: { value: "ladder://ontologies/builtin/insurance" } });
+    fireEvent.click(screen.getByRole("button", { name: "Attach Insurance ontology" }));
     await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://ontologies/builtin/insurance"));
 
-    fireEvent.change(screen.getByLabelText("Bundle ontology"), {
-      target: { value: "ladder://ontologies/builtin/manufacturing" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "Attach Manufacturing ontology" }));
     await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://ontologies/builtin/manufacturing"));
 
-    fireEvent.change(screen.getByLabelText("Bundle ontology"), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Remove Manufacturing ontology" }));
     await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).not.toContain("ontology:"));
   });
 
@@ -241,6 +237,56 @@ spec:
     await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://ontologies/local/local-ontology"));
   });
 
+  it("shows the asset library as a one-open-section accordion", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    const ontologies = screen.getByRole("button", { name: /^Ontologies,/ });
+    const forms = screen.getByRole("button", { name: /^Forms,/ });
+    const documents = screen.getByRole("button", { name: /^Documents,/ });
+    expect(ontologies).toHaveAttribute("aria-expanded", "true");
+    expect(forms).toHaveAttribute("aria-expanded", "false");
+    expect(documents).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("region", { name: "Ontologies library" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Full ontology" })).toHaveLength(1);
+
+    fireEvent.click(forms);
+    expect(ontologies).toHaveAttribute("aria-expanded", "false");
+    expect(forms).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("region", { name: "Forms library" })).toBeInTheDocument();
+
+    fireEvent.click(documents);
+    expect(forms).toHaveAttribute("aria-expanded", "false");
+    expect(documents).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getAllByRole("region", { name: /^(Ontologies|Forms|Documents) library$/ })).toHaveLength(1);
+  });
+
+  it("creates a blank bundle-owned form and opens it in the visual editor", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: /^Forms,/ }));
+    fireEvent.click(screen.getByRole("button", { name: "New form" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Untitled form" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add field to Section 1" }));
+    expect((await screen.findAllByText("New field")).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: "Apply to bundle" }));
+
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
+    expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://forms/local/insurance-claim-review-form");
+    expect(compileBundle.mock.calls.at(-1)?.[1]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ref: "ladder://forms/local/insurance-claim-review-form",
+          source: expect.stringContaining("label: New field"),
+        }),
+      ]),
+    );
+    expect(screen.getByRole("tab", { name: "Form preview" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("New field")).toBeInTheDocument();
+  });
+
   it("switches between deterministic sliver and full ontology compilation", async () => {
     render(<BundleStudio onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
@@ -261,6 +307,7 @@ spec:
     await waitFor(() => expect(screen.getByRole("heading", { name: "Evidence research bundle" })).toBeInTheDocument());
     expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://workflows/builtin/evidence-research");
 
+    fireEvent.click(screen.getByRole("button", { name: /^Forms,/ }));
     fireEvent.click(screen.getByRole("button", { name: "Attach First Notice of Loss" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Add binding" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Add binding" }));
@@ -313,7 +360,7 @@ spec:
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
 
     const search = screen.getByLabelText("Search bundle assets");
-    expect(search).toHaveAttribute("placeholder", "Search 55 DocuBricks schemas…");
+    expect(search).toHaveAttribute("placeholder", "Search schemas…");
     fireEvent.change(search, { target: { value: "mortgage application" } });
     expect(screen.getByText("Mortgage Application")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Attach Mortgage Application" }));
