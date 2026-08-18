@@ -3,16 +3,45 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { parse, stringify } from "yaml";
 import { compiler } from "../../compiler/client";
 import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
-import { createBlankOntology } from "../../lib/ontologyEditor";
+import {
+  addOntologyProperty,
+  addOntologyRelationship,
+  addOntologyType,
+  createBlankOntology,
+  updateOntologyProperty,
+  updateOntologyRelationship,
+  updateOntologyType,
+} from "../../lib/ontologyEditor";
 import { importOwlRdfXml, type OwlImportResult } from "../../lib/owlImport";
 import { saveArtifactProject } from "../../lib/persistence";
-import type { Diagnostic, LadderDocument, Ontology, OntologySliceResult, ProjectRecord, WorkflowBundle } from "../../types";
+import type {
+  Diagnostic,
+  LadderDocument,
+  Ontology,
+  OntologyCardinality,
+  OntologyDataType,
+  OntologySliceResult,
+  ProjectRecord,
+  WorkflowBundle,
+} from "../../types";
 import { Brand } from "../Brand";
 import { ThemeToggle } from "../ThemeToggle";
 import { OntologyCanvas } from "./OntologyCanvas";
 
 type StructuredKind = "ontology" | "document";
 type ParsedArtifact = Ontology | LadderDocument;
+const ONTOLOGY_DATA_TYPES: OntologyDataType[] = [
+  "string",
+  "integer",
+  "number",
+  "decimal",
+  "boolean",
+  "date",
+  "datetime",
+  "array",
+  "object",
+];
+const ONTOLOGY_CARDINALITIES: OntologyCardinality[] = ["one-to-one", "one-to-many", "many-to-one", "many-to-many"];
 const ONTOLOGY_USAGE = new Map<string, string[]>();
 for (const template of ARTIFACT_TEMPLATES) {
   if (template.kind !== "workflow-bundle") continue;
@@ -175,6 +204,31 @@ export default function StructuredArtifactStudio({
       : undefined;
   const ontologyUsage =
     artifact?.kind === "Ontology" ? (ONTOLOGY_USAGE.get(`ladder://ontologies/builtin/${artifact.metadata.name}`) ?? []) : [];
+  const commitOntology = (next: Ontology, selection: { typeId?: string | null; relationshipId?: string | null } = {}) => {
+    setSource(stringify(next, { lineWidth: 110 }));
+    if ("typeId" in selection) setSelectedId(selection.typeId ?? null);
+    if ("relationshipId" in selection) setSelectedRelationshipId(selection.relationshipId ?? null);
+    setSlicePreview(undefined);
+  };
+  const createType = () => {
+    if (artifact?.kind !== "Ontology") return;
+    const added = addOntologyType(artifact);
+    commitOntology(added.ontology, { typeId: added.typeId, relationshipId: null });
+  };
+  const createProperty = () => {
+    if (artifact?.kind !== "Ontology" || !selectedOntologyType) return;
+    const added = addOntologyProperty(artifact, selectedOntologyType.id);
+    commitOntology(added.ontology, { typeId: selectedOntologyType.id, relationshipId: null });
+  };
+  const createRelationship = () => {
+    if (artifact?.kind !== "Ontology") return;
+    const added = addOntologyRelationship(artifact, selectedOntologyType?.id);
+    const relationship = added.ontology.spec.relationships.find((candidate) => candidate.id === added.relationshipId);
+    commitOntology(added.ontology, {
+      typeId: relationship?.sourceTypeId ?? selectedOntologyType?.id ?? null,
+      relationshipId: added.relationshipId,
+    });
+  };
   const previewSliver = async () => {
     if (artifact?.kind !== "Ontology" || !selectedOntologyType) return;
     setSliceLoading(true);
@@ -373,7 +427,7 @@ export default function StructuredArtifactStudio({
               </div>
             </section>
           ) : null}
-          {artifact?.kind === "Ontology" && selectedOntologyType ? (
+          {artifact?.kind === "Ontology" ? (
             <div className="ontology-visual-workspace">
               <section className="ontology-canvas-panel">
                 <header>
@@ -382,6 +436,14 @@ export default function StructuredArtifactStudio({
                     <small>
                       {artifact.spec.types.length} types · {artifact.spec.relationships.length} relationships
                     </small>
+                  </div>
+                  <div className="ontology-canvas-actions">
+                    <button className="quiet-button" onClick={createType} type="button">
+                      <Plus size={13} /> Add entity
+                    </button>
+                    <button className="quiet-button" onClick={createRelationship} type="button">
+                      <Plus size={13} /> Add relationship
+                    </button>
                   </div>
                   <label className="form-search">
                     <Search aria-hidden="true" size={13} />
@@ -406,7 +468,7 @@ export default function StructuredArtifactStudio({
                   }}
                   query={query}
                   selectedRelationshipId={selectedRelationshipId}
-                  selectedTypeId={selectedRelationship ? null : selectedOntologyType.id}
+                  selectedTypeId={selectedRelationship ? null : (selectedOntologyType?.id ?? null)}
                 />
               </section>
               <article className="artifact-detail-card ontology-selection-inspector" aria-label="Ontology selection inspector">
@@ -417,83 +479,289 @@ export default function StructuredArtifactStudio({
                       <code>{selectedRelationship.id}</code>
                     </header>
                     <h2>{selectedRelationship.label}</h2>
-                    <p>{selectedRelationship.description}</p>
-                    <dl className="ontology-relationship-details">
-                      <div>
-                        <dt>Source type</dt>
-                        <dd>{selectedRelationship.sourceTypeId}</dd>
+                    <div className="ontology-editor-fields">
+                      <label>
+                        Relationship label
+                        <input
+                          aria-label="Relationship label"
+                          onChange={(event) =>
+                            commitOntology(updateOntologyRelationship(artifact, selectedRelationship.id, { label: event.target.value }), {
+                              relationshipId: selectedRelationship.id,
+                            })
+                          }
+                          value={selectedRelationship.label}
+                        />
+                      </label>
+                      <label>
+                        Description
+                        <textarea
+                          aria-label="Relationship description"
+                          onChange={(event) =>
+                            commitOntology(
+                              updateOntologyRelationship(artifact, selectedRelationship.id, { description: event.target.value }),
+                              { relationshipId: selectedRelationship.id },
+                            )
+                          }
+                          value={selectedRelationship.description ?? ""}
+                        />
+                      </label>
+                      <div className="ontology-editor-grid">
+                        <label>
+                          Source entity
+                          <select
+                            aria-label="Relationship source entity"
+                            onChange={(event) =>
+                              commitOntology(
+                                updateOntologyRelationship(artifact, selectedRelationship.id, { sourceTypeId: event.target.value }),
+                                { typeId: event.target.value, relationshipId: selectedRelationship.id },
+                              )
+                            }
+                            value={selectedRelationship.sourceTypeId}
+                          >
+                            {artifact.spec.types.map((type) => (
+                              <option key={type.id} value={type.id}>
+                                {type.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Target entity
+                          <select
+                            aria-label="Relationship target entity"
+                            onChange={(event) =>
+                              commitOntology(
+                                updateOntologyRelationship(artifact, selectedRelationship.id, { targetTypeId: event.target.value }),
+                                { relationshipId: selectedRelationship.id },
+                              )
+                            }
+                            value={selectedRelationship.targetTypeId}
+                          >
+                            {artifact.spec.types.map((type) => (
+                              <option key={type.id} value={type.id}>
+                                {type.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Cardinality
+                          <select
+                            aria-label="Relationship cardinality"
+                            onChange={(event) =>
+                              commitOntology(
+                                updateOntologyRelationship(artifact, selectedRelationship.id, {
+                                  cardinality: event.target.value as OntologyCardinality,
+                                }),
+                                { relationshipId: selectedRelationship.id },
+                              )
+                            }
+                            value={selectedRelationship.cardinality}
+                          >
+                            {ONTOLOGY_CARDINALITIES.map((cardinality) => (
+                              <option key={cardinality} value={cardinality}>
+                                {cardinality.replaceAll("-", " ")}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="ontology-checkbox-field">
+                          <input
+                            aria-label="Relationship required"
+                            checked={Boolean(selectedRelationship.required)}
+                            onChange={(event) =>
+                              commitOntology(
+                                updateOntologyRelationship(artifact, selectedRelationship.id, { required: event.target.checked }),
+                                { relationshipId: selectedRelationship.id },
+                              )
+                            }
+                            type="checkbox"
+                          />
+                          Required relationship
+                        </label>
                       </div>
-                      <div>
-                        <dt>Target type</dt>
-                        <dd>{selectedRelationship.targetTypeId}</dd>
-                      </div>
-                      <div>
-                        <dt>Cardinality</dt>
-                        <dd>{selectedRelationship.cardinality}</dd>
-                      </div>
-                      <div>
-                        <dt>Required</dt>
-                        <dd>{selectedRelationship.required ? "Yes" : "No"}</dd>
-                      </div>
-                    </dl>
+                    </div>
                   </>
-                ) : (
+                ) : selectedOntologyType ? (
                   <>
                     <header>
                       <span>Entity type</span>
                       <code>{selectedOntologyType.id}</code>
                     </header>
                     <h2>{selectedOntologyType.label}</h2>
-                    <p>{selectedOntologyType.description}</p>
+                    <div className="ontology-editor-fields">
+                      <label>
+                        Entity label
+                        <input
+                          aria-label="Entity label"
+                          onChange={(event) =>
+                            commitOntology(updateOntologyType(artifact, selectedOntologyType.id, { label: event.target.value }), {
+                              typeId: selectedOntologyType.id,
+                              relationshipId: null,
+                            })
+                          }
+                          value={selectedOntologyType.label}
+                        />
+                      </label>
+                      <label>
+                        Description
+                        <textarea
+                          aria-label="Entity description"
+                          onChange={(event) =>
+                            commitOntology(updateOntologyType(artifact, selectedOntologyType.id, { description: event.target.value }), {
+                              typeId: selectedOntologyType.id,
+                              relationshipId: null,
+                            })
+                          }
+                          value={selectedOntologyType.description ?? ""}
+                        />
+                      </label>
+                    </div>
+                    <div className="ontology-property-heading">
+                      <div>
+                        <strong>Attributes</strong>
+                        <small>{selectedOntologyType.properties.length} defined</small>
+                      </div>
+                      <button className="quiet-button" onClick={createProperty} type="button">
+                        <Plus size={13} /> Add attribute
+                      </button>
+                    </div>
                     <div className="artifact-property-grid">
                       {selectedOntologyType.properties.map((property) => (
                         <section key={property.id}>
-                          <div>
-                            <strong>{property.label}</strong>
-                            <code>{property.dataType}</code>
+                          <code>{property.id}</code>
+                          <label>
+                            Attribute label
+                            <input
+                              aria-label={`Attribute ${property.id} label`}
+                              onChange={(event) =>
+                                commitOntology(
+                                  updateOntologyProperty(artifact, selectedOntologyType.id, property.id, { label: event.target.value }),
+                                  { typeId: selectedOntologyType.id, relationshipId: null },
+                                )
+                              }
+                              value={property.label}
+                            />
+                          </label>
+                          <label>
+                            Data type
+                            <select
+                              aria-label={`Attribute ${property.id} data type`}
+                              onChange={(event) =>
+                                commitOntology(
+                                  updateOntologyProperty(artifact, selectedOntologyType.id, property.id, {
+                                    dataType: event.target.value as OntologyDataType,
+                                  }),
+                                  { typeId: selectedOntologyType.id, relationshipId: null },
+                                )
+                              }
+                              value={property.dataType}
+                            >
+                              {ONTOLOGY_DATA_TYPES.map((dataType) => (
+                                <option key={dataType} value={dataType}>
+                                  {dataType}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label>
+                            Description
+                            <textarea
+                              aria-label={`Attribute ${property.id} description`}
+                              onChange={(event) =>
+                                commitOntology(
+                                  updateOntologyProperty(artifact, selectedOntologyType.id, property.id, {
+                                    description: event.target.value,
+                                  }),
+                                  { typeId: selectedOntologyType.id, relationshipId: null },
+                                )
+                              }
+                              value={property.description ?? ""}
+                            />
+                          </label>
+                          <div className="ontology-property-flags">
+                            <label>
+                              <input
+                                aria-label={`Attribute ${property.id} required`}
+                                checked={Boolean(property.required)}
+                                onChange={(event) =>
+                                  commitOntology(
+                                    updateOntologyProperty(artifact, selectedOntologyType.id, property.id, {
+                                      required: event.target.checked,
+                                    }),
+                                    { typeId: selectedOntologyType.id, relationshipId: null },
+                                  )
+                                }
+                                type="checkbox"
+                              />
+                              Required
+                            </label>
+                            <label>
+                              <input
+                                aria-label={`Attribute ${property.id} identifier`}
+                                checked={Boolean(property.identifier)}
+                                onChange={(event) =>
+                                  commitOntology(
+                                    updateOntologyProperty(artifact, selectedOntologyType.id, property.id, {
+                                      identifier: event.target.checked,
+                                    }),
+                                    { typeId: selectedOntologyType.id, relationshipId: null },
+                                  )
+                                }
+                                type="checkbox"
+                              />
+                              Identifier
+                            </label>
                           </div>
-                          <p>{property.description}</p>
-                          <small>
-                            {property.required ? "Required" : "Optional"}
-                            {property.identifier ? " · Identifier" : ""}
-                          </small>
                         </section>
                       ))}
+                      {selectedOntologyType.properties.length === 0 ? (
+                        <p className="ontology-property-empty">No attributes yet. Add one to define this entity’s data contract.</p>
+                      ) : null}
                     </div>
                   </>
-                )}
-                <section className="ontology-impact-panel">
-                  <header>
-                    <div>
-                      <strong>Workflow sliver impact</strong>
-                      <small>{ontologyUsage.length ? `Used by ${ontologyUsage.join(", ")}` : "No curated bundle usage"}</small>
-                    </div>
-                    <button className="quiet-button" disabled={sliceLoading} onClick={() => void previewSliver()} type="button">
-                      {sliceLoading ? "Calculating…" : "Preview sliver"}
+                ) : (
+                  <div className="bundle-empty-state">
+                    <p>This ontology has no entities.</p>
+                    <button className="primary-button" onClick={createType} type="button">
+                      <Plus size={14} /> Add first entity
                     </button>
-                  </header>
-                  {slicePreview?.seedId === selectedOntologyType.id ? (
-                    <div className="ontology-sliver-result">
-                      <span>
-                        <strong>{slicePreview.result.includedTypeIds.length}</strong> types
-                      </span>
-                      <span>
-                        <strong>{slicePreview.result.includedPropertyRefs.length}</strong> properties
-                      </span>
-                      <span>
-                        <strong>{slicePreview.result.includedRelationshipIds.length}</strong> relationships
-                      </span>
-                      <p>
-                        {Object.entries(slicePreview.result.inclusionReasons)
-                          .slice(0, 3)
-                          .map(([id, reasons]) => `${id}: ${reasons.join(", ")}`)
-                          .join(" · ")}
-                      </p>
-                    </div>
-                  ) : (
-                    <p>Selecting a type seeds deterministic dependency closure; the preview explains every included element.</p>
-                  )}
-                </section>
+                  </div>
+                )}
+                {selectedOntologyType ? (
+                  <section className="ontology-impact-panel">
+                    <header>
+                      <div>
+                        <strong>Workflow sliver impact</strong>
+                        <small>{ontologyUsage.length ? `Used by ${ontologyUsage.join(", ")}` : "No curated bundle usage"}</small>
+                      </div>
+                      <button className="quiet-button" disabled={sliceLoading} onClick={() => void previewSliver()} type="button">
+                        {sliceLoading ? "Calculating…" : "Preview sliver"}
+                      </button>
+                    </header>
+                    {slicePreview?.seedId === selectedOntologyType.id ? (
+                      <div className="ontology-sliver-result">
+                        <span>
+                          <strong>{slicePreview.result.includedTypeIds.length}</strong> types
+                        </span>
+                        <span>
+                          <strong>{slicePreview.result.includedPropertyRefs.length}</strong> properties
+                        </span>
+                        <span>
+                          <strong>{slicePreview.result.includedRelationshipIds.length}</strong> relationships
+                        </span>
+                        <p>
+                          {Object.entries(slicePreview.result.inclusionReasons)
+                            .slice(0, 3)
+                            .map(([id, reasons]) => `${id}: ${reasons.join(", ")}`)
+                            .join(" · ")}
+                        </p>
+                      </div>
+                    ) : (
+                      <p>Selecting a type seeds deterministic dependency closure; the preview explains every included element.</p>
+                    )}
+                  </section>
+                ) : null}
                 <footer>
                   {selectedRelationships.length} connected relationships · {ontologyUsage.length} curated bundle usages
                 </footer>

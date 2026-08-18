@@ -1766,6 +1766,58 @@ button:disabled {
   border-radius: 13px;
   background: var(--bg);
 }
+.bundle-workflow-source-editor {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 620px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--editor-bg);
+}
+.bundle-workflow-source-editor > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding: 11px 14px;
+  background: var(--surface);
+}
+.bundle-workflow-source-editor > header > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+.bundle-workflow-source-editor > header > div:last-child {
+  display: flex;
+  gap: 7px;
+}
+.bundle-workflow-source-editor > header small {
+  color: var(--muted);
+  font-size: 9px;
+}
+.bundle-workflow-source-editor textarea {
+  width: 100%;
+  min-height: 520px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  padding: 18px;
+  color: var(--editor-text);
+  background: var(--editor-bg);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  tab-size: 2;
+}
+.bundle-workflow-source-editor > p {
+  margin: 0;
+  border-top: 1px solid color-mix(in srgb, var(--coral) 35%, var(--border));
+  padding: 9px 14px;
+  color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 7%, var(--surface));
+  font-size: 10px;
+}
 .embedded-graph-canvas {
   min-width: 0;
   min-height: 0;
@@ -2051,6 +2103,7 @@ button:disabled {
 }
 .ontology-canvas-panel > header {
   display: flex;
+  flex-wrap: wrap;
   min-height: 58px;
   align-items: center;
   justify-content: space-between;
@@ -2073,6 +2126,16 @@ button:disabled {
 .ontology-canvas-panel .form-search {
   width: min(240px, 42%);
   margin: 0;
+}
+.ontology-canvas-panel > header > .ontology-canvas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ontology-canvas-actions .quiet-button {
+  min-height: 30px;
+  padding: 6px 9px;
+  font-size: 9px;
 }
 .ontology-graph-canvas {
   min-width: 0;
@@ -2143,6 +2206,97 @@ button:disabled {
 }
 .ontology-selection-inspector .artifact-property-grid {
   grid-template-columns: 1fr;
+}
+.ontology-editor-fields {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+}
+.ontology-editor-fields label,
+.ontology-selection-inspector .artifact-property-grid label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 650;
+}
+.ontology-editor-fields input,
+.ontology-editor-fields textarea,
+.ontology-editor-fields select,
+.ontology-selection-inspector .artifact-property-grid input,
+.ontology-selection-inspector .artifact-property-grid textarea,
+.ontology-selection-inspector .artifact-property-grid select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 8px 9px;
+  color: var(--text);
+  background: var(--surface-2);
+  font: inherit;
+  font-size: 10px;
+}
+.ontology-editor-fields textarea,
+.ontology-selection-inspector .artifact-property-grid textarea {
+  min-height: 62px;
+  resize: vertical;
+}
+.ontology-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.ontology-editor-fields .ontology-checkbox-field {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  min-height: 34px;
+}
+.ontology-editor-fields .ontology-checkbox-field input,
+.ontology-property-flags input {
+  width: auto;
+}
+.ontology-property-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 9px;
+}
+.ontology-property-heading > div {
+  display: grid;
+  gap: 2px;
+}
+.ontology-property-heading small {
+  color: var(--dim);
+  font-size: 8px;
+}
+.ontology-selection-inspector .artifact-property-grid section {
+  display: grid;
+  gap: 8px;
+}
+.ontology-selection-inspector .artifact-property-grid section > code {
+  color: var(--cyan);
+  font-size: 8px;
+  overflow-wrap: anywhere;
+}
+.ontology-property-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.ontology-selection-inspector .artifact-property-grid .ontology-property-flags label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ontology-property-empty {
+  margin: 0;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 9px;
 }
 @media (max-width: 1150px) {
   .ontology-visual-workspace {

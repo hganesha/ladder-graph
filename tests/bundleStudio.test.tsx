@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { parse } from "yaml";
+import { parse, stringify } from "yaml";
 import BundleStudio from "../src/components/BundleStudio";
 import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
 import { db } from "../src/lib/persistence";
@@ -89,6 +89,24 @@ describe("bundle workspace", () => {
     expect(screen.getByRole("region", { name: "Ontology relationship canvas" })).toBeInTheDocument();
     expect(screen.getByLabelText("Bundled ontology inspector")).toHaveTextContent("Insurance Claim");
     expect(screen.getByText("1 included properties")).toBeInTheDocument();
+  });
+
+  it("edits the attached workflow source and recompiles it as a bundle-owned asset", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit workflow" }));
+    const editor = screen.getByLabelText("Bundled workflow YAML source") as HTMLTextAreaElement;
+    const workflow = parse(editor.value);
+    workflow.metadata.title = "Editable bundled workflow";
+    fireEvent.change(editor, { target: { value: stringify(workflow) } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply workflow changes" }));
+
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
+    const editedAssets = compileBundle.mock.calls.at(-1)?.[1] as Array<{ ref: string; source: string }>;
+    expect(editedAssets.find((asset) => asset.ref.endsWith("/wf-insr-01"))?.source).toContain("Editable bundled workflow");
+    expect(screen.getByRole("heading", { name: "Editable bundled workflow" })).toBeInTheDocument();
   });
 
   it("opens a selected curated bundle instead of always falling back to insurance", async () => {

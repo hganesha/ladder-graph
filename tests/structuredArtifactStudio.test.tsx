@@ -98,4 +98,31 @@ describe("structured artifact studio", () => {
     expect(screen.getByLabelText("Ontology selection inspector")).toHaveTextContent("Asset");
     expect((screen.getByLabelText("Ontology YAML source") as HTMLTextAreaElement).value).toContain("system: owl");
   });
+
+  it("authors ontology entities, attributes, and relationships from the visual workspace", async () => {
+    render(<StructuredArtifactStudio artifactKind="ontology" initialTemplateId="__new__" onBack={() => undefined} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add entity" }));
+    expect(screen.getByLabelText("Entity label")).toHaveValue("Entity 2");
+    fireEvent.change(screen.getByLabelText("Entity label"), { target: { value: "Facility" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Add attribute" }));
+    const attributeLabel = screen.getByLabelText("Attribute entity-2.attribute label");
+    expect(attributeLabel).toHaveValue("Attribute");
+    fireEvent.change(attributeLabel, { target: { value: "Facility code" } });
+    fireEvent.change(screen.getByLabelText("Attribute entity-2.attribute data type"), { target: { value: "integer" } });
+    fireEvent.click(screen.getByLabelText("Attribute entity-2.attribute required"));
+
+    fireEvent.click(screen.getByRole("button", { name: "Add relationship" }));
+    expect(screen.getByLabelText("Relationship label")).toHaveValue("Relates to");
+    fireEvent.change(screen.getByLabelText("Relationship label"), { target: { value: "Located at" } });
+    expect(screen.getByLabelText("Relationship source entity")).toHaveValue("entity-2");
+    expect(screen.getByLabelText("Relationship target entity")).toHaveValue("entity");
+
+    const source = (screen.getByLabelText("Ontology YAML source") as HTMLTextAreaElement).value;
+    expect(source).toContain("label: Facility");
+    expect(source).toContain("id: entity-2.attribute");
+    expect(source).toContain("dataType: integer");
+    expect(source).toContain("label: Located at");
+  });
 });
