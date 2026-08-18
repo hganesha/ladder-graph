@@ -63,8 +63,8 @@ test("creates an ontology by importing OWL and saves it to My library", async ({
   await page.getByRole("button", { name: "Add relationship" }).click();
   await page.getByLabel("Relationship label").fill("Hosts asset");
   await expect(page.getByLabel("Ontology YAML source")).toHaveValue(/Hosts asset/u);
-  await expect(page.getByRole("button", { name: "Save ontology" })).toBeEnabled();
-  await page.getByRole("button", { name: "Save ontology" }).click();
+  await expect(page.getByRole("button", { name: "Save" })).toBeEnabled();
+  await page.getByRole("button", { name: "Save" }).click();
 
   await page.getByRole("button", { name: "Back" }).click();
   await page.getByRole("tab", { name: "Recent projects" }).click();
