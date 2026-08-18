@@ -350,10 +350,7 @@ const HELP_PAGES: HelpPage[] = [
     title: "About Ladder Graph",
     description: "An open-source visual studio for designing, validating, and compiling agent workflows.",
     content: (
-      <div className="help-about-card">
-        <div className="help-about-mark" aria-hidden="true">
-          <Network size={30} />
-        </div>
+       <Brand compact />
         <div className="help-about-copy">
           <span>Created by</span>
           <strong>Hari Venkataraman with Codex</strong>
