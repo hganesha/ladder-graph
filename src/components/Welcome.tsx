@@ -91,6 +91,7 @@ const SUBJECT_AREA_ICONS: Record<string, LucideIcon> = {
   Multimodal: Images,
   Music: Music2,
   "Oil & gas drilling & well operations": HardHat,
+  "Office productivity": Cable,
   "Personal development": Target,
   Photography: Camera,
   Physics: Atom,

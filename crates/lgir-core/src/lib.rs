@@ -14,7 +14,6 @@ pub struct Workflow {
     pub metadata: Metadata,
     pub spec: WorkflowSpec,
 }
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
@@ -58,6 +57,14 @@ pub struct Policies {
 fn default_concurrency() -> u32 { 4 }
 fn default_failure() -> String { "stop".into() }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ContractRef {
+    #[serde(rename = "ref")]
+    pub ref_: String,
+    pub usage: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Node {
@@ -79,6 +86,8 @@ pub struct Node {
     pub input_schema: Value,
     #[serde(default)]
     pub output_schema: Value,
+    #[serde(default)]
+    pub contract_refs: Vec<ContractRef>,
     #[serde(default)]
     pub form_refs: Vec<String>,
     #[serde(default)]
@@ -460,6 +469,19 @@ fn validate(workflow: &Workflow, target: Option<&str>) -> (Vec<Diagnostic>, Vec<
         {
             diagnostics.push(node_diag("LG196", "error", index, node, "Attached forms must be unique, non-empty ladder://forms/ references."));
         }
+        let contract_refs: Vec<&str> = node.contract_refs.iter().map(|contract| contract.ref_.as_str()).collect();
+        let unique_contract_refs: BTreeSet<&str> = contract_refs.iter().copied().collect();
+        let supported_usages = ["human-interaction", "input", "output", "evidence"];
+        if unique_contract_refs.len() != node.contract_refs.len()
+            || node.contract_refs.iter().any(|contract| {
+                let valid_ref = contract.ref_.strip_prefix("ladder://forms/").is_some_and(|value| !value.is_empty())
+                    || contract.ref_.strip_prefix("ladder://documents/").is_some_and(|value| !value.is_empty());
+                !valid_ref || !supported_usages.contains(&contract.usage.as_str())
+            })
+            || contract_refs.iter().any(|contract_ref| node.form_refs.iter().any(|form_ref| form_ref == contract_ref))
+        {
+            diagnostics.push(node_diag("LG197", "error", index, node, "Attached contracts must have unique ladder://forms/ or ladder://documents/ refs and a supported usage."));
+        }
         if node.kind == "condition" {
             if node.config.branches.is_empty() {
                 diagnostics.push(node_diag("LG160", "error", index, node, "Condition nodes require at least one declared branch token."));
@@ -748,6 +770,9 @@ fn render_node(workflow: &Workflow, node: &Node, ordinal: usize) -> String {
     if !node.form_refs.is_empty() {
         output.push_str(&format!("- **Attached forms:** {}\n", node.form_refs.iter().map(|form_ref| format!("`{form_ref}`")).collect::<Vec<_>>().join(", ")));
     }
+    if !node.contract_refs.is_empty() {
+        output.push_str(&format!("- **Attached contracts:** {}\n", node.contract_refs.iter().map(|contract| format!("`{}` ({})", contract.ref_, contract.usage)).collect::<Vec<_>>().join(", ")));
+    }
     match node.kind.as_str() {
         "agent" | "evaluate" | "teacher" => {
             output.push_str(&format!("- **Role:** {}\n- **Required skills:** {}\n- **Required connectors:** {}\n- **Required tools:** {}\n- **Permissions:** {}\n\n**Task instructions**\n\n{}\n", if node.role.is_empty() { "Focused workflow specialist" } else { &node.role }, list_or_none(&node.capabilities.skills), list_or_none(&node.capabilities.connectors), list_or_none(&node.capabilities.tools), list_or_none(&node.capabilities.permissions), node.prompt));
@@ -996,6 +1021,7 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
         if workflow.spec.nodes.iter().any(|n| !n.config.working_directory.trim().is_empty()) { instructional.push("per-node working directories".into()); }
         if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
         if workflow.spec.nodes.iter().any(|n| !n.form_refs.is_empty()) { instructional.push("attached form contracts".into()); }
+        if workflow.spec.nodes.iter().any(|n| !n.contract_refs.is_empty()) { instructional.push("attached artifact contracts".into()); }
         return CapabilityReport {
             target: target.into(),
             native: vec!["typed workflow data".into(), "stable topological order".into(), "dependency map".into(), "pure readiness helper".into(), "capability templates".into()],
@@ -1014,6 +1040,7 @@ fn capability_report(workflow: &Workflow, target: &str) -> CapabilityReport {
     if workflow.spec.nodes.iter().any(|n| !n.config.working_directory.trim().is_empty()) { instructional.push("per-node working directories".into()); }
     if workflow.spec.nodes.iter().any(|n| !n.capabilities.connectors.is_empty()) { instructional.push("declared connector availability".into()); }
     if workflow.spec.nodes.iter().any(|n| !n.form_refs.is_empty()) { instructional.push("attached form contracts".into()); }
+    if workflow.spec.nodes.iter().any(|n| !n.contract_refs.is_empty()) { instructional.push("attached artifact contracts".into()); }
     if target == "codex" { native.push("Agent Skills frontmatter".into()); }
     if target == "claude" { native.push("Claude Code skill frontmatter".into()); }
     if target == "hermes" {
@@ -1140,6 +1167,22 @@ spec:
 
         let invalid = source.replace("ladder://forms/user/request", "ladder://forms/");
         assert!(analyze_inner(&invalid, None).diagnostics.iter().any(|diagnostic| diagnostic.code == "LG196"));
+    }
+
+    #[test]
+    fn validates_and_compiles_unified_contracts() {
+        let source = VALID.replace(
+            "      name: Request",
+            "      name: Request\n      contractRefs:\n        - ref: ladder://forms/user/request\n          usage: human-interaction\n        - ref: ladder://documents/builtin/fs-income-statement\n          usage: evidence",
+        );
+        let analysis = analyze_inner(&source, Some("codex"));
+        assert!(analysis.ok, "{:?}", analysis.diagnostics);
+        let output = compile(&source, "codex");
+        assert!(output.content.contains("**Attached contracts:** `ladder://forms/user/request` (human-interaction), `ladder://documents/builtin/fs-income-statement` (evidence)"));
+        assert!(output.capability_report.instructional.contains(&"attached artifact contracts".into()));
+
+        let invalid = source.replace("ladder://documents/builtin/fs-income-statement", "ladder://documents/");
+        assert!(analyze_inner(&invalid, None).diagnostics.iter().any(|diagnostic| diagnostic.code == "LG197"));
     }
 
     #[test]

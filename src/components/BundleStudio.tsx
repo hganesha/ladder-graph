@@ -22,6 +22,7 @@ import { WORKFLOW_TEMPLATES } from "../generated/catalog";
 import { createBundleArchive, parseBundleArchive } from "../lib/bundleArchive";
 import {
   attachBundleArtifact,
+  attachReferencedWorkflowContracts,
   bundleAsset,
   bundleAssetSource,
   createBundleForWorkflow,
@@ -593,10 +594,29 @@ export default function BundleStudio({
 
   const applyWorkflowSource = (nextWorkflowSource: string) => {
     const nextOverrides = { ...sourceOverrides, [bundle.spec.workflowRef]: nextWorkflowSource };
+    let nextBundle = bundle;
+    let autoAttached = 0;
+    try {
+      const nextWorkflow = parse(nextWorkflowSource) as Workflow;
+      const reconciled = attachReferencedWorkflowContracts(bundle, nextWorkflow, assetTemplates);
+      nextBundle = reconciled.bundle;
+      autoAttached = reconciled.attached.length;
+      for (const template of reconciled.attached) {
+        nextOverrides[template.ref] = template.yaml;
+      }
+    } catch {
+      // The workflow editor owns syntax diagnostics; applying remains possible so the bundle compiler can report them.
+    }
+    const nextBundleSource = autoAttached ? stringify(nextBundle, { lineWidth: 110 }) : source;
+    if (autoAttached) setSource(nextBundleSource);
     setSourceOverrides(nextOverrides);
     setDirty(true);
-    setNotice("Workflow changes applied to this bundle.");
-    void compile(source, target, nextOverrides);
+    setNotice(
+      autoAttached
+        ? `Workflow changes applied; ${autoAttached} referenced contract${autoAttached === 1 ? " was" : "s were"} added to the bundle.`
+        : "Workflow changes applied to this bundle.",
+    );
+    void compile(nextBundleSource, target, nextOverrides);
   };
 
   const setOntologyMode = (mode: "full" | "sliver") => {

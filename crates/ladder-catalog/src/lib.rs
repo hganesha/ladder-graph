@@ -805,7 +805,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::Document)
                 .count(),
-            39
+            43
         );
         assert_eq!(
             catalog

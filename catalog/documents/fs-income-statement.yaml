@@ -1,0 +1,174 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: fs-income-statement
+  title: Income Statement
+  description: External financial-statement contract for extracting period revenue, expenses, profit, and earnings-per-share measures.
+  version: 1.0.0
+  source:
+    system: ladder
+    sourceId: standard-financial-services/income-statement
+    sourceVersion: 1.0.0
+spec:
+  documentType: income_statement
+  sections:
+    - id: statement-identity
+      title: Statement identity
+      fieldIds: [entity-name, period-start-date, period-end-date, comparative-period-end-date, currency, scale, accounting-standard, audited]
+    - id: operating-results
+      title: Operating results
+      fieldIds: [revenue, cost-of-revenue, gross-profit, operating-expenses, operating-income]
+    - id: non-operating-and-net-income
+      title: Non-operating items and net income
+      fieldIds: [interest-expense, other-income-expense, income-before-tax, income-tax-expense, net-income]
+    - id: per-share-and-detail
+      title: Per-share data and detail
+      fieldIds: [basic-eps, diluted-eps, line-items]
+  fields:
+    - id: entity-name
+      name: entity_name
+      label: Entity name
+      description: Legal or reporting entity named on the statement.
+      dataType: string
+      required: true
+      sourcePath: /statement/entity_name
+    - id: period-start-date
+      name: period_start_date
+      label: Period start date
+      dataType: date
+      required: true
+      sourcePath: /statement/period_start_date
+    - id: period-end-date
+      name: period_end_date
+      label: Period end date
+      dataType: date
+      required: true
+      sourcePath: /statement/period_end_date
+    - id: comparative-period-end-date
+      name: comparative_period_end_date
+      label: Comparative period end date
+      dataType: date
+      sourcePath: /statement/comparative_period_end_date
+    - id: currency
+      name: currency
+      label: Reporting currency
+      description: Reporting currency, preferably represented by an ISO 4217 code when stated.
+      dataType: string
+      required: true
+      sourcePath: /statement/currency
+    - id: scale
+      name: scale
+      label: Presentation scale
+      description: Units, thousands, millions, or another stated presentation scale.
+      dataType: string
+      sourcePath: /statement/scale
+    - id: accounting-standard
+      name: accounting_standard
+      label: Accounting standard
+      description: GAAP, IFRS, statutory basis, or another stated basis of presentation.
+      dataType: string
+      sourcePath: /statement/accounting_standard
+    - id: audited
+      name: audited
+      label: Audited
+      dataType: boolean
+      sourcePath: /statement/audited
+    - id: revenue
+      name: revenue
+      label: Revenue
+      dataType: number
+      required: true
+      sourcePath: /results/revenue
+    - id: cost-of-revenue
+      name: cost_of_revenue
+      label: Cost of revenue
+      dataType: number
+      sourcePath: /results/cost_of_revenue
+    - id: gross-profit
+      name: gross_profit
+      label: Gross profit
+      dataType: number
+      sourcePath: /results/gross_profit
+    - id: operating-expenses
+      name: operating_expenses
+      label: Operating expenses
+      dataType: number
+      sourcePath: /results/operating_expenses
+    - id: operating-income
+      name: operating_income
+      label: Operating income
+      dataType: number
+      sourcePath: /results/operating_income
+    - id: interest-expense
+      name: interest_expense
+      label: Interest expense
+      dataType: number
+      sourcePath: /results/interest_expense
+    - id: other-income-expense
+      name: other_income_expense
+      label: Other income or expense
+      dataType: number
+      sourcePath: /results/other_income_expense
+    - id: income-before-tax
+      name: income_before_tax
+      label: Income before tax
+      dataType: number
+      sourcePath: /results/income_before_tax
+    - id: income-tax-expense
+      name: income_tax_expense
+      label: Income tax expense
+      dataType: number
+      sourcePath: /results/income_tax_expense
+    - id: net-income
+      name: net_income
+      label: Net income
+      dataType: number
+      required: true
+      sourcePath: /results/net_income
+    - id: basic-eps
+      name: basic_eps
+      label: Basic earnings per share
+      dataType: number
+      sourcePath: /per_share/basic_eps
+    - id: diluted-eps
+      name: diluted_eps
+      label: Diluted earnings per share
+      dataType: number
+      sourcePath: /per_share/diluted_eps
+    - id: line-items
+      name: line_items
+      label: Statement line items
+      description: Ordered line items with label, current-period value, comparative value, and source location when available.
+      dataType: array
+      sourcePath: /line_items
+  validationRules:
+    - id: entity-name-present
+      severity: error
+      description: The reporting entity is required.
+      supported: true
+      rule: { op: present, field: entity_name }
+    - id: period-end-present
+      severity: error
+      description: The reporting period end date is required.
+      supported: true
+      rule: { op: present, field: period_end_date }
+    - id: revenue-present
+      severity: error
+      description: Revenue is required for an income statement extraction.
+      supported: true
+      rule: { op: present, field: revenue }
+    - id: net-income-present
+      severity: error
+      description: Net income is required for an income statement extraction.
+      supported: true
+      rule: { op: present, field: net_income }
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.85
+    fieldConfidence:
+      entity_name: { minConfidence: 0.95, reviewOnBreach: true }
+      period_end_date: { minConfidence: 0.95, reviewOnBreach: true }
+      revenue: { minConfidence: 0.9, reviewOnBreach: true }
+      net_income: { minConfidence: 0.9, reviewOnBreach: true }
+  outputSchema: {}
+

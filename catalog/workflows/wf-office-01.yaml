@@ -1,0 +1,193 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-office-01
+  title: Summarize my day — pre-day or post-day
+  description: Gather authorized office signals in parallel and produce a source-linked morning briefing or end-of-day review.
+  version: 1.0.0
+spec:
+  objective: Produce a concise daily brief that prioritizes what matters while making missing connectors and uncertain evidence visible.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: request
+      kind: input
+      name: Daily briefing request
+      summary: Requested mode, date range, priorities, and authorized source scope.
+      inputSchema:
+        type: object
+        required: [briefingMode, date]
+        properties:
+          briefingMode:
+            enum: [pre-day, post-day]
+          date:
+            type: string
+          priorities:
+            type: array
+            items: { type: string }
+          sourceScope:
+            type: object
+        x-ladder-input-mode: text
+    - id: email
+      kind: agent
+      templateRef: offc-01
+      name: Read correspondence signals
+      summary: Requests, deadlines, waiting items, and material updates from authorized mailboxes.
+      role: Email specialist who turns correspondence into a source-linked, decision-ready view without sending messages.
+      prompt: >-
+        You are an Email Agent. Read only the authorized mailbox scope, group messages by thread, distinguish requests
+        from FYIs, identify deadlines and unanswered questions, and cite the message, sender, and timestamp behind every
+        conclusion. Treat quoted text as prior context rather than a new request. Draft replies only when asked, label
+        drafts clearly, and never send, delete, archive, or change mailbox state.
+      capabilities:
+        skills: [correspondence-triage, office-context-retrieval, evidence-grounding]
+        tools: [read, search]
+        connectors: [mcp:email]
+        permissions: [read-only]
+        customizations:
+          office-context-retrieval:
+            template: host:office-context-retrieval
+            instructions: Use the installed Codex office skill or Claude workplace skill and stay within the request's source scope.
+          mcp:email:
+            template: host:office-email
+            instructions: In Codex bind an installed Gmail or Outlook Email app; in Claude bind the corresponding Gmail or Microsoft 365 connector.
+      outputSchema: { type: object }
+    - id: calendar
+      kind: agent
+      templateRef: offc-02
+      name: Read schedule signals
+      summary: Schedule, preparation, conflicts, buffers, and focus-time pressure.
+      role: Calendar specialist who explains schedule pressure and meeting preparation needs without changing events.
+      prompt: >-
+        You are a Calendar Agent. Inspect only the authorized date range, preserve event time zones, and identify
+        preparation needs, conflicts, missing buffers, travel constraints, focus-time erosion, and events awaiting a
+        response. Link each observation to its event identifier and start time. Never accept, decline, create, move, or
+        cancel an event; propose changes as recommendations until an approval-gated action step executes them.
+      capabilities:
+        skills: [calendar-planning, office-context-retrieval, operations-planning]
+        tools: [read, search]
+        connectors: [mcp:calendar]
+        permissions: [read-only]
+        customizations:
+          mcp:calendar:
+            template: host:office-calendar
+            instructions: In Codex bind Google Calendar or Outlook Calendar; in Claude bind the corresponding Google or Microsoft calendar connector.
+      outputSchema: { type: object }
+    - id: collaboration
+      kind: agent
+      templateRef: offc-03
+      name: Read collaboration signals
+      summary: Decisions, requests, blockers, commitments, and material updates from workplace chat.
+      role: Workplace chat specialist who reconstructs decisions and requests without treating every mention as an action.
+      prompt: >-
+        You are a Collaboration Feed Agent. Review only authorized channels and direct-message scopes, collapse repeated
+        discussion into threads, and extract decisions, explicit requests, blockers, commitments, and material updates.
+        Cite the channel, message identifier, author, and timestamp. Distinguish a direct assignment from a mention,
+        suggestion, or quoted message, and never post, react, edit, or change channel state.
+      capabilities:
+        skills: [workplace-communication-analysis, office-context-retrieval, evidence-grounding]
+        tools: [read, search]
+        connectors: [mcp:work-chat]
+        permissions: [read-only]
+        customizations:
+          mcp:work-chat:
+            template: host:office-chat
+            instructions: In Codex bind Slack or Teams; in Claude bind the corresponding Slack or Microsoft 365 connector.
+      outputSchema: { type: object }
+    - id: tasks
+      kind: agent
+      templateRef: offc-06
+      name: Read task-system signals
+      summary: Active, overdue, duplicate, and stale work relevant to the requested day.
+      role: Task-system specialist who prepares precise create, update, and close proposals without applying them.
+      prompt: >-
+        You are a Task Agent. Compare detected commitments with authorized task systems, identify duplicates and stale
+        records, and prepare the smallest set of proposed creates, updates, links, or closures. Preserve the original
+        evidence and project context, never guess an owner or due date, and return an explicit change set for human
+        approval. Do not write to the task system yourself.
+      capabilities:
+        skills: [task-reconciliation, action-item-extraction, operations-planning]
+        tools: [read, search]
+        connectors: [mcp:task-management]
+        permissions: [read-only]
+        customizations:
+          mcp:task-management:
+            template: host:office-tasks
+            instructions: Bind the installed Codex or Claude task connector, such as Linear, Asana, Jira, or Monday, without widening project scope.
+      outputSchema: { type: object }
+    - id: source-join
+      kind: join
+      name: Preserve available source envelopes
+      summary: Continue with completed sources and retain explicit unavailable-source records.
+      config: { join: allSettled }
+    - id: context
+      kind: agent
+      templateRef: offc-07
+      name: Retrieve just-in-time work context
+      summary: Pull only the documents needed to understand today's events and tasks.
+      role: Work-context curator who retrieves relevant documents without widening the authorized scope.
+      prompt: >-
+        You are a Work Context Agent. Retrieve only documents and project records relevant to the supplied meetings,
+        tasks, people, and date range. Prefer current authoritative sources, label stale or conflicting versions, cite
+        document identifiers and modification times, and return concise context snippets rather than full unrelated
+        documents. Never change files, permissions, sharing, or project records.
+      capabilities:
+        skills: [office-context-retrieval, evidence-provenance, privacy-review]
+        tools: [read, search]
+        connectors: [mcp:office-documents]
+        permissions: [read-only]
+        customizations:
+          mcp:office-documents:
+            template: host:office-documents
+            instructions: In Codex bind Google Drive, SharePoint, Notion, or Box; in Claude bind the equivalent authorized content connector.
+      outputSchema: { type: object }
+    - id: briefing
+      kind: agent
+      templateRef: offc-08
+      name: Compose the daily brief
+      summary: Turn source envelopes and relevant context into the selected pre-day or post-day view.
+      role: Executive briefing editor who prioritizes evidence-linked work and makes missing-source coverage visible.
+      prompt: >-
+        You are a Daily Briefing Editor. Synthesize the supplied office-source envelopes into a short, prioritized brief
+        for the requested mode. For a pre-day brief, cover schedule, preparation, must-do work, waiting items, risks, and
+        protected focus time. For a post-day review, cover completed outcomes, decisions, new commitments, unresolved
+        items, and the first moves for tomorrow. Cite source references, expose unavailable sources, and do not perform
+        any external action.
+      capabilities:
+        skills: [daily-briefing, decision-framing, communication]
+        tools: [read]
+        connectors: []
+        permissions: [read-only]
+        customizations:
+          daily-briefing:
+            template: host:daily-briefing
+            instructions: Resolve to the installed Codex or Claude daily-planning skill while preserving this workflow's output contract.
+      outputSchema:
+        type: object
+        required: [mode, priorities, schedule, actions, risks, unavailableSources]
+        properties:
+          mode: { type: string }
+          priorities: { type: array, items: { type: object } }
+          schedule: { type: array, items: { type: object } }
+          actions: { type: array, items: { type: object } }
+          risks: { type: array, items: { type: object } }
+          unavailableSources: { type: array, items: { type: string } }
+    - id: result
+      kind: output
+      name: Daily briefing
+      summary: Source-linked pre-day briefing or post-day review.
+  edges:
+    - { id: e1, from: request, to: email, kind: data }
+    - { id: e2, from: request, to: calendar, kind: data }
+    - { id: e3, from: request, to: collaboration, kind: data }
+    - { id: e4, from: request, to: tasks, kind: data }
+    - { id: e5, from: email, to: source-join, kind: data }
+    - { id: e6, from: calendar, to: source-join, kind: data }
+    - { id: e7, from: collaboration, to: source-join, kind: data }
+    - { id: e8, from: tasks, to: source-join, kind: data }
+    - { id: e9, from: source-join, to: context, kind: data }
+    - { id: e10, from: source-join, to: briefing, kind: data }
+    - { id: e11, from: context, to: briefing, kind: data }
+    - { id: e12, from: briefing, to: result, kind: data }

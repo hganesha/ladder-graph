@@ -36,6 +36,9 @@
   "Personal development": {
     "agentPathPrefixes": ["research/personal-development/"]
   },
+  "Office productivity": {
+    "agentPathPrefixes": ["office/productivity/"]
+  },
   "Mathematics": {
     "agentPathPrefixes": ["research/mathematics/"]
   },

@@ -15,8 +15,8 @@ describe("agent template palette", () => {
   it("surfaces the expanded role count and researched specialists", () => {
     render(<Palette />);
 
-    expect(ROLE_TEMPLATES).toHaveLength(367);
-    expect(screen.getByText("367 agents")).toBeInTheDocument();
+    expect(ROLE_TEMPLATES).toHaveLength(375);
+    expect(screen.getByText("375 agents")).toBeInTheDocument();
     const macros = screen.getByLabelText("Visual macros");
     const primitives = screen.getByLabelText("Primitives");
     const agents = screen.getByLabelText("Agent templates");
@@ -45,6 +45,7 @@ describe("agent template palette", () => {
     expect(screen.getByLabelText("Creative & social agent templates (30)")).toBeInTheDocument();
     expect(screen.getByLabelText("Professional services agent templates (18)")).toBeInTheDocument();
     expect(screen.getByLabelText("Emerging agent templates (18)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Office productivity agent templates (8)")).toBeInTheDocument();
     expect(screen.getByText("Requirements Analyst")).toBeInTheDocument();
     expect(screen.getByText("Penetration Tester / Red Team Operator")).toBeInTheDocument();
     expect(screen.getByText("Building Architect / Design Architect")).toBeInTheDocument();
@@ -109,6 +110,7 @@ describe("agent template palette", () => {
       ["Journalism & verification", 4],
       ["Public sector procurement & grants", 6],
       ["Life sciences & GxP operations", 8],
+      ["Office productivity", 8],
     ]);
     expect(groups.flatMap((group) => group.roles)).toHaveLength(ROLE_TEMPLATES.length);
     expect(groupRoleTemplates(ROLE_TEMPLATES, "SWE").map(({ label, roles }) => [label, roles.length])).toEqual([["SWE", 26]]);
