@@ -1,10 +1,11 @@
-import { ArrowLeft, Download, Monitor, Redo2, Save, Smartphone, Undo2, Upload } from "lucide-react";
+import { ArrowLeft, CircleHelp, Download, Monitor, Redo2, Save, Smartphone, Undo2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { compiler } from "../../compiler/client";
 import { importFormJson } from "../../lib/formJsonImport";
 import { createFormOutputFiles } from "../../lib/formOutputs";
 import { useFormStore } from "../../store/useFormStore";
 import { Brand } from "../Brand";
+import { LazyHelpDialog } from "../LazyHelpDialog";
 import { ThemeToggle } from "../ThemeToggle";
 import { FormCanvas } from "./FormCanvas";
 import { FormDiagnostics } from "./FormDiagnostics";
@@ -53,6 +54,7 @@ export default function FormStudio({
   const setSource = useFormStore((state) => state.setSource);
   const [importMessage, setImportMessage] = useState("");
   const [importError, setImportError] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const errorCount = diagnostics.filter((item) => item.severity === "error").length;
   const dirty = source !== initialSource;
@@ -102,6 +104,9 @@ export default function FormStudio({
             <Redo2 size={15} />
           </button>
           <ThemeToggle compact />
+          <button aria-label="Open form help" className="icon-button" onClick={() => setHelpOpen(true)} title="Form help" type="button">
+            <CircleHelp size={15} aria-hidden="true" />
+          </button>
           <button aria-label="Import JSON" className="quiet-button" onClick={() => fileRef.current?.click()} type="button">
             <Upload size={14} /> Import JSON
           </button>
@@ -208,6 +213,7 @@ export default function FormStudio({
         <FormInspector />
         <FormDiagnostics />
       </div>
+      {helpOpen ? <LazyHelpDialog initialTopic="forms" onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );
 }

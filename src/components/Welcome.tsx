@@ -874,7 +874,7 @@ export function Welcome({
         <span>LGIR v1alpha1</span>
       </footer>
       {mcpOpen ? <StorageDialog onClose={() => setMcpOpen(false)} /> : null}
-      {helpOpen ? <LazyHelpDialog onClose={() => setHelpOpen(false)} /> : null}
+      {helpOpen ? <LazyHelpDialog initialTopic="overview" onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );
 }

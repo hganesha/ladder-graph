@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, Plus, Save, Search, Upload } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, CircleHelp, Download, FileText, Plus, Save, Search, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parse, stringify } from "yaml";
 import { compiler } from "../../compiler/client";
@@ -28,6 +28,7 @@ import type {
   ProjectRecord,
 } from "../../types";
 import { Brand } from "../Brand";
+import { LazyHelpDialog } from "../LazyHelpDialog";
 import { ThemeToggle } from "../ThemeToggle";
 import { OntologyCanvas } from "./OntologyCanvas";
 import { OntologyTree } from "./OntologyTree";
@@ -113,6 +114,7 @@ export default function StructuredArtifactStudio({
   const [sliceLoading, setSliceLoading] = useState(false);
   const [owlImport, setOwlImport] = useState<OwlImportResult | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const ontologyView = useOntologyStore((state) => state.view);
   const setOntologyView = useOntologyStore((state) => state.setView);
   const reconcileOntologyStore = useOntologyStore((state) => state.reconcile);
@@ -319,6 +321,15 @@ export default function StructuredArtifactStudio({
             )}
           </span>
           <ThemeToggle compact />
+          <button
+            aria-label={`Open ${artifactKind} help`}
+            className="icon-button"
+            onClick={() => setHelpOpen(true)}
+            title={`${label} help`}
+            type="button"
+          >
+            <CircleHelp size={15} aria-hidden="true" />
+          </button>
           {artifactKind === "ontology" ? (
             <>
               <input
@@ -900,6 +911,9 @@ export default function StructuredArtifactStudio({
           </section>
         </aside>
       </section>
+      {helpOpen ? (
+        <LazyHelpDialog initialTopic={artifactKind === "ontology" ? "ontology" : "forms"} onClose={() => setHelpOpen(false)} />
+      ) : null}
     </main>
   );
 }

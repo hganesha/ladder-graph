@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  CircleHelp,
   Download,
   FileJson2,
   FileText,
@@ -52,6 +53,7 @@ import { BundleIdentityEditor } from "./bundle/BundleIdentityEditor";
 import { BundleOntologyPreview } from "./bundle/BundleOntologyPreview";
 import { BundleWorkflowPreview } from "./bundle/BundleWorkflowPreview";
 import { FormPreview } from "./form/FormPreview";
+import { LazyHelpDialog } from "./LazyHelpDialog";
 import { ThemeToggle } from "./ThemeToggle";
 
 type WorkspaceTab = "bundle" | "workflow" | "form" | "ontology" | "output";
@@ -267,6 +269,7 @@ export default function BundleStudio({
   const [lastValidSource, setLastValidSource] = useState(initialProject?.lastValidYaml ?? starterSource);
   const [savedAt, setSavedAt] = useState<number | null>(initialProject?.updatedAt ?? null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [libraryProjects, setLibraryProjects] = useState<ProjectRecord[]>([]);
   const importInput = useRef<HTMLInputElement>(null);
@@ -729,6 +732,9 @@ export default function BundleStudio({
         </div>
         <div>
           <ThemeToggle compact />
+          <button aria-label="Open bundle help" className="icon-button" onClick={() => setHelpOpen(true)} title="Bundle help" type="button">
+            <CircleHelp size={15} aria-hidden="true" />
+          </button>
           <input
             accept=".json,.ladderbundle.json,application/json"
             className="sr-only"
@@ -1016,6 +1022,7 @@ export default function BundleStudio({
       {historyOpen && projectId ? (
         <BundleHistoryDialog onClose={() => setHistoryOpen(false)} onRestore={restoreArchive} projectId={projectId} />
       ) : null}
+      {helpOpen ? <LazyHelpDialog initialTopic="bundle" onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );
 }

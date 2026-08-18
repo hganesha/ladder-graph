@@ -144,7 +144,7 @@ export function Studio({
       {state.diagnosticsOpen && <Diagnostics />}
       {state.outputOpen && <OutputPanel />}
       {storageOpen && <StorageDialog onClose={closeStorage} />}
-      {helpOpen ? <LazyHelpDialog onClose={() => setHelpOpen(false)} /> : null}
+      {helpOpen ? <LazyHelpDialog initialTopic="workflow" onClose={() => setHelpOpen(false)} /> : null}
     </main>
   );
 }
