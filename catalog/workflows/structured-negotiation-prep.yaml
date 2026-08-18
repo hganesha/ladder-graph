@@ -1,0 +1,100 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: structured-negotiation-prep
+  title: Structured negotiation preparation
+  description: Maps interests, BATNAs, constraints, concessions, and negotiation scenarios before a discussion.
+  version: 1.0.0
+spec:
+  objective: Prepare a principled, evidence-based negotiation strategy.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - negotiation-lead
+  nodes:
+    - id: intake
+      kind: input
+      name: Negotiation context and objectives
+      inputSchema:
+        type: object
+        required:
+          - parties
+          - objectives
+          - constraints
+          - facts
+        x-ladder-input-mode: text
+    - id: interests
+      kind: agent
+      name: Map interests and positions
+      role: Negotiation strategist
+      prompt: Separate stated positions from underlying interests for all parties. Identify shared interests and likely
+        friction points.
+      capabilities:
+        skills:
+          - communication
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: batna
+      kind: agent
+      name: Analyze BATNA and leverage
+      role: Negotiation analyst
+      prompt: Define BATNA, reservation points, alternatives, uncertainty, leverage, and information gaps for each side.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: playbook
+      kind: agent
+      name: Create negotiation playbook
+      role: Lead negotiator
+      prompt: Create opening, agenda, questions, trade packages, concessions, walk-away criteria, and contingency scenarios.
+      capabilities:
+        skills:
+          - operations-planning
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: negotiation-lead
+      kind: approval
+      name: Negotiation lead approves strategy
+    - id: result
+      kind: output
+      name: Negotiation brief and scenario playbook
+  edges:
+    - id: e1
+      from: intake
+      to: interests
+      kind: data
+    - id: e2
+      from: intake
+      to: batna
+      kind: data
+    - id: e3
+      from: interests
+      to: playbook
+      kind: data
+    - id: e4
+      from: batna
+      to: playbook
+      kind: data
+    - id: e5
+      from: playbook
+      to: negotiation-lead
+      kind: dependency
+    - id: e6
+      from: negotiation-lead
+      to: result
+      kind: dependency
+      condition: approved

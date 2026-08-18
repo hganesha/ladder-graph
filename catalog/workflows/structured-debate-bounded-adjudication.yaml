@@ -1,0 +1,117 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: structured-debate-bounded-adjudication
+  title: Structured debate and bounded adjudication
+  description: Runs two positions through a fixed number of rounds before a judge issues a reasoned ruling.
+  version: 1.0.0
+spec:
+  objective: Resolve contested questions through evidence-based adversarial reasoning.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - ruling-acceptance
+  nodes:
+    - id: intake
+      kind: input
+      name: Proposition and evidence packet
+      inputSchema:
+        type: object
+        required:
+          - question
+          - evidence
+          - rounds
+        x-ladder-input-mode: text
+    - id: position-a
+      kind: agent
+      name: Position A advocate
+      role: Evidence-based advocate
+      prompt: Argue for the proposition using supplied evidence. Identify uncertainty and rebut opposing claims.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: position-b
+      kind: agent
+      name: Position B advocate
+      role: Evidence-based advocate
+      prompt: Argue against the proposition using supplied evidence. Identify uncertainty and rebut opposing claims.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: debate
+      kind: loop
+      name: Bounded debate rounds
+      config:
+        body:
+          - position-a
+          - position-b
+        exitCondition: iteration >= intake.rounds
+        maxIterations: 5
+        onExhausted: continue
+    - id: judge
+      kind: agent
+      name: Debate judge
+      role: Neutral adjudicator
+      prompt: Evaluate claims by evidentiary support, address unresolved points, and issue a reasoned ruling with confidence.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: ruling-acceptance
+      kind: approval
+      name: Sponsor accepts ruling
+    - id: result
+      kind: output
+      name: Debate transcript and adjudicated ruling
+  edges:
+    - id: e1
+      from: intake
+      to: position-a
+      kind: data
+    - id: e2
+      from: intake
+      to: position-b
+      kind: data
+    - id: e3
+      from: position-a
+      to: debate
+      kind: data
+    - id: e4
+      from: position-b
+      to: debate
+      kind: data
+    - id: e5
+      from: debate
+      to: judge
+      kind: control
+      condition: loop_exit
+    - id: e6
+      from: judge
+      to: ruling-acceptance
+      kind: dependency
+    - id: e7
+      from: ruling-acceptance
+      to: result
+      kind: dependency
+      condition: approved
+    - id: debate-exhausted
+      from: debate
+      to: judge
+      kind: control
+      condition: loop_exhausted

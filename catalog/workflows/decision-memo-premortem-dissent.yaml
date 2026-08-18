@@ -1,0 +1,112 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: decision-memo-premortem-dissent
+  title: Decision memo with pre-mortem and dissent capture
+  description: Produces a decision memo with alternatives, failure scenarios, and documented dissent.
+  version: 1.0.0
+spec:
+  objective: Support an accountable decision with explicit risks and minority viewpoints.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - decision-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Decision context
+      inputSchema:
+        type: object
+        required:
+          - decision
+          - options
+          - evidence
+          - stakeholders
+        x-ladder-input-mode: text
+    - id: analysis
+      kind: agent
+      name: Analyze options
+      role: Decision analyst
+      prompt: Compare options, trade-offs, expected outcomes, assumptions, and evidence gaps.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: premortem
+      kind: agent
+      name: Conduct pre-mortem
+      role: Risk facilitator
+      prompt: Assume the selected path failed. Identify likely failure modes, early warning signals, owners, and mitigations.
+      capabilities:
+        skills:
+          - risk-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: dissent
+      kind: agent
+      name: Capture dissent
+      role: Independent challenger
+      prompt: State the strongest credible objections, conditions for disagreement, and evidence that would change the
+        recommendation.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: memo
+      name: Assemble decision memo
+      kind: aggregator
+      config:
+        aggregation: merge
+    - id: decision-owner
+      kind: approval
+      name: Decision owner approves memo
+    - id: result
+      kind: output
+      name: Approved decision memo
+  edges:
+    - id: e1
+      from: intake
+      to: analysis
+      kind: data
+    - id: e2
+      from: intake
+      to: premortem
+      kind: data
+    - id: e3
+      from: intake
+      to: dissent
+      kind: data
+    - id: e4
+      from: analysis
+      to: memo
+      kind: data
+    - id: e5
+      from: premortem
+      to: memo
+      kind: data
+    - id: e6
+      from: dissent
+      to: memo
+      kind: data
+    - id: e7
+      from: memo
+      to: decision-owner
+      kind: dependency
+    - id: e8
+      from: decision-owner
+      to: result
+      kind: dependency
+      condition: approved

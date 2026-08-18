@@ -5,15 +5,15 @@ import type { Workflow } from "../src/types";
 
 const expectedAreas = new Map([
   ["Education & assessment", { agents: 6, workflows: 2 }],
-  ["Finance & risk", { agents: 7, workflows: 4 }],
-  ["Journalism & verification", { agents: 4, workflows: 2 }],
+  ["Finance & risk", { agents: 7, workflows: 5 }],
+  ["Journalism & verification", { agents: 4, workflows: 3 }],
   ["Public sector procurement & grants", { agents: 6, workflows: 2 }],
   ["Life sciences & GxP operations", { agents: 8, workflows: 2 }],
 ]);
 
 describe("completed catalog roadmap", () => {
   it("ships every remaining area and cross-area composite", () => {
-    expect(WORKFLOW_TEMPLATES).toHaveLength(140);
+    expect(WORKFLOW_TEMPLATES).toHaveLength(169);
     expect(ROLE_TEMPLATES).toHaveLength(385);
     for (const [area, expected] of expectedAreas) {
       expect(

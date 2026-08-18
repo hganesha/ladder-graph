@@ -1,0 +1,95 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: competitive-teardown-comparison
+  title: Competitive teardown and comparison matrix
+  description: Compares competitors using cited product, market, pricing, and experience evidence.
+  version: 1.0.0
+spec:
+  objective: Produce a decision-ready, evidence-backed competitive comparison.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - strategy-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Competitors and comparison dimensions
+      inputSchema:
+        type: object
+        required:
+          - competitors
+          - dimensions
+          - sources
+        x-ladder-input-mode: mixed
+    - id: research
+      kind: agent
+      name: Gather competitor evidence
+      role: Competitive intelligence analyst
+      prompt: Collect current evidence for each competitor and dimension. Separate facts, inference, and unknowns.
+      capabilities:
+        skills:
+          - decision-analysis
+          - research
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: matrix
+      name: Build comparison matrix
+      kind: agent
+      inlineRole: true
+      role: Competitive comparison analyst
+      prompt: Build an evidence-backed matrix across every competitor and declared dimension. Preserve citations, observation
+        dates, unknowns, and confidence.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+    - id: insights
+      kind: agent
+      name: Derive strategic implications
+      role: Strategy analyst
+      prompt: Identify differentiation, vulnerabilities, white space, and recommended actions without overstating evidence.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: strategy-owner
+      kind: approval
+      name: Strategy owner approves findings
+    - id: result
+      kind: output
+      name: Competitive teardown, comparison matrix, and actions
+  edges:
+    - id: e1
+      from: intake
+      to: research
+      kind: data
+    - id: e2
+      from: research
+      to: matrix
+      kind: data
+    - id: e3
+      from: matrix
+      to: insights
+      kind: data
+    - id: e4
+      from: insights
+      to: strategy-owner
+      kind: dependency
+    - id: e5
+      from: strategy-owner
+      to: result
+      kind: dependency
+      condition: approved

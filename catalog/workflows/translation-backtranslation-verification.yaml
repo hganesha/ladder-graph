@@ -1,0 +1,121 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: translation-backtranslation-verification
+  title: Translation with back-translation verification
+  description: Translates content, independently back-translates it, compares semantic fidelity, and resolves material drift.
+  version: 1.0.0
+spec:
+  objective: Deliver culturally appropriate translations with verified meaning preservation.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - linguist-signoff
+  nodes:
+    - id: intake
+      kind: input
+      name: Source text and language requirements
+      inputSchema:
+        type: object
+        required:
+          - text
+          - sourceLanguage
+          - targetLanguage
+        x-ladder-input-mode: document
+    - id: translate
+      kind: agent
+      name: Translate source text
+      role: Professional translator
+      prompt: Translate faithfully for the specified audience. Preserve terminology, numbers, tone, and formatting.
+      capabilities:
+        skills:
+          - writing-editing
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: backtranslate
+      kind: agent
+      name: Blind back-translation
+      role: Independent translator
+      prompt: Translate the target text back into the source language without viewing the original.
+      capabilities:
+        skills:
+          - writing-editing
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: compare
+      kind: agent
+      name: Verify semantic fidelity
+      role: Translation reviewer
+      prompt: Compare original and back-translation. Flag material meaning, tone, terminology, numeric, or cultural deviations.
+      capabilities:
+        skills:
+          - design-review
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: revise
+      kind: loop
+      name: Bounded translation revision
+      config:
+        body:
+          - translate
+          - backtranslate
+          - compare
+        exitCondition: compare.materialDeviations == 0
+        maxIterations: 2
+        onExhausted: warn
+    - id: linguist-signoff
+      kind: approval
+      name: Lead linguist signs off
+    - id: result
+      kind: output
+      name: Verified translation and review log
+  edges:
+    - id: e1
+      from: intake
+      to: translate
+      kind: data
+    - id: e2
+      from: translate
+      to: backtranslate
+      kind: data
+    - id: e3
+      from: backtranslate
+      to: compare
+      kind: data
+    - id: e4
+      from: compare
+      to: revise
+      kind: control
+      condition: failed
+    - id: e5
+      from: compare
+      to: linguist-signoff
+      kind: control
+      condition: passed
+    - id: e6
+      from: revise
+      to: linguist-signoff
+      kind: control
+      condition: loop_exhausted
+    - id: e7
+      from: linguist-signoff
+      to: result
+      kind: dependency
+      condition: approved
+    - id: revise-exit
+      from: revise
+      to: linguist-signoff
+      kind: control
+      condition: loop_exit

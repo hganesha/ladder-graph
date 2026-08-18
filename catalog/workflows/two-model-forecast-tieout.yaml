@@ -1,0 +1,127 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: two-model-forecast-tieout
+  title: Two-model or two-forecast tie-out
+  description: Produces independent estimates, quantifies differences, reconciles assumptions, and signs off the selected forecast.
+  version: 1.0.0
+spec:
+  objective: Establish a defensible forecast through independent model comparison.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - forecast-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Forecast question and input data
+      inputSchema:
+        type: object
+        required:
+          - question
+          - inputs
+          - horizon
+        x-ladder-input-mode: text
+    - id: model-a
+      kind: agent
+      name: Forecast model A
+      role: Independent forecaster
+      prompt: Build an estimate with assumptions, calculations, scenarios, and confidence intervals.
+      capabilities:
+        skills:
+          - simulation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: model-b
+      kind: agent
+      name: Forecast model B
+      role: Independent forecaster
+      prompt: Independently build an estimate using a distinct reasonable method where possible.
+      capabilities:
+        skills:
+          - simulation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: tieout
+      name: Compare forecast outputs
+      kind: agent
+      inlineRole: true
+      role: Forecast reconciliation analyst
+      prompt: Compare both forecasts, quantify material variance, and tie differences to methods, assumptions, inputs, and
+        uncertainty. Return materialVariance and unresolved assumptions.
+      capabilities:
+        skills:
+          - simulation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+    - id: reconcile
+      kind: loop
+      name: Reconcile material variance
+      config:
+        body:
+          - model-a
+          - model-b
+          - tieout
+        exitCondition: tieout.materialVariance == false
+        maxIterations: 2
+        onExhausted: warn
+    - id: forecast-owner
+      kind: approval
+      name: Forecast owner selects final view
+    - id: result
+      kind: output
+      name: Tie-out report and approved forecast
+  edges:
+    - id: e1
+      from: intake
+      to: model-a
+      kind: data
+    - id: e2
+      from: intake
+      to: model-b
+      kind: data
+    - id: e3
+      from: model-a
+      to: tieout
+      kind: data
+    - id: e4
+      from: model-b
+      to: tieout
+      kind: data
+    - id: e5
+      from: tieout
+      to: reconcile
+      kind: control
+      condition: failed
+    - id: e6
+      from: tieout
+      to: forecast-owner
+      kind: control
+      condition: passed
+    - id: e7
+      from: reconcile
+      to: forecast-owner
+      kind: control
+      condition: loop_exhausted
+    - id: e8
+      from: forecast-owner
+      to: result
+      kind: dependency
+      condition: approved
+    - id: reconcile-exit
+      from: reconcile
+      to: forecast-owner
+      kind: control
+      condition: loop_exit

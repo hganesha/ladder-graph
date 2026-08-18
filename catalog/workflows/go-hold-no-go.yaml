@@ -1,0 +1,96 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: go-hold-no-go
+  title: Go / hold / no-go decision gate
+  description: Applies pre-declared decision criteria and follows a contingency branch for hold outcomes.
+  version: 1.0.0
+spec:
+  objective: Make stage-gate decisions against transparent thresholds.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - gate-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Gate evidence and criteria
+      inputSchema:
+        type: object
+        required:
+          - proposal
+          - criteria
+          - evidence
+          - contingencies
+        x-ladder-input-mode: text
+    - id: assess
+      kind: agent
+      name: Assess gate criteria
+      role: Gate reviewer
+      prompt: Evaluate each pre-declared criterion as met, unmet, or uncertain using only provided evidence.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: gate
+      kind: evaluate
+      inlineRole: true
+      name: Determine gate outcome
+      role: Decision gate evaluator
+      prompt: Return passed for go, failed for hold or no-go, and include outcome classification.
+      config:
+        threshold: 1
+    - id: contingency
+      kind: agent
+      name: Create hold contingency plan
+      role: Program manager
+      prompt: For hold outcomes, define missing evidence, owners, deadlines, and re-entry criteria. For no-go, define closure
+        actions.
+      capabilities:
+        skills:
+          - operations-planning
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: gate-owner
+      kind: approval
+      name: Gate owner confirms outcome
+    - id: result
+      kind: output
+      name: Go / hold / no-go record and contingency plan
+  edges:
+    - id: e1
+      from: intake
+      to: assess
+      kind: data
+    - id: e2
+      from: assess
+      to: gate
+      kind: data
+    - id: e3
+      from: gate
+      to: gate-owner
+      kind: control
+      condition: passed
+    - id: e4
+      from: gate
+      to: contingency
+      kind: control
+      condition: failed
+    - id: e5
+      from: contingency
+      to: gate-owner
+      kind: dependency
+    - id: e6
+      from: gate-owner
+      to: result
+      kind: dependency
+      condition: approved

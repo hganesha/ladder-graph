@@ -1,0 +1,117 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: style-voice-terminology-consistency
+  title: Style, voice, and terminology consistency pass
+  description: Audits a document set against editorial standards and produces approved consistent revisions.
+  version: 1.0.0
+spec:
+  objective: Ensure document-set consistency without changing intended meaning.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - editorial-signoff
+  nodes:
+    - id: intake
+      kind: input
+      name: Document set and style guide
+      inputSchema:
+        type: object
+        required:
+          - documents
+          - styleGuide
+          - terminology
+        x-ladder-input-mode: document
+    - id: audit
+      kind: agent
+      name: Audit consistency
+      role: Editorial auditor
+      prompt: Identify style, tone, terminology, capitalization, formatting, and voice inconsistencies. Cite every affected
+        location.
+      capabilities:
+        skills:
+          - writing-editing
+          - domain-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: revise
+      kind: agent
+      name: Apply controlled edits
+      role: Copyeditor
+      prompt: Apply approved consistency edits while preserving factual meaning and document-specific intent. Return tracked
+        changes.
+      capabilities:
+        skills:
+          - writing-editing
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: verify
+      kind: evaluate
+      inlineRole: true
+      name: Verify editorial consistency
+      role: Senior editor
+      prompt: Return passed only when remaining deviations are accepted exceptions.
+      config:
+        threshold: 0.95
+    - id: revision-loop
+      kind: loop
+      name: Bounded revision loop
+      config:
+        body:
+          - revise
+          - verify
+        exitCondition: verify.passed == true
+        maxIterations: 2
+        onExhausted: warn
+    - id: editorial-signoff
+      kind: approval
+      name: Editorial owner approves final set
+    - id: result
+      kind: output
+      name: Consistent documents, style exceptions, and change log
+  edges:
+    - id: e1
+      from: intake
+      to: audit
+      kind: data
+    - id: e2
+      from: audit
+      to: revise
+      kind: data
+    - id: e3
+      from: revise
+      to: verify
+      kind: data
+    - id: e4
+      from: verify
+      to: editorial-signoff
+      kind: control
+      condition: passed
+    - id: e5
+      from: verify
+      to: revision-loop
+      kind: control
+      condition: failed
+    - id: e6
+      from: editorial-signoff
+      to: result
+      kind: dependency
+      condition: approved
+    - id: revision-loop-exit
+      from: revision-loop
+      to: editorial-signoff
+      kind: control
+      condition: loop_exit
+    - id: revision-loop-exhausted
+      from: revision-loop
+      to: editorial-signoff
+      kind: control
+      condition: loop_exhausted

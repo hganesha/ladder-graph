@@ -1,0 +1,117 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: executive-summary-distillation
+  title: Executive summary distillation
+  description: Distills a long source into an executive-ready summary with evidence, decisions, risks, and actions.
+  version: 1.0.0
+spec:
+  objective: Produce an accurate executive summary without losing material caveats.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - executive-sponsor
+  nodes:
+    - id: source
+      kind: input
+      name: Source document and audience
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - audience
+          - length
+        x-ladder-input-mode: document
+    - id: extract
+      kind: agent
+      name: Extract material content
+      role: Senior analyst
+      prompt: Identify decisions, key findings, evidence, metrics, risks, dependencies, and unresolved issues with source
+        references.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - extract
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: draft
+      kind: agent
+      name: Draft executive summary
+      role: Executive communications writer
+      prompt: Create a concise audience-appropriate summary with headline, implications, decisions needed, risks, and next
+        steps.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: fidelity
+      kind: evaluate
+      inlineRole: true
+      name: Verify source fidelity
+      role: Independent reviewer
+      prompt: Return passed only when the summary is accurate, balanced, and includes material caveats.
+      config:
+        threshold: 0.9
+    - id: revision-loop
+      kind: loop
+      name: Bounded revision loop
+      config:
+        body:
+          - draft
+          - fidelity
+        exitCondition: fidelity.passed == true
+        maxIterations: 2
+        onExhausted: warn
+    - id: executive-sponsor
+      kind: approval
+      name: Executive sponsor approves summary
+    - id: result
+      kind: output
+      name: Executive summary with source traceability
+  edges:
+    - id: e1
+      from: source
+      to: extract
+      kind: data
+    - id: e2
+      from: extract
+      to: draft
+      kind: data
+    - id: e3
+      from: draft
+      to: fidelity
+      kind: data
+    - id: e4
+      from: fidelity
+      to: executive-sponsor
+      kind: control
+      condition: passed
+    - id: e5
+      from: fidelity
+      to: revision-loop
+      kind: control
+      condition: failed
+    - id: e6
+      from: executive-sponsor
+      to: result
+      kind: dependency
+      condition: approved
+    - id: revision-loop-exit
+      from: revision-loop
+      to: executive-sponsor
+      kind: control
+      condition: loop_exit
+    - id: revision-loop-exhausted
+      from: revision-loop
+      to: executive-sponsor
+      kind: control
+      condition: loop_exhausted

@@ -56,7 +56,9 @@ describe("welcome gallery", () => {
     expect(screen.getByRole("tab", { name: "Recent projects" })).toHaveAttribute("aria-selected", "false");
     expect(screen.getByRole("tab", { name: "Workflows" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Agents" })).toHaveAttribute("aria-selected", "false");
-    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(
+      WORKFLOW_TEMPLATES.filter((template) => template.area === "Core patterns").length,
+    );
     selectArea("Software engineering");
     expect(screen.getByLabelText("Subject area")).toHaveValue("Software engineering");
     const templateButtons = screen.getAllByRole("button", { name: /open .* in studio/i });

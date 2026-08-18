@@ -1,0 +1,117 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: interview-survey-synthesis
+  title: Interview or survey synthesis
+  description: Codes feedback, validates themes, prioritizes recommendations, and preserves source traceability.
+  version: 1.0.0
+spec:
+  objective: Turn qualitative and quantitative feedback into actionable, representative insights.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - research-lead
+  nodes:
+    - id: intake
+      kind: input
+      name: Interviews or survey responses
+      inputSchema:
+        type: object
+        required:
+          - responses
+          - objectives
+        x-ladder-input-mode: document
+    - id: code-a
+      kind: agent
+      name: Independent thematic coding A
+      role: Qualitative researcher
+      prompt: Code responses into themes, sentiment, frequency, and illustrative quotes. Preserve minority views.
+      capabilities:
+        skills:
+          - research
+        tools:
+          - read
+          - classify
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: code-b
+      kind: agent
+      name: Independent thematic coding B
+      role: Qualitative researcher
+      prompt: Independently code responses and identify themes, exceptions, and ambiguity.
+      capabilities:
+        skills:
+          - research
+        tools:
+          - read
+          - classify
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: reconcile
+      name: Reconcile theme taxonomy
+      kind: agent
+      inlineRole: true
+      role: Qualitative reconciliation analyst
+      prompt: Reconcile both independent codebooks into a traceable theme taxonomy. Preserve material disagreement and map
+        every theme to source responses.
+      capabilities:
+        skills:
+          - research
+        tools:
+          - read
+        permissions:
+          - read-only
+    - id: prioritize
+      kind: agent
+      name: Prioritize recommendations
+      role: Research strategist
+      prompt: Prioritize recommendations by prevalence, impact, feasibility, confidence, and alignment to objectives.
+      capabilities:
+        skills:
+          - domain-analysis
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: research-lead
+      kind: approval
+      name: Research lead approves synthesis
+    - id: result
+      kind: output
+      name: Theme report and prioritized recommendations
+  edges:
+    - id: e1
+      from: intake
+      to: code-a
+      kind: data
+    - id: e2
+      from: intake
+      to: code-b
+      kind: data
+    - id: e3
+      from: code-a
+      to: reconcile
+      kind: data
+    - id: e4
+      from: code-b
+      to: reconcile
+      kind: data
+    - id: e5
+      from: reconcile
+      to: prioritize
+      kind: data
+    - id: e6
+      from: prioritize
+      to: research-lead
+      kind: dependency
+    - id: e7
+      from: research-lead
+      to: result
+      kind: dependency
+      condition: approved

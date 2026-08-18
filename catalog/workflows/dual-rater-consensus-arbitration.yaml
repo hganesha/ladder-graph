@@ -1,0 +1,144 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: dual-rater-consensus-arbitration
+  title: Dual-rater consensus with arbitration
+  description: Two blind raters assess items, reconcile bounded disagreements, and escalate residual splits to an arbitrator.
+  version: 1.0.0
+spec:
+  objective: Produce auditable consensus decisions while preserving independent judgment.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - signoff
+  nodes:
+    - id: intake
+      kind: input
+      name: Items and scoring rubric
+      inputSchema:
+        type: object
+        required:
+          - items
+          - rubric
+        x-ladder-input-mode: text
+    - id: rater-a
+      kind: agent
+      name: Independent rater A
+      role: Blind evaluator
+      prompt: Score every item against the rubric. Return decision, criterion scores, evidence, and confidence.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - classify
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: rater-b
+      kind: agent
+      name: Independent rater B
+      role: Blind evaluator
+      prompt: Independently score every item without viewing rater A. Return decision, criterion scores, evidence, and
+        confidence.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - classify
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: compare
+      name: Identify disagreements
+      kind: agent
+      inlineRole: true
+      role: Consensus comparison analyst
+      prompt: Compare both ratings by item and criterion. Return agreements, disagreements, evidence differences, and
+        unresolvedCount without changing either independent rating.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+    - id: reconcile
+      kind: loop
+      name: Bounded re-rate loop
+      config:
+        body:
+          - rater-a
+          - rater-b
+          - compare
+        exitCondition: compare.unresolvedCount == 0
+        maxIterations: 2
+        onExhausted: continue
+    - id: arbitrator
+      kind: agent
+      name: Third-party arbitrator
+      role: Neutral senior reviewer
+      prompt: Resolve only residual disagreements using the rubric and cited evidence. Record rationale and final ruling.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - classify
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: signoff
+      kind: approval
+      name: Decision owner sign-off
+    - id: result
+      kind: output
+      name: Consensus decisions and arbitration log
+  edges:
+    - id: e1
+      from: intake
+      to: rater-a
+      kind: data
+    - id: e2
+      from: intake
+      to: rater-b
+      kind: data
+    - id: e3
+      from: rater-a
+      to: compare
+      kind: data
+    - id: e4
+      from: rater-b
+      to: compare
+      kind: data
+    - id: e5
+      from: compare
+      to: reconcile
+      kind: control
+      condition: failed
+    - id: e6
+      from: compare
+      to: signoff
+      kind: control
+      condition: passed
+    - id: e7
+      from: reconcile
+      to: arbitrator
+      kind: control
+      condition: loop_exhausted
+    - id: e8
+      from: arbitrator
+      to: signoff
+      kind: dependency
+    - id: e9
+      from: signoff
+      to: result
+      kind: dependency
+      condition: approved
+    - id: reconcile-exit
+      from: reconcile
+      to: signoff
+      kind: control
+      condition: loop_exit

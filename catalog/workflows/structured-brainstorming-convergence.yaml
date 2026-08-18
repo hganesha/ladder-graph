@@ -1,0 +1,112 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: structured-brainstorming-convergence
+  title: Structured brainstorming and convergence
+  description: Generates diverse ideas independently, synthesizes them, and ranks options through a transparent vote.
+  version: 1.0.0
+spec:
+  objective: Move from broad idea generation to a prioritized, actionable set of concepts.
+  policies:
+    maxConcurrency: 6
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - facilitator-signoff
+  nodes:
+    - id: intake
+      kind: input
+      name: Challenge statement and constraints
+      inputSchema:
+        type: object
+        required:
+          - challenge
+          - criteria
+          - constraints
+        x-ladder-input-mode: text
+    - id: ideate
+      kind: agent
+      name: Divergent ideation
+      role: Creative contributor
+      prompt: Generate distinct ideas without premature evaluation. Include rationale, assumptions, and implementation notes.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: synthesize
+      kind: agent
+      name: Cluster and synthesize ideas
+      role: Innovation facilitator
+      prompt: Cluster duplicate ideas, name themes, preserve novel outliers, and produce concise candidate concepts.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: vote
+      name: Score and vote
+      kind: agent
+      inlineRole: true
+      role: Criteria voting facilitator
+      prompt: Score the synthesized concepts against the declared weighted criteria, preserve individual votes and dissent,
+        and return a transparent ranking.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+    - id: plan
+      kind: agent
+      name: Define next experiments
+      role: Product strategist
+      prompt: For top concepts, define low-cost experiments, success metrics, owners, and decision dates.
+      capabilities:
+        skills:
+          - experiment-design
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: facilitator-signoff
+      kind: approval
+      name: Facilitator approves outcomes
+    - id: result
+      kind: output
+      name: Idea inventory, ranked concepts, and experiment plan
+  edges:
+    - id: e1
+      from: intake
+      to: ideate
+      kind: data
+    - id: e2
+      from: ideate
+      to: synthesize
+      kind: data
+    - id: e3
+      from: synthesize
+      to: vote
+      kind: data
+    - id: e4
+      from: vote
+      to: plan
+      kind: data
+    - id: e5
+      from: plan
+      to: facilitator-signoff
+      kind: dependency
+    - id: e6
+      from: facilitator-signoff
+      to: result
+      kind: dependency
+      condition: approved

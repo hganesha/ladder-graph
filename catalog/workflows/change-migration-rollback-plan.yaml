@@ -1,0 +1,95 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: change-migration-rollback-plan
+  title: Change or migration plan with rollback criteria
+  description: Plans a controlled change with validation gates, ownership, communications, and explicit rollback triggers.
+  version: 1.0.0
+spec:
+  objective: Execute changes safely and restore service quickly if success criteria are not met.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - change-authority
+  nodes:
+    - id: intake
+      kind: input
+      name: Change scope and constraints
+      inputSchema:
+        type: object
+        required:
+          - change
+          - systems
+          - successCriteria
+          - constraints
+        x-ladder-input-mode: text
+    - id: plan
+      kind: agent
+      name: Build implementation plan
+      role: Change manager
+      prompt: Define phases, owners, dependencies, communications, testing, monitoring, and approvals.
+      capabilities:
+        skills:
+          - domain-analysis
+          - operations-planning
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: rollback
+      kind: agent
+      name: Define rollback plan
+      role: Reliability engineer
+      prompt: Define measurable rollback triggers, decision authority, restoration steps, data safeguards, and rollback
+        validation.
+      capabilities:
+        skills:
+          - release-engineering
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: readiness
+      kind: evaluate
+      inlineRole: true
+      name: Readiness gate
+      role: Change reviewer
+      prompt: Return passed only when implementation, validation, communication, and rollback requirements are complete.
+      config:
+        threshold: 1
+    - id: change-authority
+      kind: approval
+      name: Change authority approves execution
+    - id: result
+      kind: output
+      name: Approved migration plan and rollback runbook
+  edges:
+    - id: e1
+      from: intake
+      to: plan
+      kind: data
+    - id: e2
+      from: intake
+      to: rollback
+      kind: data
+    - id: e3
+      from: plan
+      to: readiness
+      kind: data
+    - id: e4
+      from: rollback
+      to: readiness
+      kind: data
+    - id: e5
+      from: readiness
+      to: change-authority
+      kind: control
+      condition: passed
+    - id: e6
+      from: change-authority
+      to: result
+      kind: dependency
+      condition: approved
