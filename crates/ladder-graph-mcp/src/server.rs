@@ -12,7 +12,7 @@ use rmcp::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use std::path::PathBuf;
+use std::{collections::BTreeSet, path::PathBuf};
 
 const PAGE_SIZE: usize = 50;
 
@@ -92,6 +92,30 @@ pub struct CompileWorkflowParams {
     scope: Option<String>,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct ArtifactInputParams {
+    /// Stable artifact ID or ladder:// resource URI. Supply this or source, not both.
+    identifier: Option<String>,
+    /// Portable artifact YAML supplied directly. Supply this or identifier, not both.
+    source: Option<String>,
+    /// Optional kind: ontology, form, document, or workflow-bundle.
+    kind: Option<String>,
+    /// Optional scope when identifier is an ID: builtin or user.
+    scope: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct CompileBundleParams {
+    /// Stable workflow-bundle ID or ladder:// resource URI. Supply this or source, not both.
+    identifier: Option<String>,
+    /// WorkflowBundle YAML supplied directly. Supply this or identifier, not both.
+    source: Option<String>,
+    /// codex, claude, hermes, python, or typescript.
+    target: String,
+    /// Optional scope when identifier is an ID: builtin or user.
+    scope: Option<String>,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SearchResult<'a> {
@@ -139,6 +163,71 @@ impl LadderGraphServer {
                     .clone())
             }
         }
+    }
+
+    fn artifact_source(
+        &self,
+        identifier: Option<&str>,
+        source: Option<&str>,
+        kind: Option<&str>,
+        scope: Option<&str>,
+    ) -> Result<String, CatalogError> {
+        match (identifier, source) {
+            (Some(_), Some(_)) | (None, None) => Err(CatalogError::InvalidSnapshot(
+                "provide exactly one of identifier or source".into(),
+            )),
+            (_, Some(source)) => Ok(source.to_string()),
+            (Some(identifier), None) => {
+                let scope = parse_scope(scope)?;
+                let kind = parse_artifact_kind(kind)?;
+                Ok(self
+                    .catalog()?
+                    .resolve(identifier, kind, scope)?
+                    .content
+                    .clone())
+            }
+        }
+    }
+
+    fn resolved_bundle_assets(&self, source: &str) -> Result<String, CatalogError> {
+        let analysis = ladder_artifacts::analyze_artifact(source);
+        let bundle = analysis.normalized.ok_or_else(|| {
+            CatalogError::InvalidSnapshot("workflow bundle could not be parsed".into())
+        })?;
+        if bundle.get("kind").and_then(Value::as_str) != Some("WorkflowBundle") {
+            return Err(CatalogError::InvalidSnapshot(
+                "compile_workflow_bundle requires kind WorkflowBundle".into(),
+            ));
+        }
+        let mut references = BTreeSet::new();
+        for pointer in ["/spec/workflowRef", "/spec/ontology/ref"] {
+            if let Some(reference) = bundle.pointer(pointer).and_then(Value::as_str) {
+                references.insert(reference.to_string());
+            }
+        }
+        for pointer in ["/spec/forms", "/spec/documents"] {
+            for item in bundle
+                .pointer(pointer)
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                if let Some(reference) = item.get("ref").and_then(Value::as_str) {
+                    references.insert(reference.to_string());
+                }
+            }
+        }
+        let catalog = self.catalog()?;
+        let assets = references
+            .into_iter()
+            .filter_map(|reference| {
+                catalog
+                    .resolve(&reference, None, None)
+                    .ok()
+                    .map(|entry| json!({ "ref": reference, "source": entry.content }))
+            })
+            .collect::<Vec<_>>();
+        Ok(serde_json::to_string(&assets)?)
     }
 }
 
@@ -278,6 +367,56 @@ impl LadderGraphServer {
         })();
         tool_result(result)
     }
+
+    #[tool(
+        description = "Validate supplied or catalog-backed ontology, form, document, or workflow-bundle YAML and return stable Ladder diagnostics."
+    )]
+    fn validate_artifact(
+        &self,
+        Parameters(params): Parameters<ArtifactInputParams>,
+    ) -> CallToolResult {
+        let result = (|| -> Result<Value, CatalogError> {
+            let source = self.artifact_source(
+                params.identifier.as_deref(),
+                params.source.as_deref(),
+                params.kind.as_deref(),
+                params.scope.as_deref(),
+            )?;
+            Ok(serde_json::to_value(ladder_artifacts::analyze_artifact(
+                &source,
+            ))?)
+        })();
+        tool_result(result)
+    }
+
+    #[tool(
+        description = "Compile a supplied or catalog-backed workflow bundle into deterministic multi-file artifacts and a lockfile. Catalog references are resolved read-only."
+    )]
+    fn compile_workflow_bundle(
+        &self,
+        Parameters(params): Parameters<CompileBundleParams>,
+    ) -> CallToolResult {
+        let result = (|| -> Result<Value, CatalogError> {
+            if !["codex", "claude", "hermes", "python", "typescript"]
+                .contains(&params.target.as_str())
+            {
+                return Err(CatalogError::UnsupportedTarget(params.target));
+            }
+            let source = self.artifact_source(
+                params.identifier.as_deref(),
+                params.source.as_deref(),
+                Some("workflow-bundle"),
+                params.scope.as_deref(),
+            )?;
+            let resolved = self.resolved_bundle_assets(&source)?;
+            Ok(serde_json::to_value(ladder_artifacts::compile_bundle(
+                &source,
+                &resolved,
+                &params.target,
+            ))?)
+        })();
+        tool_result(result)
+    }
 }
 
 #[tool_handler]
@@ -294,7 +433,7 @@ impl ServerHandler for LadderGraphServer {
                 .with_title("Ladder Graph MCP"),
         )
         .with_instructions(
-            "Discover Ladder Graph workflows, agent templates, ontologies, forms, documents, and workflow bundles as resources. Use search_catalog for compact discovery, then read a resource or call the matching getter. This server is read-only."
+            "Discover Ladder Graph workflows, agent templates, ontologies, forms, documents, and workflow bundles as resources. Use search_catalog for compact discovery, then read a resource or call the matching getter. Portable artifacts can be validated and workflow bundles can be compiled without mutating catalog state. This server is read-only."
                 .to_string(),
         )
     }
@@ -574,6 +713,36 @@ mod tests {
                 .as_str()
                 .unwrap()
                 .contains("Manufacturing Ontology")
+        );
+    }
+
+    #[test]
+    fn server_validates_and_compiles_portable_artifacts() {
+        let server = LadderGraphServer::new(PathBuf::from("/path/that/does/not/exist"));
+        let validation = server.validate_artifact(Parameters(ArtifactInputParams {
+            identifier: Some("insurance".into()),
+            source: None,
+            kind: Some("ontology".into()),
+            scope: Some("builtin".into()),
+        }));
+        assert_eq!(validation.is_error, Some(false));
+        assert_eq!(validation.structured_content.unwrap()["ok"], true);
+
+        let compiled = server.compile_workflow_bundle(Parameters(CompileBundleParams {
+            identifier: Some("insurance-claim-review".into()),
+            source: None,
+            target: "typescript".into(),
+            scope: Some("builtin".into()),
+        }));
+        assert_eq!(compiled.is_error, Some(false));
+        let result = compiled.structured_content.unwrap();
+        assert_eq!(result["ok"], true, "{result}");
+        assert!(
+            result["artifacts"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|artifact| artifact["path"] == "ladder.lock.json")
         );
     }
 }

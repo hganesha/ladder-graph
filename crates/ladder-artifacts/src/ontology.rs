@@ -5,6 +5,7 @@ use serde_json::{Value, json};
 use crate::diagnostic::{Diagnostic, diagnostic};
 use crate::model::{ArtifactAnalysisResult, OntologySelection, OntologySliceResult};
 use crate::parse::value_hash;
+use crate::security::{MAX_ONTOLOGY_RELATIONSHIPS, MAX_ONTOLOGY_TYPES};
 
 pub fn validate(ontology: &Value, diagnostics: &mut Vec<Diagnostic>) {
     let types = ontology.pointer("/spec/types").and_then(Value::as_array);
@@ -28,6 +29,22 @@ pub fn validate(ontology: &Value, diagnostics: &mut Vec<Diagnostic>) {
             "Ontology spec.relationships must be an array.",
         ));
         return;
+    }
+    if types.is_some_and(|items| items.len() > MAX_ONTOLOGY_TYPES) {
+        diagnostics.push(diagnostic(
+            "LO100",
+            "error",
+            "/spec/types",
+            format!("Ontologies are limited to {MAX_ONTOLOGY_TYPES} types."),
+        ));
+    }
+    if relationships.is_some_and(|items| items.len() > MAX_ONTOLOGY_RELATIONSHIPS) {
+        diagnostics.push(diagnostic(
+            "LO100",
+            "error",
+            "/spec/relationships",
+            format!("Ontologies are limited to {MAX_ONTOLOGY_RELATIONSHIPS} relationships."),
+        ));
     }
     let mut type_ids = BTreeSet::new();
     let mut property_ids = BTreeSet::new();
@@ -336,9 +353,7 @@ pub fn slice(
         metadata.insert("name".into(), Value::String(format!("{base_name}-sliver")));
         metadata.insert(
             "description".into(),
-            Value::String(format!(
-                "Deterministic ontology sliver; selection sha256:{selection_hash}."
-            )),
+            Value::String("Selected ontology context.".into()),
         );
     }
     let inclusion_reasons = reasons

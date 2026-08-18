@@ -88,6 +88,10 @@ describe("artifact fallback compiler", () => {
       ]),
     );
     expect(result.artifacts.find((artifact) => artifact.path.startsWith("workflow/"))?.content).toBe(workflowOnly.content);
+    const ontologyContent = result.artifacts.find((artifact) => artifact.path.endsWith("-sliver.yaml"))?.content;
+    expect(ontologyContent).not.toContain("sourcePath:");
+    expect(ontologyContent).not.toContain("sourceDigest:");
+    expect(ontologyContent).not.toContain("selection sha256:");
     expect(result.lockfile?.assets).toHaveLength(5);
     expect(result.capabilityReport.unsupported).toEqual([]);
   });

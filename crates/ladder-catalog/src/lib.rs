@@ -11,7 +11,8 @@ use thiserror::Error;
 
 include!(concat!(env!("OUT_DIR"), "/builtin_catalog.rs"));
 
-pub const SNAPSHOT_SCHEMA_VERSION: u32 = 1;
+pub const LEGACY_SNAPSHOT_SCHEMA_VERSION: u32 = 1;
+pub const SNAPSHOT_SCHEMA_VERSION: u32 = 2;
 pub const MAX_ENTRY_BYTES: usize = 2_000_000;
 pub const MAX_SNAPSHOT_BYTES: usize = 32_000_000;
 
@@ -522,11 +523,15 @@ pub fn source_hash(content: &str) -> String {
 }
 
 pub fn validate_snapshot(mut snapshot: CatalogSnapshot) -> Result<CatalogSnapshot, CatalogError> {
-    if snapshot.schema_version != SNAPSHOT_SCHEMA_VERSION {
+    if !matches!(
+        snapshot.schema_version,
+        LEGACY_SNAPSHOT_SCHEMA_VERSION | SNAPSHOT_SCHEMA_VERSION
+    ) {
         return Err(CatalogError::InvalidSnapshot(format!(
-            "expected schemaVersion {SNAPSHOT_SCHEMA_VERSION}"
+            "expected schemaVersion {LEGACY_SNAPSHOT_SCHEMA_VERSION} or {SNAPSHOT_SCHEMA_VERSION}"
         )));
     }
+    snapshot.schema_version = SNAPSHOT_SCHEMA_VERSION;
     if snapshot.installation_id.trim().is_empty() || snapshot.installation_id.len() > 128 {
         return Err(CatalogError::InvalidSnapshot(
             "installationId is required".into(),
@@ -830,6 +835,7 @@ mod tests {
             }],
         };
         let written = write_snapshot(&path, snapshot).unwrap();
+        assert_eq!(written.schema_version, SNAPSHOT_SCHEMA_VERSION);
         assert!(written.revision.starts_with("sha256:"));
         let loaded = Catalog::load(Some(&path)).unwrap();
         assert!(
@@ -872,7 +878,7 @@ mod tests {
                 .render_workflow(entry, WorkflowFormat::Compiled, Some("codex"))
                 .unwrap()
                 .0
-                .contains("ladder-target: codex")
+                .contains("Draft, critique, revise")
         );
     }
 
@@ -902,5 +908,37 @@ mod tests {
                 )
                 .is_ok()
         );
+    }
+
+    #[test]
+    fn snapshot_v2_accepts_portable_user_artifacts() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("catalog-v2.json");
+        let builtin = Catalog::load(None)
+            .unwrap()
+            .resolve(
+                "insurance",
+                Some(CatalogKind::Ontology),
+                Some(CatalogScope::Builtin),
+            )
+            .unwrap()
+            .clone();
+        let written = write_snapshot(
+            &path,
+            CatalogSnapshot {
+                schema_version: SNAPSHOT_SCHEMA_VERSION,
+                installation_id: "installation-v2".into(),
+                published_at: "2026-08-17T00:00:00Z".into(),
+                revision: String::new(),
+                entries: vec![CatalogEntry {
+                    id: "user-insurance".into(),
+                    scope: CatalogScope::User,
+                    ..builtin
+                }],
+            },
+        )
+        .unwrap();
+        assert_eq!(written.schema_version, SNAPSHOT_SCHEMA_VERSION);
+        assert_eq!(written.entries[0].kind, CatalogKind::Ontology);
     }
 }

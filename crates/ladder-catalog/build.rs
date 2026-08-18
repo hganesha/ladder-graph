@@ -23,7 +23,11 @@ fn main() {
                     && !path
                         .file_stem()
                         .and_then(|value| value.to_str())
-                        .is_some_and(|value| value.ends_with(" 2"))
+                        .is_some_and(|value| {
+                            value
+                                .rsplit_once(' ')
+                                .is_some_and(|(_, suffix)| suffix.parse::<u32>().is_ok())
+                        })
             })
             .collect::<Vec<_>>();
         entries.sort();

@@ -1,0 +1,151 @@
+{
+  "Core patterns": {
+    "agentPathPrefixes": ["core/"]
+  },
+  "Research": {
+    "agentIds": ["core-researcher"]
+  },
+  "Software engineering": {
+    "agentPathPrefixes": ["research/software/"]
+  },
+  "Product management": {
+    "agentIds": ["core-product-manager", "dev-01"]
+  },
+  "Product design": {
+    "agentIds": ["core-designer", "dev-07", "dev-12"]
+  },
+  "Go-to-market": {
+    "agentIds": ["core-gtm"]
+  },
+  "Security": {
+    "agentPathPrefixes": ["research/security/"],
+    "agentIds": ["core-security-reviewer"]
+  },
+  "Multimodal": {
+    "agentPathPrefixes": ["research/multimodal/"]
+  },
+  "Architecture & design": {
+    "agentPathPrefixes": ["research/architecture/"]
+  },
+  "Humanities": {
+    "agentPathPrefixes": ["research/humanities/"]
+  },
+  "Writing": {
+    "agentPathPrefixes": ["research/writing/"]
+  },
+  "Personal development": {
+    "agentPathPrefixes": ["research/personal-development/"]
+  },
+  "Mathematics": {
+    "agentPathPrefixes": ["research/mathematics/"]
+  },
+  "Music": {
+    "agentPathPrefixes": ["research/music/"]
+  },
+  "Physics": {
+    "agentPathPrefixes": ["research/physics/"]
+  },
+  "Supply chain & logistics": {
+    "agentPathPrefixes": ["research/operations/supply-chain"]
+  },
+  "HR & talent operations": {
+    "agentPathPrefixes": ["research/operations/talent"]
+  },
+  "Sales & business development": {
+    "agentPathPrefixes": ["research/operations/revenue"]
+  },
+  "Customer success & support": {
+    "agentPathPrefixes": ["research/operations/support"]
+  },
+  "Marketing & growth": {
+    "agentPathPrefixes": ["research/operations/growth"]
+  },
+  "Accounting, tax & audit": {
+    "agentPathPrefixes": ["research/operations/finance-ops"]
+  },
+  "Manufacturing & industrial operations": {
+    "agentPathPrefixes": ["research/industry/manufacturing"],
+    "artifactPathPrefixes": ["manufacturing/"]
+  },
+  "Energy & utilities": {
+    "agentPathPrefixes": ["research/industry/energy"],
+    "artifactPathPrefixes": ["energy/"]
+  },
+  "Transportation & mobility": {
+    "agentPathPrefixes": ["research/industry/mobility"]
+  },
+  "Real estate & construction": {
+    "agentPathPrefixes": ["research/industry/built-environment"],
+    "artifactPathPrefixes": ["real_estate/"]
+  },
+  "Agriculture & food systems": {
+    "agentPathPrefixes": ["research/industry/agriculture"]
+  },
+  "Chemistry & materials science": {
+    "agentPathPrefixes": ["research/applied-science/chemistry"]
+  },
+  "Biology & bioinformatics": {
+    "agentPathPrefixes": ["research/applied-science/biology"]
+  },
+  "Environmental & climate science": {
+    "agentPathPrefixes": ["research/applied-science/environment"]
+  },
+  "Astronomy & space": {
+    "agentPathPrefixes": ["research/applied-science/astronomy"]
+  },
+  "Geospatial & earth observation": {
+    "agentPathPrefixes": ["research/applied-science/geospatial"]
+  },
+  "Gaming & interactive media": {
+    "agentPathPrefixes": ["research/creative/games"]
+  },
+  "Film, video & post-production": {
+    "agentPathPrefixes": ["research/creative/film"]
+  },
+  "Fashion & textiles": {
+    "agentPathPrefixes": ["research/creative/fashion"]
+  },
+  "Social sciences & policy": {
+    "agentPathPrefixes": ["research/creative/social-policy"]
+  },
+  "Linguistics & language preservation": {
+    "agentPathPrefixes": ["research/creative/linguistics"]
+  },
+  "Insurance & underwriting": {
+    "agentPathPrefixes": ["research/professional/insurance"],
+    "artifactPathPrefixes": ["insurance/"]
+  },
+  "Event planning & hospitality": {
+    "agentPathPrefixes": ["research/professional/events"]
+  },
+  "Quality assurance & compliance": {
+    "agentPathPrefixes": ["research/professional/compliance"]
+  },
+  "DevOps & site reliability": {
+    "agentPathPrefixes": ["research/software/reliability"]
+  },
+  "Robotics & embodied AI": {
+    "agentPathPrefixes": ["research/emerging/robotics"]
+  },
+  "Scientific peer review & publishing": {
+    "agentPathPrefixes": ["research/emerging/peer-review"]
+  },
+  "Crisis & emergency management": {
+    "agentPathPrefixes": ["research/emerging/crisis"]
+  },
+  "Airline flight operations": {
+    "agentPathPrefixes": ["research/aviation/flight-operations"]
+  },
+  "Oil & gas drilling & well operations": {
+    "agentPathPrefixes": ["research/wells/drilling"]
+  },
+  "Legal & contracts": {
+    "artifactPathPrefixes": ["legal/"]
+  },
+  "Clinical & health sciences": {
+    "artifactPathPrefixes": ["healthcare/"]
+  },
+  "Finance & risk": {
+    "artifactPathPrefixes": ["fs/"]
+  }
+}

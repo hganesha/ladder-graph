@@ -1,0 +1,108 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Form
+metadata:
+  name: first-notice-of-loss
+  title: First Notice of Loss
+  description: Claim intake form adapted from the DocuBricks insurance schema.
+  version: 1.0.0
+  source:
+    system: docubricks
+    sourceId: insurance_first_notice_of_loss_v1
+    sourcePath: Schemas/insurance/first_notice_of_loss/fields.json
+    sourceVersion: insurance_first_notice_of_loss_v1
+spec:
+  role: start
+  pages:
+    - id: loss-intake
+      title: Loss intake
+      description: Capture the minimum evidence needed to open and route a claim review.
+      sections:
+        - id: policy-and-reporter
+          title: Policy and reporter
+          fields:
+            - id: policy-number
+              name: policy_number
+              label: Policy number
+              dataType: string
+              widget: text
+              required: true
+              ontologyPropertyRef: insurance_policy.policy_number
+              accessibilityLabel: Insurance policy number
+              errorMessage: Enter the policy number shown on the policy or notice.
+            - id: insured-name
+              name: insured_name
+              label: Named insured
+              dataType: string
+              widget: text
+              ontologyPropertyRef: insured_party.insured_name
+            - id: reporting-party-name
+              name: reporting_party_name
+              label: Reporting party
+              dataType: string
+              widget: text
+        - id: loss-details
+          title: Loss details
+          fields:
+            - id: reported-date
+              name: reported_date
+              label: Date reported
+              dataType: date
+              widget: date
+              required: true
+              ontologyPropertyRef: insurance_claim.reported_date
+            - id: loss-date
+              name: loss_date
+              label: Date of loss
+              dataType: date
+              widget: date
+              required: true
+              ontologyPropertyRef: loss_event.loss_date
+            - id: loss-location
+              name: loss_location
+              label: Loss location
+              dataType: string
+              widget: text
+              ontologyPropertyRef: loss_event.loss_location
+            - id: loss-description
+              name: loss_description
+              label: What happened?
+              dataType: string
+              widget: textarea
+              required: true
+              minLength: 20
+              ontologyPropertyRef: loss_event.loss_description
+              span: 2
+            - id: estimated-loss-amount
+              name: estimated_loss_amount
+              label: Estimated loss amount
+              dataType: number
+              widget: number
+              minimum: 0
+              ontologyPropertyRef: loss_event.estimated_loss_amount
+            - id: injury-indicator
+              name: injury_indicator
+              label: Were injuries reported?
+              dataType: boolean
+              widget: checkbox
+              ontologyPropertyRef: loss_event.injury_indicator
+        - id: review-materials
+          title: Review materials
+          description: Attach or summarize evidence required by the claim-review workflow.
+          fields:
+            - id: policy-wording
+              name: policy_wording
+              label: Policy wording
+              dataType: string
+              widget: file
+              required: true
+              ontologyPropertyRef: insurance_policy.policy_provisions_cited
+              span: 2
+            - id: prior-claims-history
+              name: prior_claims_history
+              label: Prior claims history
+              dataType: string
+              widget: textarea
+              required: true
+              ontologyPropertyRef: loss_event.loss_history_summary
+              span: 2
+  submissionSchema: {}

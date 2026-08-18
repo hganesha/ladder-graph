@@ -1,34 +1,8 @@
-import {
-  ArrowRight,
-  Atom,
-  Beaker,
-  BookOpen,
-  Bot,
-  Boxes,
-  Building2,
-  Cable,
-  Calculator,
-  ChevronDown,
-  CircleHelp,
-  Code2,
-  Feather,
-  FileText,
-  HardHat,
-  Images,
-  Megaphone,
-  Music2,
-  PackageOpen,
-  PenTool,
-  Plane,
-  ShieldCheck,
-  Sparkles,
-  Target,
-  Workflow,
-} from "lucide-react";
+import { ArrowRight, BookOpen, Bot, Boxes, Cable, ChevronDown, CircleHelp, FileText, PackageOpen, Trash2, Workflow } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ARTIFACT_INDEX } from "../generated/catalog";
+import { ARTIFACT_INDEX, SUBJECT_AREAS } from "../generated/catalog";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
-import { listProjects } from "../lib/persistence";
+import { deleteProject, listProjects } from "../lib/persistence";
 import { roleSubcategory } from "../lib/roleCategories";
 import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../lib/templates";
@@ -40,217 +14,12 @@ import { StorageDialog } from "./StorageDialog";
 import { ThemeToggle } from "./ThemeToggle";
 import { UniversalCatalogSearch } from "./UniversalCatalogSearch";
 
-const DESCRIBED_WORKFLOW_AREAS = [
-  { name: "Core patterns", description: "Reusable orchestration shapes for critique and bounded refinement.", icon: Sparkles },
-  { name: "Research", description: "Evidence collection, literature synthesis, and research quality gates.", icon: Beaker },
-  { name: "Software engineering", description: "Implementation, debugging, testing, architecture, and release risk.", icon: Code2 },
-  { name: "Product management", description: "Opportunity framing, feature definition, feasibility, and decisions.", icon: Boxes },
-  { name: "Product design", description: "Journey audits, critique, accessibility, redesign, and validation.", icon: PenTool },
-  { name: "Go-to-market", description: "Customer urgency, positioning, competitive framing, and launch tests.", icon: Megaphone },
-  { name: "Security", description: "Threat modeling, privacy review, mitigations, and readiness gates.", icon: ShieldCheck },
-  {
-    name: "Multimodal",
-    description: "Image, video, speech, music, and transcription routing with cost, safety, and provenance gates.",
-    icon: Images,
-  },
-  {
-    name: "Architecture & design",
-    description: "Building design, engineering, interiors, compliance, performance, cost, and coordinated delivery.",
-    icon: Building2,
-  },
-  {
-    name: "Humanities",
-    description: "Philosophy, history, close reading, source criticism, rhetoric, and interdisciplinary inquiry.",
-    icon: BookOpen,
-  },
-  {
-    name: "Writing",
-    description: "Developmental editing, prose, creative practice, memoir, academic argument, and voice preservation.",
-    icon: Feather,
-  },
-  {
-    name: "Personal development",
-    description: "Values-aligned goals, behavior design, productivity systems, career discernment, and reflection.",
-    icon: Target,
-  },
-  {
-    name: "Mathematics",
-    description: "Trigonometry, algebra, optimization, formal proofs, and mathematical visualization.",
-    icon: Calculator,
-  },
-  {
-    name: "Music",
-    description: "Audio analysis, recommendation, composition, songwriting, arrangement, and orchestration.",
-    icon: Music2,
-  },
-  {
-    name: "Physics",
-    description: "Problem solving, dimensional checks, simulation, experimental analysis, and model validation.",
-    icon: Atom,
-  },
-  {
-    name: "Supply chain & logistics",
-    description: "Demand, inventory, supplier risk, logistics exceptions, and S&OP decisions.",
-    icon: Boxes,
-  },
-  {
-    name: "HR & talent operations",
-    description: "Structured selection, fairness review, workforce capacity, compensation, and onboarding.",
-    icon: Target,
-  },
-  {
-    name: "Sales & business development",
-    description: "Account research, qualification, outreach, deal review, and competitive positioning.",
-    icon: Megaphone,
-  },
-  {
-    name: "Customer success & support",
-    description: "Support triage, escalations, knowledge management, churn risk, and customer insight.",
-    icon: Target,
-  },
-  {
-    name: "Marketing & growth",
-    description: "Campaigns, experiments, discovery, distribution, brand review, and measured lift.",
-    icon: Megaphone,
-  },
-  {
-    name: "Accounting, tax & audit",
-    description: "Classification, reconciliation, tax research, controls, audit evidence, and disclosure.",
-    icon: Calculator,
-  },
-  {
-    name: "Manufacturing & industrial operations",
-    description: "Reliability, process quality, line optimization, FMEA, validation, and supplier quality.",
-    icon: Building2,
-  },
-  {
-    name: "Energy & utilities",
-    description: "Generation forecasts, grid balancing, outage response, asset health, and compliance.",
-    icon: Atom,
-  },
-  {
-    name: "Transportation & mobility",
-    description: "Fleet operations, networks, dispatch, autonomy safety, transit, and incident response.",
-    icon: Boxes,
-  },
-  {
-    name: "Real estate & construction",
-    description: "Valuation, permits, estimating, scheduling, contract risk, and building performance.",
-    icon: Building2,
-  },
-  {
-    name: "Agriculture & food systems",
-    description: "Agronomy, crop monitoring, precision application, traceability, safety, and yield.",
-    icon: Beaker,
-  },
-  {
-    name: "Chemistry & materials science",
-    description: "Molecular design, synthesis, characterization, scale-up, laboratory safety, and experiments.",
-    icon: Beaker,
-  },
-  {
-    name: "Biology & bioinformatics",
-    description: "Variant interpretation, pipelines, systems models, protocols, biostatistics, and stewardship.",
-    icon: Beaker,
-  },
-  {
-    name: "Environmental & climate science",
-    description: "Emissions, climate impact, conservation, compliance, disaster risk, and data quality.",
-    icon: Atom,
-  },
-  {
-    name: "Astronomy & space",
-    description: "Observation planning, data reduction, trajectories, satellite operations, and instruments.",
-    icon: Sparkles,
-  },
-  {
-    name: "Geospatial & earth observation",
-    description: "Remote sensing, geospatial data, land use, cartography, validation, and privacy.",
-    icon: Images,
-  },
-  {
-    name: "Gaming & interactive media",
-    description: "Game systems, NPC behavior, procedural content, narrative, playtesting, and live balance.",
-    icon: Sparkles,
-  },
-  {
-    name: "Film, video & post-production",
-    description: "Editorial, VFX, colour, sound, finishing, delivery pipelines, and quality control.",
-    icon: Images,
-  },
-  {
-    name: "Fashion & textiles",
-    description: "Trends, sustainable materials, technical fit, sourcing, merchandising, and compliance.",
-    icon: Sparkles,
-  },
-  {
-    name: "Social sciences & policy",
-    description: "Surveys, qualitative coding, public opinion, policy impact, ethics, and evidence synthesis.",
-    icon: BookOpen,
-  },
-  {
-    name: "Linguistics & language preservation",
-    description: "Field documentation, language analysis, corpora, translation, variation, and revitalization.",
-    icon: Feather,
-  },
-  {
-    name: "Insurance & underwriting",
-    description: "Claims, underwriting, actuarial review, fraud analysis, policy wording, and catastrophe risk.",
-    icon: ShieldCheck,
-  },
-  {
-    name: "Event planning & hospitality",
-    description: "Venues, vendors, guest experience, production schedules, safety, and budget control.",
-    icon: Target,
-  },
-  {
-    name: "Quality assurance & compliance",
-    description: "Regulatory change, controls, audit evidence, certification, CAPA, and quality systems.",
-    icon: ShieldCheck,
-  },
-  {
-    name: "DevOps & site reliability",
-    description: "Incident command, diagnosis, capacity, releases, observability, and postmortems.",
-    icon: Code2,
-  },
-  {
-    name: "Robotics & embodied AI",
-    description: "Manipulation, coordination, perception, safety, simulation, and deployment readiness.",
-    icon: Atom,
-  },
-  {
-    name: "Scientific peer review & publishing",
-    description: "Methodology, statistics, reproducibility, citation integrity, and editorial decisions.",
-    icon: BookOpen,
-  },
-  {
-    name: "Crisis & emergency management",
-    description: "Incident intake, operations, logistics, communications, recovery, and after-action review.",
-    icon: ShieldCheck,
-  },
-  {
-    name: "Airline flight operations",
-    description: "Dispatch, fuel planning, operational barriers, airworthiness, and ordered release authority.",
-    icon: Plane,
-  },
-  {
-    name: "Oil & gas drilling & well operations",
-    description: "Well design, anti-collision, control barriers, integrity, permits, and drill-ahead decisions.",
-    icon: HardHat,
-  },
-] as const;
-
-const describedAreaNames = new Set<string>(DESCRIBED_WORKFLOW_AREAS.map((area) => area.name));
-export const WORKFLOW_AREAS = [
-  ...DESCRIBED_WORKFLOW_AREAS,
-  ...[...new Set(WORKFLOW_TEMPLATES.map((template) => template.area))]
-    .filter((name) => !describedAreaNames.has(name))
-    .map((name) => ({
-      name,
-      description: `Specialist ${name.toLowerCase()} workflows and reusable agent templates.`,
-      icon: Workflow,
-    })),
-];
+export const WORKFLOW_AREAS = SUBJECT_AREAS.map(({ name }) => ({
+  name,
+  label: name,
+  description: `${WORKFLOW_TEMPLATES.filter((template) => template.area === name).length} workflows and ${roleTemplatesForSubject(name).length} reusable agents.`,
+  icon: Workflow,
+}));
 export const CATALOG_SEARCH_SUBJECTS = WORKFLOW_AREAS.map(({ name, description }) => ({ name, description }));
 
 type LibraryTab = "workflows" | "bundles" | "agents" | "forms" | "documents" | "ontologies";
@@ -260,15 +29,28 @@ const BUNDLE_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "
 const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form");
 const DOCUMENT_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "document");
 const ONTOLOGY_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "ontology");
-const ARTIFACT_INDUSTRY_BY_AREA: Record<string, string> = {
-  "Energy & utilities": "energy",
-  "Finance & risk": "fs",
-  "Clinical & health sciences": "healthcare",
-  "Insurance & underwriting": "insurance",
-  "Legal & contracts": "legal",
-  "Manufacturing & industrial operations": "manufacturing",
-  "Real estate & construction": "real_estate",
-};
+
+function artifactsForSubject<T extends { path: string }>(templates: T[], subject: string): T[] {
+  if (subject === ALL_SUBJECT_AREA.name) return templates;
+  const prefixes = SUBJECT_AREAS.find((area) => area.name === subject)?.artifactPathPrefixes ?? [];
+  return templates.filter((template) => prefixes.some((prefix) => template.path.startsWith(prefix)));
+}
+
+function subjectItemCount(subject: string): number {
+  const workflows =
+    subject === ALL_SUBJECT_AREA.name
+      ? WORKFLOW_TEMPLATES.length
+      : WORKFLOW_TEMPLATES.filter((template) => template.area === subject).length;
+  const agents = subject === ALL_SUBJECT_AREA.name ? ROLE_TEMPLATES.length : roleTemplatesForSubject(subject).length;
+  return (
+    workflows +
+    agents +
+    artifactsForSubject(BUNDLE_TEMPLATES, subject).length +
+    artifactsForSubject(FORM_TEMPLATES, subject).length +
+    artifactsForSubject(DOCUMENT_TEMPLATES, subject).length +
+    artifactsForSubject(ONTOLOGY_TEMPLATES, subject).length
+  );
+}
 
 export function Welcome({
   onBlank,
@@ -289,7 +71,7 @@ export function Welcome({
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeArea, setActiveArea] = useState(() => {
     const requested = new URLSearchParams(window.location.search).get("subject");
-    return WORKFLOW_AREAS.some((area) => area.name === requested) ? requested! : "Core patterns";
+    return SUBJECT_AREA_OPTIONS.some((area) => area.name === requested) ? requested! : DEFAULT_SUBJECT_AREA;
   });
   const [modality, setModality] = useState<ModalityFilter>("all");
   const [helpOpen, setHelpOpen] = useState(false);
@@ -297,12 +79,16 @@ export function Welcome({
   const [activeGalleryView, setActiveGalleryView] = useState<GalleryView>("starters");
   const [activeLibraryTab, setActiveLibraryTab] = useState<LibraryTab>("workflows");
   const [catalogQuery, setCatalogQuery] = useState(() => new URLSearchParams(window.location.search).get("q") ?? "");
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+  const [projectDeleteError, setProjectDeleteError] = useState("");
 
-  const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
+  const selectedArea = SUBJECT_AREA_OPTIONS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
+  const allSubjectsSelected = selectedArea.name === ALL_SUBJECT_AREA.name;
   const selectedTemplates = WORKFLOW_TEMPLATES.filter(
-    (template) => template.area === selectedArea.name && (modality === "all" || template.modalities.includes(modality)),
+    (template) =>
+      (allSubjectsSelected || template.area === selectedArea.name) && (modality === "all" || template.modalities.includes(modality)),
   );
-  const selectedAgents = roleTemplatesForSubject(selectedArea.name).filter(
+  const selectedAgents = (allSubjectsSelected ? ROLE_TEMPLATES : roleTemplatesForSubject(selectedArea.name)).filter(
     (agent) => modality === "all" || agent.modalities.includes(modality),
   );
   const selectedArtifactIndustry = ARTIFACT_INDUSTRY_BY_AREA[selectedArea.name];
@@ -333,6 +119,24 @@ export function Welcome({
     event.preventDefault();
     setActiveGalleryView(nextView);
     requestAnimationFrame(() => document.getElementById(`gallery-tab-${nextView}`)?.focus());
+  };
+
+  const handleDeleteProject = async (project: ProjectRecord) => {
+    const confirmed = window.confirm(
+      `Delete “${project.name}”? This permanently removes the project and its saved revisions from this browser.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingProjectId(project.id);
+    setProjectDeleteError("");
+    try {
+      await deleteProject(project.id);
+      setProjects((current) => current.filter((record) => record.id !== project.id));
+    } catch {
+      setProjectDeleteError(`Could not delete “${project.name}”. Please try again.`);
+    } finally {
+      setDeletingProjectId(null);
+    }
   };
 
   useEffect(() => {
@@ -466,12 +270,9 @@ export function Welcome({
                 <span className="subject-area-select">
                   <SelectedAreaIcon size={15} aria-hidden="true" />
                   <select aria-label="Subject area" value={activeArea} onChange={(event) => setActiveArea(event.target.value)}>
-                    {WORKFLOW_AREAS.map((area) => (
+                    {SUBJECT_AREA_OPTIONS.map((area) => (
                       <option key={area.name} value={area.name}>
-                        {area.name} (
-                        {WORKFLOW_TEMPLATES.filter((template) => template.area === area.name).length +
-                          roleTemplatesForSubject(area.name).length}
-                        )
+                        {area.label} ({subjectItemCount(area.name)})
                       </option>
                     ))}
                   </select>
@@ -583,7 +384,7 @@ export function Welcome({
                   <SelectedAreaIcon size={17} />
                 </span>
                 <div>
-                  <h2>{selectedArea.name}</h2>
+                  <h2>{selectedArea.label}</h2>
                   <p>{selectedArea.description}</p>
                 </div>
               </div>
@@ -775,29 +576,48 @@ export function Welcome({
               </div>
               <span>{projects.length} saved</span>
             </div>
+            {projectDeleteError ? (
+              <p className="recent-project-error" role="alert">
+                {projectDeleteError}
+              </p>
+            ) : null}
             {projects.length > 0 ? (
               <div className="recent-list">
                 {projects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() =>
-                      project.artifactKind === "workflow-bundle"
-                        ? onBundle(project)
-                        : project.artifactKind === "form"
-                          ? onForm(project)
-                          : project.artifactKind === "document"
-                            ? onDocument(project)
-                            : project.artifactKind === "ontology"
-                              ? onOntology(project)
-                              : void openProject(project)
-                    }
-                  >
-                    <span>
-                      <strong>{project.name}</strong>
-                      <small>{new Date(project.updatedAt).toLocaleString()}</small>
-                    </span>
-                    <span className="target-pill">{project.target}</span>
-                  </button>
+                  <div className="recent-project-card" key={project.id}>
+                    <button
+                      aria-label={`Open ${project.name}`}
+                      className="recent-project-open"
+                      onClick={() =>
+                        project.artifactKind === "workflow-bundle"
+                          ? onBundle(project)
+                          : project.artifactKind === "form"
+                            ? onForm(project)
+                            : project.artifactKind === "document"
+                              ? onDocument(project)
+                              : project.artifactKind === "ontology"
+                                ? onOntology(project)
+                                : void openProject(project)
+                      }
+                      type="button"
+                    >
+                      <span>
+                        <strong>{project.name}</strong>
+                        <small>{new Date(project.updatedAt).toLocaleString()}</small>
+                      </span>
+                      <span className="target-pill">{project.target}</span>
+                    </button>
+                    <button
+                      aria-label={`Delete ${project.name}`}
+                      className="recent-project-delete"
+                      disabled={deletingProjectId === project.id}
+                      onClick={() => void handleDeleteProject(project)}
+                      title={`Delete ${project.name}`}
+                      type="button"
+                    >
+                      <Trash2 aria-hidden="true" size={15} />
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : (

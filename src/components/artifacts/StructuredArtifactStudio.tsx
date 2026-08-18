@@ -12,8 +12,10 @@ import {
   updateOntologyRelationship,
   updateOntologyType,
 } from "../../lib/ontologyEditor";
+import { ontologyUsage as buildOntologyUsage, usageForType } from "../../lib/ontologyUsage";
 import { importOwlRdfXml, type OwlImportResult } from "../../lib/owlImport";
 import { saveArtifactProject } from "../../lib/persistence";
+import { useOntologyStore } from "../../store/useOntologyStore";
 import type {
   Diagnostic,
   LadderDocument,
@@ -22,11 +24,11 @@ import type {
   OntologyDataType,
   OntologySliceResult,
   ProjectRecord,
-  WorkflowBundle,
 } from "../../types";
 import { Brand } from "../Brand";
 import { ThemeToggle } from "../ThemeToggle";
 import { OntologyCanvas } from "./OntologyCanvas";
+import { OntologyTree } from "./OntologyTree";
 
 type StructuredKind = "ontology" | "document";
 type ParsedArtifact = Ontology | LadderDocument;
@@ -42,15 +44,6 @@ const ONTOLOGY_DATA_TYPES: OntologyDataType[] = [
   "object",
 ];
 const ONTOLOGY_CARDINALITIES: OntologyCardinality[] = ["one-to-one", "one-to-many", "many-to-one", "many-to-many"];
-const ONTOLOGY_USAGE = new Map<string, string[]>();
-for (const template of ARTIFACT_TEMPLATES) {
-  if (template.kind !== "workflow-bundle") continue;
-  const bundle = parse(template.yaml) as WorkflowBundle;
-  const ontologyRef = bundle.spec.ontology?.ref;
-  if (!ontologyRef) continue;
-  ONTOLOGY_USAGE.set(ontologyRef, [...(ONTOLOGY_USAGE.get(ontologyRef) ?? []), template.title]);
-}
-
 function parseArtifact(source: string, artifactKind: StructuredKind): ParsedArtifact | undefined {
   try {
     const value = parse(source) as ParsedArtifact;
@@ -118,6 +111,9 @@ export default function StructuredArtifactStudio({
   const [sliceLoading, setSliceLoading] = useState(false);
   const [owlImport, setOwlImport] = useState<OwlImportResult | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const ontologyView = useOntologyStore((state) => state.view);
+  const setOntologyView = useOntologyStore((state) => state.setView);
+  const reconcileOntologyStore = useOntologyStore((state) => state.reconcile);
   const owlInput = useRef<HTMLInputElement>(null);
   const artifact = useMemo(() => parseArtifact(source, artifactKind), [artifactKind, source]);
   const initialOntology = useMemo(() => {
@@ -125,6 +121,10 @@ export default function StructuredArtifactStudio({
     return initial?.kind === "Ontology" ? initial : undefined;
   }, [artifactKind, comparisonSource]);
   const label = artifactKind === "ontology" ? "Ontology" : "Document";
+
+  useEffect(() => {
+    if (artifact?.kind === "Ontology") reconcileOntologyStore(artifact);
+  }, [artifact, reconcileOntologyStore]);
 
   useEffect(() => {
     let active = true;
@@ -202,8 +202,11 @@ export default function StructuredArtifactStudio({
     artifact?.kind === "Ontology"
       ? artifact.spec.relationships.find((relationship) => relationship.id === selectedRelationshipId)
       : undefined;
-  const ontologyUsage =
-    artifact?.kind === "Ontology" ? (ONTOLOGY_USAGE.get(`ladder://ontologies/builtin/${artifact.metadata.name}`) ?? []) : [];
+  const ontologyUsageEntries = useMemo(
+    () => (artifact?.kind === "Ontology" ? buildOntologyUsage(artifact, ARTIFACT_TEMPLATES) : []),
+    [artifact],
+  );
+  const selectedTypeUsage = selectedOntologyType ? usageForType(ontologyUsageEntries, selectedOntologyType.id) : [];
   const commitOntology = (next: Ontology, selection: { typeId?: string | null; relationshipId?: string | null } = {}) => {
     setSource(stringify(next, { lineWidth: 110 }));
     if ("typeId" in selection) setSelectedId(selection.typeId ?? null);
@@ -432,12 +435,29 @@ export default function StructuredArtifactStudio({
               <section className="ontology-canvas-panel">
                 <header>
                   <div>
-                    <strong>Relationship canvas</strong>
+                    <strong>{ontologyView === "graph" ? "Relationship canvas" : "Type and property tree"}</strong>
                     <small>
                       {artifact.spec.types.length} types · {artifact.spec.relationships.length} relationships
                     </small>
                   </div>
                   <div className="ontology-canvas-actions">
+                    <fieldset className="ontology-view-switch">
+                      <legend className="sr-only">Ontology view</legend>
+                      <button
+                        className={ontologyView === "graph" ? "active" : undefined}
+                        onClick={() => setOntologyView("graph")}
+                        type="button"
+                      >
+                        Graph
+                      </button>
+                      <button
+                        className={ontologyView === "tree" ? "active" : undefined}
+                        onClick={() => setOntologyView("tree")}
+                        type="button"
+                      >
+                        Tree
+                      </button>
+                    </fieldset>
                     <button className="quiet-button" onClick={createType} type="button">
                       <Plus size={13} /> Add entity
                     </button>
@@ -455,21 +475,32 @@ export default function StructuredArtifactStudio({
                     />
                   </label>
                 </header>
-                <OntologyCanvas
-                  ontology={artifact}
-                  onSelectRelationship={(id) => {
-                    const relationship = artifact.spec.relationships.find((candidate) => candidate.id === id);
-                    setSelectedRelationshipId(id);
-                    if (relationship) setSelectedId(relationship.sourceTypeId);
-                  }}
-                  onSelectType={(id) => {
-                    setSelectedId(id);
-                    setSelectedRelationshipId(null);
-                  }}
-                  query={query}
-                  selectedRelationshipId={selectedRelationshipId}
-                  selectedTypeId={selectedRelationship ? null : (selectedOntologyType?.id ?? null)}
-                />
+                {ontologyView === "graph" ? (
+                  <OntologyCanvas
+                    ontology={artifact}
+                    onSelectRelationship={(id) => {
+                      const relationship = artifact.spec.relationships.find((candidate) => candidate.id === id);
+                      setSelectedRelationshipId(id);
+                      if (relationship) setSelectedId(relationship.sourceTypeId);
+                    }}
+                    onSelectType={(id) => {
+                      setSelectedId(id);
+                      setSelectedRelationshipId(null);
+                    }}
+                    query={query}
+                    selectedRelationshipId={selectedRelationshipId}
+                    selectedTypeId={selectedRelationship ? null : (selectedOntologyType?.id ?? null)}
+                  />
+                ) : (
+                  <OntologyTree
+                    ontology={artifact}
+                    onSelectType={(id) => {
+                      setSelectedId(id);
+                      setSelectedRelationshipId(null);
+                    }}
+                    selectedTypeId={selectedOntologyType?.id ?? null}
+                  />
+                )}
               </section>
               <article className="artifact-detail-card ontology-selection-inspector" aria-label="Ontology selection inspector">
                 {selectedRelationship ? (
@@ -733,7 +764,9 @@ export default function StructuredArtifactStudio({
                     <header>
                       <div>
                         <strong>Workflow sliver impact</strong>
-                        <small>{ontologyUsage.length ? `Used by ${ontologyUsage.join(", ")}` : "No curated bundle usage"}</small>
+                        <small>
+                          {selectedTypeUsage.length ? `${selectedTypeUsage.length} workflow and artifact usages` : "No indexed usage"}
+                        </small>
                       </div>
                       <button className="quiet-button" disabled={sliceLoading} onClick={() => void previewSliver()} type="button">
                         {sliceLoading ? "Calculating…" : "Preview sliver"}
@@ -760,10 +793,24 @@ export default function StructuredArtifactStudio({
                     ) : (
                       <p>Selecting a type seeds deterministic dependency closure; the preview explains every included element.</p>
                     )}
+                    {selectedTypeUsage.length ? (
+                      <ul className="ontology-usage-list" aria-label="Ontology type usage">
+                        {selectedTypeUsage.map((usage) => (
+                          <li key={`${usage.kind}-${usage.id}`}>
+                            <span>{usage.kind.replace("workflow-bundle", "bundle")}</span>
+                            <strong>{usage.title}</strong>
+                            <small>
+                              {usage.propertyRefs.filter((reference) => reference.startsWith(`${selectedOntologyType.id}.`)).length}{" "}
+                              properties
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </section>
                 ) : null}
                 <footer>
-                  {selectedRelationships.length} connected relationships · {ontologyUsage.length} curated bundle usages
+                  {selectedRelationships.length} connected relationships · {selectedTypeUsage.length} indexed usages
                 </footer>
               </article>
             </div>

@@ -803,13 +803,14 @@ export async function compileFallback(source: string, target: Target): Promise<C
         : "Resolve named skills from the active Hermes catalog (including `~/.hermes/skills/`). Confirm required Hermes toolsets with `hermes tools`, and use only configured MCP servers or OpenRouter profiles.";
   const metadata =
     target === "hermes"
-      ? `version: 1.0.0\nmetadata:\n  hermes:\n    tags: [ladder-graph, workflow, orchestration]\n    category: orchestration\n  ladder-target: ${target}\n  ladder-source-hash: ${analysis.sourceHash}\n  ladder-compiler: ${VERSION}\n  target-docs-as-of: 2026-08-15`
-      : `metadata:\n  ladder-target: ${target}\n  ladder-source-hash: ${analysis.sourceHash}\n  ladder-compiler: ${VERSION}\n  target-docs-as-of: 2026-08-15`;
+      ? "version: 1.0.0\nmetadata:\n  hermes:\n    tags: [ladder-graph, workflow, orchestration]\n    category: orchestration"
+      : "";
   const hermesSetup =
     target === "hermes"
       ? `\n\n## Hermes setup\n\nSave this document as \`~/.hermes/skills/ladder-graph/${workflow.metadata.name}/SKILL.md\`. Before use, confirm every named toolset and MCP server is enabled for the active Hermes profile. Configure OpenRouter separately; never place provider credentials in this skill.\n`
       : "";
-  let content = `---\nname: ${workflow.metadata.name}\ndescription: ${JSON.stringify(description)}\n${metadata}\n---\n\n# ${title}\n\n> Compiled by Ladder Graph for ${targetLabel(target)}. This file is instruction-only: it does not grant permissions, execute tools, or contact a model provider.${hermesSetup}\n\n## Objective\n\n${workflow.spec.objective}\n\n## Operating rules\n\n1. Respect dependency order and pass only named outputs required downstream.\n2. Run independent ready nodes in parallel when supported; otherwise preserve their independence while running sequentially.\n3. Treat schemas, approvals, and loop bounds as mandatory instructions. Stop and explain unavailable capabilities.\n4. Do not broaden tool permissions or execute code embedded in this definition.\n5. On failure, follow \`${workflow.spec.policies?.onFailure ?? "stop"}\`. Maximum concurrency is ${workflow.spec.policies?.maxConcurrency ?? 4}.\n6. ${harnessCapabilityRule} If a required skill or connector is unavailable, stop that node and report the missing capability.\n\n## Workflow\n`;
+  const optionalMetadata = metadata ? `${metadata}\n` : "";
+  let content = `---\nname: ${workflow.metadata.name}\ndescription: ${JSON.stringify(description)}\n${optionalMetadata}---\n\n# ${title}${hermesSetup}\n\n## Objective\n\n${workflow.spec.objective}\n\n## Operating rules\n\n1. Respect dependency order and pass only named outputs required downstream.\n2. Run independent ready nodes in parallel when supported; otherwise preserve their independence while running sequentially.\n3. Treat schemas, approvals, and loop bounds as mandatory instructions. Stop and explain unavailable capabilities.\n4. Do not broaden tool permissions or execute code embedded in this definition.\n5. On failure, follow \`${workflow.spec.policies?.onFailure ?? "stop"}\`. Maximum concurrency is ${workflow.spec.policies?.maxConcurrency ?? 4}.\n6. ${harnessCapabilityRule} If a required skill or connector is unavailable, stop that node and report the missing capability.\n\n## Workflow\n`;
   const byId = new Map(workflow.spec.nodes.map((node) => [node.id, node]));
   analysis.nodeOrder.forEach((id, index) => {
     const node = byId.get(id);

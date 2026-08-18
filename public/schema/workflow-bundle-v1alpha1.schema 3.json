@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ladder.dev/schema/workflow-bundle-v1alpha1.schema.json",
+  "title": "Ladder Graph Workflow Bundle v1alpha1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "ladder.dev/v1alpha1" },
+    "kind": { "const": "WorkflowBundle" },
+    "metadata": { "$ref": "ontology-v1alpha1.schema.json#/$defs/metadata" },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workflowRef"],
+      "properties": {
+        "workflowRef": { "type": "string", "pattern": "^ladder://" },
+        "ontology": {
+          "type": "object",
+          "required": ["ref", "mode"],
+          "properties": {
+            "ref": { "type": "string", "pattern": "^ladder://" },
+            "mode": { "enum": ["full", "sliver"] },
+            "selection": {
+              "type": "object",
+              "properties": {
+                "typeIds": { "type": "array", "items": { "type": "string" } },
+                "propertyRefs": { "type": "array", "items": { "type": "string" } },
+                "relationshipIds": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "forms": { "type": "array", "items": { "$ref": "#/$defs/assetRef" } },
+        "documents": { "type": "array", "items": { "$ref": "#/$defs/assetRef" } },
+        "bindings": { "type": "array", "items": { "$ref": "#/$defs/binding" } }
+      }
+    }
+  },
+  "$defs": {
+    "assetRef": {
+      "type": "object",
+      "required": ["ref"],
+      "properties": { "ref": { "type": "string", "pattern": "^ladder://" }, "role": { "type": "string" } }
+    },
+    "endpoint": {
+      "type": "object",
+      "required": ["ref", "path"],
+      "properties": { "ref": { "type": "string", "pattern": "^ladder://" }, "path": { "type": "string", "pattern": "^/" } }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "target", "direction"],
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "source": { "$ref": "#/$defs/endpoint" },
+        "target": { "$ref": "#/$defs/endpoint" },
+        "ontologyPropertyRef": { "type": "string" },
+        "direction": { "enum": ["input", "output", "review", "approval"] },
+        "transform": { "enum": ["select", "rename", "merge", "filter", "deduplicate", "sort", "slice"] }
+      }
+    }
+  }
+}

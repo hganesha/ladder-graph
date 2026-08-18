@@ -1,12 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Welcome } from "../src/components/Welcome";
-import { listProjects } from "../src/lib/persistence";
-import { roleTemplatesForSubject } from "../src/lib/roleTemplates";
+import { ARTIFACT_INDEX } from "../src/generated/catalog";
+import { deleteProject, listProjects } from "../src/lib/persistence";
+import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../src/lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
 import { useStudioStore } from "../src/store/useStudioStore";
 
 vi.mock("../src/lib/persistence", () => ({
+  deleteProject: vi.fn(async () => undefined),
   listProjects: vi.fn(async () => []),
   saveProject: vi.fn(async () => ({ id: "test-project", updatedAt: Date.now() })),
   requestPersistentStorage: vi.fn(async () => false),
@@ -20,6 +22,7 @@ describe("welcome gallery", () => {
   afterEach(cleanup);
 
   beforeEach(() => {
+    vi.mocked(deleteProject).mockResolvedValue(undefined);
     vi.mocked(listProjects).mockResolvedValue([]);
     window.localStorage.clear();
     window.history.replaceState({}, "", "/");
@@ -35,8 +38,9 @@ describe("welcome gallery", () => {
     expect(screen.getByRole("heading", { name: "Workflow library" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open MCP companion" })).toBeInTheDocument();
     expect(within(screen.getByLabelText("Subject area")).getAllByRole("option")).toHaveLength(
-      new Set(WORKFLOW_TEMPLATES.map((template) => template.area)).size,
+      new Set(WORKFLOW_TEMPLATES.map((template) => template.area)).size + 1,
     );
+    expect(screen.getByRole("option", { name: /All subject areas/ })).toHaveValue(":all");
     expect(screen.getByLabelText("Subject area")).toHaveValue("Core patterns");
     expect(screen.getAllByRole("tab")).toHaveLength(8);
     expect(screen.getByRole("tab", { name: "Starter workflows" })).toHaveAttribute("aria-selected", "true");
@@ -79,6 +83,7 @@ describe("welcome gallery", () => {
   it("groups curated bundles in a dedicated subject-filtered tab", () => {
     const onBundle = vi.fn();
     render(<Welcome onBlank={() => undefined} onBundle={onBundle} />);
+    selectArea(":all");
 
     expect(screen.queryByRole("heading", { name: "Curated workflow bundles" })).not.toBeInTheDocument();
     selectArea("Manufacturing & industrial operations");
@@ -96,6 +101,29 @@ describe("welcome gallery", () => {
     selectArea("Legal & contracts");
     expect(screen.getByRole("button", { name: "Open Regulatory obligations and submission bundle" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open Manufacturing line qualification bundle" })).not.toBeInTheDocument();
+  });
+
+  it("shows every related catalog category for the :all subject", () => {
+    render(<Welcome onBlank={() => undefined} />);
+    selectArea(":all");
+
+    expect(screen.getByLabelText("Subject area")).toHaveValue(":all");
+    expect(screen.getByRole("heading", { name: "All subject areas" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Workflows" })).toHaveTextContent(`Workflows ${WORKFLOW_TEMPLATES.length}`);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
+    expect(screen.getByRole("tab", { name: "Agents" })).toHaveTextContent(`Agents ${ROLE_TEMPLATES.length}`);
+
+    for (const [tab, kind] of [
+      ["Forms", "form"],
+      ["Documents", "document"],
+      ["Ontologies", "ontology"],
+    ] as const) {
+      fireEvent.click(screen.getByRole("tab", { name: tab }));
+      expect(screen.getByRole("tab", { name: tab })).toHaveTextContent(
+        `${tab} ${ARTIFACT_INDEX.filter((artifact) => artifact.kind === kind).length}`,
+      );
+    }
   });
 
   it("offers first-class creation entry points for bundles and ontologies", () => {
@@ -191,11 +219,37 @@ describe("welcome gallery", () => {
 
     render(<Welcome onBlank={() => undefined} onBundle={onBundle} />);
     fireEvent.click(screen.getByRole("tab", { name: "Recent projects" }));
-    const savedBundle = await screen.findByRole("button", { name: /Insurance claim review bundle/i });
+    const savedBundle = await screen.findByRole("button", { name: "Open Insurance claim review bundle" });
     fireEvent.click(savedBundle);
 
     await waitFor(() => expect(onBundle).toHaveBeenCalledWith(expect.objectContaining({ id: "bundle-project" })));
     expect(openProject).not.toHaveBeenCalled();
+  });
+
+  it("deletes a recent project after confirmation", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(listProjects).mockResolvedValue([
+      {
+        id: "saved-project",
+        name: "Saved workflow",
+        artifactKind: "workflow",
+        yaml: "kind: Workflow",
+        lastValidYaml: "kind: Workflow",
+        target: "codex",
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]);
+
+    render(<Welcome onBlank={() => undefined} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Recent projects" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete Saved workflow" }));
+
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("permanently removes"));
+    await waitFor(() => expect(deleteProject).toHaveBeenCalledWith("saved-project"));
+    expect(screen.queryByRole("button", { name: "Open Saved workflow" })).not.toBeInTheDocument();
+    expect(screen.getByText("No saved projects yet")).toBeInTheDocument();
+    confirm.mockRestore();
   });
 
   it("opens the intro and help from the gallery", async () => {

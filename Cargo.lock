@@ -610,6 +610,7 @@ dependencies = [
  "chrono",
  "directories",
  "hex",
+ "ladder-artifacts",
  "ladder-catalog",
  "lgir-core",
  "rand",

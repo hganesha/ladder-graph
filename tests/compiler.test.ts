@@ -165,7 +165,8 @@ describe("LGIR fallback compiler", () => {
     expect(codexOne.sourceHash).toBe(codexTwo.sourceHash);
     expect(codexOne.suggestedFilename).toMatch(/\.codex\.md$/);
     expect(claude.suggestedFilename).toMatch(/\.claude\.md$/);
-    expect(claude.content).toContain("ladder-target: claude");
+    expect(claude.content).not.toContain("ladder-source-hash");
+    expect(claude.content).not.toContain("ladder-target");
   });
 
   it("compiles multimodal input contracts into target instructions", async () => {
@@ -198,7 +199,7 @@ describe("LGIR fallback compiler", () => {
     expect(first.content).toBe(second.content);
     expect(first.suggestedFilename).toMatch(/\.hermes\.md$/);
     expect(first.adapterVersion).toBe("hermes-skill-v1");
-    expect(first.content).toContain("ladder-target: hermes");
+    expect(first.content).not.toContain("ladder-source-hash");
     expect(first.content).toContain("metadata:\n  hermes:");
     const frontmatter = parse(first.content.split("---")[1]) as { description: string };
     expect(frontmatter.description.length).toBeLessThanOrEqual(60);

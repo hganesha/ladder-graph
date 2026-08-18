@@ -77,6 +77,12 @@ describe("bundle workspace", () => {
     expect(screen.getByRole("heading", { name: "Insurance claim review bundle" })).toBeInTheDocument();
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
 
+    fireEvent.click(screen.getByRole("tab", { name: "Compiled output" }));
+    expect(screen.getByRole("navigation", { name: "Agent-ready content" })).toBeInTheDocument();
+    expect(screen.getAllByText("Insurance Sliver ontology context")).toHaveLength(2);
+    expect(screen.queryByText("ontology/insurance-sliver.yaml")).not.toBeInTheDocument();
+    expect(screen.queryByText("ladder.lock.json")).not.toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
     expect(screen.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeInTheDocument();
     expect(screen.getByLabelText("Bundled workflow inspector")).toBeInTheDocument();

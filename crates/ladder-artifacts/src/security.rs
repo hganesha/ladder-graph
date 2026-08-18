@@ -1,6 +1,8 @@
 use crate::diagnostic::{Diagnostic, diagnostic};
 
 pub const MAX_SOURCE_BYTES: usize = 2_000_000;
+pub const MAX_ONTOLOGY_TYPES: usize = 1_000;
+pub const MAX_ONTOLOGY_RELATIONSHIPS: usize = 2_000;
 
 pub fn validate_source(source: &str) -> Result<(), Diagnostic> {
     if source.len() > MAX_SOURCE_BYTES {
@@ -49,4 +51,26 @@ pub fn validate_source(source: &str) -> Result<(), Diagnostic> {
         ));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_oversized_sources() {
+        let source = "x".repeat(MAX_SOURCE_BYTES + 1);
+        assert_eq!(validate_source(&source).unwrap_err().code, "LA001");
+    }
+
+    #[test]
+    fn rejects_executable_yaml_features_and_remote_references() {
+        for (source, code) in [
+            ("value: !!python/object:example {}", "LA002"),
+            ("value: &shared {}\ncopy: *shared", "LA004"),
+            ("schema:\n  $ref: https://example.com/schema.json", "LA005"),
+        ] {
+            assert_eq!(validate_source(source).unwrap_err().code, code);
+        }
+    }
 }

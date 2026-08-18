@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parse } from "yaml";
 
@@ -11,7 +11,9 @@ const errors = [];
 
 async function loadEntries(kind, entries) {
   const directory = kind === "Workflow" ? "workflows" : "agents";
-  const actual = (await readdir(resolve(catalogRoot, directory))).filter((name) => name.endsWith(".yaml")).sort();
+  const actual = (await readdir(resolve(catalogRoot, directory)))
+    .filter((name) => name.endsWith(".yaml") && !/ \d+\.yaml$/u.test(name))
+    .sort();
   const listed = entries.map((entry) => entry.file.replace(`${directory}/`, "")).sort();
   if (JSON.stringify(actual) !== JSON.stringify(listed)) errors.push(`${directory} files do not match catalog/manifest.json`);
 
