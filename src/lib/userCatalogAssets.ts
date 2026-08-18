@@ -1,6 +1,6 @@
 import { parse } from "yaml";
 import { SUBJECT_AREAS } from "../generated/catalog";
-import type { InputModality, ProjectRecord, RoleTemplate, TemplateDefinition } from "../types";
+import type { ArtifactTemplateMetadata, InputModality, ProjectRecord, RoleTemplate, TemplateDefinition } from "../types";
 import type { UserTemplateRecord } from "./persistence";
 import { WORKFLOW_TEMPLATES } from "./templates";
 
@@ -11,6 +11,10 @@ export type UserWorkflowTemplate = TemplateDefinition & {
   userRecord?: UserTemplateRecord;
 };
 export type UserAgentTemplate = RoleTemplate & { userRecord: UserTemplateRecord };
+export type UserArtifactTemplate = ArtifactTemplateMetadata & {
+  subject: string;
+  userProject: ProjectRecord;
+};
 
 const INPUT_MODALITIES = new Set<InputModality>(["text", "image", "audio", "video", "document", "mixed"]);
 
@@ -99,6 +103,34 @@ export function userProjectWorkflow(project: ProjectRecord): UserWorkflowTemplat
   });
   if (!template) return undefined;
   return { ...template, eyebrow: "Your project", userProject: project, userRecord: undefined };
+}
+
+export function userProjectArtifact(project: ProjectRecord): UserArtifactTemplate | undefined {
+  const kind = project.artifactKind;
+  if (kind !== "workflow-bundle" && kind !== "form" && kind !== "document") return undefined;
+  try {
+    const source = record(parse(project.lastValidYaml));
+    const metadata = record(source?.metadata);
+    const title = typeof metadata?.title === "string" ? metadata.title : project.name;
+    const description =
+      typeof metadata?.description === "string" ? metadata.description : `A ${kind.replace("workflow-", "")} saved in this browser.`;
+    const subject =
+      declaredSubject(metadata?.subjectArea, metadata?.area, record(source?.spec)?.subjectArea, record(source?.spec)?.area) ??
+      USER_ASSETS_SUBJECT;
+    return {
+      id: project.id,
+      kind,
+      path: `user/${project.id}`,
+      title,
+      description,
+      file: "",
+      ref: `ladder://${kind}/user/${project.id}`,
+      subject,
+      userProject: project,
+    };
+  } catch {
+    return undefined;
+  }
 }
 
 export function userAgentTemplate(recordValue: UserTemplateRecord): UserAgentTemplate | undefined {

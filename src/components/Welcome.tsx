@@ -75,9 +75,11 @@ import { WORKFLOW_TEMPLATES } from "../lib/templates";
 import {
   USER_ASSETS_SUBJECT,
   userAgentTemplate,
+  userProjectArtifact,
   userProjectWorkflow,
   userWorkflowTemplate,
   type UserAgentTemplate,
+  type UserArtifactTemplate,
   type UserWorkflowTemplate,
 } from "../lib/userCatalogAssets";
 import { useStudioStore } from "../store/useStudioStore";
@@ -183,10 +185,10 @@ const ONTOLOGY_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind ===
   compareCatalogLabels(left.title, right.title),
 );
 
-function artifactsForSubject<T extends { path: string }>(templates: T[], subject: string): T[] {
-  if (subject === ALL_SUBJECT_AREA.name) return templates;
+function artifactsForSubject<T extends { path: string; subject?: string }>(templates: T[], subject: string): T[] {
+  if (subject === ALL_SUBJECT_AREA.name) return [...templates];
   const prefixes = SUBJECT_AREAS.find((area) => area.name === subject)?.artifactPathPrefixes ?? [];
-  return templates.filter((template) => prefixes.some((prefix) => template.path.startsWith(prefix)));
+  return templates.filter((template) => template.subject === subject || prefixes.some((prefix) => template.path.startsWith(prefix)));
 }
 
 function pathMatchesPrefix(path: string, prefix: string): boolean {
@@ -219,7 +221,8 @@ function agentMatchesSubject(agent: (typeof ROLE_TEMPLATES)[number], subjectName
   return subject.agentIds.includes(agent.id) || subject.agentPathPrefixes.some((prefix) => pathMatchesPrefix(agent.path, prefix));
 }
 
-function subjectForArtifact(artifact: (typeof ARTIFACT_INDEX)[number]): string {
+function subjectForArtifact(artifact: { path: string; subject?: string }): string {
+  if (artifact.subject) return artifact.subject;
   return (
     SUBJECT_AREAS.flatMap((subject) =>
       subject.artifactPathPrefixes.map((prefix) => ({ name: subject.name, prefix: prefix.replace(/\/+$/, "") })),
@@ -352,9 +355,22 @@ export function Welcome({
     () => userTemplates.map(userAgentTemplate).filter((template): template is UserAgentTemplate => Boolean(template)),
     [userTemplates],
   );
-  const userAssetCount = userWorkflowTemplates.length + userAgentTemplates.length;
+  const userArtifactTemplates = useMemo(
+    () => projects.map(userProjectArtifact).filter((template): template is UserArtifactTemplate => Boolean(template)),
+    [projects],
+  );
+  const userAssetCount = userWorkflowTemplates.length + userAgentTemplates.length + userArtifactTemplates.length;
   const availableWorkflowTemplates = includeUserAssets ? [...WORKFLOW_TEMPLATES, ...userWorkflowTemplates] : WORKFLOW_TEMPLATES;
   const availableAgentTemplates = includeUserAssets ? [...ROLE_TEMPLATES, ...userAgentTemplates] : ROLE_TEMPLATES;
+  const availableBundleTemplates = includeUserAssets
+    ? [...BUNDLE_TEMPLATES, ...userArtifactTemplates.filter((template) => template.kind === "workflow-bundle")]
+    : BUNDLE_TEMPLATES;
+  const availableFormTemplates = includeUserAssets
+    ? [...FORM_TEMPLATES, ...userArtifactTemplates.filter((template) => template.kind === "form")]
+    : FORM_TEMPLATES;
+  const availableDocumentTemplates = includeUserAssets
+    ? [...DOCUMENT_TEMPLATES, ...userArtifactTemplates.filter((template) => template.kind === "document")]
+    : DOCUMENT_TEMPLATES;
   const selectedTemplates = availableWorkflowTemplates
     .filter(
       (template) =>
@@ -366,9 +382,15 @@ export function Welcome({
   )
     .filter((agent) => modality === "all" || agent.modalities.includes(modality))
     .sort((left, right) => compareCatalogLabels(left.name, right.name));
-  const selectedBundles = artifactsForSubject(BUNDLE_TEMPLATES, selectedArea.name);
-  const selectedForms = artifactsForSubject(FORM_TEMPLATES, selectedArea.name);
-  const selectedDocuments = artifactsForSubject(DOCUMENT_TEMPLATES, selectedArea.name);
+  const selectedBundles = artifactsForSubject(availableBundleTemplates, selectedArea.name).sort((left, right) =>
+    compareCatalogLabels(left.title, right.title),
+  );
+  const selectedForms = artifactsForSubject(availableFormTemplates, selectedArea.name).sort((left, right) =>
+    compareCatalogLabels(left.title, right.title),
+  );
+  const selectedDocuments = artifactsForSubject(availableDocumentTemplates, selectedArea.name).sort((left, right) =>
+    compareCatalogLabels(left.title, right.title),
+  );
   const selectedOntologies = artifactsForSubject(ONTOLOGY_TEMPLATES, selectedArea.name);
   const SelectedAreaIcon = selectedArea.icon;
 
@@ -726,7 +748,7 @@ export function Welcome({
                   <header>
                     <div>
                       <span className="eyebrow">Portable solution contracts</span>
-                      <h3 id="curated-bundles-title">Curated workflow bundles</h3>
+                      <h3 id="curated-bundles-title">{includeUserAssets ? "Workflow bundles" : "Curated workflow bundles"}</h3>
                     </div>
                     <span>
                       {selectedBundles.length} {selectedBundles.length === 1 ? "bundle" : "bundles"}
@@ -738,27 +760,33 @@ export function Welcome({
                     groupBySubject={allSubjectsSelected}
                     items={selectedBundles}
                     pluralLabel="bundles"
-                    renderItem={(template) => (
-                      <button
-                        aria-label={`Open ${template.title}`}
-                        className="bundle-launch-card"
-                        key={template.id}
-                        onClick={() => onBundle(undefined, template.id)}
-                        type="button"
-                      >
-                        <span className="bundle-launch-icon" aria-hidden="true">
-                          <PackageOpen size={22} />
-                        </span>
-                        <span>
-                          <small>{template.path.split("/")[0].replaceAll("_", " ")} · curated bundle</small>
-                          <strong>{template.title}</strong>
-                          <span>{template.description}</span>
-                        </span>
-                        <span className="bundle-launch-action">
-                          Open <ArrowRight size={15} />
-                        </span>
-                      </button>
-                    )}
+                    renderItem={(template) => {
+                      const subject = allSubjectsSelected ? subjectForArtifact(template) : selectedArea.name;
+                      const ItemSubjectIcon = SUBJECT_AREA_ICONS[subject] ?? PackageOpen;
+                      const userProject = (template as Partial<UserArtifactTemplate>).userProject;
+                      return (
+                        <button
+                          aria-label={`Open ${template.title}`}
+                          className="bundle-launch-card"
+                          data-asset-origin={userProject ? "user" : "builtin"}
+                          key={`${userProject ? "user" : "builtin"}:${template.id}`}
+                          onClick={() => (userProject ? onBundle(userProject) : onBundle(undefined, template.id))}
+                          type="button"
+                        >
+                          <span className="bundle-launch-icon" aria-hidden="true">
+                            <ItemSubjectIcon size={22} />
+                          </span>
+                          <span>
+                            <small>{userProject ? "Yours" : template.path.split("/")[0].replaceAll("_", " ")} · workflow bundle</small>
+                            <strong>{template.title}</strong>
+                            <span>{template.description}</span>
+                          </span>
+                          <span className="bundle-launch-action">
+                            Open <ArrowRight size={15} />
+                          </span>
+                        </button>
+                      );
+                    }}
                     singularLabel="bundle"
                     subjectForItem={subjectForArtifact}
                   />
@@ -813,27 +841,33 @@ export function Welcome({
                   groupBySubject={allSubjectsSelected}
                   items={selectedForms}
                   pluralLabel="forms"
-                  renderItem={(form) => (
-                    <button
-                      aria-label={`Open ${form.title} form`}
-                      className="template-card form-template-card"
-                      key={form.id}
-                      onClick={() => onForm(undefined, form.id)}
-                    >
-                      <div className="agent-card-icon" aria-hidden="true">
-                        <FileText />
-                      </div>
-                      <div className="template-meta">
-                        <span>{form.path.split("/")[0].replaceAll("_", " ")}</span>
-                        <span>Portable form</span>
-                      </div>
-                      <h3>{form.title}</h3>
-                      <p>{form.description}</p>
-                      <strong>
-                        Open form studio <ArrowRight size={14} />
-                      </strong>
-                    </button>
-                  )}
+                  renderItem={(form) => {
+                    const subject = allSubjectsSelected ? subjectForArtifact(form) : selectedArea.name;
+                    const ItemSubjectIcon = SUBJECT_AREA_ICONS[subject] ?? FileText;
+                    const userProject = (form as Partial<UserArtifactTemplate>).userProject;
+                    return (
+                      <button
+                        aria-label={`Open ${form.title} form`}
+                        className="template-card form-template-card"
+                        data-asset-origin={userProject ? "user" : "builtin"}
+                        key={`${userProject ? "user" : "builtin"}:${form.id}`}
+                        onClick={() => (userProject ? onForm(userProject) : onForm(undefined, form.id))}
+                      >
+                        <div className="agent-card-icon" aria-hidden="true">
+                          <ItemSubjectIcon />
+                        </div>
+                        <div className="template-meta">
+                          <span>{userProject ? "Yours" : form.path.split("/")[0].replaceAll("_", " ")}</span>
+                          <span>Portable form</span>
+                        </div>
+                        <h3>{form.title}</h3>
+                        <p>{form.description}</p>
+                        <strong>
+                          Open form studio <ArrowRight size={14} />
+                        </strong>
+                      </button>
+                    );
+                  }}
                   singularLabel="form"
                   subjectForItem={subjectForArtifact}
                 />
@@ -844,27 +878,33 @@ export function Welcome({
                   groupBySubject={allSubjectsSelected}
                   items={selectedDocuments}
                   pluralLabel="documents"
-                  renderItem={(document) => (
-                    <button
-                      aria-label={`Open ${document.title} document`}
-                      className="template-card form-template-card"
-                      key={document.id}
-                      onClick={() => onDocument(undefined, document.id)}
-                    >
-                      <div className="agent-card-icon" aria-hidden="true">
-                        <BookOpen />
-                      </div>
-                      <div className="template-meta">
-                        <span>{document.path.split("/")[0].replaceAll("_", " ")}</span>
-                        <span>Document contract</span>
-                      </div>
-                      <h3>{document.title}</h3>
-                      <p>{document.description}</p>
-                      <strong>
-                        Inspect document schema <ArrowRight size={14} />
-                      </strong>
-                    </button>
-                  )}
+                  renderItem={(document) => {
+                    const subject = allSubjectsSelected ? subjectForArtifact(document) : selectedArea.name;
+                    const ItemSubjectIcon = SUBJECT_AREA_ICONS[subject] ?? BookOpen;
+                    const userProject = (document as Partial<UserArtifactTemplate>).userProject;
+                    return (
+                      <button
+                        aria-label={`Open ${document.title} document`}
+                        className="template-card form-template-card"
+                        data-asset-origin={userProject ? "user" : "builtin"}
+                        key={`${userProject ? "user" : "builtin"}:${document.id}`}
+                        onClick={() => (userProject ? onDocument(userProject) : onDocument(undefined, document.id))}
+                      >
+                        <div className="agent-card-icon" aria-hidden="true">
+                          <ItemSubjectIcon />
+                        </div>
+                        <div className="template-meta">
+                          <span>{userProject ? "Yours" : document.path.split("/")[0].replaceAll("_", " ")}</span>
+                          <span>Document contract</span>
+                        </div>
+                        <h3>{document.title}</h3>
+                        <p>{document.description}</p>
+                        <strong>
+                          Inspect document schema <ArrowRight size={14} />
+                        </strong>
+                      </button>
+                    );
+                  }}
                   singularLabel="document"
                   subjectForItem={subjectForArtifact}
                 />
