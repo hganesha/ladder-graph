@@ -4,6 +4,7 @@ import { analyzeFallback } from "../src/compiler/fallback";
 import { createAgentStarterSource } from "../src/lib/agentStarter";
 import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../src/lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
+import { userAgentTemplate } from "../src/lib/userCatalogAssets";
 import type { Workflow } from "../src/types";
 
 describe("agent starter workflows", () => {
@@ -38,5 +39,35 @@ describe("agent starter workflows", () => {
     for (const area of areas) {
       expect(roleTemplatesForSubject(area).length, area).toBeGreaterThan(0);
     }
+  });
+
+  it("converts a saved user agent template into a fresh workflow", () => {
+    const template = userAgentTemplate({
+      id: "my-reviewer",
+      kind: "agent-template",
+      path: "research/legal/custom",
+      title: "My reviewer",
+      yaml: `apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: my-reviewer
+  title: My reviewer
+spec:
+  path: research/legal/custom
+  areas: [Legal & contracts]
+  modalities: [document]
+  role: Reviews agreements against a personal checklist.
+  prompt: Review the agreement and return evidenced findings.
+  capabilities:
+    skills: [contract-review]
+    tools: [read]`,
+      createdAt: 1,
+      updatedAt: 2,
+    });
+    expect(template).toBeDefined();
+
+    const workflow = parse(createAgentStarterSource(template!)) as Workflow;
+    expect(workflow.kind).toBe("Workflow");
+    expect(workflow.spec.nodes[1]).toMatchObject({ name: "My reviewer", role: "Reviews agreements against a personal checklist." });
   });
 });
