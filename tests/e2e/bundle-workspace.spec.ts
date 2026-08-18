@@ -20,6 +20,7 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
   await expect(page.getByRole("heading", { name: "Attached assets" })).toBeVisible();
   await expect(page.getByText("Semantic bindings")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("bundle-workspace.png"), fullPage: true });
+  await page.locator(".bundle-assets-editor").screenshot({ path: testInfo.outputPath("bundle-assets-accordion.png") });
 
   await page.getByRole("button", { name: "Compile bundle" }).click();
   await expect(page.getByRole("tab", { name: "Compiled output" })).toHaveAttribute("aria-selected", "true");
@@ -120,7 +121,8 @@ test("assembles and binds a bundle around another catalog workflow", async ({ pa
   await page.getByRole("button", { name: "New", exact: true }).click();
   await page.getByLabel("Workflow", { exact: true }).selectOption("evidence-research");
   await expect(page.getByRole("heading", { name: "Evidence research bundle" })).toBeVisible();
-  await page.getByLabel("Bundle ontology").selectOption("ladder://ontologies/builtin/insurance");
+  await page.getByRole("button", { name: "Attach Insurance ontology" }).click();
+  await page.getByRole("button", { name: /^Forms,/ }).click();
   await page.getByRole("button", { name: "Attach First Notice of Loss" }).click();
   await page.getByRole("button", { name: "Add binding" }).click();
 

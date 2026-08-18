@@ -705,25 +705,6 @@ export default function BundleStudio({
               </span>
             </li>
           </ol>
-          {bundle.spec.ontology ? (
-            <fieldset className="ontology-mode-control">
-              <legend>Ontology output</legend>
-              <button
-                className={bundle.spec.ontology.mode === "sliver" ? "active" : undefined}
-                onClick={() => setOntologyMode("sliver")}
-                type="button"
-              >
-                Workflow sliver
-              </button>
-              <button
-                className={bundle.spec.ontology.mode === "full" ? "active" : undefined}
-                onClick={() => setOntologyMode("full")}
-                type="button"
-              >
-                Full ontology
-              </button>
-            </fieldset>
-          ) : null}
           <div className="bundle-binding-count">
             <strong>{bundle.spec.bindings?.length ?? 0}</strong>
             <span>explicit bindings</span>
@@ -767,6 +748,7 @@ export default function BundleStudio({
                   }}
                   onDetach={(ref) => applyBundle(detachBundleArtifact(bundle, ref), true)}
                   onNew={startNew}
+                  onOntologyModeChange={setOntologyMode}
                   onRestoreStarter={restoreStarter}
                   onUseCuratedBundle={useCuratedBundle}
                   starterLabel={starterTemplate?.title ?? "Curated starter"}
