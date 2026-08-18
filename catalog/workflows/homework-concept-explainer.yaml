@@ -1,0 +1,66 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: homework-concept-explainer
+  title: Homework help and concept explainer with tiered difficulty
+  description: Explain a homework concept at a student's grade level, check comprehension against a rubric, and re-explain when needed up to a bounded number of attempts.
+  version: 1.0.0
+spec:
+  objective: Help a student understand a homework concept at their grade level, verified against a comprehension rubric before finishing.
+  policies: { maxConcurrency: 2, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Concept, subject, and grade level
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The homework concept or question, the subject, and the student's grade level." }
+        x-ladder-input-mode: text
+    - id: explain
+      kind: agent
+      inlineRole: true
+      name: Explain the concept
+      role: Patient tutor who explains concepts at a student's grade level.
+      prompt: Explain the stated concept in language appropriate to the student's grade level, using a concrete example. If prior comprehension feedback is provided, address the specific points flagged as unclear and try a different explanation approach. Limit re-explanation to at most 3 attempts total.
+      capabilities: { skills: [teaching], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [explanation], properties: { explanation: { type: string }, example: { type: string } } }
+    - id: comprehension-check
+      kind: teacher
+      inlineRole: true
+      name: Rubric-based comprehension check
+      role: Teacher model that scores how well an explanation would land with the stated student and flags what needs re-explaining.
+      prompt: Score the explanation against a rubric covering grade-level appropriateness, clarity, and whether the example would make sense to the student. Identify specific parts of the explanation that are likely to confuse the student.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [rubricScore, unclearPoints], properties: { rubricScore: { type: number }, unclearPoints: { type: array, items: { type: string } } } }
+      config: { teacherModel: host:teacher-model, feedbackMode: rubric }
+    - id: gate
+      kind: evaluate
+      inlineRole: true
+      name: Comprehension gate
+      role: Independent evaluator who decides whether the rubric score is high enough to consider the concept understood.
+      prompt: Decide whether the rubric score and flagged unclear points indicate the student would understand the explanation. Return a score, a pass/fail verdict, and the specific reasons behind it.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.75 }
+    - id: route
+      kind: condition
+      name: Understood or needs re-explanation
+      config: { expression: "gate.passed", branches: [ { label: Understood, when: "passed == true" }, { label: "Needs re-explanation", when: "passed == false" } ] }
+    - id: reexplain-loop
+      kind: loop
+      name: Bounded re-explanation loop
+      config: { body: [explain, comprehension-check, gate, route], exitCondition: "gate.passed == true", maxIterations: 3, onExhausted: warn }
+    - id: result
+      kind: output
+      name: Understood explanation
+  edges:
+    - { id: e1, from: intake, to: explain, kind: data }
+    - { id: e2, from: explain, to: comprehension-check, kind: data }
+    - { id: e3, from: comprehension-check, to: gate, kind: data }
+    - { id: e4, from: gate, to: route, kind: data }
+    - { id: e5, from: route, to: reexplain-loop, kind: control, condition: "passed == false" }
+    - { id: e6, from: route, to: result, kind: control, condition: "passed == true" }
+    - { id: e7, from: reexplain-loop, to: result, kind: control, condition: loop_exit }
+    - { id: e8, from: reexplain-loop, to: result, kind: control, condition: loop_exhausted }

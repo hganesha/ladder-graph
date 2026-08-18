@@ -1,0 +1,49 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: budget-subscription-review
+  title: Household budget and spend review
+  description: Deduplicate transaction records, categorize spending and flag waste, then score anomalies and savings potential.
+  version: 1.0.0
+spec:
+  objective: Give a household a clear picture of where money is going and where it can realistically be saved.
+  policies: { maxConcurrency: 2, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Transaction records and budget goals
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions, including raw transaction or subscription records and any savings goal. }
+        x-ladder-input-mode: text
+    - id: dedupe-transactions
+      kind: transform
+      name: Normalize and deduplicate transaction records
+      config: { operation: deduplicate, expression: "normalize merchant names and dates, then remove duplicate or double-reported transactions" }
+    - id: categorizer
+      kind: agent
+      inlineRole: true
+      name: Spend categorizer and waste flagger
+      role: Categorizer that groups deduplicated transactions and flags likely waste or forgotten subscriptions.
+      prompt: Categorize the deduplicated transactions into everyday spend categories (housing, groceries, subscriptions, discretionary, etc.) and flag recurring charges that look like unused or forgotten subscriptions, duplicate services, or unusually frequent small purchases. This is a general spending review, not financial advice; for decisions about debt, taxes, or investments recommend the household confirm with a qualified financial advisor or accountant.
+      capabilities: { skills: [domain-analysis], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: savings-score
+      kind: evaluate
+      inlineRole: true
+      name: Anomaly and savings-potential score
+      role: Independent evaluator scoring spending anomalies and realistic savings potential.
+      prompt: Review the categorized spending and flagged items for anomalies such as sudden spikes or duplicate charges, and score the realistic savings potential if the flagged waste were addressed. Return the score, a passed flag against the household's stated savings goal, and the specific reasons. Note this is informational only and any major financial decision should be confirmed with a qualified financial advisor or accountant.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.5 }
+    - id: result
+      kind: output
+      name: Spend review with flagged waste and savings score
+  edges:
+    - { id: e1, from: intake, to: dedupe-transactions, kind: data }
+    - { id: e2, from: dedupe-transactions, to: categorizer, kind: data }
+    - { id: e3, from: categorizer, to: savings-score, kind: data }
+    - { id: e4, from: savings-score, to: result, kind: data }

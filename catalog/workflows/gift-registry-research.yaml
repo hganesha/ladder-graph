@@ -1,0 +1,63 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: gift-registry-research
+  title: Registry or gift-list research matched to budget
+  description: Match a stated registry or gift list against a shopper's interests and budget, and return ranked, in-budget ideas.
+  version: 1.0.0
+spec:
+  objective: Help a gift buyer pick items that genuinely fit the recipient's stated interests or registry and stay within budget.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: intake
+      kind: input
+      name: Registry or interests and budget
+      summary: The registry, gift list, or stated interests, along with the buyer's budget.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The registry contents or the recipient's stated interests and occasion, plus the buyer's budget. }
+        x-ladder-input-mode: text
+    - id: preference-matcher
+      kind: agent
+      inlineRole: true
+      name: Preference matcher
+      summary: Reads the registry or stated interests and proposes items that genuinely fit them.
+      role: Thoughtful gift researcher matching items to what the recipient actually said they wanted.
+      prompt: Read the registry or stated interests and propose candidate items that plausibly match them, giving a short reason for each match tied back to something the recipient actually said or listed. Do not invent a specific price for any candidate item; describe it qualitatively and flag that the price needs to be checked if it is not given. Avoid suggesting items that only loosely relate to the stated interests.
+      capabilities: { skills: [decision-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: budget-filter
+      kind: transform
+      name: Filter to budget
+      summary: Keep only the candidate items that fit within the stated budget.
+      config: { operation: filter, expression: "keep only candidate items whose known or estimated price fits within the stated budget" }
+    - id: match-quality-evaluate
+      kind: evaluate
+      inlineRole: true
+      name: Match quality score
+      summary: Score how well each remaining candidate actually fits the stated interests.
+      role: Neutral evaluator checking that the surviving candidates are genuinely good matches, not just in budget.
+      prompt: Score each remaining in-budget candidate on how well it actually fits the recipient's stated interests or registry, not merely on price fit. Give a clear reason tied to the original request for each score, and lower confidence for any candidate whose price was only estimated rather than confirmed. Do not fabricate a specific price or product detail that was not already supplied.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.6 }
+    - id: ranked-collect
+      kind: aggregator
+      name: Collect ranked ideas
+      summary: Gather the scored candidates into one ranked list with rationale.
+      config: { aggregation: collect }
+    - id: result
+      kind: output
+      name: Ranked gift ideas
+      summary: The ranked, in-budget gift ideas with the reasoning behind each pick.
+  edges:
+    - { id: e1, from: intake, to: preference-matcher, kind: data }
+    - { id: e2, from: preference-matcher, to: budget-filter, kind: data }
+    - { id: e3, from: budget-filter, to: match-quality-evaluate, kind: data }
+    - { id: e4, from: match-quality-evaluate, to: ranked-collect, kind: data }
+    - { id: e5, from: ranked-collect, to: result, kind: data }

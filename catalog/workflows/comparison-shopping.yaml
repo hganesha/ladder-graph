@@ -1,0 +1,77 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: comparison-shopping
+  title: Comparison shopping across retailers
+  description: Compare a specific product across multiple retailers on price, total cost of ownership, and value.
+  version: 1.0.0
+spec:
+  objective: Help a shopper pick the retailer and configuration that gives the best real value for a specific product.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: intake
+      kind: input
+      name: Product and retailer listings
+      summary: The product being compared and the candidate retailer listings or links.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The product to compare, plus the retailer listings, links, or notes to evaluate. }
+        x-ladder-input-mode: text
+    - id: normalize-listings
+      kind: transform
+      name: Normalize listing fields
+      summary: Pull each listing into a common shape so the analysts compare like with like.
+      config: { operation: select, expression: "extract product name, retailer, listed price, shipping and fees, and stated specs from each candidate listing" }
+    - id: price-spec-analyst
+      kind: agent
+      inlineRole: true
+      name: Price and spec analyst
+      summary: Compares sticker price, shipping, fees, and spec differences across retailers.
+      role: Careful comparison shopper focused on total cost of ownership.
+      prompt: Review the normalized listings and compare price, shipping, taxes, and any bundled fees across retailers, noting spec differences that affect the comparison. Do not assume a price or fee that is not present in the listing text, and mark any figure that is missing or unclear as unverified rather than guessing. State which retailer appears cheapest once shipping and fees are included, and flag any listing that seems to be for a different configuration or bundle than the others.
+      capabilities: { skills: [decision-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: review-quality-analyst
+      kind: agent
+      inlineRole: true
+      name: Review and reputation analyst
+      summary: Assesses seller reputation and review quality for each retailer's listing.
+      role: Skeptical shopper who checks seller trustworthiness before recommending a purchase.
+      prompt: Review whatever seller ratings, return policies, and customer reviews are available for each retailer's listing and summarize how trustworthy each source looks. Flag reviews or ratings that look incentivized, templated, or otherwise low-trust rather than treating them all at face value, and note when a retailer has too little review data to judge confidently. Do not invent a rating value or review count that was not actually provided.
+      capabilities: { skills: [evaluation], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: parallel-analysis
+      kind: group
+      name: Parallel listing analysis
+      summary: Run the price and spec analyst alongside the review quality analyst.
+      config: { members: [price-spec-analyst, review-quality-analyst], execution: parallel, exit: aggregate }
+    - id: merge-findings
+      kind: aggregator
+      name: Merge analyst findings
+      summary: Combine the cost comparison and the trust assessment into one candidate list.
+      config: { aggregation: merge }
+    - id: value-score
+      kind: evaluate
+      inlineRole: true
+      name: Best value score
+      summary: Score each retailer option on overall value, not just lowest price.
+      role: Neutral evaluator weighing price, total cost, and trustworthiness together.
+      prompt: Using the merged findings, score each retailer option on total cost of ownership and seller trustworthiness together, and identify the best value option with clear reasons. Treat any unverified price or any low-trust review flag as a reason to lower confidence rather than ignoring it. Do not fabricate numbers that were not supplied by the upstream analysts.
+      capabilities: { skills: [evaluation], tools: [read, calculate], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.7 }
+    - id: result
+      kind: output
+      name: Best value recommendation
+      summary: The recommended retailer and listing with the comparison and trust notes behind it.
+  edges:
+    - { id: e1, from: intake, to: normalize-listings, kind: data }
+    - { id: e2, from: normalize-listings, to: parallel-analysis, kind: data }
+    - { id: e3, from: parallel-analysis, to: merge-findings, kind: data }
+    - { id: e4, from: merge-findings, to: value-score, kind: data }
+    - { id: e5, from: value-score, to: result, kind: data }

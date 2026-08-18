@@ -1,0 +1,49 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: volunteer-matching
+  title: Volunteer opportunity matching to skills and availability
+  description: Research volunteer opportunities, filter them to what matches stated skills and availability, and score the fit of each remaining option.
+  version: 1.0.0
+spec:
+  objective: Help someone find volunteer opportunities that genuinely fit their skills and available time.
+  policies: { maxConcurrency: 2, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Skills, interests, and availability
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The person's skills, causes they care about, location, and availability (days/hours per week) for volunteering." }
+        x-ladder-input-mode: text
+    - id: research
+      kind: agent
+      inlineRole: true
+      name: Volunteer opportunity researcher
+      role: Researcher who finds volunteer opportunities matching stated causes and location.
+      prompt: Look for volunteer opportunities near the stated location that align with the person's stated causes of interest. For each candidate, note the organization, the role, required skills, and the time commitment. Do not invent specific opportunities you cannot support; describe how to search for and verify them instead.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, required: [candidates], properties: { candidates: { type: array, items: { type: object } } } }
+    - id: filter
+      kind: transform
+      name: Filter by skills and availability
+      config: { operation: filter, expression: "keep only candidates whose required skills and time commitment match the person's stated skills and availability" }
+    - id: fit-score
+      kind: evaluate
+      inlineRole: true
+      name: Per-opportunity fit score
+      role: Independent evaluator who scores how well each remaining opportunity fits the person's skills and availability.
+      prompt: For each filtered opportunity, score how well its required skills, time commitment, and cause area match the person's stated skills, availability, and interests. Return a score and pass/fail verdict per opportunity along with specific reasons.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.6 }
+    - id: result
+      kind: output
+      name: Matched volunteer opportunities
+  edges:
+    - { id: e1, from: intake, to: research, kind: data }
+    - { id: e2, from: research, to: filter, kind: data }
+    - { id: e3, from: filter, to: fit-score, kind: data }
+    - { id: e4, from: fit-score, to: result, kind: data }

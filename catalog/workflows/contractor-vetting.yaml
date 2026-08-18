@@ -1,0 +1,65 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: contractor-vetting
+  title: Contractor or home-service vendor vetting
+  description: Verify a contractor's credentials and reputation in parallel, then require family approval before hiring.
+  version: 1.0.0
+spec:
+  objective: Give a confident go/no-go on a home-service contractor before signing a contract.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [approval] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Contractor and job details
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions (contractor name, trade, location, and job scope). }
+        x-ladder-input-mode: text
+    - id: credential-check
+      kind: agent
+      inlineRole: true
+      name: License and insurance verifier
+      role: Verifier checking license status, insurance coverage, and complaint history for home-service contractors.
+      prompt: Describe how to verify the contractor's license status, liability insurance, bonding, and any complaint or disciplinary history through the relevant state or local licensing board. Note any red flags such as lapsed licenses or unresolved complaints. Never assert a license or insurance policy is currently valid without a verifiable source; state clearly what should be confirmed directly with the licensing body or insurer.
+      capabilities: { skills: [domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: review-reader
+      kind: agent
+      inlineRole: true
+      name: Review-sentiment reader
+      role: Reader synthesizing customer review sentiment, alert to fake or incentivized reviews.
+      prompt: Read available customer reviews for the contractor and summarize recurring praise and complaints, especially around punctuality, workmanship, and pricing surprises. Flag any reviews that look templated, duplicated, or incentivized, and note if the overall review volume is too low to be reliable.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: vet-group
+      kind: group
+      name: Parallel vetting
+      config: { members: [credential-check, review-reader], execution: parallel, exit: aggregate }
+    - id: vote
+      kind: aggregator
+      name: Combine vetting signals
+      config: { aggregation: vote }
+    - id: score
+      kind: evaluate
+      inlineRole: true
+      name: Overall fit and risk score
+      role: Independent evaluator weighing credential and reputation signals.
+      prompt: Score the contractor's overall fit and risk using the combined credential and review signals. Weigh unresolved license or insurance issues heavily against positive reviews. Return a numeric score, a pass/fail determination, and the specific reasons behind it.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.75 }
+    - id: approval
+      kind: approval
+      name: Family approves before hiring
+    - id: result
+      kind: output
+      name: Go/no-go with supporting evidence
+  edges:
+    - { id: e1, from: intake, to: vet-group, kind: data }
+    - { id: e2, from: vet-group, to: vote, kind: data }
+    - { id: e3, from: vote, to: score, kind: data }
+    - { id: e4, from: score, to: approval, kind: dependency }
+    - { id: e5, from: approval, to: result, kind: dependency, condition: approved }

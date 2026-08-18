@@ -1,0 +1,50 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: points-miles-optimizer
+  title: "Points and miles redemption optimizer"
+  description: Research redemption options for a trip, compute point values with a host calculator, and recommend whether to redeem points or pay cash.
+  version: 1.0.0
+spec:
+  objective: Recommend whether points/miles redemption or cash payment is the better value for a given trip, with reasoning.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Trip and loyalty program details
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: Trip details, available loyalty programs, and approximate points/miles balances. }
+        x-ladder-input-mode: text
+    - id: redemption-researcher
+      kind: agent
+      inlineRole: true
+      name: Redemption options researcher
+      role: Researcher on loyalty program redemption options for a trip.
+      prompt: Research the redemption options available across the traveler's loyalty programs for this trip, describing typical redemption categories and required point ranges rather than asserting exact current prices or award chart values as fact. Note which figures depend on live availability and should be re-checked close to booking. Cross-check program rules where possible.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, properties: { redemption_options: { type: array, items: { type: string } }, notes_to_recheck: { type: array, items: { type: string } } } }
+    - id: point-value-calculator
+      kind: tool
+      name: Host-resolved point-value calculator
+      summary: Deterministic calculator that converts points/miles quantities into an estimated cents-per-point value.
+      capabilities: { skills: [], tools: [calculate], permissions: [read-only] }
+    - id: redemption-recommendation
+      kind: evaluate
+      inlineRole: true
+      name: Compare cash price versus points value
+      role: Independent evaluator comparing redemption value against paying cash.
+      prompt: Compare the calculated points value against the general price range for paying cash, and recommend which is the better use of points for this trip, explaining the reasoning. Avoid asserting a specific cash price as fact; describe it as an estimate to confirm at booking. Flag that redemption values and cash prices can both change and should be reconfirmed close to booking.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [recommendation, reasoning], properties: { recommendation: { type: string, enum: [redeem-points, pay-cash, either] }, reasoning: { type: string } } }
+      config: { threshold: 0.6 }
+    - id: result
+      kind: output
+      name: Redemption recommendation
+  edges:
+    - { id: e1, from: intake, to: redemption-researcher, kind: data }
+    - { id: e2, from: redemption-researcher, to: point-value-calculator, kind: data }
+    - { id: e3, from: point-value-calculator, to: redemption-recommendation, kind: data }
+    - { id: e4, from: redemption-recommendation, to: result, kind: data }

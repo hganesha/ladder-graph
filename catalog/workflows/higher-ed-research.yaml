@@ -1,0 +1,97 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: higher-ed-research
+  title: Higher education program research & comparison
+  description: Research and compare candidate colleges or universities against a student's fit, cost, and admissions odds, then score the shortlist against the family's priorities.
+  version: 1.0.0
+spec:
+  objective: Produce a well-researched, priority-scored shortlist of colleges or universities for a student.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: student-profile
+      kind: input
+      name: Student profile and priorities
+      summary: The student's academic profile, budget, priorities, and candidate schools.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The student's academic profile, budget, priorities, and target list of colleges or universities." }
+        x-ladder-input-mode: text
+    - id: program-fit-analyst
+      kind: agent
+      inlineRole: true
+      name: Academic program fit analyst
+      summary: Assesses how well each school's programs match the student's interests.
+      role: Higher-education program-fit researcher
+      prompt: Research how well each candidate school's academic programs, majors, and campus environment match the student's stated interests and priorities. Note strengths, gaps, and any programs that stand out for the student's intended major. Describe what to look up on each school's official site rather than asserting specific facts you have not verified. This is informational research only, not professional college-admissions counseling, and the family should confirm details with the schools and a licensed counselor if needed.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: cost-roi-analyst
+      kind: agent
+      inlineRole: true
+      name: Cost and ROI analyst
+      summary: Estimates the general cost and return-on-investment picture for each school.
+      role: Higher-education cost and return-on-investment researcher
+      prompt: Estimate the general cost picture and likely return on investment for each candidate school based on published tuition, aid, and outcomes data the family should verify directly. Describe what published data to check, such as net price calculators and outcomes reports, rather than inventing dollar figures. This is not financial advice, and the family should confirm actual costs and aid with each school's financial aid office before deciding.
+      capabilities: { skills: [finance-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: admissions-odds-analyst
+      kind: agent
+      inlineRole: true
+      name: Admissions odds analyst
+      summary: Assesses how competitive admissions are relative to the student's profile.
+      role: Admissions likelihood researcher
+      prompt: Assess how competitive each candidate school's admissions are relative to the student's academic profile, using published acceptance-rate and typical-admit-profile data as a guide. Categorize each school as a reach, match, or likely option and explain the reasoning. Note that admissions outcomes are inherently uncertain and this analysis is not a guarantee of any result.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: parallel-research-group
+      kind: group
+      name: Parallel school research
+      summary: Runs the fit, cost, and admissions analysts side by side.
+      config: { members: [program-fit-analyst, cost-roi-analyst, admissions-odds-analyst], execution: parallel, exit: aggregate }
+    - id: merge-findings
+      kind: aggregator
+      name: Merge research findings
+      summary: Combines the three analyst outputs into one research packet.
+      config: { aggregation: merge }
+    - id: score-against-priorities
+      kind: evaluate
+      inlineRole: true
+      name: Score against student priorities
+      summary: Scores the merged research against the student's stated priorities.
+      role: Independent priorities-fit evaluator
+      prompt: Score the merged research against the student's stated priorities from the intake brief. Return a numeric score, a pass/fail on whether the shortlist is ready, and clear reasons for the score. This is advisory research support, not a guarantee of any admissions or financial outcome.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.75 }
+    - id: shortlist-ready
+      kind: condition
+      name: Shortlist ready?
+      summary: Branches on whether the shortlist meets the priorities bar.
+      config: { expression: "score-against-priorities.passed", branches: [ { label: Ready, when: "true" }, { label: NeedsMoreResearch, when: "false" } ] }
+    - id: expand-research
+      kind: agent
+      inlineRole: true
+      name: Expand research on weak spots
+      summary: Identifies gaps and suggests follow-up research.
+      role: Follow-up research specialist
+      prompt: Identify the specific gaps the evaluator flagged and describe additional research the family should do to close them, such as campus visits, additional program pages, or advisor conversations. Do not fabricate specifics; point to sources the family should check.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: shortlist-output
+      kind: output
+      name: College shortlist and research summary
+      summary: The final shortlist with supporting research and scores.
+  edges:
+    - { id: e1, from: student-profile, to: parallel-research-group, kind: data }
+    - { id: e2, from: parallel-research-group, to: merge-findings, kind: data }
+    - { id: e3, from: merge-findings, to: score-against-priorities, kind: data }
+    - { id: e4, from: score-against-priorities, to: shortlist-ready, kind: data }
+    - { id: e5, from: shortlist-ready, to: shortlist-output, kind: control, condition: "true" }
+    - { id: e6, from: shortlist-ready, to: expand-research, kind: control, condition: "false" }
+    - { id: e7, from: expand-research, to: shortlist-output, kind: data }

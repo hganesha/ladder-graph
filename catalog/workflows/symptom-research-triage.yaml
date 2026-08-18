@@ -1,0 +1,62 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: symptom-research-triage
+  title: Symptom research and urgency triage (not a diagnosis)
+  description: Research symptoms a family member is experiencing, classify how urgently they need professional attention, and route to an appropriate next step.
+  version: 1.0.0
+spec:
+  objective: Help a family member understand general information about their symptoms and get a clear, appropriately cautious recommendation on what to do next, without ever diagnosing them.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Symptoms and context
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: A description of the symptoms, how long they have lasted, who is affected, and any relevant history. }
+        x-ladder-input-mode: text
+    - id: researcher
+      kind: agent
+      inlineRole: true
+      name: Symptom background researcher
+      role: Careful, strictly non-diagnostic health information researcher.
+      prompt: Research general, publicly known information about the described symptoms, including common possible causes and typical guidance on when such symptoms warrant professional attention. Do not diagnose any condition, do not assert medical certainty, and do not recommend starting, stopping, or changing any medication. Explicitly state that this is general information only, not a substitute for a doctor or pharmacist, and that the person should seek professional care for anything urgent or if they are ever in doubt. Present findings as possibilities, not conclusions.
+      capabilities: { skills: [research, clinical-review], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: classify
+      kind: evaluate
+      inlineRole: true
+      name: Urgency classifier
+      role: Cautious urgency classifier for symptom triage, biased toward recommending professional review whenever uncertain.
+      prompt: Using only the researcher's findings, classify the urgency of the described symptoms as routine, needs-professional-review, or urgent. Never diagnose or claim certainty about a cause; you are only estimating how quickly a professional should be consulted. When information is ambiguous or incomplete, classify upward toward the more cautious category rather than downward. Reiterate that this is not a diagnosis and that professional care should be sought for anything urgent.
+      capabilities: { skills: [evaluation, clinical-review], tools: [read], permissions: [read-only] }
+      outputSchema:
+        type: object
+        required: [score, passed, reasons]
+        properties:
+          score: { type: number }
+          passed: { type: boolean }
+          reasons: { type: array, items: { type: string } }
+      config: { threshold: 0.6 }
+    - id: route
+      kind: condition
+      name: Route by urgency
+      config:
+        expression: "classify.reasons"
+        branches:
+          - { label: Routine self-care, when: routine }
+          - { label: Schedule a visit, when: schedule-visit }
+          - { label: Seek urgent care, when: urgent-care }
+    - id: result
+      kind: output
+      name: Non-diagnostic guidance and recommended next step
+  edges:
+    - { id: e1, from: intake, to: researcher, kind: data }
+    - { id: e2, from: researcher, to: classify, kind: data }
+    - { id: e3, from: classify, to: route, kind: data }
+    - { id: e4, from: route, to: result, kind: control, condition: routine }
+    - { id: e5, from: route, to: result, kind: control, condition: schedule-visit }
+    - { id: e6, from: route, to: result, kind: control, condition: urgent-care }

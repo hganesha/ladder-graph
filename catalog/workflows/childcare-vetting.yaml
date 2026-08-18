@@ -1,0 +1,72 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: childcare-vetting
+  title: Childcare, daycare, or preschool vetting
+  description: Vet a candidate childcare provider, daycare, or preschool on licensing, safety record, and reviews before a parent decides to enroll.
+  version: 1.0.0
+spec:
+  objective: Give a parent a clear, balanced picture of a candidate childcare provider's licensing, safety record, and reputation, culminating in explicit parent sign-off before enrollment.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [childcare-approval] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Candidate provider details
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The name, location, and any known details of the candidate childcare provider, daycare, or preschool. }
+        x-ladder-input-mode: text
+    - id: licensing-verifier
+      kind: agent
+      inlineRole: true
+      name: Licensing and safety-record verifier
+      role: Careful researcher of public licensing status and safety records for childcare providers.
+      prompt: Research the candidate provider's licensing status and any publicly available safety-record or inspection history. Present findings as general, publicly available information only; this workflow does not provide legal or medical advice, does not diagnose, and does not recommend any medication or treatment. Note that the parent should verify current licensing directly with the relevant state or local licensing authority before enrolling.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: review-reader
+      kind: agent
+      inlineRole: true
+      name: Review-sentiment reader
+      role: Balanced reader of publicly available parent reviews and reputation signals.
+      prompt: Research publicly available parent reviews and reputation signals for the candidate provider, summarizing common themes rather than relying on any single review. This is general reputation information only, not professional advice, and does not diagnose or recommend any treatment. Note that individual reviews can be biased or outdated and should be weighed alongside a personal visit.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: vetting-group
+      kind: group
+      name: Parallel provider vetting
+      config: { members: [licensing-verifier, review-reader], execution: parallel, exit: aggregate }
+    - id: vote-findings
+      kind: aggregator
+      name: Vote-combine vetting findings
+      config: { aggregation: vote }
+    - id: assess-fit
+      kind: evaluate
+      inlineRole: true
+      name: Overall suitability assessor
+      role: Neutral assessor combining licensing, safety, and reputation findings into an overall suitability read.
+      prompt: Combine the licensing, safety-record, and reputation findings into an overall suitability assessment for the candidate provider. This is general informational guidance only, not legal or medical advice, and does not diagnose or recommend any treatment or medication. Clearly state that this assessment is not a substitute for the parent's own visit, judgment, and any needed professional consultation.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema:
+        type: object
+        required: [score, passed, reasons]
+        properties:
+          score: { type: number }
+          passed: { type: boolean }
+          reasons: { type: array, items: { type: string } }
+      config: { threshold: 0.6 }
+    - id: childcare-approval
+      kind: approval
+      name: Parent sign-off before enrolling
+      summary: The parent reviews the assessment and explicitly approves before any enrollment step proceeds.
+    - id: result
+      kind: output
+      name: Vetting summary and enrollment decision
+  edges:
+    - { id: e1, from: intake, to: vetting-group, kind: data }
+    - { id: e2, from: vetting-group, to: vote-findings, kind: data }
+    - { id: e3, from: vote-findings, to: assess-fit, kind: data }
+    - { id: e4, from: assess-fit, to: childcare-approval, kind: data }
+    - { id: e5, from: childcare-approval, to: result, kind: dependency, condition: approved }

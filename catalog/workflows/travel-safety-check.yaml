@@ -1,0 +1,51 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: travel-safety-check
+  title: "Travel advisory and safety check for a destination"
+  description: Research current advisory and safety context for a destination, classify the risk level, and route to a Safe, Caution, or Avoid outcome.
+  version: 1.0.0
+spec:
+  objective: Give the traveler a clear, sourced risk classification for a destination ahead of booking or departure.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Destination and travel window
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The destination(s), travel dates, and traveler nationality if relevant. }
+        x-ladder-input-mode: text
+    - id: advisory-researcher
+      kind: agent
+      inlineRole: true
+      name: Advisory and safety researcher
+      role: Researcher on travel advisories and destination safety context.
+      prompt: Research the categories of safety and advisory context relevant to this destination (government travel advisories, health notices, local conditions) and describe where to verify each one's current official status rather than stating a specific advisory level as fact. Cross-check across at least two sources when possible. Flag that advisory levels can change and should be reconfirmed close to departure.
+      capabilities: { skills: [research, compliance-review], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, properties: { advisory_categories: { type: array, items: { type: string } }, sources_to_verify: { type: array, items: { type: string } }, notes: { type: string } } }
+    - id: risk-classifier
+      kind: evaluate
+      inlineRole: true
+      name: Classify overall risk
+      role: Independent evaluator who classifies destination risk from the researched context.
+      prompt: Based on the researched advisory categories and notes, classify the overall risk as safe, caution, or avoid, and give the reasons behind the classification. Note explicitly that this classification is a snapshot and should be reconfirmed against official sources close to departure.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [classification, reasons], properties: { classification: { type: string, enum: [safe, caution, avoid] }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.7 }
+    - id: decision
+      kind: condition
+      name: Risk classification routing
+      config: { expression: "risk-classifier.classification", branches: [ { label: Safe, when: safe }, { label: Caution, when: caution }, { label: Avoid, when: avoid } ] }
+    - id: result
+      kind: output
+      name: Safety classification and reasoning
+  edges:
+    - { id: e1, from: intake, to: advisory-researcher, kind: data }
+    - { id: e2, from: advisory-researcher, to: risk-classifier, kind: data }
+    - { id: e3, from: risk-classifier, to: decision, kind: data }
+    - { id: e4, from: decision, to: result, kind: control, condition: safe }
+    - { id: e5, from: decision, to: result, kind: control, condition: caution }
+    - { id: e6, from: decision, to: result, kind: control, condition: avoid }

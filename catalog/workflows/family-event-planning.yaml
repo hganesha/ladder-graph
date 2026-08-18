@@ -1,0 +1,77 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: family-event-planning
+  title: Family event planning (party, reunion, holiday) with budget tracking
+  description: Plan vendors, venue, and timeline for a family event, track the plan against budget, and replan automatically if it runs over.
+  version: 1.0.0
+spec:
+  objective: Produce a vendor, venue, and timeline plan for a family event that fits the stated budget, replanning up to two times if the draft plan exceeds it.
+  policies: { maxConcurrency: 3, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Event details and budget
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The event type, date, guest count, budget, and any vendor or venue preferences. }
+        x-ladder-input-mode: text
+    - id: vendor-venue-researcher
+      kind: agent
+      inlineRole: true
+      name: Vendor and venue researcher
+      role: Practical researcher of event vendors and venues.
+      prompt: Research vendor and venue options that fit the family's stated event type, guest count, date, and preferences. List estimated prices for each option and note availability considerations. Flag any option that looks likely to strain the stated budget.
+      capabilities: { skills: [research, supply-chain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: budget-timeline-planner
+      kind: agent
+      inlineRole: true
+      name: Budget and timeline planner
+      role: Practical planner for event budgets and timelines.
+      prompt: Draft a line-item budget and a planning timeline for the family's event based on the stated guest count, date, and budget. Show running totals against the stated budget and flag any line items that push the plan over budget.
+      capabilities: { skills: [finance-analysis, operations-planning], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: plan-group
+      kind: group
+      name: Parallel vendor and budget planning
+      config: { members: [vendor-venue-researcher, budget-timeline-planner], execution: parallel, exit: aggregate }
+    - id: merge-plan
+      kind: aggregator
+      name: Merge vendor, venue, and budget plan
+      config: { aggregation: merge }
+    - id: budget-check
+      kind: evaluate
+      inlineRole: true
+      name: Budget compliance check
+      role: Independent evaluator of whether the plan fits the stated budget.
+      prompt: Check whether the merged plan's total estimated cost fits within the family's stated budget. Return score, passed, and reasons, listing specific line items that caused any overage.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 1.0 }
+    - id: replanner
+      kind: agent
+      inlineRole: true
+      name: Budget replanner
+      role: Practical replanner that trims an over-budget event plan.
+      prompt: Given the plan and the specific overage reasons from the budget check, revise the vendor, venue, or timeline choices to bring the total estimated cost within the stated budget while preserving the family's stated priorities. Show the updated line-item totals.
+      capabilities: { skills: [finance-analysis, operations-planning], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: replan-loop
+      kind: loop
+      name: Replan until within budget
+      config: { body: [budget-check, replanner], exitCondition: "budget-check.passed == true", maxIterations: 2, onExhausted: warn }
+    - id: result
+      kind: output
+      name: Final event plan with budget status
+  edges:
+    - { id: e1, from: intake, to: plan-group, kind: data }
+    - { id: e2, from: plan-group, to: merge-plan, kind: data }
+    - { id: e3, from: merge-plan, to: budget-check, kind: data }
+    - { id: e4, from: budget-check, to: replanner, kind: control, condition: "passed == false" }
+    - { id: e4-pass, from: budget-check, to: result, kind: control, condition: "passed == true" }
+    - { id: e5, from: replanner, to: replan-loop, kind: dependency }
+    - { id: e6, from: replan-loop, to: result, kind: control, condition: loop_exit }
+    - { id: e6-exhausted, from: replan-loop, to: result, kind: control, condition: loop_exhausted }

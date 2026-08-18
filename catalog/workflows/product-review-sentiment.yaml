@@ -1,0 +1,80 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: product-review-sentiment
+  title: Product review sentiment research with multiple agents
+  description: Read a product's reviews from several angles at once, vote across the results, and produce a single trustworthy sentiment verdict.
+  version: 1.0.0
+spec:
+  objective: Give a shopper a trustworthy read on how a product actually performs for real owners, without being fooled by a few loud or fake reviews.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: reviews-intake
+      kind: input
+      name: Product reviews and listing
+      summary: The product and the body of customer reviews to analyze.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The product being researched, plus the reviews, review pages, or review export to analyze. }
+        x-ladder-input-mode: document
+    - id: complaint-pattern-analyst
+      kind: agent
+      inlineRole: true
+      name: Recurring complaint analyst
+      summary: Looks for complaints that repeat across many independent reviewers.
+      role: Analyst hunting for genuine, recurring product defects rather than one-off gripes.
+      prompt: Read the reviews and identify complaints that recur across multiple independent reviewers rather than a single unhappy customer. For each recurring complaint, note roughly how often it appears and quote representative language. Flag any complaint cluster that looks incentivized, templated, or otherwise low-trust rather than treating every complaint at face value, and say plainly when the evidence for a complaint is thin.
+      capabilities: { skills: [evaluation], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: praise-pattern-analyst
+      kind: agent
+      inlineRole: true
+      name: Genuine praise analyst
+      summary: Looks for praise that reflects real satisfied use, not marketing language.
+      role: Analyst distinguishing genuine owner satisfaction from generic promotional praise.
+      prompt: Read the reviews and identify praise that reflects specific, plausible real-world use rather than generic marketing phrasing. For each praise pattern, note roughly how often it appears and quote representative language. Flag reviews whose praise looks incentivized, templated, or otherwise low-trust rather than counting them as genuine satisfaction, and say plainly when a positive pattern rests on thin evidence.
+      capabilities: { skills: [evaluation], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: low-trust-review-hunter
+      kind: agent
+      inlineRole: true
+      name: Low-trust review hunter
+      summary: Specifically hunts for fake, incentivized, or templated reviews.
+      role: Adversarial analyst whose only job is spotting reviews that should not be trusted.
+      prompt: Scan the reviews specifically for signs of fake, incentivized, or templated content, such as repeated phrasing across reviewers, unnatural enthusiasm, disclosed free products, posting bursts, or generic text that could apply to any product. List each suspect review or cluster with the specific signal that triggered suspicion, and estimate what share of the review set looks low-trust. Do not accuse a review of being fake without pointing to a concrete signal.
+      capabilities: { skills: [application-security], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: sentiment-group
+      kind: group
+      name: Parallel sentiment research
+      summary: Run the complaint, praise, and low-trust analysts side by side over the same review set.
+      config: { members: [complaint-pattern-analyst, praise-pattern-analyst, low-trust-review-hunter], execution: parallel, exit: aggregate }
+    - id: sentiment-vote
+      kind: aggregator
+      name: Vote across analysts
+      summary: Combine the three analysts' findings so no single outlier source dominates the verdict, and surface where they disagree.
+      config: { aggregation: vote }
+    - id: sentiment-verdict
+      kind: evaluate
+      inlineRole: true
+      name: Overall sentiment verdict
+      summary: Synthesize a single sentiment verdict with confidence and the specific recurring issues.
+      role: Neutral synthesizer producing one defensible verdict from several independent read-throughs.
+      prompt: Using the voted, combined findings, produce one overall sentiment verdict for the product along with a confidence level and the specific recurring issues and strengths that back it up. Discount anything the low-trust hunter flagged as suspect, and lower your confidence when the three analysts disagree with each other or when the low-trust share of reviews was high. Do not state a specific rating or number that was not derived from the upstream findings.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } }, confidence: { type: string }, recurringIssues: { type: array, items: { type: string } } } }
+      config: { threshold: 0.6 }
+    - id: result
+      kind: output
+      name: Sentiment verdict
+      summary: The final sentiment verdict, confidence, and the recurring issues or strengths driving it.
+  edges:
+    - { id: e1, from: reviews-intake, to: sentiment-group, kind: data }
+    - { id: e2, from: sentiment-group, to: sentiment-vote, kind: data }
+    - { id: e3, from: sentiment-vote, to: sentiment-verdict, kind: data }
+    - { id: e4, from: sentiment-verdict, to: result, kind: data }

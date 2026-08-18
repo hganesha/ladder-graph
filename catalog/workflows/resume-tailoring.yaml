@@ -1,0 +1,51 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: resume-tailoring
+  title: Resume and cover letter tailoring per job posting
+  description: Tailor a resume and cover letter to a specific job posting and check the result against the posting's actual requirements before finalizing.
+  version: 1.0.0
+spec:
+  objective: Produce a resume and cover letter tailored to a specific job posting that credibly matches its stated requirements.
+  policies: { maxConcurrency: 2, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Base resume, cover letter, and job posting
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The candidate's base resume and cover letter, plus the full text of the job posting to tailor them to." }
+        x-ladder-input-mode: text
+    - id: tailor
+      kind: agent
+      inlineRole: true
+      name: Tailor resume and cover letter
+      role: Resume and cover letter writer who tailors materials to a specific job posting.
+      prompt: Rewrite the resume bullet points and cover letter to foreground the candidate's genuine experience that matches the posting's stated requirements and keywords. Do not fabricate experience, titles, or skills the candidate does not have; reorder and rephrase existing content instead.
+      capabilities: { skills: [writing-editing], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [resume, coverLetter], properties: { resume: { type: string }, coverLetter: { type: string } } }
+    - id: fit-check
+      kind: evaluate
+      inlineRole: true
+      name: Keyword and requirement fit check
+      role: Independent evaluator who checks tailored materials against a job posting's actual requirements.
+      prompt: Compare the tailored resume and cover letter against the job posting's required and preferred qualifications and keywords. Identify any requirement that is not addressed and any claim that is not supported by the base materials. Return a score, a pass/fail verdict, and specific reasons.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.8 }
+    - id: tailor-loop
+      kind: loop
+      name: Tailoring revision loop
+      config: { body: [tailor, fit-check], exitCondition: "fit-check.passed == true", maxIterations: 2, onExhausted: warn }
+    - id: result
+      kind: output
+      name: Tailored resume and cover letter
+  edges:
+    - { id: e1, from: intake, to: tailor, kind: data }
+    - { id: e2, from: tailor, to: fit-check, kind: data }
+    - { id: e3, from: fit-check, to: result, kind: control, condition: "passed == true" }
+    - { id: e4, from: fit-check, to: tailor-loop, kind: control, condition: "passed == false" }
+    - { id: e5, from: tailor-loop, to: result, kind: control, condition: loop_exit }
+    - { id: e6, from: tailor-loop, to: result, kind: control, condition: loop_exhausted }

@@ -1,0 +1,44 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: local-activity-discovery
+  title: Local activity or club discovery for a new city
+  description: Research local clubs, activities, and events that match stated interests in a new city, filter them to what actually fits, and rank the results.
+  version: 1.0.0
+spec:
+  objective: Help someone new to a city find and prioritize local clubs, activities, or events that match their interests and constraints.
+  policies: { maxConcurrency: 2, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Interests, city, and constraints
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The person's interests or hobbies, the city or neighborhood they're in, and any distance, schedule, or budget constraints." }
+        x-ladder-input-mode: text
+    - id: research
+      kind: agent
+      inlineRole: true
+      name: Local activity researcher
+      role: Researcher who finds local clubs, activities, and events matching stated interests.
+      prompt: Look for clubs, meetups, classes, or recurring events in the stated city that match the person's stated interests. For each candidate, note what it is, where and when it meets, and what makes it a plausible fit. Do not invent specific listings you cannot support; describe how to search for and verify them instead.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, required: [candidates], properties: { candidates: { type: array, items: { type: object } } } }
+    - id: filter
+      kind: transform
+      name: Filter by distance and schedule
+      config: { operation: filter, expression: "keep only candidates that satisfy the stated distance, schedule, and budget constraints" }
+    - id: rank
+      kind: aggregator
+      name: Ranked activity list with rationale
+      config: { aggregation: collect }
+    - id: result
+      kind: output
+      name: Ranked local activities
+  edges:
+    - { id: e1, from: intake, to: research, kind: data }
+    - { id: e2, from: research, to: filter, kind: data }
+    - { id: e3, from: filter, to: rank, kind: data }
+    - { id: e4, from: rank, to: result, kind: data }

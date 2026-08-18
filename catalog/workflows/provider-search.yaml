@@ -1,0 +1,67 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: provider-search
+  title: Doctor or specialist search matched to insurance and needs
+  description: Find doctors or specialists that are in-network, well reviewed, and matched to the family's stated needs.
+  version: 1.0.0
+spec:
+  objective: Produce a short list of candidate providers matched to insurance coverage, reputation, and the family's specific needs, without making any medical recommendation.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Care needs, location, and insurance details
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The specialty needed, location, availability preferences, and insurance plan details. }
+        x-ladder-input-mode: text
+    - id: network-checker
+      kind: agent
+      inlineRole: true
+      name: Insurance-network checker
+      role: Careful researcher who checks provider in-network status against a stated insurance plan.
+      prompt: Using the stated insurance plan details, research which candidate providers for the requested specialty and location appear to be in-network. State clearly that plan networks change and coverage should be confirmed directly with the insurer or provider before booking. This is informational research only, not medical advice, and does not diagnose or recommend treatment.
+      capabilities: { skills: [research, risk-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: reputation-researcher
+      kind: agent
+      inlineRole: true
+      name: Reputation and reviews researcher
+      role: Balanced researcher summarizing publicly available reviews and reputation signals for providers.
+      prompt: Research publicly available reviews and reputation signals for the candidate providers, noting patterns rather than individual anecdotes. Do not make medical claims about provider competence or outcomes, and do not diagnose or recommend treatment. Note that this is general reputation information only and that the family should use professional judgment and, when in doubt, consult another professional.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: search-group
+      kind: group
+      name: Parallel provider research
+      config: { members: [network-checker, reputation-researcher], execution: parallel, exit: aggregate }
+    - id: merge-results
+      kind: aggregator
+      name: Merge provider findings
+      config: { aggregation: merge }
+    - id: match-score
+      kind: evaluate
+      inlineRole: true
+      name: Fit-to-needs scorer
+      role: Neutral matcher scoring candidate providers against the family's stated needs.
+      prompt: Score each candidate provider against the family's stated needs for specialty, location, and availability, combining network status and reputation findings. Do not make any medical recommendation or claim about clinical quality; this score reflects logistical and reputational fit only. Remind the reader to verify network status directly and to choose a provider using their own judgment, including a second opinion if unsure.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema:
+        type: object
+        required: [score, passed, reasons]
+        properties:
+          score: { type: number }
+          passed: { type: boolean }
+          reasons: { type: array, items: { type: string } }
+      config: { threshold: 0.5 }
+    - id: result
+      kind: output
+      name: Ranked provider shortlist
+  edges:
+    - { id: e1, from: intake, to: search-group, kind: data }
+    - { id: e2, from: search-group, to: merge-results, kind: data }
+    - { id: e3, from: merge-results, to: match-score, kind: data }
+    - { id: e4, from: match-score, to: result, kind: data }

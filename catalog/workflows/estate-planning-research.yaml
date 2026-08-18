@@ -1,0 +1,48 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: estate-planning-research
+  title: Estate planning basics research (informational, not legal advice)
+  description: Research general estate-planning concepts relevant to a family's situation and flag open questions for a licensed attorney.
+  version: 1.0.0
+spec:
+  objective: Prepare the family with general informational research on estate-planning basics and a clear list of questions for a licensed attorney before any documents are drafted or signed.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [flag-for-attorney] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Family situation and goals
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The family's situation, assets, dependents, and estate-planning goals. }
+        x-ladder-input-mode: text
+    - id: researcher
+      kind: agent
+      inlineRole: true
+      name: Estate planning basics researcher
+      role: Careful, non-advisory researcher on estate-planning concepts.
+      prompt: Research the general estate-planning concepts relevant to the family's stated situation, such as wills, trusts, beneficiaries, and powers of attorney. State plainly that this is general informational research only, not legal advice, and explicitly note that a will or estate plan drafted without an attorney can be invalid in many jurisdictions. List the specific questions the family should bring to a licensed attorney.
+      capabilities: { skills: [research, contract-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: completeness
+      kind: evaluate
+      inlineRole: true
+      name: Completeness check
+      role: Checks whether the family's stated situation has been adequately covered.
+      prompt: Review the research and check whether it covers every major area relevant to the family's stated situation, such as dependents, assets, existing documents, and beneficiary designations. This is a completeness check only, not legal advice; list any gaps and confirm the researcher flagged the need for a licensed attorney and the risk of an invalid will without one. Return score, passed, and reasons.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.8 }
+    - id: flag-for-attorney
+      kind: approval
+      name: Flag for attorney consultation
+    - id: result
+      kind: output
+      name: Informational summary and question list for the attorney
+  edges:
+    - { id: e1, from: intake, to: researcher, kind: data }
+    - { id: e2, from: researcher, to: completeness, kind: data }
+    - { id: e3, from: completeness, to: flag-for-attorney, kind: dependency }
+    - { id: e4, from: flag-for-attorney, to: result, kind: dependency, condition: approved }

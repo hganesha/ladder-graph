@@ -1,0 +1,67 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: k12-school-comparison
+  title: K-12 school / district comparison
+  description: Narrow candidate schools by commute and budget, research remaining candidates, and score them against family priorities.
+  version: 1.0.0
+spec:
+  objective: Produce a weighted comparison of feasible K-12 schools or districts against the family's stated priorities.
+  policies:
+    maxConcurrency: 2
+    onFailure: stop
+    requireApprovalFor: []
+  nodes:
+    - id: family-requirements
+      kind: input
+      name: Family requirements and candidate schools
+      summary: Commute limits, budget, and candidate public/private schools or districts.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The family's commute limits, budget, and candidate public/private schools or districts." }
+        x-ladder-input-mode: text
+    - id: narrow-candidates
+      kind: transform
+      name: Narrow to feasible candidates
+      summary: Drops candidates outside the commute and budget constraints.
+      config: { operation: select, expression: "keep only schools within the family's commute radius and budget" }
+    - id: gather-school-details
+      kind: agent
+      inlineRole: true
+      name: Gather school details
+      summary: Collects public information on the remaining candidate schools.
+      role: K-12 school researcher
+      prompt: For each remaining candidate school or district, gather publicly available information such as programs offered, class sizes, extracurriculars, and published performance data. Describe what official district or school-report-card pages to check rather than asserting unverified statistics.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: compare-against-priorities
+      kind: agent
+      inlineRole: true
+      name: Compare against family priorities
+      summary: Builds a side-by-side comparison of the gathered details.
+      role: School comparison analyst
+      prompt: Compare the gathered school details side by side against the family's stated priorities, such as academics, commute, budget, and culture fit. Produce a clear comparison summary highlighting trade-offs between the remaining candidates.
+      capabilities: { skills: [decision-analysis], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: weighted-priority-score
+      kind: evaluate
+      inlineRole: true
+      name: Weighted priority score
+      summary: Scores each remaining school against weighted family priorities.
+      role: Independent weighted-fit evaluator
+      prompt: Score each remaining school against the family's weighted priorities and return a score, pass/fail on whether a clear top choice has emerged, and reasons for the ranking. This is advisory research support only.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.7 }
+    - id: school-comparison-output
+      kind: output
+      name: School comparison summary
+      summary: The weighted comparison and recommendation.
+  edges:
+    - { id: e1, from: family-requirements, to: narrow-candidates, kind: data }
+    - { id: e2, from: narrow-candidates, to: gather-school-details, kind: data }
+    - { id: e3, from: gather-school-details, to: compare-against-priorities, kind: data }
+    - { id: e4, from: compare-against-priorities, to: weighted-priority-score, kind: data }
+    - { id: e5, from: weighted-priority-score, to: school-comparison-output, kind: data }
