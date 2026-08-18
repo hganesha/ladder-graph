@@ -165,6 +165,93 @@ spec:
               description: Approved, pending, rejected, conditional, or other.
               dataType: string
               widget: text
+  validationRules:
+    - id: trust-name-present
+      severity: error
+      description: trust_name is required for Trust Account Opening Package extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: trust_name
+          - op: gt
+            left:
+              length: trust_name
+            right:
+              value: 0
+      sourceExpression: trust_name IS NOT NULL AND LENGTH(TRIM(trust_name)) > 0
+      supported: true
+    - id: trustee-names-present
+      severity: error
+      description: trustee_names is required for Trust Account Opening Package extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: trustee_names
+          - op: gt
+            left:
+              length: trustee_names
+            right:
+              value: 0
+      sourceExpression: trustee_names IS NOT NULL AND JSON_ARRAY_LENGTH(trustee_names) > 0
+      supported: true
+    - id: initial-deposit-amount-non-negative
+      severity: warning
+      description: initial_deposit_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: initial_deposit_amount
+          - op: gte
+            left:
+              field: initial_deposit_amount
+            right:
+              value: 0
+      sourceExpression: initial_deposit_amount IS NULL OR initial_deposit_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      trust_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Trust Account Opening Package workflow.
+      trust_tax_id_masked:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Trust Account Opening Package workflow.
+      trustee_names:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Trust Account Opening Package workflow.
+      initial_deposit_amount:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Trust Account Opening Package workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Trust Account Opening Package documents combine structured fields and narrative
+      risk/legal/compliance context.
   submissionSchema:
     type: object
     properties:
@@ -246,28 +333,6 @@ spec:
       - trustee_names
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: trust_name_present
-          rule_type: presence
-          fields:
-            - trust_name
-          expression: trust_name IS NOT NULL AND LENGTH(TRIM(trust_name)) > 0
-          severity: fail
-          description: trust_name is required for Trust Account Opening Package extraction.
-        - name: trustee_names_present
-          rule_type: array
-          fields:
-            - trustee_names
-          expression: trustee_names IS NOT NULL AND JSON_ARRAY_LENGTH(trustee_names) > 0
-          severity: fail
-          description: trustee_names is required for Trust Account Opening Package extraction.
-        - name: initial_deposit_amount_non_negative
-          rule_type: range
-          fields:
-            - initial_deposit_amount
-          expression: initial_deposit_amount IS NULL OR initial_deposit_amount >= 0
-          severity: warn
-          description: initial_deposit_amount should be non-negative when present.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

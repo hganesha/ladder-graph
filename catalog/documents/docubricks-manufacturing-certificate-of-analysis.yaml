@@ -130,49 +130,143 @@ spec:
       severity: error
       description: certificate_number is required for Certificate of Analysis extraction.
       rule:
-        op: present
-        field: certificate_number
+        op: and
+        rules:
+          - op: present
+            field: certificate_number
+          - op: gt
+            left:
+              length: certificate_number
+            right:
+              value: 0
       sourceExpression: certificate_number IS NOT NULL AND LENGTH(TRIM(certificate_number)) > 0
       supported: true
     - id: certificate-date-present
       severity: error
       description: certificate_date is required for Certificate of Analysis extraction.
       rule:
-        op: present
-        field: certificate_date
+        op: and
+        rules:
+          - op: present
+            field: certificate_date
+          - op: gt
+            left:
+              length: certificate_date
+            right:
+              value: 0
       sourceExpression: certificate_date IS NOT NULL AND LENGTH(TRIM(certificate_date)) > 0
       supported: true
     - id: supplier-name-present
       severity: error
       description: supplier_name is required for Certificate of Analysis extraction.
       rule:
-        op: present
-        field: supplier_name
+        op: and
+        rules:
+          - op: present
+            field: supplier_name
+          - op: gt
+            left:
+              length: supplier_name
+            right:
+              value: 0
       sourceExpression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
       supported: true
     - id: material-name-present
       severity: error
       description: material_name is required for Certificate of Analysis extraction.
       rule:
-        op: present
-        field: material_name
+        op: and
+        rules:
+          - op: present
+            field: material_name
+          - op: gt
+            left:
+              length: material_name
+            right:
+              value: 0
       sourceExpression: material_name IS NOT NULL AND LENGTH(TRIM(material_name)) > 0
       supported: true
     - id: lot-number-present
       severity: error
       description: lot_number is required for Certificate of Analysis extraction.
       rule:
-        op: present
-        field: lot_number
+        op: and
+        rules:
+          - op: present
+            field: lot_number
+          - op: gt
+            left:
+              length: lot_number
+            right:
+              value: 0
       sourceExpression: lot_number IS NOT NULL AND LENGTH(TRIM(lot_number)) > 0
       supported: true
     - id: test-results-present
       severity: error
       description: test_results is required for Certificate of Analysis extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: test_results
+          - op: gt
+            left:
+              length: test_results
+            right:
+              value: 0
       sourceExpression: test_results IS NOT NULL AND JSON_ARRAY_LENGTH(test_results) > 0
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      certificate_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Analysis workflow.
+      supplier_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Analysis workflow.
+      lot_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Analysis workflow.
+      test_results:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Analysis workflow.
+      certificate_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Certificate of analysis extraction.
+      material_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Certificate of analysis extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Certificate of Analysis documents combine manufacturing, quality, supplier, material, and
+      operational control context.
   outputSchema:
     type: object
     properties:

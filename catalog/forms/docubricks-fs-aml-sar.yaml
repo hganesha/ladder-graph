@@ -140,6 +140,131 @@ spec:
               description: Branch location
               dataType: string
               widget: text
+  validationRules:
+    - id: subject-name-present
+      severity: error
+      description: SAR subject name is required for case investigation and filing.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: subject_name
+          - op: gt
+            left:
+              length: subject_name
+            right:
+              value: 0
+      sourceExpression: subject_name IS NOT NULL AND LENGTH(TRIM(subject_name)) > 0
+      supported: true
+    - id: amount-non-negative
+      severity: warning
+      description: Amount involved cannot be negative.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: amount_involved
+          - op: gte
+            left:
+              field: amount_involved
+            right:
+              value: 0
+      sourceExpression: amount_involved IS NULL OR amount_involved >= 0
+      supported: true
+    - id: transaction-count-positive
+      severity: warning
+      description: Transaction count should be positive when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: transaction_count
+          - op: gt
+            left:
+              field: transaction_count
+            right:
+              value: 0
+      sourceExpression: transaction_count IS NULL OR transaction_count > 0
+      supported: true
+    - id: activity-date-order
+      severity: warning
+      description: SAR activity start date cannot be after activity end date.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: activity_start_date
+          - op: not
+            rule:
+              op: present
+              field: activity_end_date
+          - op: lte
+            left:
+              field: activity_start_date
+            right:
+              field: activity_end_date
+      sourceExpression: activity_start_date IS NULL OR activity_end_date IS NULL OR activity_start_date <= activity_end_date
+      supported: true
+    - id: activity-type-present
+      severity: warning
+      description: Suspicious activity category should be captured for AML analytics.
+      rule:
+        op: present
+        field: suspicious_activity_type
+      sourceExpression: suspicious_activity_type IS NOT NULL
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      subject_name:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Primary SAR subject identity field.
+      activity_start_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Activity date range is required for suspicious activity reporting.
+      activity_end_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Activity date range is required for suspicious activity reporting.
+      amount_involved:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Amount involved supports SAR threshold review and trend analysis.
+      suspicious_activity_type:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Activity type routes AML typology and filing workflow.
+  modelRouting:
+    primary: databricks-dbrx-instruct
+    fallbackChain:
+      - databricks-claude-sonnet
+    maxTokens: 2048
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: SAR forms contain labeled filing fields plus short narratives. DBRX Instruct is appropriate for
+      direct structured extraction; Claude Sonnet is retained for longer narrative summaries and ambiguous
+      suspicious activity typologies.
   submissionSchema:
     type: object
     properties:
@@ -201,44 +326,6 @@ spec:
       - subject_name
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: subject_name_present
-          rule_type: presence
-          fields:
-            - subject_name
-          expression: subject_name IS NOT NULL AND LENGTH(TRIM(subject_name)) > 0
-          severity: fail
-          description: SAR subject name is required for case investigation and filing.
-        - name: amount_non_negative
-          rule_type: range
-          fields:
-            - amount_involved
-          expression: amount_involved IS NULL OR amount_involved >= 0
-          severity: drop
-          description: Amount involved cannot be negative.
-        - name: transaction_count_positive
-          rule_type: range
-          fields:
-            - transaction_count
-          expression: transaction_count IS NULL OR transaction_count > 0
-          severity: warn
-          description: Transaction count should be positive when present.
-        - name: activity_date_order
-          rule_type: cross_field
-          fields:
-            - activity_start_date
-            - activity_end_date
-          expression: activity_start_date IS NULL OR activity_end_date IS NULL OR activity_start_date <=
-            activity_end_date
-          severity: drop
-          description: SAR activity start date cannot be after activity end date.
-        - name: activity_type_present
-          rule_type: presence
-          fields:
-            - suspicious_activity_type
-          expression: suspicious_activity_type IS NOT NULL
-          severity: warn
-          description: Suspicious activity category should be captured for AML analytics.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

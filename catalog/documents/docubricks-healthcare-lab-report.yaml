@@ -208,32 +208,136 @@ spec:
       description: MRN is required to attach results to the right patient chart and downstream FHIR DiagnosticReport
         resource.
       rule:
-        op: present
-        field: patient_mrn
+        op: and
+        rules:
+          - op: present
+            field: patient_mrn
+          - op: gt
+            left:
+              length: patient_mrn
+            right:
+              value: 0
       sourceExpression: patient_mrn IS NOT NULL AND LENGTH(TRIM(patient_mrn)) > 0
       supported: true
     - id: lab-clia-number-format
       severity: warning
       description: CLIA certificate numbers should follow the standard two digits, D, seven digits format.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: lab_clia_number
+          - op: matches
+            left:
+              field: lab_clia_number
+            pattern: ^[0-9]{2}D[0-9]{7}$
       sourceExpression: lab_clia_number IS NULL OR lab_clia_number REGEXP '^[0-9]{2}D[0-9]{7}$'
-      supported: false
+      supported: true
     - id: test-results-not-empty
       severity: error
       description: A laboratory report without test result rows cannot support clinical review or quality reporting.
+      rule:
+        op: gt
+        left:
+          length: test_results
+        right:
+          value: 0
       sourceExpression: size(test_results) > 0
-      supported: false
+      supported: true
     - id: overall-status-valid
       severity: warning
       description: Report status must be one of the supported HL7/FHIR diagnostic report states.
+      rule:
+        op: or
+        rules:
+          - op: eq
+            left:
+              field: overall_status
+            right:
+              value: Final
+          - op: eq
+            left:
+              field: overall_status
+            right:
+              value: Preliminary
+          - op: eq
+            left:
+              field: overall_status
+            right:
+              value: Corrected
+          - op: eq
+            left:
+              field: overall_status
+            right:
+              value: Cancelled
       sourceExpression: overall_status IN ('Final', 'Preliminary', 'Corrected', 'Cancelled')
-      supported: false
+      supported: true
     - id: avg-confidence-minimum
       severity: warning
       description: Low average confidence on lab reports can misstate critical values and must be routed to review.
+      rule:
+        op: gte
+        left:
+          field: avg_confidence
+        right:
+          value: 0.7
       sourceExpression: avg_confidence >= 0.70
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      patient_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Patient identity must be exact before results are posted to a chart.
+      patient_mrn:
+        minConfidence: 0.94
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: MRN is the primary chart-matching key for lab result ingestion.
+      report_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Report date drives result timeliness and audit chronology.
+      lab_clia_number:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: CLIA identifier is required for performing-lab auditability.
+      test_results:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Result rows contain clinical values, flags, ranges, and statuses; errors can alter clinical
+          interpretation.
+      critical_values_present:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Critical value flags drive urgent notification workflow.
+  modelRouting:
+    primary: databricks-gemini-flash
+    fallbackChain:
+      - databricks-dbrx-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Lab reports often contain dense result tables, flags, footnotes, and fax artifacts. Gemini Flash is
+      preferred for scanned or mixed-layout reports; DBRX Instruct is acceptable for digitally native text
+      exports.
   outputSchema:
     type: object
     properties:

@@ -144,6 +144,263 @@ spec:
                 Withdrawn | Pending | Deficient | null"
               dataType: string
               widget: text
+  validationRules:
+    - id: document-id-present
+      severity: error
+      description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
+        regulatory audit trail, and deduplication
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: document_id
+          - op: gt
+            left:
+              length: document_id
+            right:
+              value: 0
+      sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
+      supported: true
+    - id: avg-confidence-acceptable
+      severity: warning
+      description: Regulatory submissions require a higher confidence threshold (0.72) due to the legal and
+        compliance risk of misclassified filings; route low-confidence records to human review
+      rule:
+        op: gte
+        left:
+          field: avg_confidence
+        right:
+          value: 0.72
+      sourceExpression: avg_confidence >= 0.72
+      supported: true
+    - id: submission-type-valid
+      severity: warning
+      description: Submission type is required to route the record to the correct compliance workflow; null or empty
+        values prevent downstream processing
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: submission_type
+          - op: gt
+            left:
+              length: submission_type
+            right:
+              value: 0
+      sourceExpression: submission_type IS NOT NULL AND LENGTH(TRIM(submission_type)) > 0
+      supported: true
+    - id: submitting-entity-name-not-null
+      severity: warning
+      description: The submitting entity name is a critical identifier for regulatory tracking and OFAC/KYC
+        screening; records without it cannot be processed
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: submitting_entity_name
+          - op: gt
+            left:
+              length: submitting_entity_name
+            right:
+              value: 0
+      sourceExpression: submitting_entity_name IS NOT NULL AND LENGTH(TRIM(submitting_entity_name)) > 0
+      supported: true
+    - id: submission-id-present
+      severity: warning
+      description: Submission ID (docket number, accession number, reference ID) is required to correlate with
+        regulator records and track filing status
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: submission_id
+          - op: gt
+            left:
+              length: submission_id
+            right:
+              value: 0
+      sourceExpression: submission_id IS NOT NULL AND LENGTH(TRIM(submission_id)) > 0
+      supported: true
+    - id: submission-date-present
+      severity: warning
+      description: Submission date is necessary to calculate response deadlines, monitor review timelines, and meet
+        regulatory reporting SLAs
+      rule:
+        op: present
+        field: submission_date
+      sourceExpression: submission_date IS NOT NULL
+      supported: true
+    - id: decision-date-after-submission
+      severity: warning
+      description: Decision date cannot precede submission date; inversion indicates a date extraction error and
+        flags the record for human review
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: decision_date
+          - op: not
+            rule:
+              op: present
+              field: submission_date
+          - op: gte
+            left:
+              field: decision_date
+            right:
+              field: submission_date
+      sourceExpression: decision_date IS NULL OR submission_date IS NULL OR decision_date >= submission_date
+      supported: true
+    - id: submission-status-valid-enum
+      severity: warning
+      description: Submission status must be a recognized enumeration for accurate compliance dashboard reporting
+        and workflow routing
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: submission_status
+          - op: or
+            rules:
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Accepted
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Under_Review
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Approved
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Refused
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Withdrawn
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Pending
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Deficient
+      sourceExpression: submission_status IS NULL OR submission_status IN ('Accepted', 'Under_Review', 'Approved',
+        'Refused', 'Withdrawn', 'Pending', 'Deficient')
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      submission_id:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Submission ID (docket number, accession number) is the primary key for correlating with regulator
+          records; must be extracted exactly as formatted to ensure accurate docket tracking
+      submission_date:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Submission date is the legal anchor for calculating regulatory response deadlines, review clocks,
+          and compliance reporting periods; errors can cause missed deadlines with enforcement consequences
+      submitting_entity_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Entity name is required for OFAC screening, KYC/AML compliance, and regulatory relationship
+          management; errors affect reporting accuracy
+      submission_status:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Submission status drives compliance dashboard reporting and escalation workflows; an incorrect
+          status can mask deficiencies requiring immediate action
+      submission_type:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Submission type routes the record to the correct regulatory workflow; misclassification leads to
+          wrong review procedures and reporting errors
+      regulator:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Regulator identification is essential for routing to the correct compliance team and external
+          reporting system
+      submitting_entity_id:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Entity ID (CIK, LEI, EIN) is required for automated regulatory lookup and entity resolution; errors
+          break cross-system reconciliation
+      decision_date:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Decision date drives compliance lifecycle close-out and regulatory timeline reporting; must be
+          accurate
+      filing_period_from:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Filing period start anchors the reporting period for financial and regulatory analysis
+      filing_period_to:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Filing period end defines the scope of reported data; must align with the reporting period declared
+          in the submission
+      material_change_described:
+        minConfidence: 0.8
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Material change flag triggers escalation to legal and compliance review teams; false negatives
+          could suppress critical alerts
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-claude-haiku
+    maxTokens: 8192
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Regulatory submissions span a wide range of formats and lengths — from short FinCEN CTR forms to
+      multi-hundred-page FDA PMAs and SEC 10-K filings. Claude Sonnet is preferred for its ability to
+      correctly classify submission types across different regulatory domains (FDA, SEC, FinCEN, CFTC, FINRA),
+      accurately extract regulatory identifiers in varying formats (EDGAR accession numbers, FDA K-numbers,
+      SEC CIK codes), and interpret regulatory-specific terminology. The maximum token budget (8192) is
+      required to accommodate lengthy regulatory filings, cover letters, and supporting summaries. Temperature
+      0.0 ensures deterministic extraction of regulatory identifiers and dates where precision is legally
+      required. Claude Haiku serves as fallback for simple, structured form submissions (e.g., FinCEN CTR)
+      where the layout is predictable and reasoning depth is less critical.
   submissionSchema:
     type: object
     properties:
@@ -212,73 +469,6 @@ spec:
       - submitting_entity_name
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: document_id_present
-          rule_type: presence
-          fields:
-            - document_id
-          expression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
-          severity: fail
-          description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
-            regulatory audit trail, and deduplication
-        - name: avg_confidence_acceptable
-          rule_type: range
-          fields:
-            - avg_confidence
-          expression: avg_confidence >= 0.72
-          severity: drop
-          description: Regulatory submissions require a higher confidence threshold (0.72) due to the legal and
-            compliance risk of misclassified filings; route low-confidence records to human review
-        - name: submission_type_valid
-          rule_type: presence
-          fields:
-            - submission_type
-          expression: submission_type IS NOT NULL AND LENGTH(TRIM(submission_type)) > 0
-          severity: drop
-          description: Submission type is required to route the record to the correct compliance workflow; null or empty
-            values prevent downstream processing
-        - name: submitting_entity_name_not_null
-          rule_type: presence
-          fields:
-            - submitting_entity_name
-          expression: submitting_entity_name IS NOT NULL AND LENGTH(TRIM(submitting_entity_name)) > 0
-          severity: drop
-          description: The submitting entity name is a critical identifier for regulatory tracking and OFAC/KYC
-            screening; records without it cannot be processed
-        - name: submission_id_present
-          rule_type: presence
-          fields:
-            - submission_id
-          expression: submission_id IS NOT NULL AND LENGTH(TRIM(submission_id)) > 0
-          severity: warn
-          description: Submission ID (docket number, accession number, reference ID) is required to correlate with
-            regulator records and track filing status
-        - name: submission_date_present
-          rule_type: presence
-          fields:
-            - submission_date
-          expression: submission_date IS NOT NULL
-          severity: warn
-          description: Submission date is necessary to calculate response deadlines, monitor review timelines, and meet
-            regulatory reporting SLAs
-        - name: decision_date_after_submission
-          rule_type: cross_field
-          fields:
-            - decision_date
-            - submission_date
-          expression: decision_date IS NULL OR submission_date IS NULL OR decision_date >= submission_date
-          severity: warn
-          description: Decision date cannot precede submission date; inversion indicates a date extraction error and
-            flags the record for human review
-        - name: submission_status_valid_enum
-          rule_type: presence
-          fields:
-            - submission_status
-          expression: submission_status IS NULL OR submission_status IN ('Accepted', 'Under_Review', 'Approved',
-            'Refused', 'Withdrawn', 'Pending', 'Deficient')
-          severity: warn
-          description: Submission status must be a recognized enumeration for accurate compliance dashboard reporting
-            and workflow routing
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

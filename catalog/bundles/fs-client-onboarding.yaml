@@ -1,0 +1,18 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: fs-client-onboarding
+  title: Financial-services client onboarding bundle
+  description: Trust-account and merchant onboarding experiences governed as one client package.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cs-01
+  ontology:
+    ref: ladder://ontologies/builtin/financial-services
+    mode: sliver
+    selection:
+      propertyRefs: [financial_account.trust_name, merchant_profile.merchant_legal_name, merchant_profile.estimated_monthly_volume, customer_party.contact_name]
+      relationshipIds: [holds, onboards]
+  forms:
+    - { ref: ladder://forms/docubricks/fs/trust_account_opening_package, role: start }
+    - { ref: ladder://forms/docubricks/fs/merchant_onboarding_application, role: start }

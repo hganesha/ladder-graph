@@ -1,20 +1,24 @@
 import type {
   Diagnostic,
-  DocumentValidationRule,
+  FieldConfidencePolicy,
   FormField,
   FormRole,
   LadderDocument,
   LadderForm,
+  ModelRouting,
   Ontology,
   OntologyCardinality,
   OntologyDataType,
   OntologyProperty,
-  SafeRule,
+  ReviewPolicy,
+  ValidationRule,
 } from "../../types";
+import { convertDocuBricksRule } from "./docubricksRules.mjs";
 
 export interface ImportResult<T> {
   ok: boolean;
   artifact?: T;
+  counterpartArtifact?: LadderForm | LadderDocument;
   diagnostics: Diagnostic[];
 }
 
@@ -71,13 +75,16 @@ interface DocuBricksSectionSource {
 interface DocuBricksSchemaSource {
   document_type: string;
   vertical?: string;
+  family?: string;
   schema_version?: string;
   source_prompt?: string;
+  output_contract?: Record<string, unknown>;
+  completeness_checklist?: unknown[];
   fields?: DocuBricksFieldSource[];
   sections?: DocuBricksSectionSource[];
 }
 
-interface DocuBricksRuleSource {
+export interface DocuBricksRuleSource {
   name: string;
   rule_type: string;
   fields?: string[];
@@ -85,6 +92,22 @@ interface DocuBricksRuleSource {
   severity?: string;
   description?: string;
   field_name?: string;
+}
+
+interface DocuBricksThresholdSource {
+  default_threshold?: number;
+  [field: string]: unknown;
+}
+
+interface DocuBricksModelRoutingSource {
+  primary?: string;
+  fallback_chain?: string[];
+  max_tokens?: number;
+  temperature?: number;
+  timeout_seconds?: number;
+  max_retries?: number;
+  tier_overrides?: Record<string, unknown>;
+  rationale?: string;
 }
 
 function problem(code: string, severity: Diagnostic["severity"], path: string, message: string): Diagnostic {
@@ -223,27 +246,50 @@ function docuBricksType(source: string): FormField["dataType"] | undefined {
   return undefined;
 }
 
-function convertRule(rule: DocuBricksRuleSource, fieldNames: Set<string>): DocumentValidationRule {
-  const field = rule.field_name ?? rule.fields?.[0];
-  let safeRule: SafeRule | undefined;
-  if (rule.rule_type === "presence" && field && fieldNames.has(field)) safeRule = { op: "present", field };
-  else if (rule.rule_type === "range" && field && fieldNames.has(field) && />=\s*0/u.test(rule.expression ?? ""))
-    safeRule = { op: "gte", left: { field }, right: { value: 0 } };
-  return {
-    id: slug(rule.name),
-    severity: rule.severity === "fail" ? "error" : "warning",
-    description: rule.description,
-    rule: safeRule,
-    sourceExpression: rule.expression,
-    supported: Boolean(safeRule),
-  };
-}
-
 export interface DocuBricksImportOptions {
   artifactKind: "form" | "document" | "hybrid";
   hybridExperience?: "form" | "document";
   role?: FormRole;
   ontologyProperties?: Record<string, string>;
+  thresholdsSource?: string;
+  modelRoutingSource?: string;
+}
+
+function normalizeReviewPolicy(source: DocuBricksThresholdSource | undefined): ReviewPolicy {
+  const fieldConfidence = Object.fromEntries(
+    Object.entries(source ?? {}).flatMap(([field, value]) => {
+      if (field === "default_threshold" || !value || typeof value !== "object" || Array.isArray(value)) return [];
+      const threshold = value as Record<string, unknown>;
+      if (typeof threshold.min_confidence !== "number") return [];
+      const policy: FieldConfidencePolicy = {
+        minConfidence: threshold.min_confidence,
+        ...(typeof threshold.review_on_breach === "boolean" ? { reviewOnBreach: threshold.review_on_breach } : {}),
+        ...(typeof threshold.fail_on_breach === "boolean" ? { failOnBreach: threshold.fail_on_breach } : {}),
+        ...(typeof threshold.regulatory_required === "boolean" ? { regulatoryRequired: threshold.regulatory_required } : {}),
+        ...(typeof threshold.description === "string" ? { rationale: threshold.description } : {}),
+      };
+      return [[field, policy]];
+    }),
+  );
+  return {
+    unsupportedRuleAction: "human-review",
+    ...(typeof source?.default_threshold === "number" ? { defaultConfidenceThreshold: source.default_threshold } : {}),
+    ...(Object.keys(fieldConfidence).length ? { fieldConfidence } : {}),
+  };
+}
+
+function normalizeModelRouting(source: DocuBricksModelRoutingSource | undefined): ModelRouting | undefined {
+  if (!source) return undefined;
+  return {
+    ...(source.primary ? { primary: source.primary } : {}),
+    ...(source.fallback_chain ? { fallbackChain: source.fallback_chain } : {}),
+    ...(typeof source.max_tokens === "number" ? { maxTokens: source.max_tokens } : {}),
+    ...(typeof source.temperature === "number" ? { temperature: source.temperature } : {}),
+    ...(typeof source.timeout_seconds === "number" ? { timeoutSeconds: source.timeout_seconds } : {}),
+    ...(typeof source.max_retries === "number" ? { maxRetries: source.max_retries } : {}),
+    ...(source.tier_overrides ? { tierOverrides: source.tier_overrides } : {}),
+    ...(source.rationale ? { rationale: source.rationale } : {}),
+  };
 }
 
 export function importDocuBricksSchema(
@@ -254,7 +300,14 @@ export function importDocuBricksSchema(
   const diagnostics: Diagnostic[] = [];
   const schema = parseJson<DocuBricksSchemaSource>(fieldsSource, "/fields", diagnostics);
   const rules = rulesSource ? parseJson<DocuBricksRuleSource[]>(rulesSource, "/validationRules", diagnostics) : [];
+  const thresholds = options.thresholdsSource
+    ? parseJson<DocuBricksThresholdSource>(options.thresholdsSource, "/fieldThresholds", diagnostics)
+    : undefined;
+  const routing = options.modelRoutingSource
+    ? parseJson<DocuBricksModelRoutingSource>(options.modelRoutingSource, "/modelRouting", diagnostics)
+    : undefined;
   if (!schema) return { ok: false, diagnostics };
+  const normalizedSchema = schema;
   const selectedKind = options.artifactKind === "hybrid" ? options.hybridExperience : options.artifactKind;
   if (!selectedKind) {
     diagnostics.push(
@@ -281,7 +334,11 @@ export function importDocuBricksSchema(
       },
     ];
   });
-  const metadata = {
+  const fieldNames = new Set(normalizedFields.map((field) => field.name));
+  const validationRules = (rules ?? []).map((rule) => convertDocuBricksRule(rule, fieldNames) as ValidationRule);
+  const reviewPolicy = normalizeReviewPolicy(thresholds);
+  const modelRouting = normalizeModelRouting(routing);
+  const baseMetadata = {
     name: slug(schema.document_type),
     title: title(schema.document_type),
     version: schema.schema_version ?? "unversioned",
@@ -292,20 +349,27 @@ export function importDocuBricksSchema(
       sourceVersion: schema.schema_version,
     },
   };
-  if (selectedKind === "form") {
-    const sectionSources: DocuBricksSectionSource[] = schema.sections?.length
-      ? schema.sections
-      : [...new Set(normalizedFields.map((field) => field.section))].map((id) => ({ id, title: title(id) }));
-    const artifact: LadderForm = {
+
+  const sectionSources: DocuBricksSectionSource[] = schema.sections?.length
+    ? schema.sections
+    : [...new Set(normalizedFields.map((field) => field.section))].map((id) => ({ id, title: title(id) }));
+
+  function formArtifact(name = baseMetadata.name, derivedFrom?: string): LadderForm {
+    return {
       apiVersion: "ladder.dev/v1alpha1",
       kind: "Form",
-      metadata,
+      metadata: {
+        ...baseMetadata,
+        name,
+        ...(name.endsWith("-review") ? { title: `${baseMetadata.title} Review` } : {}),
+        source: { ...baseMetadata.source, ...(derivedFrom ? { derivedFrom } : {}) },
+      },
       spec: {
-        role: options.role ?? "start",
+        role: options.role ?? (name.endsWith("-review") ? "review" : "start"),
         pages: [
           {
             id: "main",
-            title: metadata.title,
+            title: baseMetadata.title,
             sections: sectionSources.map((section) => ({
               id: slug(section.id),
               title: section.title,
@@ -316,37 +380,60 @@ export function importDocuBricksSchema(
             })),
           },
         ],
+        validationRules,
+        reviewPolicy,
+        ...(modelRouting ? { modelRouting } : {}),
         submissionSchema: {},
       },
     };
-    if (rules?.length)
-      diagnostics.push(
-        problem(
-          "DI120",
-          "warning",
-          "/validationRules",
-          "DocuBricks extraction rules remain source metadata for form imports in this version.",
-        ),
-      );
-    return { ok: !diagnostics.some((item) => item.severity === "error"), artifact, diagnostics };
   }
-  const artifact: LadderDocument = {
-    apiVersion: "ladder.dev/v1alpha1",
-    kind: "Document",
-    metadata,
-    spec: {
-      documentType: schema.document_type,
-      fields: normalizedFields.map(({ section: _section, ...field }) => ({ ...field, sourcePath: `/fields/${field.name}` })),
-      sections: (schema.sections ?? []).map((section) => ({
-        id: slug(section.id),
-        title: section.title,
-        description: section.description,
-        fieldIds: (section.fields ?? []).map(slug),
-      })),
-      validationRules: (rules ?? []).map((rule) => convertRule(rule, new Set(normalizedFields.map((field) => field.name)))),
-      outputSchema: {},
-      inertSourceMetadata: { promptId: schema.source_prompt },
-    },
+
+  function documentArtifact(name = baseMetadata.name, derivedFrom?: string): LadderDocument {
+    return {
+      apiVersion: "ladder.dev/v1alpha1",
+      kind: "Document",
+      metadata: {
+        ...baseMetadata,
+        name,
+        ...(name.endsWith("-source") ? { title: `${baseMetadata.title} Source` } : {}),
+        source: { ...baseMetadata.source, ...(derivedFrom ? { derivedFrom } : {}) },
+      },
+      spec: {
+        documentType: normalizedSchema.document_type,
+        fields: normalizedFields.map(({ section: _section, ...field }) => ({ ...field, sourcePath: `/fields/${field.name}` })),
+        sections: sectionSources.map((section) => ({
+          id: slug(section.id),
+          title: section.title,
+          description: section.description,
+          fieldIds: (section.fields ?? normalizedFields.filter((field) => field.section === section.id).map((field) => field.name)).map(
+            slug,
+          ),
+        })),
+        validationRules,
+        reviewPolicy,
+        ...(modelRouting ? { modelRouting } : {}),
+        outputSchema: {},
+        inertSourceMetadata: {
+          promptId: normalizedSchema.source_prompt,
+          family: normalizedSchema.family,
+          outputContract: normalizedSchema.output_contract,
+          completenessChecklist: normalizedSchema.completeness_checklist ?? [],
+        },
+      },
+    };
+  }
+
+  const artifact = selectedKind === "form" ? formArtifact() : documentArtifact();
+  const counterpartArtifact =
+    options.artifactKind !== "hybrid"
+      ? undefined
+      : selectedKind === "form"
+        ? documentArtifact(`${baseMetadata.name}-source`, baseMetadata.name)
+        : formArtifact(`${baseMetadata.name}-review`, baseMetadata.name);
+  return {
+    ok: !diagnostics.some((item) => item.severity === "error"),
+    artifact,
+    ...(counterpartArtifact ? { counterpartArtifact } : {}),
+    diagnostics,
   };
-  return { ok: !diagnostics.some((item) => item.severity === "error"), artifact, diagnostics };
 }

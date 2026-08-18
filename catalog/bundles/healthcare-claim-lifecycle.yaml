@@ -1,0 +1,21 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: healthcare-claim-lifecycle
+  title: Healthcare claim lifecycle bundle
+  description: Authorization, clinical evidence, diagnostic evidence, and claim review in one governed package.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cross-09
+  ontology:
+    ref: ladder://ontologies/builtin/healthcare
+    mode: sliver
+    selection:
+      propertyRefs: [patient.patient_member_id, care_authorization.authorization_id, healthcare_claim.claim_number, diagnostic_result.test_results]
+      relationshipIds: [receives, billed_as, governed_by, produces]
+  forms:
+    - { ref: ladder://forms/docubricks/healthcare/prior_auth, role: approval }
+    - { ref: ladder://forms/docubricks/healthcare/eob_cms1500, role: completion }
+  documents:
+    - { ref: ladder://documents/docubricks/healthcare/clinical_note_soap, role: supporting }
+    - { ref: ladder://documents/docubricks/healthcare/lab_report, role: supporting }

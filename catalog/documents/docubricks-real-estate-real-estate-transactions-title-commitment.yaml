@@ -140,55 +140,145 @@ spec:
       severity: error
       description: commitment_number is required for Title Commitment extraction.
       rule:
-        op: present
-        field: commitment_number
+        op: and
+        rules:
+          - op: present
+            field: commitment_number
+          - op: gt
+            left:
+              length: commitment_number
+            right:
+              value: 0
       sourceExpression: commitment_number IS NOT NULL AND LENGTH(TRIM(commitment_number)) > 0
       supported: true
     - id: commitment-date-present
       severity: error
       description: commitment_date is required for Title Commitment extraction.
       rule:
-        op: present
-        field: commitment_date
+        op: and
+        rules:
+          - op: present
+            field: commitment_date
+          - op: gt
+            left:
+              length: commitment_date
+            right:
+              value: 0
       sourceExpression: commitment_date IS NOT NULL AND LENGTH(TRIM(commitment_date)) > 0
       supported: true
     - id: title-company-name-present
       severity: error
       description: title_company_name is required for Title Commitment extraction.
       rule:
-        op: present
-        field: title_company_name
+        op: and
+        rules:
+          - op: present
+            field: title_company_name
+          - op: gt
+            left:
+              length: title_company_name
+            right:
+              value: 0
       sourceExpression: title_company_name IS NOT NULL AND LENGTH(TRIM(title_company_name)) > 0
       supported: true
     - id: property-address-present
       severity: error
       description: property_address is required for Title Commitment extraction.
       rule:
-        op: present
-        field: property_address
+        op: and
+        rules:
+          - op: present
+            field: property_address
+          - op: gt
+            left:
+              length: property_address
+            right:
+              value: 0
       sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
       supported: true
     - id: legal-description-present
       severity: error
       description: legal_description is required for Title Commitment extraction.
       rule:
-        op: present
-        field: legal_description
+        op: and
+        rules:
+          - op: present
+            field: legal_description
+          - op: gt
+            left:
+              length: legal_description
+            right:
+              value: 0
       sourceExpression: legal_description IS NOT NULL AND LENGTH(TRIM(legal_description)) > 0
       supported: true
     - id: policy-amount-non-negative
       severity: warning
       description: policy_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: policy_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: policy_amount
+          - op: gte
+            left:
+              field: policy_amount
+            right:
+              value: 0
       sourceExpression: policy_amount IS NULL OR policy_amount >= 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      commitment_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Title Commitment workflow.
+      title_company_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Title Commitment workflow.
+      property_address:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Title Commitment workflow.
+      legal_description:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Title Commitment workflow.
+      exceptions:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Title Commitment workflow.
+      commitment_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Title Commitment workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Title Commitment documents combine real estate parties, property, title, lease, financial, and
+      operating context.
   outputSchema:
     type: object
     properties:

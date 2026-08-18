@@ -166,38 +166,126 @@ spec:
       severity: error
       description: Security agreement must identify the debtor or grantor.
       rule:
-        op: present
-        field: debtor_name
+        op: and
+        rules:
+          - op: present
+            field: debtor_name
+          - op: gt
+            left:
+              length: debtor_name
+            right:
+              value: 0
       sourceExpression: debtor_name IS NOT NULL AND LENGTH(TRIM(debtor_name)) > 0
       supported: true
     - id: secured-party-present
       severity: warning
       description: Secured party should be captured for collateral controls.
       rule:
-        op: present
-        field: secured_party_name
+        op: and
+        rules:
+          - op: present
+            field: secured_party_name
+          - op: gt
+            left:
+              length: secured_party_name
+            right:
+              value: 0
       sourceExpression: secured_party_name IS NOT NULL AND LENGTH(TRIM(secured_party_name)) > 0
       supported: true
     - id: collateral-description-present
       severity: warning
       description: Collateral description is required to use a security agreement extraction.
       rule:
-        op: present
-        field: collateral_description
+        op: and
+        rules:
+          - op: present
+            field: collateral_description
+          - op: gt
+            left:
+              length: collateral_description
+            right:
+              value: 0
       sourceExpression: collateral_description IS NOT NULL AND LENGTH(TRIM(collateral_description)) > 0
       supported: true
     - id: collateral-categories-array-valid
       severity: warning
       description: Collateral categories should be represented as an array.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: collateral_categories
+          - op: gte
+            left:
+              length: collateral_categories
+            right:
+              value: 0
       sourceExpression: collateral_categories IS NULL OR JSON_ARRAY_LENGTH(collateral_categories) >= 0
-      supported: false
+      supported: true
     - id: perfection-requirements-array-valid
       severity: warning
       description: Perfection requirements should be represented as an array.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: perfection_requirements
+          - op: gte
+            left:
+              length: perfection_requirements
+            right:
+              value: 0
       sourceExpression: perfection_requirements IS NULL OR JSON_ARRAY_LENGTH(perfection_requirements) >= 0
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      debtor_name:
+        minConfidence: 0.94
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Debtor name anchors the security interest.
+      secured_party_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Secured party identifies beneficiary of the collateral grant.
+      collateral_description:
+        minConfidence: 0.86
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Collateral grant defines the secured party's rights.
+      all_assets_clause:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: All-assets grants affect lien scope and monitoring.
+      perfection_requirements:
+        minConfidence: 0.82
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Perfection requirements drive post-closing collateral controls.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Security agreements require detailed extraction of collateral grants, excluded collateral,
+      covenants, perfection, default, and remedies.
   outputSchema:
     type: object
     properties:

@@ -556,6 +556,435 @@ spec:
               description: "One of: FirstLien | SecondLien | Other"
               dataType: string
               widget: text
+  validationRules:
+    - id: loan-amount-positive
+      severity: error
+      description: Loan amount must be present and positive — system invariant; no valid mortgage without a loan amount
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: loan_amount
+          - op: gt
+            left:
+              field: loan_amount
+            right:
+              value: 0
+      sourceExpression: loan_amount IS NOT NULL AND loan_amount > 0
+      supported: true
+    - id: loan-purpose-valid-enum
+      severity: error
+      description: Loan purpose must be a recognized MISMO/URLA enumeration; invalid values break downstream AUS and
+        HMDA routing
+      rule:
+        op: or
+        rules:
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: Purchase
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: Refinance
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: CashOutRefinance
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: Construction
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: ConstructionPermanent
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: HomeEquity
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: HELOC
+          - op: eq
+            left:
+              field: loan_purpose
+            right:
+              value: Other
+      sourceExpression: loan_purpose IN ('Purchase', 'Refinance', 'CashOutRefinance', 'Construction',
+        'ConstructionPermanent', 'HomeEquity', 'HELOC', 'Other')
+      supported: true
+    - id: loan-type-valid-enum
+      severity: error
+      description: Loan type must be a recognized enumeration for investor delivery and compliance routing
+      rule:
+        op: or
+        rules:
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: Conventional
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: FHA
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: VA
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: USDA
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: Jumbo
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: Portfolio
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: NonQM
+          - op: eq
+            left:
+              field: loan_type
+            right:
+              value: Other
+      sourceExpression: loan_type IN ('Conventional', 'FHA', 'VA', 'USDA', 'Jumbo', 'Portfolio', 'NonQM', 'Other')
+      supported: true
+    - id: borrower-last-name-present
+      severity: error
+      description: Borrower last name is required — cannot process an application without borrower identity
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: borrower_last_name
+          - op: gt
+            left:
+              length: borrower_last_name
+            right:
+              value: 0
+      sourceExpression: borrower_last_name IS NOT NULL AND LENGTH(TRIM(borrower_last_name)) > 0
+      supported: true
+    - id: ltv-reasonable-range
+      severity: warning
+      description: LTV > 105% or <= 0 indicates a data extraction error or impossible transaction; route to quarantine
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: ltv_percent
+          - op: and
+            rules:
+              - op: gt
+                left:
+                  field: ltv_percent
+                right:
+                  value: 0
+              - op: lte
+                left:
+                  field: ltv_percent
+                right:
+                  value: 105
+      sourceExpression: ltv_percent IS NULL OR (ltv_percent > 0 AND ltv_percent <= 105)
+      supported: true
+    - id: dti-reasonable-range
+      severity: warning
+      description: DTI outside 0-100% range is invalid; drop record to quarantine for human review
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: debt_to_income_ratio
+          - op: and
+            rules:
+              - op: gt
+                left:
+                  field: debt_to_income_ratio
+                right:
+                  value: 0
+              - op: lt
+                left:
+                  field: debt_to_income_ratio
+                right:
+                  value: 100
+      sourceExpression: debt_to_income_ratio IS NULL OR (debt_to_income_ratio > 0 AND debt_to_income_ratio < 100)
+      supported: true
+    - id: interest-rate-reasonable
+      severity: warning
+      description: Interest rate outside 0-30% range is likely an extraction error; route to quarantine
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: interest_rate_percent
+          - op: and
+            rules:
+              - op: gt
+                left:
+                  field: interest_rate_percent
+                right:
+                  value: 0
+              - op: lt
+                left:
+                  field: interest_rate_percent
+                right:
+                  value: 30
+      sourceExpression: interest_rate_percent IS NULL OR (interest_rate_percent > 0 AND interest_rate_percent < 30)
+      supported: true
+    - id: loan-term-standard-values
+      severity: warning
+      description: Loan term should be a standard product term (e.g., 360 for 30-year); unusual terms flagged for review
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: loan_term_months
+          - op: or
+            rules:
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 60
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 84
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 120
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 180
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 240
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 300
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 360
+              - op: eq
+                left:
+                  field: loan_term_months
+                right:
+                  value: 480
+      sourceExpression: loan_term_months IS NULL OR loan_term_months IN (60, 84, 120, 180, 240, 300, 360, 480)
+      supported: true
+    - id: hmda-reportable-fields-present
+      severity: warning
+      description: HMDA LAR requires state, occupancy type, and loan amount; missing values prevent regulatory reporting
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: property_state
+          - op: present
+            field: occupancy_type
+          - op: present
+            field: loan_amount
+      sourceExpression: property_state IS NOT NULL AND occupancy_type IS NOT NULL AND loan_amount IS NOT NULL
+      supported: true
+    - id: purchase-price-for-purchase
+      severity: warning
+      description: Purchase transactions should have a purchase price; missing value may indicate extraction failure
+      rule:
+        op: not
+        rule:
+          op: and
+          rules:
+            - op: eq
+              left:
+                field: loan_purpose
+              right:
+                value: Purchase
+            - op: not
+              rule:
+                op: present
+                field: purchase_price
+      sourceExpression: NOT (loan_purpose = 'Purchase' AND purchase_price IS NULL)
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      loan_amount:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Loan amount drives HMDA LAR reporting, TRID disclosures, and AUS submission — must be highly accurate
+      loan_purpose:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: HMDA requires loan purpose; incorrect routing affects ATR/QM analysis, secondary market delivery
+      borrower_last_name:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Borrower identity field — required for OFAC screening, credit pull authorization, legal instrument
+      borrower_first_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Borrower identity field — required for ECOA adverse action notices and HMDA
+      borrower_ssn_masked:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: SSN used for credit pull, IRS verification, CIP — tokenized/masked only; high accuracy required
+      debt_to_income_ratio:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: DTI is an HMDA-reportable field and a critical ATR/QM underwriting metric; errors affect eligibility
+      ltv_percent:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: LTV drives PMI requirements, LLPA pricing, secondary market eligibility, and HMDA combined LTV
+      property_state:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Property state determines HMDA MSA assignment, state compliance rules, and license requirements
+      property_zip:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: ZIP code used for census tract assignment (HMDA), flood determination, and property tax estimation
+      occupancy_type:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: HMDA requires occupancy; affects pricing LLPA, ATR analysis, and secondary market delivery
+          eligibility
+      interest_rate_percent:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Note rate required for HMDA rate spread calculation and HOEPA/HPML determination
+      total_monthly_income:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Critical for DTI calculation; errors cascade to underwriting decision and HMDA income field
+      loan_type:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: HMDA reportable; drives FHA/VA/USDA guarantee processing, MIP/funding fee calculation
+      application_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: HMDA application date; triggers 3-business-day LE delivery clock under TRID
+      purchase_price:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Required for LTV calculation on purchase transactions; errors affect AUS eligibility
+      base_monthly_income:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Primary income component; drives DTI and HMDA income reporting
+      employer_name:
+        minConfidence: 0.8
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Employment verification anchor; lower threshold acceptable since VOE will verify
+      property_type:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: HMDA construction method and property type fields; affects LLPA, condo review requirements
+      down_payment_amount:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Drives LTV and cash-to-close calculation; verification via asset documentation
+      outstanding_judgments:
+        minConfidence: 0.82
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: URLA declaration — misrepresentation is fraud; extraction must distinguish checked vs. unchecked
+          boxes
+  modelRouting:
+    primary: databricks-dbrx-instruct
+    fallbackChain:
+      - databricks-claude-sonnet
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Mortgage applications are highly structured URLA/Form 1003 documents with standardized field
+      positions, checkboxes, and labeled tables. DBRX Instruct handles structured extraction tasks with high
+      throughput and low latency, making it cost-effective for high-volume mortgage pipeline processing. The
+      field layout is predictable enough that instruction-following models outperform reasoning-heavy models.
+      Claude Sonnet is retained as fallback for complex edge cases such as handwritten applications,
+      multi-borrower arrangements, or construction-to-permanent loans with non-standard layouts.
   submissionSchema:
     type: object
     properties:
@@ -823,82 +1252,6 @@ spec:
       - borrower_last_name
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: loan_amount_positive
-          rule_type: range
-          fields:
-            - loan_amount
-          expression: loan_amount IS NOT NULL AND loan_amount > 0
-          severity: fail
-          description: Loan amount must be present and positive — system invariant; no valid mortgage without a loan
-            amount
-        - name: loan_purpose_valid_enum
-          rule_type: presence
-          fields: []
-          expression: loan_purpose IN ('Purchase', 'Refinance', 'CashOutRefinance', 'Construction',
-            'ConstructionPermanent', 'HomeEquity', 'HELOC', 'Other')
-          severity: fail
-          description: Loan purpose must be a recognized MISMO/URLA enumeration; invalid values break downstream AUS and
-            HMDA routing
-        - name: loan_type_valid_enum
-          rule_type: presence
-          fields: []
-          expression: loan_type IN ('Conventional', 'FHA', 'VA', 'USDA', 'Jumbo', 'Portfolio', 'NonQM', 'Other')
-          severity: fail
-          description: Loan type must be a recognized enumeration for investor delivery and compliance routing
-        - name: borrower_last_name_present
-          rule_type: presence
-          fields:
-            - borrower_last_name
-          expression: borrower_last_name IS NOT NULL AND LENGTH(TRIM(borrower_last_name)) > 0
-          severity: fail
-          description: Borrower last name is required — cannot process an application without borrower identity
-        - name: ltv_reasonable_range
-          rule_type: range
-          fields:
-            - ltv_percent
-          expression: ltv_percent IS NULL OR (ltv_percent > 0 AND ltv_percent <= 105)
-          severity: drop
-          description: LTV > 105% or <= 0 indicates a data extraction error or impossible transaction; route to quarantine
-        - name: dti_reasonable_range
-          rule_type: range
-          fields:
-            - debt_to_income_ratio
-          expression: debt_to_income_ratio IS NULL OR (debt_to_income_ratio > 0 AND debt_to_income_ratio < 100)
-          severity: drop
-          description: DTI outside 0-100% range is invalid; drop record to quarantine for human review
-        - name: interest_rate_reasonable
-          rule_type: range
-          fields:
-            - interest_rate_percent
-          expression: interest_rate_percent IS NULL OR (interest_rate_percent > 0 AND interest_rate_percent < 30)
-          severity: drop
-          description: Interest rate outside 0-30% range is likely an extraction error; route to quarantine
-        - name: loan_term_standard_values
-          rule_type: presence
-          fields:
-            - loan_term_months
-          expression: loan_term_months IS NULL OR loan_term_months IN (60, 84, 120, 180, 240, 300, 360, 480)
-          severity: warn
-          description: Loan term should be a standard product term (e.g., 360 for 30-year); unusual terms flagged for
-            review
-        - name: hmda_reportable_fields_present
-          rule_type: presence
-          fields:
-            - property_state
-            - occupancy_type
-            - loan_amount
-          expression: property_state IS NOT NULL AND occupancy_type IS NOT NULL AND loan_amount IS NOT NULL
-          severity: warn
-          description: HMDA LAR requires state, occupancy type, and loan amount; missing values prevent regulatory
-            reporting
-        - name: purchase_price_for_purchase
-          rule_type: presence
-          fields:
-            - purchase_price
-          expression: NOT (loan_purpose = 'Purchase' AND purchase_price IS NULL)
-          severity: warn
-          description: Purchase transactions should have a purchase price; missing value may indicate extraction failure
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

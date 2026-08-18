@@ -22,6 +22,7 @@ export interface ArtifactSource {
   sourcePath?: string;
   sourceVersion?: string;
   sourceDigest?: string;
+  derivedFrom?: string;
 }
 
 export interface ArtifactMetadata {
@@ -84,12 +85,50 @@ export type FormRole = "start" | "clarification" | "review" | "approval" | "exce
 export type FormFieldType = "string" | "integer" | "number" | "boolean" | "date" | "datetime" | "array" | "object";
 export type FormWidget = "text" | "textarea" | "number" | "date" | "datetime" | "select" | "radio" | "checkbox" | "file";
 
-export type RuleOperand = { field: string } | { value: unknown };
+export type RuleOperand = { field: string } | { value: unknown } | { length: string };
 export type SafeRule =
   | { op: "present"; field: string }
   | { op: "eq" | "neq" | "gt" | "gte" | "lt" | "lte"; left: RuleOperand; right: RuleOperand }
+  | { op: "matches"; left: RuleOperand; pattern: string }
   | { op: "and" | "or"; rules: SafeRule[] }
   | { op: "not"; rule: SafeRule };
+
+export interface ValidationRule {
+  id: string;
+  severity: "error" | "warning";
+  description?: string;
+  rule?: SafeRule;
+  sourceExpression?: string;
+  supported: boolean;
+  unsupportedReason?: string;
+}
+
+export type DocumentValidationRule = ValidationRule;
+
+export interface FieldConfidencePolicy {
+  minConfidence: number;
+  reviewOnBreach?: boolean;
+  failOnBreach?: boolean;
+  regulatoryRequired?: boolean;
+  rationale?: string;
+}
+
+export interface ReviewPolicy {
+  unsupportedRuleAction?: "human-review";
+  defaultConfidenceThreshold?: number;
+  fieldConfidence?: Record<string, FieldConfidencePolicy>;
+}
+
+export interface ModelRouting {
+  primary?: string;
+  fallbackChain?: string[];
+  maxTokens?: number;
+  temperature?: number;
+  timeoutSeconds?: number;
+  maxRetries?: number;
+  tierOverrides?: Record<string, unknown>;
+  rationale?: string;
+}
 
 export interface FormField {
   id: string;
@@ -137,6 +176,9 @@ export interface LadderForm {
   spec: {
     role: FormRole;
     pages: FormPage[];
+    validationRules?: ValidationRule[];
+    reviewPolicy?: ReviewPolicy;
+    modelRouting?: ModelRouting;
     submissionSchema?: Record<string, unknown>;
   };
 }
@@ -159,15 +201,6 @@ export interface DocumentSection {
   fieldIds: string[];
 }
 
-export interface DocumentValidationRule {
-  id: string;
-  severity: "error" | "warning";
-  description?: string;
-  rule?: SafeRule;
-  sourceExpression?: string;
-  supported: boolean;
-}
-
 export interface LadderDocument {
   apiVersion: "ladder.dev/v1alpha1";
   kind: "Document";
@@ -176,8 +209,9 @@ export interface LadderDocument {
     documentType: string;
     sections: DocumentSection[];
     fields: DocumentField[];
-    validationRules?: DocumentValidationRule[];
-    reviewPolicy?: Record<string, unknown>;
+    validationRules?: ValidationRule[];
+    reviewPolicy?: ReviewPolicy;
+    modelRouting?: ModelRouting;
     outputSchema?: Record<string, unknown>;
     inertSourceMetadata?: Record<string, unknown>;
   };

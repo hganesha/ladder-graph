@@ -140,6 +140,179 @@ spec:
               dataType: string
               widget: text
               required: true
+  validationRules:
+    - id: claim-number-present
+      severity: error
+      description: claim_number is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: claim_number
+          - op: gt
+            left:
+              length: claim_number
+            right:
+              value: 0
+      sourceExpression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
+      supported: true
+    - id: policy-number-present
+      severity: error
+      description: policy_number is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: policy_number
+          - op: gt
+            left:
+              length: policy_number
+            right:
+              value: 0
+      sourceExpression: policy_number IS NOT NULL AND LENGTH(TRIM(policy_number)) > 0
+      supported: true
+    - id: insured-name-present
+      severity: error
+      description: insured_name is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: insured_name
+          - op: gt
+            left:
+              length: insured_name
+            right:
+              value: 0
+      sourceExpression: insured_name IS NOT NULL AND LENGTH(TRIM(insured_name)) > 0
+      supported: true
+    - id: claimed-amount-present
+      severity: error
+      description: claimed_amount is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: claimed_amount
+          - op: gt
+            left:
+              length: claimed_amount
+            right:
+              value: 0
+      sourceExpression: claimed_amount IS NOT NULL AND LENGTH(TRIM(claimed_amount)) > 0
+      supported: true
+    - id: claimed-amount-non-negative
+      severity: warning
+      description: claimed_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: claimed_amount
+          - op: gte
+            left:
+              field: claimed_amount
+            right:
+              value: 0
+      sourceExpression: claimed_amount IS NULL OR claimed_amount >= 0
+      supported: true
+    - id: actual-cash-value-non-negative
+      severity: warning
+      description: actual_cash_value should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: actual_cash_value
+          - op: gte
+            left:
+              field: actual_cash_value
+            right:
+              value: 0
+      sourceExpression: actual_cash_value IS NULL OR actual_cash_value >= 0
+      supported: true
+    - id: replacement-cost-value-non-negative
+      severity: warning
+      description: replacement_cost_value should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: replacement_cost_value
+          - op: gte
+            left:
+              field: replacement_cost_value
+            right:
+              value: 0
+      sourceExpression: replacement_cost_value IS NULL OR replacement_cost_value >= 0
+      supported: true
+    - id: deductible-amount-non-negative
+      severity: warning
+      description: deductible_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: deductible_amount
+          - op: gte
+            left:
+              field: deductible_amount
+            right:
+              value: 0
+      sourceExpression: deductible_amount IS NULL OR deductible_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      claim_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      policy_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      claimed_amount:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      signed_date:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      insured_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Proof of loss extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Proof of Loss documents mix policy, coverage, claim, party, financial, and regulatory notice context.
   submissionSchema:
     type: object
     properties:
@@ -199,71 +372,6 @@ spec:
       - claimed_amount
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: claim_number_present
-          rule_type: presence
-          fields:
-            - claim_number
-          expression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
-          severity: fail
-          description: claim_number is required for Proof of Loss extraction.
-          field_name: claim_number
-        - name: policy_number_present
-          rule_type: presence
-          fields:
-            - policy_number
-          expression: policy_number IS NOT NULL AND LENGTH(TRIM(policy_number)) > 0
-          severity: fail
-          description: policy_number is required for Proof of Loss extraction.
-          field_name: policy_number
-        - name: insured_name_present
-          rule_type: presence
-          fields:
-            - insured_name
-          expression: insured_name IS NOT NULL AND LENGTH(TRIM(insured_name)) > 0
-          severity: fail
-          description: insured_name is required for Proof of Loss extraction.
-          field_name: insured_name
-        - name: claimed_amount_present
-          rule_type: presence
-          fields:
-            - claimed_amount
-          expression: claimed_amount IS NOT NULL AND LENGTH(TRIM(claimed_amount)) > 0
-          severity: fail
-          description: claimed_amount is required for Proof of Loss extraction.
-          field_name: claimed_amount
-        - name: claimed_amount_non_negative
-          rule_type: range
-          fields:
-            - claimed_amount
-          expression: claimed_amount IS NULL OR claimed_amount >= 0
-          severity: warn
-          description: claimed_amount should be non-negative when present.
-          field_name: claimed_amount
-        - name: actual_cash_value_non_negative
-          rule_type: range
-          fields:
-            - actual_cash_value
-          expression: actual_cash_value IS NULL OR actual_cash_value >= 0
-          severity: warn
-          description: actual_cash_value should be non-negative when present.
-          field_name: actual_cash_value
-        - name: replacement_cost_value_non_negative
-          rule_type: range
-          fields:
-            - replacement_cost_value
-          expression: replacement_cost_value IS NULL OR replacement_cost_value >= 0
-          severity: warn
-          description: replacement_cost_value should be non-negative when present.
-          field_name: replacement_cost_value
-        - name: deductible_amount_non_negative
-          rule_type: range
-          fields:
-            - deductible_amount
-          expression: deductible_amount IS NULL OR deductible_amount >= 0
-          severity: warn
-          description: deductible_amount should be non-negative when present.
-          field_name: deductible_amount
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

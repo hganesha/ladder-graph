@@ -1,0 +1,20 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: fs-secured-lending-perfection
+  title: Secured lending perfection bundle
+  description: Filing preparation, guaranty, and syndicated-credit evidence before an irreversible lending act.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cross-04
+  ontology:
+    ref: ladder://ontologies/builtin/financial-services
+    mode: sliver
+    selection:
+      propertyRefs: [regulatory_filing.filing_number, guaranty.guarantor_name, loan_facility.total_commitment_amount, credit_agreement.agreement_date]
+      relationshipIds: [obligated_under, supported_by, reported_through]
+  forms:
+    - { ref: ladder://forms/docubricks/fs/ucc_financing_statement, role: completion }
+  documents:
+    - { ref: ladder://documents/docubricks/fs/guaranty_agreement, role: supporting }
+    - { ref: ladder://documents/docubricks/fs/syndicated_credit_agreement, role: supporting }

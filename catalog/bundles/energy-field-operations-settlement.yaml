@@ -1,0 +1,19 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: energy-field-operations-settlement
+  title: Energy field operations settlement bundle
+  description: Field-service completion and production evidence prepared for governed settlement.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-acct-01
+  ontology:
+    ref: ladder://ontologies/builtin/energy
+    mode: sliver
+    selection:
+      propertyRefs: [field_service_job.ticket_number, field_service_job.service_date, production_measurement.production_date, production_measurement.oil_volume_bbl]
+      relationshipIds: [performed_at, measures]
+  forms:
+    - { ref: ladder://forms/docubricks/energy/field_ticket, role: completion }
+  documents:
+    - { ref: ladder://documents/docubricks/energy/production_report, role: supporting }

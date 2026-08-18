@@ -144,10 +144,91 @@ describe("portable artifact importers", () => {
 
     expect(result.ok).toBe(true);
     if (result.artifact?.kind !== "Document") throw new Error("Expected document import.");
-    expect(result.artifact.spec.validationRules?.[0]).toMatchObject({ supported: true, rule: { op: "gte" } });
+    expect(result.artifact.spec.validationRules?.[0]).toMatchObject({ supported: true, rule: { op: "or" } });
     expect(result.artifact.spec.validationRules?.[1]).toMatchObject({
       supported: false,
       sourceExpression: "EXISTS (SELECT 1 FROM reserves)",
+    });
+    expect(result.artifact.spec.validationRules?.[1].unsupportedReason).toBeTruthy();
+  });
+
+  it("makes form extraction rules executable and preserves review routing policy", () => {
+    const result = importDocuBricksSchema(
+      JSON.stringify({
+        document_type: "field_ticket",
+        vertical: "energy",
+        fields: [{ name: "ticket_number", type: "string", required: true, section: "details" }],
+        sections: [{ id: "details", title: "Details", fields: ["ticket_number"] }],
+      }),
+      JSON.stringify([
+        {
+          name: "ticket_required",
+          expression: "ticket_number IS NOT NULL AND LENGTH(TRIM(ticket_number)) > 0",
+          severity: "fail",
+        },
+      ]),
+      {
+        artifactKind: "form",
+        role: "completion",
+        thresholdsSource: JSON.stringify({
+          default_threshold: 0.75,
+          ticket_number: {
+            min_confidence: 0.9,
+            review_on_breach: true,
+            fail_on_breach: true,
+            regulatory_required: false,
+            description: "Ticket identity must be reliable.",
+          },
+        }),
+        modelRoutingSource: JSON.stringify({
+          primary: "databricks-claude-sonnet",
+          fallback_chain: ["databricks-meta-llama-3-70b-instruct"],
+          max_tokens: 4096,
+        }),
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.artifact?.kind !== "Form") throw new Error("Expected form import.");
+    expect(result.artifact.spec.validationRules?.[0]).toMatchObject({ supported: true, rule: { op: "and" } });
+    expect(result.artifact.spec.reviewPolicy).toMatchObject({
+      defaultConfidenceThreshold: 0.75,
+      fieldConfidence: { ticket_number: { minConfidence: 0.9, failOnBreach: true } },
+    });
+    expect(result.artifact.spec.modelRouting).toMatchObject({
+      primary: "databricks-claude-sonnet",
+      fallbackChain: ["databricks-meta-llama-3-70b-instruct"],
+      maxTokens: 4096,
+    });
+  });
+
+  it("emits the secondary experience for hybrid DocuBricks assets", () => {
+    const fields = JSON.stringify({
+      document_type: "court_filing",
+      vertical: "legal",
+      fields: [{ name: "case_number", type: "string", section: "details" }],
+      sections: [{ id: "details", title: "Details", fields: ["case_number"] }],
+    });
+    const documentPrimary = importDocuBricksSchema(fields, undefined, {
+      artifactKind: "hybrid",
+      hybridExperience: "document",
+    });
+    const formPrimary = importDocuBricksSchema(fields, undefined, {
+      artifactKind: "hybrid",
+      hybridExperience: "form",
+      role: "completion",
+    });
+
+    expect(documentPrimary.artifact?.kind).toBe("Document");
+    expect(documentPrimary.counterpartArtifact).toMatchObject({
+      kind: "Form",
+      metadata: { name: "court-filing-review", source: { derivedFrom: "court-filing" } },
+      spec: { role: "review" },
+    });
+    expect(formPrimary.artifact?.kind).toBe("Form");
+    expect(formPrimary.counterpartArtifact).toMatchObject({
+      kind: "Document",
+      metadata: { name: "court-filing-source", source: { derivedFrom: "court-filing" } },
     });
   });
 });

@@ -173,6 +173,82 @@ spec:
               description: Approved, conditionally approved, rejected, pending, or other.
               dataType: string
               widget: text
+  validationRules:
+    - id: vendor-name-present
+      severity: error
+      description: vendor_name is required for Third-party Risk Assessment extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: vendor_name
+          - op: gt
+            left:
+              length: vendor_name
+            right:
+              value: 0
+      sourceExpression: vendor_name IS NOT NULL AND LENGTH(TRIM(vendor_name)) > 0
+      supported: true
+    - id: assessment-date-present
+      severity: error
+      description: assessment_date is required for Third-party Risk Assessment extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: assessment_date
+          - op: gt
+            left:
+              length: assessment_date
+            right:
+              value: 0
+      sourceExpression: assessment_date IS NOT NULL AND LENGTH(TRIM(assessment_date)) > 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      vendor_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Third-party Risk Assessment workflow.
+      criticality_tier:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Third-party Risk Assessment workflow.
+      residual_risk_rating:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Third-party Risk Assessment workflow.
+      approval_status:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Third-party Risk Assessment workflow.
+      assessment_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Third-party risk assessment extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Third-party Risk Assessment documents combine structured fields and narrative risk/legal/compliance
+      context.
   submissionSchema:
     type: object
     properties:
@@ -255,21 +331,6 @@ spec:
       - vendor_name
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: vendor_name_present
-          rule_type: presence
-          fields:
-            - vendor_name
-          expression: vendor_name IS NOT NULL AND LENGTH(TRIM(vendor_name)) > 0
-          severity: fail
-          description: vendor_name is required for Third-party Risk Assessment extraction.
-        - name: assessment_date_present
-          rule_type: presence
-          fields:
-            - assessment_date
-          expression: assessment_date IS NOT NULL AND LENGTH(TRIM(assessment_date)) > 0
-          severity: fail
-          description: assessment_date is required for Third-party Risk Assessment extraction.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

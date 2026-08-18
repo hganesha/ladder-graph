@@ -184,6 +184,284 @@ spec:
               description: "Adjudication outcome. One of: Paid | Denied | Pending | Adjusted"
               dataType: string
               widget: text
+  validationRules:
+    - id: claim-number-not-null
+      severity: error
+      description: Claim number is the primary key for downstream remittance reconciliation and HIPAA 835
+        transaction matching — no valid EOB record without it
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: claim_number
+          - op: gt
+            left:
+              length: claim_number
+            right:
+              value: 0
+      sourceExpression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
+      supported: true
+    - id: avg-confidence-minimum
+      severity: warning
+      description: Overall extraction confidence below 0.65 indicates document quality or format issues too severe
+        for reliable automated processing — route to human review queue
+      rule:
+        op: gte
+        left:
+          field: avg_confidence
+        right:
+          value: 0.65
+      sourceExpression: avg_confidence >= 0.65
+      supported: true
+    - id: claim-status-valid-enum
+      severity: warning
+      description: Claim status must be a recognized adjudication outcome; invalid values break downstream
+        remittance posting workflows and denial management routing
+      rule:
+        op: or
+        rules:
+          - op: eq
+            left:
+              field: claim_status
+            right:
+              value: Paid
+          - op: eq
+            left:
+              field: claim_status
+            right:
+              value: Denied
+          - op: eq
+            left:
+              field: claim_status
+            right:
+              value: Pending
+          - op: eq
+            left:
+              field: claim_status
+            right:
+              value: Adjusted
+      sourceExpression: claim_status IN ('Paid', 'Denied', 'Pending', 'Adjusted')
+      supported: true
+    - id: billed-amount-positive
+      severity: warning
+      description: Billed amount must be present and positive — zero or null indicates claim header extraction
+        failure; cannot reconcile remittance without charge amount
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: billed_amount
+          - op: gt
+            left:
+              field: billed_amount
+            right:
+              value: 0
+      sourceExpression: billed_amount IS NOT NULL AND billed_amount > 0
+      supported: true
+    - id: patient-member-id-present
+      severity: warning
+      description: Member ID is required for eligibility verification and patient account matching; missing value
+        prevents automated posting — flag for manual resolution
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: patient_member_id
+          - op: gt
+            left:
+              length: patient_member_id
+            right:
+              value: 0
+      sourceExpression: patient_member_id IS NOT NULL AND LENGTH(TRIM(patient_member_id)) > 0
+      supported: true
+    - id: paid-amount-non-negative
+      severity: warning
+      description: Paid amount cannot be negative; negative value indicates extraction error or overpayment recovery
+        scenario requiring manual review
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: paid_amount
+          - op: gte
+            left:
+              field: paid_amount
+            right:
+              value: 0
+      sourceExpression: paid_amount IS NULL OR paid_amount >= 0
+      supported: true
+    - id: denial-reason-required-for-denied
+      severity: warning
+      description: Denied claims must have a CARC denial reason code for appeals processing and denial management
+        reporting; missing code flags extraction gap
+      rule:
+        op: not
+        rule:
+          op: and
+          rules:
+            - op: eq
+              left:
+                field: claim_status
+              right:
+                value: Denied
+            - op: not
+              rule:
+                op: present
+                field: denial_reason_code
+      sourceExpression: NOT (claim_status = 'Denied' AND denial_reason_code IS NULL)
+      supported: true
+    - id: provider-npi-format
+      severity: warning
+      description: NPI must be exactly 10 numeric digits per HIPAA standard; format violation indicates extraction
+        confusion with Tax ID or other identifiers
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: provider_npi
+          - op: and
+            rules:
+              - op: eq
+                left:
+                  length: provider_npi
+                right:
+                  value: 10
+              - op: matches
+                left:
+                  field: provider_npi
+                pattern: ^[0-9]{10}$
+      sourceExpression: provider_npi IS NULL OR (LENGTH(provider_npi) = 10 AND provider_npi REGEXP '^[0-9]{10}$')
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      claim_number:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Claim number is the HIPAA 835 transaction key — required for remittance reconciliation, ERA
+          posting, and CMS audit trail; extraction errors break end-to-end payment workflow
+      patient_member_id:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Member ID links claim to eligibility and patient account; errors cause misposting, HIPAA EDI
+          rejection, and patient billing failures
+      provider_npi:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: NPI is HIPAA-mandated provider identifier for claims submission and remittance; incorrect NPI
+          causes ERA routing failures and CMS compliance issues
+      rendering_provider_npi:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Rendering NPI required for split-billing and group practice remittance routing under HIPAA 5010;
+          errors affect provider payment splits
+      billed_amount:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Billed amount is the financial anchor for all remittance calculations — contractual adjustments,
+          patient responsibility, and payer payment are all derived from this value; must be highly accurate
+      paid_amount:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Paid amount drives cash posting to provider accounts receivable; extraction errors cause AR balance
+          mismatches and potential fraud flag triggers
+      allowed_amount:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Allowed amount validates contractual adjustment calculations and payer fee schedule compliance;
+          important for revenue cycle analytics
+      patient_responsibility:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Patient responsibility amount drives patient billing statements; errors cause patient disputes and
+          No Surprises Act compliance exposure
+      claim_status:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Claim status determines downstream workflow routing — paid claims to cash posting, denied to denial
+          management, pending to follow-up queue; misclassification has significant operational impact
+      denial_reason_code:
+        minConfidence: 0.8
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: CARC denial reason code is required for automated appeals and denial trend reporting; lower
+          threshold acceptable as codes may be in stamps or footnotes
+      procedure_codes:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: CPT/HCPCS codes link to fee schedule pricing, utilization management, and clinical analytics;
+          incomplete extraction understates procedure mix reporting
+      diagnosis_codes:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: ICD-10 diagnosis codes support medical necessity validation and quality measure attribution;
+          required for value-based care program reporting
+      date_of_service_from:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Date of service is required for timely filing compliance tracking and coordination of benefits
+          sequencing; errors cause COB and timely filing rule violations
+      payer_name:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Payer name identifies the remitting entity for cash posting routing; lower threshold acceptable as
+          payer may be identified by logo or ID rather than spelled-out name
+      service_facility_npi:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Service facility NPI required for place-of-service-based reimbursement rules and quality reporting
+          attribution; errors affect site-of-care analytics
+  modelRouting:
+    primary: databricks-gemini-flash
+    fallbackChain:
+      - databricks-dbrx-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: EOB and CMS-1500 documents are visually complex — they contain dense multi-column service line
+      tables, payer rubber stamps, checkboxes, hand-annotated remark codes, and mixed printed/handwritten
+      content. Gemini Flash's multimodal capabilities enable direct image-based extraction from scanned EOBs
+      and CMS-1500 paper forms, handling rotated text, stamps, and table structures that pure text models
+      struggle with. The financial accuracy requirements (billed, allowed, paid amounts) and regulatory
+      identifier precision (NPI, member ID) demand a model with strong visual grounding. DBRX Instruct serves
+      as a cost-effective fallback for digitally-native EOB text extracts (e.g., payer portal exports,
+      ERA-to-text conversions) where visual parsing is not needed.
   submissionSchema:
     type: object
     properties:
@@ -270,70 +548,6 @@ spec:
       - billed_amount
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: claim_number_not_null
-          rule_type: presence
-          fields:
-            - claim_number
-          expression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
-          severity: fail
-          description: Claim number is the primary key for downstream remittance reconciliation and HIPAA 835
-            transaction matching — no valid EOB record without it
-        - name: avg_confidence_minimum
-          rule_type: range
-          fields:
-            - avg_confidence
-          expression: avg_confidence >= 0.65
-          severity: drop
-          description: Overall extraction confidence below 0.65 indicates document quality or format issues too severe
-            for reliable automated processing — route to human review queue
-        - name: claim_status_valid_enum
-          rule_type: presence
-          fields: []
-          expression: claim_status IN ('Paid', 'Denied', 'Pending', 'Adjusted')
-          severity: drop
-          description: Claim status must be a recognized adjudication outcome; invalid values break downstream
-            remittance posting workflows and denial management routing
-        - name: billed_amount_positive
-          rule_type: range
-          fields:
-            - billed_amount
-          expression: billed_amount IS NOT NULL AND billed_amount > 0
-          severity: drop
-          description: Billed amount must be present and positive — zero or null indicates claim header extraction
-            failure; cannot reconcile remittance without charge amount
-        - name: patient_member_id_present
-          rule_type: presence
-          fields:
-            - patient_member_id
-          expression: patient_member_id IS NOT NULL AND LENGTH(TRIM(patient_member_id)) > 0
-          severity: warn
-          description: Member ID is required for eligibility verification and patient account matching; missing value
-            prevents automated posting — flag for manual resolution
-        - name: paid_amount_non_negative
-          rule_type: range
-          fields:
-            - paid_amount
-          expression: paid_amount IS NULL OR paid_amount >= 0
-          severity: warn
-          description: Paid amount cannot be negative; negative value indicates extraction error or overpayment recovery
-            scenario requiring manual review
-        - name: denial_reason_required_for_denied
-          rule_type: presence
-          fields:
-            - denial_reason_code
-          expression: NOT (claim_status = 'Denied' AND denial_reason_code IS NULL)
-          severity: warn
-          description: Denied claims must have a CARC denial reason code for appeals processing and denial management
-            reporting; missing code flags extraction gap
-        - name: provider_npi_format
-          rule_type: format
-          fields:
-            - provider_npi
-          expression: provider_npi IS NULL OR (LENGTH(provider_npi) = 10 AND provider_npi REGEXP '^[0-9]{10}$')
-          severity: warn
-          description: NPI must be exactly 10 numeric digits per HIPAA standard; format violation indicates extraction
-            confusion with Tax ID or other identifiers
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

@@ -141,25 +141,92 @@ spec:
       severity: error
       description: insured_name is required for Certificate of Insurance extraction.
       rule:
-        op: present
-        field: insured_name
+        op: and
+        rules:
+          - op: present
+            field: insured_name
+          - op: gt
+            left:
+              length: insured_name
+            right:
+              value: 0
       sourceExpression: insured_name IS NOT NULL AND LENGTH(TRIM(insured_name)) > 0
       supported: true
     - id: certificate-holder-name-present
       severity: error
       description: certificate_holder_name is required for Certificate of Insurance extraction.
       rule:
-        op: present
-        field: certificate_holder_name
+        op: and
+        rules:
+          - op: present
+            field: certificate_holder_name
+          - op: gt
+            left:
+              length: certificate_holder_name
+            right:
+              value: 0
       sourceExpression: certificate_holder_name IS NOT NULL AND LENGTH(TRIM(certificate_holder_name)) > 0
       supported: true
     - id: coverage-lines-present
       severity: error
       description: coverage_lines is required for Certificate of Insurance extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: coverage_lines
+          - op: gt
+            left:
+              length: coverage_lines
+            right:
+              value: 0
       sourceExpression: coverage_lines IS NOT NULL AND JSON_ARRAY_LENGTH(coverage_lines) > 0
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      insured_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Insurance workflow.
+      certificate_holder_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Insurance workflow.
+      policy_numbers:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Insurance workflow.
+      expiration_dates:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Certificate of Insurance workflow.
+      coverage_lines:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Certificate of insurance extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Certificate of Insurance documents mix policy, coverage, claim, party, financial, and regulatory
+      notice context.
   outputSchema:
     type: object
     properties:

@@ -1,0 +1,18 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: energy-well-delivery
+  title: Energy well delivery bundle
+  description: Independent well planning with drilling and completion evidence.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cross-08
+  ontology:
+    ref: ladder://ontologies/builtin/energy
+    mode: sliver
+    selection:
+      propertyRefs: [well.well_name, well.api_well_number, well.total_depth, operator.operator_name]
+      relationshipIds: [operated_by]
+  documents:
+    - { ref: ladder://documents/docubricks/energy/daily_drilling_report, role: supporting }
+    - { ref: ladder://documents/docubricks/energy/well_completion_report, role: supporting }

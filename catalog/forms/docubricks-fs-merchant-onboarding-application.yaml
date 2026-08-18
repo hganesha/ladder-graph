@@ -162,6 +162,127 @@ spec:
               dataType: array
               widget: textarea
               span: 2
+  validationRules:
+    - id: merchant-legal-name-present
+      severity: error
+      description: merchant_legal_name is required for Merchant Onboarding Application extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: merchant_legal_name
+          - op: gt
+            left:
+              length: merchant_legal_name
+            right:
+              value: 0
+      sourceExpression: merchant_legal_name IS NOT NULL AND LENGTH(TRIM(merchant_legal_name)) > 0
+      supported: true
+    - id: estimated-monthly-volume-present
+      severity: error
+      description: estimated_monthly_volume is required for Merchant Onboarding Application extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: estimated_monthly_volume
+          - op: gt
+            left:
+              length: estimated_monthly_volume
+            right:
+              value: 0
+      sourceExpression: estimated_monthly_volume IS NOT NULL AND LENGTH(TRIM(estimated_monthly_volume)) > 0
+      supported: true
+    - id: estimated-monthly-volume-non-negative
+      severity: warning
+      description: estimated_monthly_volume should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: estimated_monthly_volume
+          - op: gte
+            left:
+              field: estimated_monthly_volume
+            right:
+              value: 0
+      sourceExpression: estimated_monthly_volume IS NULL OR estimated_monthly_volume >= 0
+      supported: true
+    - id: average-ticket-amount-non-negative
+      severity: warning
+      description: average_ticket_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: average_ticket_amount
+          - op: gte
+            left:
+              field: average_ticket_amount
+            right:
+              value: 0
+      sourceExpression: average_ticket_amount IS NULL OR average_ticket_amount >= 0
+      supported: true
+    - id: high-ticket-amount-non-negative
+      severity: warning
+      description: high_ticket_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: high_ticket_amount
+          - op: gte
+            left:
+              field: high_ticket_amount
+            right:
+              value: 0
+      sourceExpression: high_ticket_amount IS NULL OR high_ticket_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      merchant_legal_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Merchant Onboarding Application workflow.
+      merchant_tax_id_masked:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Merchant Onboarding Application workflow.
+      estimated_monthly_volume:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Merchant Onboarding Application workflow.
+      underwriting_decision:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Merchant Onboarding Application workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Merchant Onboarding Application documents combine structured fields and narrative
+      risk/legal/compliance context.
   submissionSchema:
     type: object
     properties:
@@ -237,42 +358,6 @@ spec:
       - estimated_monthly_volume
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: merchant_legal_name_present
-          rule_type: presence
-          fields:
-            - merchant_legal_name
-          expression: merchant_legal_name IS NOT NULL AND LENGTH(TRIM(merchant_legal_name)) > 0
-          severity: fail
-          description: merchant_legal_name is required for Merchant Onboarding Application extraction.
-        - name: estimated_monthly_volume_present
-          rule_type: presence
-          fields:
-            - estimated_monthly_volume
-          expression: estimated_monthly_volume IS NOT NULL AND LENGTH(TRIM(estimated_monthly_volume)) > 0
-          severity: fail
-          description: estimated_monthly_volume is required for Merchant Onboarding Application extraction.
-        - name: estimated_monthly_volume_non_negative
-          rule_type: range
-          fields:
-            - estimated_monthly_volume
-          expression: estimated_monthly_volume IS NULL OR estimated_monthly_volume >= 0
-          severity: warn
-          description: estimated_monthly_volume should be non-negative when present.
-        - name: average_ticket_amount_non_negative
-          rule_type: range
-          fields:
-            - average_ticket_amount
-          expression: average_ticket_amount IS NULL OR average_ticket_amount >= 0
-          severity: warn
-          description: average_ticket_amount should be non-negative when present.
-        - name: high_ticket_amount_non_negative
-          rule_type: range
-          fields:
-            - high_ticket_amount
-          expression: high_ticket_amount IS NULL OR high_ticket_amount >= 0
-          severity: warn
-          description: high_ticket_amount should be non-negative when present.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

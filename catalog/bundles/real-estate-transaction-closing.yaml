@@ -1,0 +1,20 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: real-estate-transaction-closing
+  title: Real-estate transaction closing bundle
+  description: Purchase, title, conveyance, and settlement evidence for a governed closing decision.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cross-04
+  ontology:
+    ref: ladder://ontologies/builtin/real-estate
+    mode: sliver
+    selection:
+      propertyRefs: [real_property.property_address, property_transaction.purchase_price, title_record.commitment_number, closing.closing_date]
+      relationshipIds: [has_party, transfers, evidenced_by, settled_at]
+  documents:
+    - { ref: ladder://documents/docubricks/real_estate/purchase_agreement, role: supporting }
+    - { ref: ladder://documents/docubricks/real_estate/real_estate_transactions_title_commitment, role: supporting }
+    - { ref: ladder://documents/docubricks/real_estate/deed, role: supporting }
+    - { ref: ladder://documents/docubricks/real_estate/closing_statement, role: supporting }

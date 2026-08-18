@@ -180,6 +180,158 @@ spec:
               description: Pep status
               dataType: string
               widget: text
+  validationRules:
+    - id: customer-name-present
+      severity: error
+      description: Customer name is required for KYC onboarding and screening.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: customer_name
+          - op: gt
+            left:
+              length: customer_name
+            right:
+              value: 0
+      sourceExpression: customer_name IS NOT NULL AND LENGTH(TRIM(customer_name)) > 0
+      supported: true
+    - id: customer-type-valid-enum
+      severity: error
+      description: Customer type must be a supported onboarding category.
+      rule:
+        op: or
+        rules:
+          - op: eq
+            left:
+              field: customer_type
+            right:
+              value: Individual
+          - op: eq
+            left:
+              field: customer_type
+            right:
+              value: Business
+          - op: eq
+            left:
+              field: customer_type
+            right:
+              value: Trust
+          - op: eq
+            left:
+              field: customer_type
+            right:
+              value: Other
+      sourceExpression: customer_type IN ('Individual', 'Business', 'Trust', 'Other')
+      supported: true
+    - id: risk-rating-valid-enum
+      severity: warning
+      description: Risk rating should use the expected CDD categories.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: risk_rating
+          - op: or
+            rules:
+              - op: eq
+                left:
+                  field: risk_rating
+                right:
+                  value: Low
+              - op: eq
+                left:
+                  field: risk_rating
+                right:
+                  value: Medium
+              - op: eq
+                left:
+                  field: risk_rating
+                right:
+                  value: High
+      sourceExpression: risk_rating IS NULL OR risk_rating IN ('Low', 'Medium', 'High')
+      supported: true
+    - id: beneficial-owner-percent-range
+      severity: warning
+      description: Ownership percentage must be within 0-100 when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: beneficial_owner_ownership_percent
+          - op: and
+            rules:
+              - op: gt
+                left:
+                  field: beneficial_owner_ownership_percent
+                right:
+                  value: 0
+              - op: lte
+                left:
+                  field: beneficial_owner_ownership_percent
+                right:
+                  value: 100
+      sourceExpression: beneficial_owner_ownership_percent IS NULL OR (beneficial_owner_ownership_percent > 0 AND
+        beneficial_owner_ownership_percent <= 100)
+      supported: true
+    - id: review-date-present
+      severity: warning
+      description: CDD records should include review or certification date.
+      rule:
+        op: present
+        field: review_date
+      sourceExpression: review_date IS NOT NULL
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      customer_name:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Primary identity field for CIP and sanctions screening.
+      customer_type:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Controls individual versus entity onboarding workflow.
+      tax_id_masked:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Masked tax identifier supports CIP matching without storing full sensitive value.
+      risk_rating:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Risk rating drives ongoing monitoring cadence.
+      beneficial_owner_name:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Beneficial owner identity is required for covered legal entity CDD.
+  modelRouting:
+    primary: databricks-dbrx-instruct
+    fallbackChain:
+      - databricks-claude-sonnet
+    maxTokens: 2048
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: KYC/CDD forms are moderately structured onboarding documents with labeled identity, risk, and
+      beneficial ownership fields. DBRX Instruct is sufficient for low-latency structured extraction; Claude
+      Sonnet is retained for entity ownership edge cases or degraded scans.
   submissionSchema:
     type: object
     properties:
@@ -258,42 +410,6 @@ spec:
       - customer_name
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: customer_name_present
-          rule_type: presence
-          fields:
-            - customer_name
-          expression: customer_name IS NOT NULL AND LENGTH(TRIM(customer_name)) > 0
-          severity: fail
-          description: Customer name is required for KYC onboarding and screening.
-        - name: customer_type_valid_enum
-          rule_type: presence
-          fields: []
-          expression: customer_type IN ('Individual', 'Business', 'Trust', 'Other')
-          severity: fail
-          description: Customer type must be a supported onboarding category.
-        - name: risk_rating_valid_enum
-          rule_type: presence
-          fields:
-            - risk_rating
-          expression: risk_rating IS NULL OR risk_rating IN ('Low', 'Medium', 'High')
-          severity: warn
-          description: Risk rating should use the expected CDD categories.
-        - name: beneficial_owner_percent_range
-          rule_type: range
-          fields:
-            - beneficial_owner_ownership_percent
-          expression: beneficial_owner_ownership_percent IS NULL OR (beneficial_owner_ownership_percent > 0 AND
-            beneficial_owner_ownership_percent <= 100)
-          severity: drop
-          description: Ownership percentage must be within 0-100 when present.
-        - name: review_date_present
-          rule_type: presence
-          fields:
-            - review_date
-          expression: review_date IS NOT NULL
-          severity: warn
-          description: CDD records should include review or certification date.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

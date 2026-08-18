@@ -158,6 +158,96 @@ spec:
               description: Whether issue is tied to a regulatory commitment.
               dataType: boolean
               widget: checkbox
+  validationRules:
+    - id: issue-id-present
+      severity: error
+      description: issue_id is required for Issue Management Record extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: issue_id
+          - op: gt
+            left:
+              length: issue_id
+            right:
+              value: 0
+      sourceExpression: issue_id IS NOT NULL AND LENGTH(TRIM(issue_id)) > 0
+      supported: true
+    - id: issue-title-present
+      severity: error
+      description: issue_title is required for Issue Management Record extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: issue_title
+          - op: gt
+            left:
+              length: issue_title
+            right:
+              value: 0
+      sourceExpression: issue_title IS NOT NULL AND LENGTH(TRIM(issue_title)) > 0
+      supported: true
+    - id: status-present
+      severity: error
+      description: status is required for Issue Management Record extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: status
+          - op: gt
+            left:
+              length: status
+            right:
+              value: 0
+      sourceExpression: status IS NOT NULL AND LENGTH(TRIM(status)) > 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      issue_id:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Issue Management Record workflow.
+      issue_title:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Issue Management Record workflow.
+      severity:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Issue Management Record workflow.
+      target_completion_date:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Issue Management Record workflow.
+      status:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Issue Management Record workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Issue Management Record documents combine structured fields and narrative risk/legal/compliance context.
   submissionSchema:
     type: object
     properties:
@@ -234,28 +324,6 @@ spec:
       - status
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: issue_id_present
-          rule_type: presence
-          fields:
-            - issue_id
-          expression: issue_id IS NOT NULL AND LENGTH(TRIM(issue_id)) > 0
-          severity: fail
-          description: issue_id is required for Issue Management Record extraction.
-        - name: issue_title_present
-          rule_type: presence
-          fields:
-            - issue_title
-          expression: issue_title IS NOT NULL AND LENGTH(TRIM(issue_title)) > 0
-          severity: fail
-          description: issue_title is required for Issue Management Record extraction.
-        - name: status_present
-          rule_type: presence
-          fields:
-            - status
-          expression: status IS NOT NULL AND LENGTH(TRIM(status)) > 0
-          severity: fail
-          description: status is required for Issue Management Record extraction.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

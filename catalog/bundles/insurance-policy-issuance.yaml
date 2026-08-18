@@ -1,0 +1,20 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: insurance-policy-issuance
+  title: Insurance policy issuance bundle
+  description: Policy application, declaration, and certificate evidence through an underwriting-shaped workflow.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-fin-04
+  ontology:
+    ref: ladder://ontologies/builtin/insurance
+    mode: sliver
+    selection:
+      propertyRefs: [insurance_policy.policy_number, insured_party.named_insured, insurance_organization.carrier_name, coverage.coverage_limits]
+      relationshipIds: [covers, issued_by, governs]
+  forms:
+    - { ref: ladder://forms/docubricks/insurance/insurance_policy_application, role: start }
+  documents:
+    - { ref: ladder://documents/docubricks/insurance/policy_declaration_page, role: supporting }
+    - { ref: ladder://documents/docubricks/insurance/certificate_of_insurance, role: supporting }

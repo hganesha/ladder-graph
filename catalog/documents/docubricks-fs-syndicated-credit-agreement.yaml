@@ -183,61 +183,137 @@ spec:
       severity: error
       description: borrower_name is required for Syndicated Credit Agreement extraction.
       rule:
-        op: present
-        field: borrower_name
+        op: and
+        rules:
+          - op: present
+            field: borrower_name
+          - op: gt
+            left:
+              length: borrower_name
+            right:
+              value: 0
       sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
       supported: true
     - id: administrative-agent-name-present
       severity: error
       description: administrative_agent_name is required for Syndicated Credit Agreement extraction.
       rule:
-        op: present
-        field: administrative_agent_name
+        op: and
+        rules:
+          - op: present
+            field: administrative_agent_name
+          - op: gt
+            left:
+              length: administrative_agent_name
+            right:
+              value: 0
       sourceExpression: administrative_agent_name IS NOT NULL AND LENGTH(TRIM(administrative_agent_name)) > 0
       supported: true
     - id: total-commitment-amount-present
       severity: error
       description: total_commitment_amount is required for Syndicated Credit Agreement extraction.
       rule:
-        op: present
-        field: total_commitment_amount
+        op: and
+        rules:
+          - op: present
+            field: total_commitment_amount
+          - op: gt
+            left:
+              length: total_commitment_amount
+            right:
+              value: 0
       sourceExpression: total_commitment_amount IS NOT NULL AND LENGTH(TRIM(total_commitment_amount)) > 0
       supported: true
     - id: total-commitment-amount-non-negative
       severity: warning
       description: total_commitment_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: total_commitment_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: total_commitment_amount
+          - op: gte
+            left:
+              field: total_commitment_amount
+            right:
+              value: 0
       sourceExpression: total_commitment_amount IS NULL OR total_commitment_amount >= 0
       supported: true
     - id: commitment-fee-non-negative
       severity: warning
       description: commitment_fee should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: commitment_fee
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: commitment_fee
+          - op: gte
+            left:
+              field: commitment_fee
+            right:
+              value: 0
       sourceExpression: commitment_fee IS NULL OR commitment_fee >= 0
       supported: true
     - id: assignment-minimum-amount-non-negative
       severity: warning
       description: assignment_minimum_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: assignment_minimum_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: assignment_minimum_amount
+          - op: gte
+            left:
+              field: assignment_minimum_amount
+            right:
+              value: 0
       sourceExpression: assignment_minimum_amount IS NULL OR assignment_minimum_amount >= 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      borrower_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Syndicated Credit Agreement workflow.
+      administrative_agent_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Syndicated Credit Agreement workflow.
+      total_commitment_amount:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Syndicated Credit Agreement workflow.
+      tranches:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Syndicated Credit Agreement workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Syndicated Credit Agreement documents combine structured fields and narrative risk/legal/compliance
+      context.
   outputSchema:
     type: object
     properties:

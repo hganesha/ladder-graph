@@ -182,31 +182,93 @@ spec:
       severity: error
       description: case_name is required for Litigation Case File extraction.
       rule:
-        op: present
-        field: case_name
+        op: and
+        rules:
+          - op: present
+            field: case_name
+          - op: gt
+            left:
+              length: case_name
+            right:
+              value: 0
       sourceExpression: case_name IS NOT NULL AND LENGTH(TRIM(case_name)) > 0
       supported: true
     - id: case-status-present
       severity: error
       description: case_status is required for Litigation Case File extraction.
       rule:
-        op: present
-        field: case_status
+        op: and
+        rules:
+          - op: present
+            field: case_status
+          - op: gt
+            left:
+              length: case_status
+            right:
+              value: 0
       sourceExpression: case_status IS NOT NULL AND LENGTH(TRIM(case_status)) > 0
       supported: true
     - id: exposure-amount-non-negative
       severity: warning
       description: exposure_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: exposure_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: exposure_amount
+          - op: gte
+            left:
+              field: exposure_amount
+            right:
+              value: 0
       sourceExpression: exposure_amount IS NULL OR exposure_amount >= 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      case_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: High-impact field for Litigation Case File workflow.
+      case_number:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Litigation Case File workflow.
+      next_deadline_date:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Litigation Case File workflow.
+      exposure_amount:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: High-impact field for Litigation Case File workflow.
+      case_status:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Litigation case file extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Litigation Case File documents combine structured fields and narrative risk/legal/compliance context.
   outputSchema:
     type: object
     properties:

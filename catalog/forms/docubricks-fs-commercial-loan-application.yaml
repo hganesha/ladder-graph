@@ -208,6 +208,120 @@ spec:
               description: Total business assets if stated.
               dataType: number
               widget: number
+  validationRules:
+    - id: applicant-legal-name-present
+      severity: error
+      description: A commercial loan application is not actionable without borrower legal identity.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: applicant_legal_name
+          - op: gt
+            left:
+              length: applicant_legal_name
+            right:
+              value: 0
+      sourceExpression: applicant_legal_name IS NOT NULL AND LENGTH(TRIM(applicant_legal_name)) > 0
+      supported: true
+    - id: requested-loan-amount-positive
+      severity: error
+      description: Requested loan amount is required and must be positive.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: requested_loan_amount
+          - op: gt
+            left:
+              field: requested_loan_amount
+            right:
+              value: 0
+      sourceExpression: requested_loan_amount IS NOT NULL AND requested_loan_amount > 0
+      supported: true
+    - id: application-date-valid
+      severity: warning
+      description: Future application dates usually indicate extraction or data-entry errors.
+      sourceExpression: application_date IS NULL OR application_date <= CURRENT_DATE()
+      supported: false
+      unsupportedReason: CURRENT_DATE() requires a runtime today operand.
+    - id: entity-type-present
+      severity: warning
+      description: Entity type is important for KYB, authority, and beneficial ownership review.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: applicant_entity_type
+          - op: gt
+            left:
+              length: applicant_entity_type
+            right:
+              value: 0
+      sourceExpression: applicant_entity_type IS NOT NULL AND LENGTH(TRIM(applicant_entity_type)) > 0
+      supported: true
+    - id: guarantors-array-valid
+      severity: warning
+      description: Guarantors should be represented as an array when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: guarantor_names
+          - op: gte
+            left:
+              length: guarantor_names
+            right:
+              value: 0
+      sourceExpression: guarantor_names IS NULL OR JSON_ARRAY_LENGTH(guarantor_names) >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      applicant_legal_name:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Borrower legal identity anchors KYB, credit file, and downstream loan records.
+      applicant_tax_id_masked:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Masked EIN supports borrower identity matching.
+      requested_loan_amount:
+        minConfidence: 0.94
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Requested amount drives underwriting and approval thresholds.
+      requested_facility_type:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Facility type routes the application to the right credit workflow.
+      signature_name:
+        minConfidence: 0.86
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Signer identity supports authorization review.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Commercial loan applications combine borrower, KYB, ownership, requested credit, collateral, and
+      financial profile fields that benefit from strong long-context extraction.
   submissionSchema:
     type: object
     properties:
@@ -303,42 +417,6 @@ spec:
       - requested_loan_amount
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: applicant_legal_name_present
-          rule_type: presence
-          fields:
-            - applicant_legal_name
-          expression: applicant_legal_name IS NOT NULL AND LENGTH(TRIM(applicant_legal_name)) > 0
-          severity: fail
-          description: A commercial loan application is not actionable without borrower legal identity.
-        - name: requested_loan_amount_positive
-          rule_type: range
-          fields:
-            - requested_loan_amount
-          expression: requested_loan_amount IS NOT NULL AND requested_loan_amount > 0
-          severity: fail
-          description: Requested loan amount is required and must be positive.
-        - name: application_date_valid
-          rule_type: presence
-          fields:
-            - application_date
-          expression: application_date IS NULL OR application_date <= CURRENT_DATE()
-          severity: warn
-          description: Future application dates usually indicate extraction or data-entry errors.
-        - name: entity_type_present
-          rule_type: presence
-          fields:
-            - applicant_entity_type
-          expression: applicant_entity_type IS NOT NULL AND LENGTH(TRIM(applicant_entity_type)) > 0
-          severity: warn
-          description: Entity type is important for KYB, authority, and beneficial ownership review.
-        - name: guarantors_array_valid
-          rule_type: array
-          fields:
-            - guarantor_names
-          expression: guarantor_names IS NULL OR JSON_ARRAY_LENGTH(guarantor_names) >= 0
-          severity: warn
-          description: Guarantors should be represented as an array when present.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

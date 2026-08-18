@@ -155,6 +155,126 @@ spec:
               description: UCC collateral text.
               dataType: string
               widget: text
+  validationRules:
+    - id: filing-number-present
+      severity: error
+      description: UCC filings require a filing number for public-record matching.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: filing_number
+          - op: gt
+            left:
+              length: filing_number
+            right:
+              value: 0
+      sourceExpression: filing_number IS NOT NULL AND LENGTH(TRIM(filing_number)) > 0
+      supported: true
+    - id: filing-date-present
+      severity: warning
+      description: Filing date is required for perfection and lapse monitoring.
+      rule:
+        op: present
+        field: filing_date
+      sourceExpression: filing_date IS NOT NULL
+      supported: true
+    - id: debtor-names-present
+      severity: error
+      description: At least one debtor name is required.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: debtor_names
+          - op: gt
+            left:
+              length: debtor_names
+            right:
+              value: 0
+      sourceExpression: debtor_names IS NOT NULL AND JSON_ARRAY_LENGTH(debtor_names) > 0
+      supported: true
+    - id: secured-party-names-present
+      severity: warning
+      description: Secured party should be present for lien management.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: secured_party_names
+          - op: gt
+            left:
+              length: secured_party_names
+            right:
+              value: 0
+      sourceExpression: secured_party_names IS NOT NULL AND JSON_ARRAY_LENGTH(secured_party_names) > 0
+      supported: true
+    - id: lapse-after-filing-date
+      severity: warning
+      description: Lapse date should be after filing date.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: lapse_date
+          - op: not
+            rule:
+              op: present
+              field: filing_date
+          - op: gt
+            left:
+              field: lapse_date
+            right:
+              field: filing_date
+      sourceExpression: lapse_date IS NULL OR filing_date IS NULL OR lapse_date > filing_date
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      filing_number:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Filing number is the primary public-record key.
+      filing_date:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Filing date drives perfection and lapse calculations.
+      debtor_names:
+        minConfidence: 0.94
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Debtor legal names are critical for lien search and perfection.
+      secured_party_names:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Secured party names identify lender or agent interest.
+      collateral_description:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Collateral text determines scope of perfection.
+  modelRouting:
+    primary: databricks-meta-llama-3-70b-instruct
+    fallbackChain:
+      - databricks-claude-sonnet
+    maxTokens: 3072
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: UCC financing statements are structured filing forms. Llama is suitable for high-volume form
+      extraction, with Claude retained for messy scanned filings and long collateral text.
   submissionSchema:
     type: object
     properties:
@@ -232,43 +352,6 @@ spec:
       - debtor_names
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: filing_number_present
-          rule_type: presence
-          fields:
-            - filing_number
-          expression: filing_number IS NOT NULL AND LENGTH(TRIM(filing_number)) > 0
-          severity: fail
-          description: UCC filings require a filing number for public-record matching.
-        - name: filing_date_present
-          rule_type: presence
-          fields:
-            - filing_date
-          expression: filing_date IS NOT NULL
-          severity: drop
-          description: Filing date is required for perfection and lapse monitoring.
-        - name: debtor_names_present
-          rule_type: array
-          fields:
-            - debtor_names
-          expression: debtor_names IS NOT NULL AND JSON_ARRAY_LENGTH(debtor_names) > 0
-          severity: fail
-          description: At least one debtor name is required.
-        - name: secured_party_names_present
-          rule_type: array
-          fields:
-            - secured_party_names
-          expression: secured_party_names IS NOT NULL AND JSON_ARRAY_LENGTH(secured_party_names) > 0
-          severity: warn
-          description: Secured party should be present for lien management.
-        - name: lapse_after_filing_date
-          rule_type: cross_field
-          fields:
-            - lapse_date
-            - filing_date
-          expression: lapse_date IS NULL OR filing_date IS NULL OR lapse_date > filing_date
-          severity: warn
-          description: Lapse date should be after filing date.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

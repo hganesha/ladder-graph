@@ -1,0 +1,18 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: legal-litigation-management
+  title: Legal litigation management bundle
+  description: Case-file and court-filing evidence for governed litigation management.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-legal-02
+  ontology:
+    ref: ladder://ontologies/builtin/legal
+    mode: sliver
+    selection:
+      propertyRefs: [legal_matter.case_name, legal_matter.case_status, legal_matter.case_number, court_filing.filing_date]
+      relationshipIds: [has_party, involves, contains]
+  documents:
+    - { ref: ladder://documents/docubricks/legal/litigation_case_file, role: supporting }
+    - { ref: ladder://documents/docubricks/legal/court_filing, role: supporting }

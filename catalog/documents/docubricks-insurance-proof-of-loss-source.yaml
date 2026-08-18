@@ -1,0 +1,418 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-insurance-proof-of-loss-source
+  title: Proof Of Loss Source
+  description: Proof Of Loss contract normalized from the DocuBricks Insurance library.
+  version: insurance_proof_of_loss_v1
+  source:
+    system: docubricks
+    sourceId: insurance/proof_of_loss
+    sourcePath: Schemas/insurance/proof_of_loss
+    sourceVersion: insurance_proof_of_loss_v1
+    sourceDigest: e37cd1b43395a0ea5f9ce44850d3b39bc529bc2398064cd68091a311203728aa
+    derivedFrom: docubricks-insurance-proof-of-loss
+spec:
+  documentType: proof_of_loss
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - loss-date
+        - signed-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - cause-of-loss
+        - claim-number
+        - mortgagee-or-loss-payee
+        - other-insurance
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - actual-cash-value
+        - claimed-amount
+        - deductible-amount
+        - replacement-cost-value
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - supporting-documents
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - insured-name
+        - notary-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - loss-location
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - policy-number
+  fields:
+    - id: claim-number
+      name: claim_number
+      label: Claim Number
+      description: Claim number.
+      dataType: string
+      required: true
+      sourcePath: /fields/claim_number
+    - id: policy-number
+      name: policy_number
+      label: Policy Number
+      description: Policy number.
+      dataType: string
+      required: true
+      sourcePath: /fields/policy_number
+    - id: insured-name
+      name: insured_name
+      label: Insured Name
+      description: Insured submitting proof of loss.
+      dataType: string
+      required: true
+      sourcePath: /fields/insured_name
+    - id: loss-date
+      name: loss_date
+      label: Loss Date
+      description: Date of loss.
+      dataType: date
+      sourcePath: /fields/loss_date
+    - id: loss-location
+      name: loss_location
+      label: Loss Location
+      description: Location of loss.
+      dataType: string
+      sourcePath: /fields/loss_location
+    - id: cause-of-loss
+      name: cause_of_loss
+      label: Cause Of Loss
+      description: Cause or origin of loss.
+      dataType: string
+      sourcePath: /fields/cause_of_loss
+    - id: claimed-amount
+      name: claimed_amount
+      label: Claimed Amount
+      description: Total amount claimed.
+      dataType: number
+      required: true
+      sourcePath: /fields/claimed_amount
+    - id: actual-cash-value
+      name: actual_cash_value
+      label: Actual Cash Value
+      description: Actual cash value stated.
+      dataType: number
+      sourcePath: /fields/actual_cash_value
+    - id: replacement-cost-value
+      name: replacement_cost_value
+      label: Replacement Cost Value
+      description: Replacement cost value stated.
+      dataType: number
+      sourcePath: /fields/replacement_cost_value
+    - id: deductible-amount
+      name: deductible_amount
+      label: Deductible Amount
+      description: Applicable deductible.
+      dataType: number
+      sourcePath: /fields/deductible_amount
+    - id: mortgagee-or-loss-payee
+      name: mortgagee_or_loss_payee
+      label: Mortgagee Or Loss Payee
+      description: Mortgagee, lienholder, or loss payee.
+      dataType: string
+      sourcePath: /fields/mortgagee_or_loss_payee
+    - id: other-insurance
+      name: other_insurance
+      label: Other Insurance
+      description: Other insurance disclosed.
+      dataType: string
+      sourcePath: /fields/other_insurance
+    - id: supporting-documents
+      name: supporting_documents
+      label: Supporting Documents
+      description: Documents supporting the proof of loss.
+      dataType: array
+      sourcePath: /fields/supporting_documents
+    - id: signed-date
+      name: signed_date
+      label: Signed Date
+      description: Date signed.
+      dataType: date
+      sourcePath: /fields/signed_date
+    - id: notary-name
+      name: notary_name
+      label: Notary Name
+      description: Notary name if notarized.
+      dataType: string
+      sourcePath: /fields/notary_name
+  validationRules:
+    - id: claim-number-present
+      severity: error
+      description: claim_number is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: claim_number
+          - op: gt
+            left:
+              length: claim_number
+            right:
+              value: 0
+      sourceExpression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
+      supported: true
+    - id: policy-number-present
+      severity: error
+      description: policy_number is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: policy_number
+          - op: gt
+            left:
+              length: policy_number
+            right:
+              value: 0
+      sourceExpression: policy_number IS NOT NULL AND LENGTH(TRIM(policy_number)) > 0
+      supported: true
+    - id: insured-name-present
+      severity: error
+      description: insured_name is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: insured_name
+          - op: gt
+            left:
+              length: insured_name
+            right:
+              value: 0
+      sourceExpression: insured_name IS NOT NULL AND LENGTH(TRIM(insured_name)) > 0
+      supported: true
+    - id: claimed-amount-present
+      severity: error
+      description: claimed_amount is required for Proof of Loss extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: claimed_amount
+          - op: gt
+            left:
+              length: claimed_amount
+            right:
+              value: 0
+      sourceExpression: claimed_amount IS NOT NULL AND LENGTH(TRIM(claimed_amount)) > 0
+      supported: true
+    - id: claimed-amount-non-negative
+      severity: warning
+      description: claimed_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: claimed_amount
+          - op: gte
+            left:
+              field: claimed_amount
+            right:
+              value: 0
+      sourceExpression: claimed_amount IS NULL OR claimed_amount >= 0
+      supported: true
+    - id: actual-cash-value-non-negative
+      severity: warning
+      description: actual_cash_value should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: actual_cash_value
+          - op: gte
+            left:
+              field: actual_cash_value
+            right:
+              value: 0
+      sourceExpression: actual_cash_value IS NULL OR actual_cash_value >= 0
+      supported: true
+    - id: replacement-cost-value-non-negative
+      severity: warning
+      description: replacement_cost_value should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: replacement_cost_value
+          - op: gte
+            left:
+              field: replacement_cost_value
+            right:
+              value: 0
+      sourceExpression: replacement_cost_value IS NULL OR replacement_cost_value >= 0
+      supported: true
+    - id: deductible-amount-non-negative
+      severity: warning
+      description: deductible_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: deductible_amount
+          - op: gte
+            left:
+              field: deductible_amount
+            right:
+              value: 0
+      sourceExpression: deductible_amount IS NULL OR deductible_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      claim_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      policy_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      claimed_amount:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      signed_date:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Proof of Loss workflow.
+      insured_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Proof of loss extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Proof of Loss documents mix policy, coverage, claim, party, financial, and regulatory notice context.
+  outputSchema:
+    type: object
+    properties:
+      claim_number:
+        type: string
+        description: Claim number.
+      policy_number:
+        type: string
+        description: Policy number.
+      insured_name:
+        type: string
+        description: Insured submitting proof of loss.
+      loss_date:
+        type: date
+        description: Date of loss.
+        format: date
+      loss_location:
+        type: string
+        description: Location of loss.
+      cause_of_loss:
+        type: string
+        description: Cause or origin of loss.
+      claimed_amount:
+        type: number
+        description: Total amount claimed.
+      actual_cash_value:
+        type: number
+        description: Actual cash value stated.
+      replacement_cost_value:
+        type: number
+        description: Replacement cost value stated.
+      deductible_amount:
+        type: number
+        description: Applicable deductible.
+      mortgagee_or_loss_payee:
+        type: string
+        description: Mortgagee, lienholder, or loss payee.
+      other_insurance:
+        type: string
+        description: Other insurance disclosed.
+      supporting_documents:
+        type: array
+        items:
+          type: string
+        description: Documents supporting the proof of loss.
+      signed_date:
+        type: date
+        description: Date signed.
+        format: date
+      notary_name:
+        type: string
+        description: Notary name if notarized.
+    required:
+      - claim_number
+      - policy_number
+      - insured_name
+      - claimed_amount
+    additionalProperties: false
+  inertSourceMetadata:
+    family: insurance_collateral_protection
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - claim_number
+          - policy_number
+          - insured_name
+          - claimed_amount
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

@@ -36,7 +36,8 @@
             "sourceId": { "type": "string" },
             "sourcePath": { "type": "string" },
             "sourceVersion": { "type": "string" },
-            "sourceDigest": { "type": "string" }
+            "sourceDigest": { "type": "string" },
+            "derivedFrom": { "type": "string" }
           }
         }
       }

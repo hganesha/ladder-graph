@@ -135,6 +135,148 @@ spec:
               description: Open, implemented, pending effectiveness, closed, overdue, or other status.
               dataType: string
               widget: text
+  validationRules:
+    - id: capa-number-present
+      severity: error
+      description: capa_number is required for Corrective Preventive Action extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: capa_number
+          - op: gt
+            left:
+              length: capa_number
+            right:
+              value: 0
+      sourceExpression: capa_number IS NOT NULL AND LENGTH(TRIM(capa_number)) > 0
+      supported: true
+    - id: opened-date-present
+      severity: error
+      description: opened_date is required for Corrective Preventive Action extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: opened_date
+          - op: gt
+            left:
+              length: opened_date
+            right:
+              value: 0
+      sourceExpression: opened_date IS NOT NULL AND LENGTH(TRIM(opened_date)) > 0
+      supported: true
+    - id: problem-statement-present
+      severity: error
+      description: problem_statement is required for Corrective Preventive Action extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: problem_statement
+          - op: gt
+            left:
+              length: problem_statement
+            right:
+              value: 0
+      sourceExpression: problem_statement IS NOT NULL AND LENGTH(TRIM(problem_statement)) > 0
+      supported: true
+    - id: root-cause-present
+      severity: error
+      description: root_cause is required for Corrective Preventive Action extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: root_cause
+          - op: gt
+            left:
+              length: root_cause
+            right:
+              value: 0
+      sourceExpression: root_cause IS NOT NULL AND LENGTH(TRIM(root_cause)) > 0
+      supported: true
+    - id: owner-name-present
+      severity: error
+      description: owner_name is required for Corrective Preventive Action extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: owner_name
+          - op: gt
+            left:
+              length: owner_name
+            right:
+              value: 0
+      sourceExpression: owner_name IS NOT NULL AND LENGTH(TRIM(owner_name)) > 0
+      supported: true
+    - id: target-completion-date-present
+      severity: error
+      description: target_completion_date is required for Corrective Preventive Action extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: target_completion_date
+          - op: gt
+            left:
+              length: target_completion_date
+            right:
+              value: 0
+      sourceExpression: target_completion_date IS NOT NULL AND LENGTH(TRIM(target_completion_date)) > 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      capa_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Corrective Preventive Action workflow.
+      problem_statement:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Corrective Preventive Action workflow.
+      root_cause:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Corrective Preventive Action workflow.
+      owner_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Corrective Preventive Action workflow.
+      target_completion_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Corrective Preventive Action workflow.
+      opened_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Corrective preventive action extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Corrective Preventive Action documents combine manufacturing, quality, supplier, material, and
+      operational control context.
   submissionSchema:
     type: object
     properties:
@@ -200,49 +342,6 @@ spec:
       - target_completion_date
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: capa_number_present
-          rule_type: presence
-          fields:
-            - capa_number
-          expression: capa_number IS NOT NULL AND LENGTH(TRIM(capa_number)) > 0
-          severity: fail
-          description: capa_number is required for Corrective Preventive Action extraction.
-        - name: opened_date_present
-          rule_type: presence
-          fields:
-            - opened_date
-          expression: opened_date IS NOT NULL AND LENGTH(TRIM(opened_date)) > 0
-          severity: fail
-          description: opened_date is required for Corrective Preventive Action extraction.
-        - name: problem_statement_present
-          rule_type: presence
-          fields:
-            - problem_statement
-          expression: problem_statement IS NOT NULL AND LENGTH(TRIM(problem_statement)) > 0
-          severity: fail
-          description: problem_statement is required for Corrective Preventive Action extraction.
-        - name: root_cause_present
-          rule_type: presence
-          fields:
-            - root_cause
-          expression: root_cause IS NOT NULL AND LENGTH(TRIM(root_cause)) > 0
-          severity: fail
-          description: root_cause is required for Corrective Preventive Action extraction.
-        - name: owner_name_present
-          rule_type: presence
-          fields:
-            - owner_name
-          expression: owner_name IS NOT NULL AND LENGTH(TRIM(owner_name)) > 0
-          severity: fail
-          description: owner_name is required for Corrective Preventive Action extraction.
-        - name: target_completion_date_present
-          rule_type: presence
-          fields:
-            - target_completion_date
-          expression: target_completion_date IS NOT NULL AND LENGTH(TRIM(target_completion_date)) > 0
-          severity: fail
-          description: target_completion_date is required for Corrective Preventive Action extraction.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

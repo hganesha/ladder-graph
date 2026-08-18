@@ -1,0 +1,17 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: fs-mortgage-origination
+  title: Mortgage origination bundle
+  description: Borrower, property, loan, and underwriting evidence for mortgage origination.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-fin-02
+  ontology:
+    ref: ladder://ontologies/builtin/financial-services
+    mode: sliver
+    selection:
+      propertyRefs: [customer_party.borrower_last_name, loan_facility.loan_amount, mortgage_property.property_state, mortgage_property.ltv_percent, applicant_financial_profile.debt_to_income_ratio]
+      relationshipIds: [borrows_from, secured_by_property, underwritten_with]
+  forms:
+    - { ref: ladder://forms/docubricks/fs/mortgage_application, role: start }

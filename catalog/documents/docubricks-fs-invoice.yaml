@@ -180,47 +180,131 @@ spec:
       severity: error
       description: Invoice number is required for accounts payable matching.
       rule:
-        op: present
-        field: invoice_number
+        op: and
+        rules:
+          - op: present
+            field: invoice_number
+          - op: gt
+            left:
+              length: invoice_number
+            right:
+              value: 0
       sourceExpression: invoice_number IS NOT NULL AND LENGTH(TRIM(invoice_number)) > 0
       supported: true
     - id: vendor-name-present
       severity: error
       description: Vendor name is required for payment routing.
       rule:
-        op: present
-        field: vendor_name
+        op: and
+        rules:
+          - op: present
+            field: vendor_name
+          - op: gt
+            left:
+              length: vendor_name
+            right:
+              value: 0
       sourceExpression: vendor_name IS NOT NULL AND LENGTH(TRIM(vendor_name)) > 0
       supported: true
     - id: total-amount-non-negative
       severity: error
       description: Invoice total must be present and non-negative.
       rule:
-        op: gte
-        left:
-          field: total_amount
-        right:
-          value: 0
+        op: and
+        rules:
+          - op: present
+            field: total_amount
+          - op: gte
+            left:
+              field: total_amount
+            right:
+              value: 0
       sourceExpression: total_amount IS NOT NULL AND total_amount >= 0
       supported: true
     - id: amount-due-non-negative
       severity: warning
       description: Amount due cannot be negative.
       rule:
-        op: gte
-        left:
-          field: amount_due
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: amount_due
+          - op: gte
+            left:
+              field: amount_due
+            right:
+              value: 0
       sourceExpression: amount_due IS NULL OR amount_due >= 0
       supported: true
     - id: due-date-not-before-invoice-date
       severity: warning
       description: Due date should not precede invoice date.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: invoice_date
+          - op: not
+            rule:
+              op: present
+              field: due_date
+          - op: gte
+            left:
+              field: due_date
+            right:
+              field: invoice_date
       sourceExpression: invoice_date IS NULL OR due_date IS NULL OR due_date >= invoice_date
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      invoice_number:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Primary AP matching key.
+      vendor_name:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Vendor identity controls payment and duplicate detection.
+      invoice_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Invoice date supports payment terms and aging.
+      total_amount:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Total amount is the core payment control field.
+      amount_due:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Amount due determines payment amount after credits or partial payment.
+  modelRouting:
+    primary: databricks-dbrx-instruct
+    fallbackChain:
+      - databricks-claude-sonnet
+    maxTokens: 2048
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Invoices are structured documents with common labeled vendor, customer, amount, and payment fields.
+      DBRX Instruct is appropriate for high-volume extraction, while Claude Sonnet is retained for messy
+      layouts and line item ambiguity.
   outputSchema:
     type: object
     properties:

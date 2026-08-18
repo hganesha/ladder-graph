@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { access, readFile, writeFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { parse, stringify } from "yaml";
+import { convertDocuBricksRule } from "../src/compiler/artifacts/docubricksRules.mjs";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const catalogRoot = resolve(projectRoot, "catalog");
@@ -88,22 +89,6 @@ function outputSchema(fields) {
   };
 }
 
-function convertRule(rule, fieldNames) {
-  const field = rule.field_name ?? rule.fields?.[0];
-  let safeRule;
-  if (rule.rule_type === "presence" && field && fieldNames.has(field)) safeRule = { op: "present", field };
-  else if (rule.rule_type === "range" && field && fieldNames.has(field) && />=\s*0/u.test(rule.expression ?? ""))
-    safeRule = { op: "gte", left: { field }, right: { value: 0 } };
-  return {
-    id: slug(rule.name),
-    severity: rule.severity === "fail" ? "error" : "warning",
-    description: rule.description,
-    ...(safeRule ? { rule: safeRule } : {}),
-    sourceExpression: rule.expression,
-    supported: Boolean(safeRule),
-  };
-}
-
 function normalizedSections(schema) {
   if (schema.sections?.length) return schema.sections;
   return [...new Set(schema.fields.map((field) => field.section ?? "details"))].map((id) => ({
@@ -113,17 +98,16 @@ function normalizedSections(schema) {
   }));
 }
 
-function formArtifact(schema, entry, digest, rules) {
+function formArtifact(schema, entry, digest, rules, reviewPolicy, modelRouting, identity = {}) {
   const sections = normalizedSections(schema);
   const schemaContract = outputSchema(schema.fields);
   schemaContract["x-ladder-docubricks"] = {
-    validationRules: rules,
     completenessChecklist: schema.completeness_checklist ?? [],
   };
   return {
     apiVersion: "ladder.dev/v1alpha1",
     kind: "Form",
-    metadata: metadata(schema, digest),
+    metadata: metadata(schema, digest, identity),
     spec: {
       role: entry.role ?? "start",
       pages: [
@@ -151,17 +135,19 @@ function formArtifact(schema, entry, digest, rules) {
           })),
         },
       ],
+      validationRules: rules,
+      reviewPolicy,
+      ...(modelRouting ? { modelRouting } : {}),
       submissionSchema: schemaContract,
     },
   };
 }
 
-function documentArtifact(schema, digest, rules, sourceMetadata) {
-  const fieldNames = new Set(schema.fields.map((field) => field.name));
+function documentArtifact(schema, digest, rules, reviewPolicy, modelRouting, sourceMetadata, identity = {}) {
   return {
     apiVersion: "ladder.dev/v1alpha1",
     kind: "Document",
-    metadata: metadata(schema, digest),
+    metadata: metadata(schema, digest, identity),
     spec: {
       documentType: schema.document_type,
       sections: normalizedSections(schema).map((section) => ({
@@ -181,18 +167,19 @@ function documentArtifact(schema, digest, rules, sourceMetadata) {
         ...(field.required ? { required: true } : {}),
         sourcePath: `/fields/${field.name}`,
       })),
-      validationRules: rules.map((rule) => convertRule(rule, fieldNames)),
-      reviewPolicy: { unsupportedRuleAction: "human-review" },
+      validationRules: rules,
+      reviewPolicy,
+      ...(modelRouting ? { modelRouting } : {}),
       outputSchema: outputSchema(schema.fields),
       inertSourceMetadata: sourceMetadata,
     },
   };
 }
 
-function metadata(schema, digest) {
+function metadata(schema, digest, identity = {}) {
   return {
-    name: `docubricks-${slug(schema.vertical)}-${slug(schema.document_type)}`,
-    title: title(schema.document_type),
+    name: identity.name ?? `docubricks-${slug(schema.vertical)}-${slug(schema.document_type)}`,
+    title: identity.title ?? title(schema.document_type),
     description: `${title(schema.document_type)} contract normalized from the DocuBricks ${verticalTitles[schema.vertical] ?? schema.vertical} library.`,
     version: schema.schema_version ?? "unversioned",
     source: {
@@ -201,7 +188,48 @@ function metadata(schema, digest) {
       sourcePath: `Schemas/${schema.vertical}/${schema.document_type}`,
       sourceVersion: schema.schema_version,
       sourceDigest: digest,
+      ...(identity.derivedFrom ? { derivedFrom: identity.derivedFrom } : {}),
     },
+  };
+}
+
+function normalizeReviewPolicy(thresholds) {
+  const fieldConfidence = Object.fromEntries(
+    Object.entries(thresholds ?? {}).flatMap(([field, value]) => {
+      if (field === "default_threshold" || !value || typeof value !== "object" || Array.isArray(value)) return [];
+      if (typeof value.min_confidence !== "number") return [];
+      return [
+        [
+          field,
+          {
+            minConfidence: value.min_confidence,
+            ...(typeof value.review_on_breach === "boolean" ? { reviewOnBreach: value.review_on_breach } : {}),
+            ...(typeof value.fail_on_breach === "boolean" ? { failOnBreach: value.fail_on_breach } : {}),
+            ...(typeof value.regulatory_required === "boolean" ? { regulatoryRequired: value.regulatory_required } : {}),
+            ...(typeof value.description === "string" ? { rationale: value.description } : {}),
+          },
+        ],
+      ];
+    }),
+  );
+  return {
+    unsupportedRuleAction: "human-review",
+    ...(typeof thresholds?.default_threshold === "number" ? { defaultConfidenceThreshold: thresholds.default_threshold } : {}),
+    ...(Object.keys(fieldConfidence).length ? { fieldConfidence } : {}),
+  };
+}
+
+function normalizeModelRouting(routing) {
+  if (!routing) return undefined;
+  return {
+    ...(routing.primary ? { primary: routing.primary } : {}),
+    ...(routing.fallback_chain ? { fallbackChain: routing.fallback_chain } : {}),
+    ...(typeof routing.max_tokens === "number" ? { maxTokens: routing.max_tokens } : {}),
+    ...(typeof routing.temperature === "number" ? { temperature: routing.temperature } : {}),
+    ...(typeof routing.timeout_seconds === "number" ? { timeoutSeconds: routing.timeout_seconds } : {}),
+    ...(typeof routing.max_retries === "number" ? { maxRetries: routing.max_retries } : {}),
+    ...(routing.tier_overrides ? { tierOverrides: routing.tier_overrides } : {}),
+    ...(routing.rationale ? { rationale: routing.rationale } : {}),
   };
 }
 
@@ -229,6 +257,10 @@ const reportEntries = [];
 let safeRules = 0;
 let unsupportedRules = 0;
 let fieldCount = 0;
+let thresholdCount = 0;
+let curatedExisting = 0;
+const artifactCounts = { form: 0, document: 0 };
+const unsupportedReasons = {};
 
 for (const entry of entries) {
   const key = `${entry.vertical}/${entry.documentType}`;
@@ -238,54 +270,98 @@ for (const entry of entries) {
   if (!fieldsFile) throw new Error(`Missing fields.json for classified DocuBricks schema '${key}'.`);
   const schema = JSON.parse(fieldsFile[1]);
   const rules = JSON.parse(files.find(([name]) => name === "validation_rules.json")?.[1] ?? "[]");
+  const thresholds = JSON.parse(files.find(([name]) => name === "field_thresholds.json")?.[1] ?? "{}");
+  const routing = JSON.parse(files.find(([name]) => name === "model_routing.json")?.[1] ?? "null");
   const selectedKind = entry.artifactKind === "hybrid" ? entry.primaryExperience : entry.artifactKind;
   if (!selectedKind) throw new Error(`Hybrid classification '${key}' requires primaryExperience.`);
   const fieldNames = new Set(schema.fields.map((field) => field.name));
-  const convertedRules = rules.map((rule) => convertRule(rule, fieldNames));
+  const convertedRules = rules.map((rule) => convertDocuBricksRule(rule, fieldNames));
   safeRules += convertedRules.filter((rule) => rule.supported).length;
   unsupportedRules += convertedRules.filter((rule) => !rule.supported).length;
+  for (const rule of convertedRules.filter((rule) => !rule.supported)) {
+    const reason = rule.unsupportedReason ?? "Unknown reason";
+    unsupportedReasons[reason] = (unsupportedReasons[reason] ?? 0) + 1;
+  }
   fieldCount += schema.fields.length;
   const sourceDigest = digest(files);
   const existing = curated.get(key);
+  if (existing) curatedExisting += 1;
   const id = existing?.id ?? `docubricks-${slug(entry.vertical)}-${slug(entry.documentType)}`;
+  const reviewPolicy = normalizeReviewPolicy(thresholds);
+  const modelRouting = normalizeModelRouting(routing);
+  const sourceMetadata = {
+    family: schema.family,
+    externalStandard: schema.external_standard,
+    outputContract: schema.output_contract,
+    completenessChecklist: schema.completeness_checklist ?? [],
+    sourceFiles: files.map(([name]) => name),
+  };
+  thresholdCount += Object.keys(reviewPolicy.fieldConfidence ?? {}).length;
   const artifact =
     selectedKind === "form"
-      ? formArtifact(schema, entry, sourceDigest, rules)
-      : documentArtifact(schema, sourceDigest, rules, {
-          family: schema.family,
-          externalStandard: schema.external_standard,
-          outputContract: schema.output_contract,
-          completenessChecklist: schema.completeness_checklist ?? [],
-          sourceFiles: files.map(([name]) => name),
-        });
-  if (!existing) {
-    const plural = selectedKind === "form" ? "forms" : "documents";
-    const file = `${plural}/${id}.yaml`;
-    generated.push({
-      kind: selectedKind,
-      file,
-      content: stringify(artifact, { lineWidth: 110 }),
-      manifest: {
-        id,
-        path: `${entry.vertical}/${schema.family ?? "general"}/${entry.documentType}`,
-        title: title(entry.documentType),
-        description: artifact.metadata.description,
-        file,
-        ref: `ladder://${plural}/docubricks/${entry.vertical}/${entry.documentType}`,
-      },
-    });
+      ? formArtifact(schema, entry, sourceDigest, convertedRules, reviewPolicy, modelRouting)
+      : documentArtifact(schema, sourceDigest, convertedRules, reviewPolicy, modelRouting, sourceMetadata);
+  const artifacts = [{ kind: selectedKind, id, artifact, suffix: undefined }];
+  if (entry.artifactKind === "hybrid") {
+    const counterpartKind = selectedKind === "form" ? "document" : "form";
+    const suffix = counterpartKind === "document" ? "source" : "review";
+    const counterpartId = `${id}-${suffix}`;
+    const identity = {
+      name: counterpartId,
+      title: `${title(entry.documentType)} ${title(suffix)}`,
+      derivedFrom: id,
+    };
+    const counterpart =
+      counterpartKind === "form"
+        ? formArtifact(
+            schema,
+            { ...entry, role: entry.role ?? "review" },
+            sourceDigest,
+            convertedRules,
+            reviewPolicy,
+            modelRouting,
+            identity,
+          )
+        : documentArtifact(schema, sourceDigest, convertedRules, reviewPolicy, modelRouting, sourceMetadata, identity);
+    artifacts.push({ kind: counterpartKind, id: counterpartId, artifact: counterpart, suffix });
   }
+  for (const item of artifacts) artifactCounts[item.kind] += 1;
+  if (!existing) {
+    for (const item of artifacts) {
+      const plural = item.kind === "form" ? "forms" : "documents";
+      const file = `${plural}/${item.id}.yaml`;
+      generated.push({
+        kind: item.kind,
+        file,
+        content: stringify(item.artifact, { lineWidth: 110 }),
+        manifest: {
+          id: item.id,
+          path: `${entry.vertical}/${schema.family ?? "general"}/${entry.documentType}${item.suffix ? `/${item.suffix}` : ""}`,
+          title: item.artifact.metadata.title,
+          description: item.artifact.metadata.description,
+          file,
+          ref: `ladder://${plural}/docubricks/${entry.vertical}/${entry.documentType}${item.suffix ? `/${item.suffix}` : ""}`,
+        },
+      });
+    }
+  }
+  const counterpart = artifacts[1];
   reportEntries.push({
     source: key,
     classification: entry.artifactKind,
     primaryExperience: selectedKind,
     catalogId: id,
+    ...(counterpart ? { counterpartId: counterpart.id, counterpartKind: counterpart.kind } : {}),
     status: existing ? "curated-existing" : "generated",
     fields: schema.fields.length,
     rules: {
       total: rules.length,
       safe: convertedRules.filter((rule) => rule.supported).length,
       unsupported: convertedRules.filter((rule) => !rule.supported).length,
+    },
+    thresholds: {
+      fields: Object.keys(reviewPolicy.fieldConfidence ?? {}).length,
+      hasDefault: typeof reviewPolicy.defaultConfidenceThreshold === "number",
     },
     sourceDigest,
     sourceFiles: files.map(([name]) => name).join(", "),
@@ -311,13 +387,15 @@ const report = `${JSON.stringify(
     source: basename(sourceRoot),
     totals: {
       schemas: entries.length,
+      artifacts: artifactCounts.form + artifactCounts.document,
       generated: generated.length,
-      curatedExisting: entries.length - generated.length,
-      forms: reportEntries.filter((entry) => entry.primaryExperience === "form").length,
-      documents: reportEntries.filter((entry) => entry.primaryExperience === "document").length,
+      curatedExisting,
+      forms: artifactCounts.form,
+      documents: artifactCounts.document,
       hybrids: reportEntries.filter((entry) => entry.classification === "hybrid").length,
       fields: fieldCount,
-      rules: { safe: safeRules, unsupported: unsupportedRules },
+      thresholds: thresholdCount,
+      rules: { safe: safeRules, unsupported: unsupportedRules, unsupportedReasons },
     },
     entries: reportEntries,
   },
@@ -338,5 +416,5 @@ for (const item of generated) await emit(resolve(catalogRoot, item.file), item.c
 await emit(manifestPath, nextManifest);
 await emit(reportPath, report);
 console.log(
-  `${check ? "Verified" : "Imported"} ${entries.length} DocuBricks schemas: ${reportEntries.filter((entry) => entry.primaryExperience === "form").length} forms, ${reportEntries.filter((entry) => entry.primaryExperience === "document").length} documents, ${fieldCount} fields.`,
+  `${check ? "Verified" : "Imported"} ${entries.length} DocuBricks schemas as ${artifactCounts.form + artifactCounts.document} artifacts: ${artifactCounts.form} forms, ${artifactCounts.document} documents, ${fieldCount} fields.`,
 );

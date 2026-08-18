@@ -1,0 +1,444 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-real-estate-tenant-estoppel-certificate-source
+  title: Tenant Estoppel Certificate Source
+  description: Tenant Estoppel Certificate contract normalized from the DocuBricks Real estate library.
+  version: real_estate_tenant_estoppel_certificate_v1
+  source:
+    system: docubricks
+    sourceId: real_estate/tenant_estoppel_certificate
+    sourcePath: Schemas/real_estate/tenant_estoppel_certificate
+    sourceVersion: real_estate_tenant_estoppel_certificate_v1
+    sourceDigest: 1c38e9ffb48e2c77cd5a6e817b2f595f435a92f9ad2b10a45579e9c7d2613175
+    derivedFrom: docubricks-real-estate-tenant-estoppel-certificate
+spec:
+  documentType: tenant_estoppel_certificate
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - certificate-date
+        - lease-date
+        - lease-end-date
+        - lease-start-date
+        - renewal-options
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - offsets-or-claims
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - current-monthly-rent
+        - security-deposit-amount
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - landlord-name
+        - tenant-name
+        - tenant-signer-name
+        - tenant-signer-title
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - premises-description
+        - property-address
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - defaults-claimed
+  fields:
+    - id: certificate-date
+      name: certificate_date
+      label: Certificate Date
+      description: Tenant estoppel certificate date.
+      dataType: date
+      required: true
+      sourcePath: /fields/certificate_date
+    - id: tenant-name
+      name: tenant_name
+      label: Tenant Name
+      description: Tenant name.
+      dataType: string
+      required: true
+      sourcePath: /fields/tenant_name
+    - id: landlord-name
+      name: landlord_name
+      label: Landlord Name
+      description: Landlord name stated by tenant.
+      dataType: string
+      sourcePath: /fields/landlord_name
+    - id: property-address
+      name: property_address
+      label: Property Address
+      description: Property address.
+      dataType: string
+      required: true
+      sourcePath: /fields/property_address
+    - id: premises-description
+      name: premises_description
+      label: Premises Description
+      description: Suite, unit, floor, or premises description.
+      dataType: string
+      sourcePath: /fields/premises_description
+    - id: lease-date
+      name: lease_date
+      label: Lease Date
+      description: Lease date.
+      dataType: date
+      sourcePath: /fields/lease_date
+    - id: lease-start-date
+      name: lease_start_date
+      label: Lease Start Date
+      description: Lease commencement date.
+      dataType: date
+      sourcePath: /fields/lease_start_date
+    - id: lease-end-date
+      name: lease_end_date
+      label: Lease End Date
+      description: Lease expiration date.
+      dataType: date
+      required: true
+      sourcePath: /fields/lease_end_date
+    - id: current-monthly-rent
+      name: current_monthly_rent
+      label: Current Monthly Rent
+      description: Current monthly rent.
+      dataType: number
+      required: true
+      sourcePath: /fields/current_monthly_rent
+    - id: security-deposit-amount
+      name: security_deposit_amount
+      label: Security Deposit Amount
+      description: Security deposit amount.
+      dataType: number
+      sourcePath: /fields/security_deposit_amount
+    - id: defaults-claimed
+      name: defaults_claimed
+      label: Defaults Claimed
+      description: Whether tenant claims landlord or tenant defaults.
+      dataType: boolean
+      required: true
+      sourcePath: /fields/defaults_claimed
+    - id: offsets-or-claims
+      name: offsets_or_claims
+      label: Offsets Or Claims
+      description: Offsets, defenses, claims, or concessions asserted.
+      dataType: string
+      sourcePath: /fields/offsets_or_claims
+    - id: renewal-options
+      name: renewal_options
+      label: Renewal Options
+      description: Renewal or expansion options stated.
+      dataType: array
+      sourcePath: /fields/renewal_options
+    - id: tenant-signer-name
+      name: tenant_signer_name
+      label: Tenant Signer Name
+      description: Tenant signer name.
+      dataType: string
+      required: true
+      sourcePath: /fields/tenant_signer_name
+    - id: tenant-signer-title
+      name: tenant_signer_title
+      label: Tenant Signer Title
+      description: Tenant signer title.
+      dataType: string
+      sourcePath: /fields/tenant_signer_title
+  validationRules:
+    - id: certificate-date-present
+      severity: error
+      description: certificate_date is required for Tenant Estoppel Certificate extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: certificate_date
+          - op: gt
+            left:
+              length: certificate_date
+            right:
+              value: 0
+      sourceExpression: certificate_date IS NOT NULL AND LENGTH(TRIM(certificate_date)) > 0
+      supported: true
+    - id: tenant-name-present
+      severity: error
+      description: tenant_name is required for Tenant Estoppel Certificate extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: tenant_name
+          - op: gt
+            left:
+              length: tenant_name
+            right:
+              value: 0
+      sourceExpression: tenant_name IS NOT NULL AND LENGTH(TRIM(tenant_name)) > 0
+      supported: true
+    - id: property-address-present
+      severity: error
+      description: property_address is required for Tenant Estoppel Certificate extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: property_address
+          - op: gt
+            left:
+              length: property_address
+            right:
+              value: 0
+      sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
+      supported: true
+    - id: lease-end-date-present
+      severity: error
+      description: lease_end_date is required for Tenant Estoppel Certificate extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: lease_end_date
+          - op: gt
+            left:
+              length: lease_end_date
+            right:
+              value: 0
+      sourceExpression: lease_end_date IS NOT NULL AND LENGTH(TRIM(lease_end_date)) > 0
+      supported: true
+    - id: current-monthly-rent-present
+      severity: error
+      description: current_monthly_rent is required for Tenant Estoppel Certificate extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: current_monthly_rent
+          - op: gt
+            left:
+              length: current_monthly_rent
+            right:
+              value: 0
+      sourceExpression: current_monthly_rent IS NOT NULL AND LENGTH(TRIM(current_monthly_rent)) > 0
+      supported: true
+    - id: defaults-claimed-present
+      severity: error
+      description: defaults_claimed is required for Tenant Estoppel Certificate extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: defaults_claimed
+          - op: gt
+            left:
+              length: defaults_claimed
+            right:
+              value: 0
+      sourceExpression: defaults_claimed IS NOT NULL AND LENGTH(TRIM(defaults_claimed)) > 0
+      supported: true
+    - id: tenant-signer-name-present
+      severity: error
+      description: tenant_signer_name is required for Tenant Estoppel Certificate extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: tenant_signer_name
+          - op: gt
+            left:
+              length: tenant_signer_name
+            right:
+              value: 0
+      sourceExpression: tenant_signer_name IS NOT NULL AND LENGTH(TRIM(tenant_signer_name)) > 0
+      supported: true
+    - id: current-monthly-rent-non-negative
+      severity: warning
+      description: current_monthly_rent should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: current_monthly_rent
+          - op: gte
+            left:
+              field: current_monthly_rent
+            right:
+              value: 0
+      sourceExpression: current_monthly_rent IS NULL OR current_monthly_rent >= 0
+      supported: true
+    - id: security-deposit-amount-non-negative
+      severity: warning
+      description: security_deposit_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: security_deposit_amount
+          - op: gte
+            left:
+              field: security_deposit_amount
+            right:
+              value: 0
+      sourceExpression: security_deposit_amount IS NULL OR security_deposit_amount >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      tenant_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Tenant Estoppel Certificate workflow.
+      property_address:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Tenant Estoppel Certificate workflow.
+      lease_end_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Tenant Estoppel Certificate workflow.
+      current_monthly_rent:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Tenant Estoppel Certificate workflow.
+      defaults_claimed:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Tenant Estoppel Certificate workflow.
+      tenant_signer_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Tenant Estoppel Certificate workflow.
+      certificate_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Tenant Estoppel Certificate workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Tenant Estoppel Certificate documents combine real estate parties, property, title, lease,
+      financial, and operating context.
+  outputSchema:
+    type: object
+    properties:
+      certificate_date:
+        type: date
+        description: Tenant estoppel certificate date.
+        format: date
+      tenant_name:
+        type: string
+        description: Tenant name.
+      landlord_name:
+        type: string
+        description: Landlord name stated by tenant.
+      property_address:
+        type: string
+        description: Property address.
+      premises_description:
+        type: string
+        description: Suite, unit, floor, or premises description.
+      lease_date:
+        type: date
+        description: Lease date.
+        format: date
+      lease_start_date:
+        type: date
+        description: Lease commencement date.
+        format: date
+      lease_end_date:
+        type: date
+        description: Lease expiration date.
+        format: date
+      current_monthly_rent:
+        type: number
+        description: Current monthly rent.
+      security_deposit_amount:
+        type: number
+        description: Security deposit amount.
+      defaults_claimed:
+        type: boolean
+        description: Whether tenant claims landlord or tenant defaults.
+      offsets_or_claims:
+        type: string
+        description: Offsets, defenses, claims, or concessions asserted.
+      renewal_options:
+        type: array
+        items:
+          type: string
+        description: Renewal or expansion options stated.
+      tenant_signer_name:
+        type: string
+        description: Tenant signer name.
+      tenant_signer_title:
+        type: string
+        description: Tenant signer title.
+    required:
+      - certificate_date
+      - tenant_name
+      - property_address
+      - lease_end_date
+      - current_monthly_rent
+      - defaults_claimed
+      - tenant_signer_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: property_management
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - certificate_date
+          - tenant_name
+          - property_address
+          - lease_end_date
+          - current_monthly_rent
+          - defaults_claimed
+          - tenant_signer_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json
