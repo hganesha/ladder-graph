@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { Brand } from "./Brand";
 
 interface HelpPage {
   eyebrow: string;
