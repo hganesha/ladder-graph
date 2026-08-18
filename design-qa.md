@@ -2,6 +2,42 @@
 
 final result: passed
 
+## Latest refinement — full-frame ontology graph authoring
+
+### Evidence
+
+- Source visual truth: `/Users/hariganesh/Desktop/Screenshot 2026-08-17 at 11.43.26 PM.png`.
+- Browser implementation capture: `/tmp/ladder-graph-ontology-qa/ontology-editor-implementation.png`.
+- Density-normalized implementation: `/tmp/ladder-graph-ontology-qa/ontology-editor-implementation-normalized-2556.png`.
+- Full-view comparison: `/tmp/ladder-graph-ontology-qa/ontology-editor-comparison.png` (source left, implementation right).
+- Source pixels: 2556 × 1327. Browser CSS viewport: 2556 × 1328 at device pixel ratio 2. The in-app Browser returned a 2252 × 1328 capture surface, which was normalized to 2556 × 1327 for the comparison.
+- State: dark theme, graph view, two entity nodes, one relationship, entity inspector visible, and compiler source visible.
+- A separate focused crop was unnecessary because the requested changes are macro-layout and interaction changes visible in the full-size captures. Header copy, handles, drag position, and connection results were also inspected live at 100% browser scale.
+
+### Findings
+
+- Passed layout and spacing: the centered 1400 px maximum, 620 px minimum canvas height, outer padding, card gap, rounded inspector, and shadow were removed. The relationship toolbar starts the workspace and the graph plus inspector fill the full frame between the application header and compiler source.
+- Passed graph authoring: ontology nodes are controlled, draggable React Flow nodes. Dragged positions remain stable as labels, selections, and relationships update during the editing session.
+- Passed relationship authoring: dragging a source handle to a target handle creates a portable ontology relationship, selects its inspector, renders the edge, and updates YAML with the chosen source and target type IDs.
+- Passed copy: the primary ontology action reads `Save`; the canvas guidance reads `Drag nodes · connect handles to create relationships · click edges to inspect`.
+- Passed typography, colors, and assets: existing Syne, Outfit, IBM Plex Mono, surface, border, cyan, graph-grid, and semantic tokens are preserved. No raster assets, inline SVGs, placeholders, or custom-drawn icons were introduced.
+- Passed accessibility: the ontology title remains in the application header and accessibility tree, the relationship canvas retains its named region, and the direct manipulation help is visible without blocking pointer input.
+- Passed interaction verification: added a second entity; moved the first node from approximately `(506, 651)` to `(596, 716)`; connected `entity` to `entity-2`; confirmed one rendered edge and matching YAML; selected relationship and entity inspectors; and confirmed `Save` enabled.
+- Passed browser health: no console errors. Type check, production build, and all 141 unit/component tests pass.
+
+### Comparison history
+
+| Iteration | Finding | Resolution |
+| --- | --- | --- |
+| Supplied before state | The fixed-height centered workspace left a large unused region below and beside the graph. | Converted the ontology preview to the workflow editor’s edge-to-edge frame and removed the duplicate visible page title. |
+| Supplied before state | Nodes explicitly disabled dragging and handle connections. | Enabled controlled dragging, preserved active-session positions across React updates, and wired source-to-target handles into ontology relationship creation. |
+| Supplied before state | The primary action read `Save ontology`. | Simplified ontology copy to `Save` while preserving the existing document action. |
+| Final | No actionable P0, P1, or P2 issue remains in the requested layout and graph-authoring flow. | final result: passed. |
+
+### Follow-up polish
+
+- Manual ontology positions currently persist for the active editing session. Persisting them through a browser reload would require a deliberate portable layout extension or separate project-view metadata.
+
 ## Latest refinement — deterministic Python and TypeScript targets
 
 ### Evidence
