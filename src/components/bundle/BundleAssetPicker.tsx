@@ -134,7 +134,7 @@ export function BundleAssetPicker({
           <input
             aria-label="Search bundle assets"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search 55 DocuBricks schemas…"
+            placeholder="Search schemas…"
             type="search"
             value={query}
           />
