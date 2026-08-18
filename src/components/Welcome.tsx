@@ -652,6 +652,7 @@ export function Welcome({
                   </button>
                 </div>
               </div>
+              /*
               <label className="modality-filter">
                 <span className="eyebrow">Modality</span>
                 <select
@@ -667,6 +668,7 @@ export function Welcome({
                   ))}
                 </select>
               </label>
+              */
               <label className={`user-assets-filter ${userAssetCount === 0 ? "disabled" : ""}`}>
                 <span className="eyebrow">Personal library</span>
                 <span className="user-assets-toggle">
