@@ -18,7 +18,7 @@ test("welcome and studio remain usable on a phone viewport", async ({ page }) =>
   await expect(page.locator(".agent-template-card").first()).toBeVisible();
   const agentCardBounds = await page.locator(".agent-template-card").first().boundingBox();
   expect(agentCardBounds?.height).toBeLessThanOrEqual(140);
-  await page.getByRole("tab", { name: "Workflows" }).click();
+  await page.getByRole("tab", { name: "Workflows", exact: true }).click();
 
   await page
     .getByRole("button", { name: /open .* in studio/i })

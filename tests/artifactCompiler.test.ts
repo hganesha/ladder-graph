@@ -7,7 +7,8 @@ import {
   sliceOntologyFallback,
 } from "../src/compiler/artifacts/fallback";
 import { compileFallback } from "../src/compiler/fallback";
-import { ARTIFACT_TEMPLATES, WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
 import type { LadderForm, Ontology, ResolvedBundleAsset, WorkflowBundle } from "../src/types";
 
 const bundleTemplate = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance-claim-review");

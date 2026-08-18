@@ -70,18 +70,23 @@ describe("bundle workspace", () => {
     await db.projects.clear();
   });
 
-  it("compiles the insurance starter and exposes form and ontology previews", async () => {
+  it("compiles the insurance starter and exposes workflow, form, and ontology graph previews", async () => {
     render(<BundleStudio onBack={() => undefined} />);
 
     expect(screen.getByRole("heading", { name: "Insurance claim review bundle" })).toBeInTheDocument();
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Workflow graph" }));
+    expect(screen.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Bundled workflow inspector")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Form preview" }));
     expect(screen.getByLabelText("Insurance policy number")).toBeRequired();
     expect(screen.getByText("insurance_policy.policy_number")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Ontology sliver" }));
-    expect(screen.getByText("Insurance Claim")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Ontology relationship canvas" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Bundled ontology inspector")).toHaveTextContent("Insurance Claim");
     expect(screen.getByText("1 included properties")).toBeInTheDocument();
   });
 

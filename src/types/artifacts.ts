@@ -14,6 +14,8 @@ export interface ArtifactTemplateDefinition {
   ref: string;
 }
 
+export type ArtifactTemplateMetadata = Omit<ArtifactTemplateDefinition, "yaml">;
+
 export interface ArtifactSource {
   system: "lattice" | "docubricks" | "ladder" | string;
   sourceId?: string;

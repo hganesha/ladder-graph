@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("template to repair to compiled workflow", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Starter workflows" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Workflow library" })).toBeVisible();
   await page.getByRole("button", { name: /open draft.*critique.*revise in studio/i }).click();
   await expect(page.getByLabel("Workflow graph canvas")).toBeVisible();
   await page.getByRole("button", { name: "YAML source view" }).click();

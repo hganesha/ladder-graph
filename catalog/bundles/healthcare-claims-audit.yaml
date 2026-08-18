@@ -1,0 +1,49 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: healthcare-claims-audit
+  title: Healthcare clinical claim audit bundle
+  description: Clinical evidence, authorization, coding, claim review, and a healthcare ontology sliver.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cross-09
+  ontology:
+    ref: ladder://ontologies/builtin/healthcare
+    mode: sliver
+    selection:
+      propertyRefs:
+        - patient.patient_member_id
+        - clinical_encounter.service_description
+        - healthcare_claim.claim_number
+        - healthcare_claim.claim_status
+        - care_authorization.authorization_id
+        - care_authorization.request_status
+        - diagnostic_result.test_results
+      relationshipIds: [receives, delivered_by, billed_as, governed_by, produces]
+  forms:
+    - { ref: ladder://forms/docubricks/healthcare/prior_auth, role: start }
+    - { ref: ladder://forms/docubricks/healthcare/eob_cms1500, role: review }
+  documents:
+    - { ref: ladder://documents/docubricks/healthcare/clinical_note_soap, role: supporting }
+    - { ref: ladder://documents/docubricks/healthcare/lab_report, role: supporting }
+  bindings:
+    - id: member-to-clinical-intake
+      source: { ref: ladder://forms/docubricks/healthcare/prior_auth, path: /spec/pages/0/sections/1/fields/2 }
+      target: { ref: ladder://workflows/builtin/wf-cross-09, path: /spec/nodes/0/inputSchema/properties/instructions }
+      ontologyPropertyRef: patient.patient_member_id
+      direction: input
+    - id: service-to-coding-review
+      source: { ref: ladder://forms/docubricks/healthcare/prior_auth, path: /spec/pages/0/sections/1/fields/7 }
+      target: { ref: ladder://workflows/builtin/wf-cross-09, path: /spec/nodes/2/prompt }
+      ontologyPropertyRef: clinical_encounter.service_description
+      direction: review
+    - id: claim-to-billing-audit
+      source: { ref: ladder://forms/docubricks/healthcare/eob_cms1500, path: /spec/pages/0/sections/1/fields/0 }
+      target: { ref: ladder://workflows/builtin/wf-cross-09, path: /spec/nodes/3/prompt }
+      ontologyPropertyRef: healthcare_claim.claim_number
+      direction: review
+    - id: authorization-to-audit-intake
+      source: { ref: ladder://forms/docubricks/healthcare/prior_auth, path: /spec/pages/0/sections/1/fields/0 }
+      target: { ref: ladder://workflows/builtin/wf-cross-09, path: /spec/nodes/1/prompt }
+      ontologyPropertyRef: care_authorization.authorization_id
+      direction: input

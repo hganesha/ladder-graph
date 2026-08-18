@@ -1,5 +1,6 @@
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES, WORKFLOW_TEMPLATES } from "../generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../generated/artifactCatalog";
+import { WORKFLOW_TEMPLATES } from "../generated/catalog";
 import type {
   ArtifactTemplateDefinition,
   BundleBinding,

@@ -784,7 +784,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::Ontology)
                 .count(),
-            4
+            7
         );
         assert_eq!(
             catalog
@@ -792,7 +792,7 @@ mod tests {
                 .iter()
                 .filter(|entry| entry.kind == CatalogKind::WorkflowBundle)
                 .count(),
-            4
+            7
         );
         assert!(
             catalog

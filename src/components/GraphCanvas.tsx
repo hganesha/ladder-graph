@@ -21,11 +21,11 @@ import type { LgirEdge, LgirNode } from "../types";
 import { type GroupFlowData, GroupNode } from "./GroupNode";
 import { TaskNode } from "./TaskNode";
 
-type TaskFlowNode = Node<LgirNode, "task">;
-type GroupFlowNode = Node<GroupFlowData, "group">;
-type WorkflowFlowNode = TaskFlowNode | GroupFlowNode;
+export type TaskFlowNode = Node<LgirNode, "task">;
+export type GroupFlowNode = Node<GroupFlowData, "group">;
+export type WorkflowFlowNode = TaskFlowNode | GroupFlowNode;
 
-function toFlowNodes(nodes: LgirNode[]): WorkflowFlowNode[] {
+export function toFlowNodes(nodes: LgirNode[]): WorkflowFlowNode[] {
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const owner = new Map<string, LgirNode>();
   nodes
@@ -64,7 +64,7 @@ function toFlowNodes(nodes: LgirNode[]): WorkflowFlowNode[] {
     });
 }
 
-function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
+export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
   const stored = edges.map((edge) => ({
     id: edge.id,
     source: edge.from,
@@ -116,7 +116,7 @@ function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
   return [...stored, ...virtual];
 }
 
-const nodeTypes = { task: TaskNode, group: GroupNode };
+export const workflowNodeTypes = { task: TaskNode, group: GroupNode };
 
 export interface GraphCanvasHandle {
   exportImage: (format: GraphImageFormat) => Promise<void>;
@@ -195,7 +195,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
               }
             : { ...edge, selected: false },
         )}
-        nodeTypes={nodeTypes}
+        nodeTypes={workflowNodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}

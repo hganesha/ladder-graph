@@ -63,10 +63,13 @@ describe("welcome gallery", () => {
     render(<Welcome onBlank={() => undefined} onBundle={onBundle} />);
 
     expect(screen.getByRole("heading", { name: "Curated workflow bundles" })).toBeInTheDocument();
-    expect(screen.getByText("4 bundles")).toBeInTheDocument();
+    expect(screen.getByText("7 bundles")).toBeInTheDocument();
     const manufacturing = screen.getByRole("button", { name: "Open Manufacturing line qualification bundle" });
     expect(screen.getByRole("button", { name: "Open Regulatory obligations and submission bundle" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open Commercial credit underwriting bundle" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open Energy field operations permit bundle" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open Healthcare clinical claim audit bundle" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open Real estate valuation and diligence bundle" })).toBeInTheDocument();
     fireEvent.click(manufacturing);
 
     expect(onBundle).toHaveBeenCalledWith(undefined, "manufacturing-line-qualification");
@@ -81,6 +84,22 @@ describe("welcome gallery", () => {
     expect(screen.getAllByRole("button", { name: /open .* form/i })).toHaveLength(5);
     fireEvent.click(screen.getByRole("button", { name: "Open Quality Inspection Report form" }));
     expect(onForm).toHaveBeenCalledWith(undefined, "docubricks-manufacturing-quality-inspection-report");
+  });
+
+  it("does not leak forms from unrelated industries into unmapped subject areas", () => {
+    render(<Welcome onBlank={() => undefined} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Forms" }));
+
+    expect(screen.getByRole("tab", { name: "Forms" })).toHaveTextContent("Forms 0");
+    expect(screen.getByText("No forms for this subject area.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /open .* form/i })).not.toBeInTheDocument();
+
+    selectArea("Manufacturing & industrial operations");
+    expect(screen.getAllByRole("button", { name: /open .* form/i })).toHaveLength(5);
+
+    selectArea("Software engineering");
+    expect(screen.getByText("No forms for this subject area.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /open .* form/i })).not.toBeInTheDocument();
   });
 
   it("opens industry documents and ontologies as standalone projects", () => {

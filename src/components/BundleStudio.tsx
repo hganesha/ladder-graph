@@ -17,7 +17,8 @@ import {
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { parse, stringify } from "yaml";
 import { compiler } from "../compiler/client";
-import { ARTIFACT_TEMPLATES, WORKFLOW_TEMPLATES } from "../generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../generated/artifactCatalog";
+import { WORKFLOW_TEMPLATES } from "../generated/catalog";
 import { createBundleArchive, parseBundleArchive } from "../lib/bundleArchive";
 import {
   attachBundleArtifact,
@@ -34,18 +35,22 @@ import type {
   BundleCompileResult,
   CompiledArtifact,
   LadderForm,
+  Ontology,
   ProjectRecord,
   Target,
+  Workflow,
   WorkflowBundle,
 } from "../types";
 import { Brand } from "./Brand";
 import { BindingInspector } from "./bundle/BindingInspector";
 import { BundleAssetPicker } from "./bundle/BundleAssetPicker";
 import { BundleHistoryDialog } from "./bundle/BundleHistoryDialog";
+import { BundleOntologyPreview } from "./bundle/BundleOntologyPreview";
+import { BundleWorkflowPreview } from "./bundle/BundleWorkflowPreview";
 import { FormPreview } from "./form/FormPreview";
 import { ThemeToggle } from "./ThemeToggle";
 
-type WorkspaceTab = "bundle" | "form" | "ontology" | "output";
+type WorkspaceTab = "bundle" | "workflow" | "form" | "ontology" | "output";
 
 const BUNDLE_TEMPLATE = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance-claim-review");
 const BUNDLE_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "workflow-bundle");
@@ -166,13 +171,18 @@ export default function BundleStudio({
   const form = selectedFormSource ? (parse(selectedFormSource) as LadderForm) : null;
   const ontologySource = bundle.spec.ontology ? bundleAssetSource(bundle.spec.ontology.ref, sourceOverrides) : undefined;
   const ontologyOutput = result?.artifacts.find((artifact) => artifact.path.startsWith("ontology/") && artifact.path.endsWith(".yaml"));
-  const ontology = ontologyOutput
-    ? (parse(ontologyOutput.content) as {
-        metadata: { title?: string; name: string };
-        spec: { types: Array<{ id: string; label: string; properties: unknown[] }>; relationships: Array<{ id: string; label: string }> };
-      })
-    : null;
+  const ontology = ontologyOutput ? (parse(ontologyOutput.content) as Ontology) : null;
   const workflow = bundleAsset(bundle.spec.workflowRef);
+  const workflowDefinition = useMemo(() => {
+    const workflowSource = bundleAssetSource(bundle.spec.workflowRef, sourceOverrides);
+    if (!workflowSource) return null;
+    try {
+      const parsed = parse(workflowSource) as Workflow;
+      return parsed.kind === "Workflow" ? parsed : null;
+    } catch {
+      return null;
+    }
+  }, [bundle.spec.workflowRef, sourceOverrides]);
   const sourceByRef = useMemo(
     () => Object.fromEntries(resolveBundleAssets(bundle, sourceOverrides).map((asset) => [asset.ref, asset.source])),
     [bundle, sourceOverrides],
@@ -549,7 +559,7 @@ export default function BundleStudio({
 
         <section className="bundle-main">
           <div className="bundle-tabs" role="tablist" aria-label="Bundle workspace views">
-            {(["bundle", "form", "ontology", "output"] as const).map((item) => (
+            {(["bundle", "workflow", "form", "ontology", "output"] as const).map((item) => (
               <button
                 aria-selected={tab === item}
                 className={tab === item ? "active" : undefined}
@@ -560,11 +570,13 @@ export default function BundleStudio({
               >
                 {item === "bundle"
                   ? "Bundle & bindings"
-                  : item === "form"
-                    ? "Form preview"
-                    : item === "ontology"
-                      ? "Ontology sliver"
-                      : "Compiled output"}
+                  : item === "workflow"
+                    ? "Workflow graph"
+                    : item === "form"
+                      ? "Form preview"
+                      : item === "ontology"
+                        ? "Ontology sliver"
+                        : "Compiled output"}
               </button>
             ))}
           </div>
@@ -633,6 +645,13 @@ export default function BundleStudio({
                 </section>
               </div>
             ) : null}
+            {tab === "workflow" ? (
+              workflowDefinition ? (
+                <BundleWorkflowPreview key={bundle.spec.workflowRef} workflow={workflowDefinition} />
+              ) : (
+                <div className="bundle-empty-state">The bundled workflow source is unavailable or invalid.</div>
+              )
+            ) : null}
             {tab === "form" ? (
               attachedForms.length ? (
                 <div className="form-workspace">
@@ -659,30 +678,19 @@ export default function BundleStudio({
             ) : null}
             {tab === "ontology" ? (
               bundle.spec.ontology ? (
-                <div className="ontology-preview">
-                  <header>
-                    <span className="eyebrow">Deterministic closure</span>
-                    <h2>
-                      {bundle.spec.ontology.mode === "sliver"
+                ontology ? (
+                  <BundleOntologyPreview
+                    key={`${bundle.spec.ontology.ref}-${bundle.spec.ontology.mode}`}
+                    ontology={ontology}
+                    title={
+                      bundle.spec.ontology.mode === "sliver"
                         ? `${bundleAsset(bundle.spec.ontology.ref)?.title ?? "Ontology"} sliver`
-                        : (bundleAsset(bundle.spec.ontology.ref)?.title ?? "Full ontology")}
-                    </h2>
-                    <p>Only explicit field and relationship references participate. Prompt text is never used to infer ontology scope.</p>
-                  </header>
-                  {ontology ? (
-                    <div className="ontology-type-grid">
-                      {ontology.spec.types.map((type) => (
-                        <article key={type.id}>
-                          <small>{type.id}</small>
-                          <strong>{type.label}</strong>
-                          <span>{type.properties.length} included properties</span>
-                        </article>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bundle-empty-state">Compile to inspect ontology closure.</div>
-                  )}
-                </div>
+                        : (bundleAsset(bundle.spec.ontology.ref)?.title ?? "Full ontology")
+                    }
+                  />
+                ) : (
+                  <div className="bundle-empty-state">Compile to inspect ontology closure.</div>
+                )
               ) : (
                 <div className="bundle-empty-state">Attach an ontology to inspect full or workflow-specific semantics.</div>
               )

@@ -1605,6 +1605,11 @@ button:disabled {
   max-width: 680px;
   color: var(--muted);
 }
+.bundle-ontology-preview {
+  display: grid;
+  gap: 18px;
+  max-width: 1400px;
+}
 .ontology-type-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1623,6 +1628,156 @@ button:disabled {
 .ontology-type-grid span {
   color: var(--muted);
   font-size: 10px;
+}
+.bundle-workflow-preview {
+  display: grid;
+  gap: 18px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.bundle-workflow-preview > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+.bundle-workflow-preview > header h2 {
+  margin: 7px 0 5px;
+  font-family: "Syne", sans-serif;
+}
+.bundle-workflow-preview > header p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.bundle-workflow-preview > header dl {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+.bundle-workflow-preview > header dl > div {
+  min-width: 66px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--surface);
+}
+.bundle-workflow-preview dt,
+.bundle-workflow-preview dd {
+  margin: 0;
+}
+.bundle-workflow-preview dt {
+  color: var(--dim);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+.bundle-workflow-preview dd {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.bundle-workflow-visual {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  min-height: 620px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--bg);
+}
+.embedded-graph-canvas {
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg);
+}
+.embedded-graph-inspector {
+  min-width: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  padding: 18px;
+  background: var(--surface);
+}
+.embedded-graph-inspector > header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--cyan);
+}
+.embedded-graph-inspector > header span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.embedded-graph-inspector > header small {
+  font-size: 8px;
+  text-transform: uppercase;
+}
+.embedded-graph-inspector > header strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.embedded-graph-inspector > p,
+.embedded-graph-inspector > pre {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.embedded-graph-inspector > pre {
+  max-height: 210px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px;
+  background: var(--surface-2);
+  white-space: pre-wrap;
+}
+.embedded-graph-inspector dl,
+.ontology-relationship-details {
+  display: grid;
+  gap: 0;
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.embedded-graph-inspector dl > div,
+.ontology-relationship-details > div {
+  display: grid;
+  grid-template-columns: 95px minmax(0, 1fr);
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 9px;
+  font-size: 8px;
+}
+.embedded-graph-inspector dl > div:last-child,
+.ontology-relationship-details > div:last-child {
+  border-bottom: 0;
+}
+.embedded-graph-inspector dt,
+.ontology-relationship-details dt {
+  color: var(--dim);
+}
+.embedded-graph-inspector dd,
+.ontology-relationship-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.embedded-edge-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--cyan);
+}
+.embedded-edge-route code {
+  color: var(--text);
+  font-size: 9px;
 }
 .output-browser {
   display: grid;
@@ -1749,6 +1904,137 @@ button:disabled {
   grid-template-columns: 270px minmax(400px, 1fr) minmax(340px, 38vw);
   min-width: 0;
   min-height: 0;
+}
+.structured-artifact-layout.ontology-artifact-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 34vw);
+}
+.ontology-artifact-layout .structured-artifact-preview {
+  padding: 20px;
+}
+.ontology-artifact-layout .structured-artifact-preview > header,
+.ontology-artifact-layout .ontology-breaking-change {
+  max-width: 1400px;
+}
+.ontology-visual-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
+  gap: 14px;
+  max-width: 1400px;
+  min-height: 620px;
+  margin: 0 auto;
+}
+.ontology-canvas-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--bg);
+}
+.ontology-canvas-panel > header {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding: 9px 12px;
+  background: var(--surface);
+}
+.ontology-canvas-panel > header > div {
+  display: grid;
+  gap: 3px;
+}
+.ontology-canvas-panel > header strong {
+  font-size: 11px;
+}
+.ontology-canvas-panel > header small {
+  color: var(--dim);
+  font-size: 8px;
+}
+.ontology-canvas-panel .form-search {
+  width: min(240px, 42%);
+  margin: 0;
+}
+.ontology-graph-canvas {
+  min-width: 0;
+  min-height: 520px;
+}
+.ontology-graph-node {
+  position: relative;
+  display: grid;
+  gap: 7px;
+  width: 210px;
+  min-height: 92px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 38%, var(--border));
+  border-radius: 10px;
+  padding: 10px 11px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--bg) 50%, transparent);
+  transition: opacity 0.15s ease;
+}
+.ontology-graph-node.selected {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cyan) 18%, transparent);
+}
+.ontology-graph-node.dimmed {
+  opacity: 0.22;
+}
+.ontology-graph-node header,
+.ontology-graph-node footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+.ontology-graph-node header {
+  justify-content: flex-start;
+  color: var(--cyan);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ontology-graph-node > strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ontology-graph-node footer {
+  color: var(--dim);
+  font-size: 7px;
+}
+.ontology-graph-node footer code {
+  max-width: 115px;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+}
+.ontology-node-handle {
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--bg);
+  background: var(--cyan);
+}
+.ontology-selection-inspector {
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  overflow-y: auto;
+  padding: 18px;
+}
+.ontology-selection-inspector .artifact-property-grid {
+  grid-template-columns: 1fr;
+}
+@media (max-width: 1150px) {
+  .ontology-visual-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ontology-selection-inspector {
+    max-height: 460px;
+  }
 }
 .structured-artifact-nav,
 .structured-artifact-source {
@@ -1909,6 +2195,101 @@ button:disabled {
   border-top: 1px solid var(--border);
   padding-top: 12px;
 }
+.ontology-breaking-change {
+  display: flex;
+  max-width: 760px;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 auto 12px;
+  border: 1px solid color-mix(in srgb, var(--coral) 45%, var(--border));
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 7%, var(--surface));
+}
+.ontology-breaking-change > div {
+  display: grid;
+  gap: 4px;
+}
+.ontology-breaking-change p,
+.ontology-breaking-change small {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+.ontology-relationship-map,
+.ontology-impact-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.ontology-relationship-map > header,
+.ontology-impact-panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ontology-relationship-map > header small,
+.ontology-impact-panel small {
+  color: var(--dim);
+  font-size: 8px;
+}
+.ontology-relationship-map > div {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) auto minmax(90px, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px;
+  background: var(--surface-2);
+  font-size: 8px;
+}
+.ontology-relationship-map > div code:nth-of-type(2) {
+  text-align: right;
+}
+.ontology-relationship-map > p,
+.ontology-impact-panel > p,
+.ontology-sliver-result p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.ontology-impact-panel > header > div {
+  display: grid;
+  gap: 3px;
+}
+.ontology-impact-panel .quiet-button {
+  min-height: 29px;
+  font-size: 9px;
+}
+.ontology-sliver-result {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.ontology-sliver-result > span {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px;
+  color: var(--dim);
+  background: var(--surface-2);
+  font-size: 8px;
+}
+.ontology-sliver-result > span strong {
+  color: var(--cyan);
+  font-size: 16px;
+}
+.ontology-sliver-result p {
+  grid-column: 1 / -1;
+}
 .document-detail-card dl {
   display: grid;
   gap: 0;
@@ -1950,7 +2331,9 @@ button:disabled {
   padding: 16px;
   color: var(--editor-text);
   background: var(--editor-bg);
-  font: 10px/1.55 "IBM Plex Mono", monospace;
+  font:
+    10px / 1.55 "IBM Plex Mono",
+    monospace;
   tab-size: 2;
 }
 .structured-diagnostics {
@@ -2550,8 +2933,23 @@ button:disabled {
   .structured-artifact-layout {
     grid-template-columns: 220px minmax(360px, 1fr);
   }
+  .structured-artifact-layout.ontology-artifact-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .structured-artifact-source {
     display: none;
+  }
+  .ontology-visual-workspace,
+  .bundle-workflow-visual {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ontology-selection-inspector {
+    max-height: 460px;
+  }
+  .embedded-graph-inspector {
+    max-height: 360px;
+    border-top: 1px solid var(--border);
+    border-left: 0;
   }
   .bundle-layout {
     grid-template-columns: 220px minmax(0, 1fr);
@@ -3814,6 +4212,94 @@ button:disabled {
   color: #69767e;
   font-size: 9px;
   line-height: 1.5;
+}
+.node-form-contracts {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #2d3b42;
+  border-radius: 9px;
+  padding: 11px;
+  background: #10171b;
+}
+.node-form-contracts > header,
+.node-form-attach,
+.node-form-reference {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.node-form-contracts > header > div,
+.node-form-reference > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.node-form-contracts > header span,
+.node-form-contracts > header small,
+.node-form-reference small {
+  color: #69767e;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+}
+.node-form-contracts > header span {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.node-form-reference {
+  border: 1px solid #28333a;
+  border-radius: 7px;
+  padding: 8px;
+}
+.node-form-reference > span {
+  flex: 1;
+}
+.node-form-reference strong,
+.node-form-reference small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.node-form-reference strong {
+  font-size: 10px;
+  text-transform: capitalize;
+}
+.node-form-reference button,
+.node-form-create {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2d3b42;
+  border-radius: 6px;
+  background: #141b20;
+  color: #8d9aa1;
+}
+.node-form-reference button {
+  width: 26px;
+  height: 26px;
+}
+.node-form-attach select {
+  min-width: 0;
+  height: 31px;
+  flex: 1;
+  border: 1px solid #28333a;
+  border-radius: 6px;
+  padding: 0 7px;
+  background: #0f1519;
+  color: #dfe6e6;
+  font-size: 9px;
+}
+.node-form-attach .quiet-button {
+  min-height: 31px;
+  padding: 0 9px;
+  font-size: 9px;
+}
+.node-form-create {
+  min-height: 32px;
+  gap: 6px;
+  color: var(--cyan);
+  font-size: 9px;
 }
 .field-error {
   display: block;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES, WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
 import {
   attachBundleArtifact,
   bindingPathOptions,

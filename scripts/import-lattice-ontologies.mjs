@@ -11,7 +11,7 @@ const valueAfter = (flag) => {
 };
 
 const sourcePath = valueAfter("--source");
-const requested = (valueAfter("--industries") ?? "manufacturing,legal,financial-services")
+const requested = (valueAfter("--industries") ?? "energy,financial-services,healthcare,insurance,legal,manufacturing,real-estate")
   .split(",")
   .map((value) => value.trim())
   .filter(Boolean);

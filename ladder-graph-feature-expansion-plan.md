@@ -1,6 +1,6 @@
 # Ladder Graph workflow-bundle implementation plan
 
-**Status:** The release scope is implemented: reusable bundle assembly, four curated industry bundles, standalone forms/documents/ontologies, the full DocuBricks library, ontology-only Lattice imports, and catalog/MCP support for every artifact kind.
+**Status:** The release scope is implemented: reusable bundle assembly, seven curated industry bundles, standalone forms/documents/ontologies, node-level form attachment and creation, the full DocuBricks library, ontology-only Lattice imports, and catalog/MCP support for every artifact kind.
 
 **Companion strategy:** `ladder-graph-feature-expansion.md`
 
@@ -19,7 +19,7 @@ Implemented in the first vertical slice:
 - cross-artifact validation, multi-file compilation, and lockfiles;
 - curated insurance ontology, forms, document contract, bundle, and classification fixtures;
 - Dexie v3 storage migration primitives;
-- an experimental bundle map, form preview, ontology preview, and output browser;
+- an experimental bundle map, embedded read-only workflow graph with node/edge inspection, form preview, ontology relationship canvas, and output browser;
 - a first-class structural form studio with outline, canvas, inspector, ontology palette, responsive preview, source synchronization, diagnostics, undo/redo, and portable exports;
 - edited form sources flowing back into bundle validation and deterministic compilation;
 - general bundle assembly across the workflow catalog, attach/remove asset controls, and a visual binding inspector;
@@ -30,19 +30,21 @@ Implemented in the first vertical slice:
 
 Completed in the feature-expansion release:
 
-- reproducible ontology-only imports from Lattice for manufacturing, legal, and financial services, without copying policies, runtime behavior, evidence systems, or other Lattice application concerns;
-- curated manufacturing line qualification, legal regulatory-obligations, and commercial-credit underwriting bundles in addition to insurance;
+- reproducible ontology-only imports from Lattice for manufacturing, legal, financial services, energy, healthcare, and real estate, without copying policies, runtime behavior, evidence systems, or other Lattice application concerns;
+- curated manufacturing line qualification, legal regulatory-obligations, commercial-credit underwriting, energy field operations, healthcare claims audit, and real-estate valuation bundles in addition to insurance;
 - explicit workflow/form/document-to-ontology bindings and deterministic sliver compilation for every curated bundle;
 - a first-class bundle gallery, workflow-aware bundle recommendations, and correct reopening of saved bundle projects;
 - standalone, locally persisted form projects backed by the purpose-built visual form studio;
 - standalone document contract inspection and ontology type/property exploration with editable portable YAML and compiler diagnostics;
+- selectable ontology relationship canvases with type/relationship inspectors in both standalone and bundle workspaces, workflow-sliver impact previews, and guided warnings for removed ontology types, properties, and relationships;
+- direct catalog-form attachment to workflow nodes and first-class form creation seeded from node schemas;
+- a metadata-only startup artifact index with full YAML sources deferred to the artifact workspaces;
 - catalog snapshot and MCP discovery/retrieval for workflows, agents, ontologies, forms, documents, and workflow bundles;
 - regression coverage for every curated bundle, saved artifact routing, standalone artifact persistence, and the production build path used by Vercel.
 
-Post-release enhancements, not blockers for the current compiler expansion:
+Future product work, outside the completed compiler expansion:
 
-- direct create/attach affordances on individual workflow nodes (bundle attachment already works);
-- large-ontology relationship graph layout, guided breaking-change migrations, and richer sliver-impact visualization;
+- advanced large-ontology clustering, progressive rendering, and automated migration rewriting beyond the current relationship canvas and breaking-change guidance;
 - hosted form submission, identity, case management, and runtime execution remain deliberately outside Ladder Graph's compiler boundary.
 
 ## 1. Outcome

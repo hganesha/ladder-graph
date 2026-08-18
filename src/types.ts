@@ -85,6 +85,7 @@ export interface LgirNode {
   prompt?: string;
   inputSchema?: Record<string, unknown> | null;
   outputSchema?: Record<string, unknown> | null;
+  formRefs?: string[];
   capabilities?: Partial<Capabilities>;
   config?: NodeConfig;
   position?: Position;

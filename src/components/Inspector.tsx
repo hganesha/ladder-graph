@@ -1,9 +1,11 @@
-import { Braces, Cable, Check, FileInput, PanelRightClose, Plug, Plus, Search, Settings2, Sparkles, X } from "lucide-react";
+import { Braces, Cable, Check, ExternalLink, FileInput, PanelRightClose, Plug, Plus, Search, Settings2, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { stringify } from "yaml";
+import { ARTIFACT_INDEX } from "../generated/catalog";
 import { type CapabilityOption, recommendedCapabilities, TARGET_CAPABILITY_CATALOGS } from "../lib/capabilityCatalog";
 import { INPUT_CONTRACT_PRESETS, type InputModality, inputContractModality, inputContractSchema } from "../lib/inputContracts";
 import { useStudioStore } from "../store/useStudioStore";
-import type { CapabilityCustomization, EdgeKind, LgirEdge, LgirNode } from "../types";
+import type { CapabilityCustomization, EdgeKind, FormFieldType, FormRole, LadderForm, LgirEdge, LgirNode } from "../types";
 
 type FormNode = LgirNode & {
   capabilities: {
@@ -17,6 +19,76 @@ type FormNode = LgirNode & {
 };
 
 const WORKING_DIRECTORY_KINDS = new Set<LgirNode["kind"]>(["agent", "tool", "evaluate", "teacher"]);
+const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form");
+const FORM_DATA_TYPES = new Set<FormFieldType>(["string", "integer", "number", "boolean", "date", "datetime", "array", "object"]);
+
+function slug(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[^a-zA-Z0-9]+/gu, "-")
+    .replace(/^-|-$/gu, "")
+    .toLowerCase();
+}
+
+function pointerSegment(value: string) {
+  return value.replaceAll("~", "~0").replaceAll("/", "~1");
+}
+
+function formRoleForNode(node: LgirNode): FormRole {
+  if (node.kind === "input") return "start";
+  if (node.kind === "approval") return "approval";
+  if (node.kind === "output") return "completion";
+  return "review";
+}
+
+function formSourceForNode(node: LgirNode, nodeIndex: number) {
+  const sourceSchema = node.inputSchema ?? node.outputSchema ?? {};
+  const properties = (sourceSchema.properties ?? {}) as Record<string, Record<string, unknown>>;
+  const required = new Set(Array.isArray(sourceSchema.required) ? (sourceSchema.required as string[]) : []);
+  const formName = `${slug(node.id)}-${formRoleForNode(node)}-form`;
+  const form: LadderForm = {
+    apiVersion: "ladder.dev/v1alpha1",
+    kind: "Form",
+    metadata: {
+      name: formName,
+      title: `${node.name} form`,
+      description: `Human ${formRoleForNode(node)} contract generated from workflow node ${node.id}.`,
+      version: "1.0.0",
+      source: { system: "ladder", sourceId: node.id },
+    },
+    spec: {
+      role: formRoleForNode(node),
+      pages: [
+        {
+          id: "main",
+          title: node.name,
+          sections: [
+            {
+              id: "fields",
+              title: "Details",
+              fields: Object.entries(properties).map(([name, schema]) => {
+                const candidateType = typeof schema.type === "string" ? schema.type : "string";
+                return {
+                  id: slug(name),
+                  name,
+                  label:
+                    typeof schema.title === "string"
+                      ? schema.title
+                      : name.replaceAll("_", " ").replace(/\b\w/gu, (letter) => letter.toUpperCase()),
+                  description: typeof schema.description === "string" ? schema.description : undefined,
+                  dataType: FORM_DATA_TYPES.has(candidateType as FormFieldType) ? (candidateType as FormFieldType) : "string",
+                  required: required.has(name),
+                  workflowPath: `/spec/nodes/${nodeIndex}/${node.inputSchema ? "inputSchema" : "outputSchema"}/properties/${pointerSegment(name)}`,
+                };
+              }),
+            },
+          ],
+        },
+      ],
+    },
+  };
+  return { ref: `ladder://forms/user/${formName}`, source: stringify(form, { lineWidth: 110 }) };
+}
 
 function normalized(node: LgirNode): FormNode {
   return {
@@ -58,6 +130,7 @@ export function Inspector() {
   const selected = useMemo(() => workflow?.spec.nodes.find((node) => node.id === selectedId), [workflow, selectedId]);
   const selectedEdge = useMemo(() => workflow?.spec.edges.find((edge) => edge.id === selectedEdgeId), [workflow, selectedEdgeId]);
   const [draft, setDraft] = useState<FormNode | null>(selected ? normalized(selected) : null);
+  const [formToAttach, setFormToAttach] = useState(FORM_TEMPLATES[0]?.id ?? "");
   useEffect(() => setDraft(selected ? normalized(selected) : null), [selected]);
 
   if (selectedEdge) {
@@ -131,6 +204,23 @@ export function Inspector() {
     delete inputSchema["x-ladder-input-mode"];
     setDraft({ ...draft, inputSchema });
     commit({ inputSchema });
+  };
+  const updateFormRefs = (formRefs: string[]) => {
+    setDraft({ ...draft, formRefs });
+    commit({ formRefs });
+  };
+  const openForm = (detail: { templateId?: string; initialSource?: string }) =>
+    window.dispatchEvent(new CustomEvent("ladder-open-form", { detail }));
+  const attachSelectedForm = () => {
+    const template = FORM_TEMPLATES.find((form) => form.id === formToAttach);
+    if (!template || draft.formRefs?.includes(template.ref)) return;
+    updateFormRefs([...(draft.formRefs ?? []), template.ref]);
+  };
+  const createNodeForm = () => {
+    const nodeIndex = workflow?.spec.nodes.findIndex((node) => node.id === draft.id) ?? -1;
+    const generated = formSourceForNode(draft, Math.max(0, nodeIndex));
+    if (!draft.formRefs?.includes(generated.ref)) updateFormRefs([...(draft.formRefs ?? []), generated.ref]);
+    openForm({ initialSource: generated.source });
   };
 
   return (
@@ -242,9 +332,64 @@ export function Inspector() {
         )}
         {tab === "contracts" && (
           <>
+            <section className="node-form-contracts" aria-labelledby="node-form-contracts-title">
+              <header>
+                <div>
+                  <span>Human interaction</span>
+                  <strong id="node-form-contracts-title">Attached forms</strong>
+                </div>
+                <small>{draft.formRefs?.length ?? 0} attached</small>
+              </header>
+              {(draft.formRefs ?? []).map((ref) => {
+                const template = FORM_TEMPLATES.find((form) => form.ref === ref);
+                return (
+                  <div className="node-form-reference" key={ref}>
+                    <span>
+                      <strong>{template?.title ?? ref.split("/").at(-1)?.replaceAll("-", " ")}</strong>
+                      <small>{ref}</small>
+                    </span>
+                    {template ? (
+                      <button
+                        aria-label={`Open ${template.title} form`}
+                        onClick={() => openForm({ templateId: template.id })}
+                        type="button"
+                      >
+                        <ExternalLink size={13} />
+                      </button>
+                    ) : null}
+                    <button
+                      aria-label={`Remove form ${template?.title ?? ref}`}
+                      onClick={() => updateFormRefs((draft.formRefs ?? []).filter((item) => item !== ref))}
+                      type="button"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+              <div className="node-form-attach">
+                <select aria-label="Form to attach" onChange={(event) => setFormToAttach(event.target.value)} value={formToAttach}>
+                  {FORM_TEMPLATES.map((form) => (
+                    <option key={form.id} value={form.id}>
+                      {form.title}
+                    </option>
+                  ))}
+                </select>
+                <button className="quiet-button" disabled={!formToAttach} onClick={attachSelectedForm} type="button">
+                  <Plus size={13} /> Attach
+                </button>
+              </div>
+              <button className="node-form-create" onClick={createNodeForm} type="button">
+                <Sparkles size={14} /> Create form from node schema
+              </button>
+              <p className="field-help">
+                Form references compile with the workflow. Creating a form opens a standalone project seeded from this node’s contract.
+              </p>
+            </section>
             {draft.kind === "input" && (
               <Field label="Input type">
                 <select
+                  aria-label="Input type"
                   value={inputContractModality(draft.inputSchema) ?? "custom"}
                   onChange={(event) => {
                     if (event.target.value === "custom") switchToCustomInputContract();

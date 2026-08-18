@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES } from "../src/generated/catalog";
+import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
 
 describe("DocuBricks starter library", () => {
   it("publishes every classified schema once with traceable source metadata", async () => {

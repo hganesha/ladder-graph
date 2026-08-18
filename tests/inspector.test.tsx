@@ -29,7 +29,7 @@ describe("input contract inspector", () => {
 
     render(<Inspector />);
 
-    const selector = screen.getByRole("combobox");
+    const selector = screen.getByLabelText("Input type");
     expect(selector).toHaveValue("image");
     expect(screen.getByDisplayValue(/"contentMediaType": "image\/\*"/)).toBeInTheDocument();
 
@@ -38,6 +38,37 @@ describe("input contract inspector", () => {
       input.id,
       expect.objectContaining({ inputSchema: expect.objectContaining({ "x-ladder-input-mode": "audio" }) }),
     );
+  });
+
+  it("attaches catalog forms and creates a node-scoped form contract", () => {
+    const workflow = parse(WORKFLOW_TEMPLATES[0].yaml) as Workflow;
+    const input = workflow.spec.nodes.find((node) => node.kind === "input");
+    if (!input) throw new Error("An input node is required.");
+    const patchNode = vi.fn(async () => undefined);
+    const openForm = vi.fn();
+    window.addEventListener("ladder-open-form", openForm);
+    const analysis: AnalysisResult = {
+      ok: true,
+      sourceHash: "test",
+      diagnostics: [],
+      normalized: workflow,
+      nodeOrder: workflow.spec.nodes.map((node) => node.id),
+      stats: { nodes: workflow.spec.nodes.length, edges: workflow.spec.edges.length, agents: 2, loops: 0, maxParallelism: 1 },
+    };
+    useStudioStore.setState({ analysis, selectedNodeId: input.id, selectedEdgeId: null, inspectorTab: "contracts", patchNode });
+
+    render(<Inspector />);
+    fireEvent.change(screen.getByLabelText("Form to attach"), { target: { value: "docubricks-manufacturing-quality-inspection-report" } });
+    fireEvent.click(screen.getByRole("button", { name: "Attach" }));
+    expect(patchNode).toHaveBeenCalledWith(input.id, {
+      formRefs: ["ladder://forms/docubricks/manufacturing/quality_inspection_report"],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Create form from node schema" }));
+    const event = openForm.mock.calls.at(-1)?.[0] as CustomEvent<{ initialSource: string }>;
+    expect(event.detail.initialSource).toContain("kind: Form");
+    expect(event.detail.initialSource).toContain(`sourceId: ${input.id}`);
+    window.removeEventListener("ladder-open-form", openForm);
   });
 
   it("edits teacher-model feedback configuration", () => {
