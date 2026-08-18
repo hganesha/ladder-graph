@@ -18,6 +18,8 @@ const selectArea = (area: string) => {
   fireEvent.change(screen.getByLabelText("Subject area"), { target: { value: area } });
 };
 
+const alphabetically = (values: string[]) => [...values].sort(new Intl.Collator("en", { numeric: true, sensitivity: "base" }).compare);
+
 describe("welcome gallery", () => {
   afterEach(cleanup);
 
@@ -61,6 +63,38 @@ describe("welcome gallery", () => {
     expect(agentButtons).toHaveLength(roleTemplatesForSubject("Software engineering").length);
     fireEvent.click(agentButtons[0]);
     expect(openAgentTemplate).toHaveBeenCalledTimes(1);
+  });
+
+  it("sorts subject areas, workflows, bundles, and agents alphabetically", () => {
+    render(<Welcome onBlank={() => undefined} />);
+
+    const subjectValues = within(screen.getByLabelText("Subject area"))
+      .getAllByRole("option")
+      .map((option) => (option as HTMLOptionElement).value);
+    expect(subjectValues).toEqual([":all", ...alphabetically(subjectValues.slice(1))]);
+
+    selectArea(":all");
+    const workflowNames = within(screen.getByRole("tabpanel", { name: "Workflows" }))
+      .getAllByRole("button", { name: /^Open .* in studio$/ })
+      .map((button) =>
+        button
+          .getAttribute("aria-label")!
+          .replace(/^Open /, "")
+          .replace(/ in studio$/, ""),
+      );
+    expect(workflowNames).toEqual(alphabetically(workflowNames));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Bundles" }));
+    const bundleNames = within(screen.getByRole("tabpanel", { name: "Bundles" }))
+      .getAllByRole("button", { name: /^Open / })
+      .map((button) => button.getAttribute("aria-label")!.replace(/^Open /, ""));
+    expect(bundleNames).toEqual(alphabetically(bundleNames));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
+    const agentNames = within(screen.getByRole("tabpanel", { name: "Agents" }))
+      .getAllByRole("button", { name: /^Start workflow with / })
+      .map((button) => button.getAttribute("aria-label")!.replace(/^Start workflow with /, ""));
+    expect(agentNames).toEqual(alphabetically(agentNames));
   });
 
   it("searches the full catalog from a partial word and browses a subject result", () => {
