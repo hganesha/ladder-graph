@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 import BundleStudio from "../src/components/BundleStudio";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
 import { db } from "../src/lib/persistence";
 import type { BundleCompileResult } from "../src/types";
 
@@ -97,6 +98,70 @@ describe("bundle workspace", () => {
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
     expect(compileBundle.mock.calls[0][0]).toContain("name: manufacturing-line-qualification");
     expect(screen.getByRole("button", { name: "Restore Manufacturing line qualification bundle" })).toBeInTheDocument();
+  });
+
+  it("creates a blank first-class bundle and edits its identity", async () => {
+    render(<BundleStudio initialTemplateId="__new__" onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    expect(screen.getByRole("heading", { name: "Name and version" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Bundle title"), { target: { value: "My governed bundle" } });
+    fireEvent.change(screen.getByLabelText("Bundle slug"), { target: { value: "my-governed-bundle" } });
+    expect(screen.getByText("Changes pending validation")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Validate changes" }));
+    await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("title: My governed bundle"));
+    expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("name: my-governed-bundle");
+  });
+
+  it("assembles bundles from saved workflows and saved ontology projects", async () => {
+    const now = Date.now();
+    await db.projects.bulkPut([
+      {
+        id: "local-workflow",
+        name: "My saved workflow",
+        artifactKind: "workflow",
+        yaml: WORKFLOW_TEMPLATES[0].yaml,
+        lastValidYaml: WORKFLOW_TEMPLATES[0].yaml,
+        target: "codex",
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: "local-ontology",
+        name: "My OWL ontology",
+        artifactKind: "ontology",
+        yaml: `apiVersion: ladder.dev/v1alpha1
+kind: Ontology
+metadata:
+  name: my-owl-ontology
+  title: My OWL ontology
+  version: 1.0.0
+spec:
+  types:
+    - id: asset
+      label: Asset
+      properties: []
+  relationships: []
+`,
+        lastValidYaml: "",
+        target: "codex",
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+
+    render(<BundleStudio initialTemplateId="__new__" onBack={() => undefined} />);
+    await waitFor(() => expect(screen.getByRole("option", { name: /My library ·/ })).toBeInTheDocument());
+
+    fireEvent.change(screen.getByLabelText("Workflow"), { target: { value: "local-workflow" } });
+    await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://workflows/local/local-workflow"));
+    expect(compileBundle.mock.calls.at(-1)?.[1]).toEqual(
+      expect.arrayContaining([expect.objectContaining({ ref: "ladder://workflows/local/local-workflow" })]),
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Attach My OWL ontology" }));
+    await waitFor(() => expect(compileBundle.mock.calls.at(-1)?.[0]).toContain("ladder://ontologies/local/local-ontology"));
   });
 
   it("switches between deterministic sliver and full ontology compilation", async () => {

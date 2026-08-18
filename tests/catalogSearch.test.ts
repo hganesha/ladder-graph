@@ -27,6 +27,8 @@ describe("universal catalog search", () => {
     expect(result.groups.agent.length).toBeGreaterThan(0);
     expect(result.groups.form.length).toBeGreaterThan(0);
     expect(result.groups.document.length).toBeGreaterThan(0);
+    expect(result.groups.ontology.length).toBeGreaterThan(0);
+    expect(result.groups.bundle.length).toBeGreaterThan(0);
     expect(result.total).toBe(Object.values(result.counts).reduce((total, count) => total + count, 0));
   });
 

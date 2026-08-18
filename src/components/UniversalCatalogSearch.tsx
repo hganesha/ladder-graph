@@ -1,4 +1,4 @@
-import { Bot, BookOpen, FileText, Search, Sparkles, Workflow, X } from "lucide-react";
+import { Bot, BookOpen, Boxes, FileText, PackageOpen, Search, Sparkles, Workflow, X } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
 import {
@@ -14,24 +14,36 @@ import {
 import type { InputModality } from "../types";
 
 const RECENT_SEARCHES_KEY = "ladder-catalog-recent-searches";
-const INITIAL_LIMITS: Record<CatalogSearchKind, number> = { subject: 4, workflow: 6, agent: 6, form: 6, document: 6 };
-const SEARCH_KINDS = new Set<CatalogSearchKind>(["subject", "workflow", "agent", "form", "document"]);
+const INITIAL_LIMITS: Record<CatalogSearchKind, number> = {
+  subject: 4,
+  workflow: 6,
+  bundle: 6,
+  agent: 6,
+  form: 6,
+  document: 6,
+  ontology: 6,
+};
+const SEARCH_KINDS = new Set<CatalogSearchKind>(["subject", "workflow", "bundle", "agent", "form", "document", "ontology"]);
 const SEARCH_MODALITIES = new Set(["all", "text", "image", "audio", "video", "document", "mixed"]);
 
 const KIND_ICONS = {
   subject: Sparkles,
   workflow: Workflow,
+  bundle: PackageOpen,
   agent: Bot,
   form: FileText,
   document: BookOpen,
+  ontology: Boxes,
 };
 
 const ACTION_LABELS = {
   "browse-subject": "Browse subject",
   "open-workflow": "Open workflow",
+  "open-bundle": "Open bundle",
   "create-with-agent": "Create with agent",
   "open-form": "Open form",
   "inspect-document": "Inspect document",
+  "open-ontology": "Open ontology",
 };
 
 function readRecentSearches() {
@@ -81,9 +93,11 @@ export interface UniversalCatalogSearchProps {
   onClose?: () => void;
   onBrowseSubject: (subject: string) => void;
   onOpenWorkflow: (templateId: string) => void | Promise<void>;
+  onOpenBundle: (templateId: string) => void;
   onCreateWithAgent: (templateId: string) => void | Promise<void>;
   onOpenForm: (templateId: string) => void;
   onInspectDocument: (templateId: string) => void;
+  onOpenOntology: (templateId: string) => void;
 }
 
 export function UniversalCatalogSearch({
@@ -94,9 +108,11 @@ export function UniversalCatalogSearch({
   onClose,
   onBrowseSubject,
   onOpenWorkflow,
+  onOpenBundle,
   onCreateWithAgent,
   onOpenForm,
   onInspectDocument,
+  onOpenOntology,
 }: UniversalCatalogSearchProps) {
   const [internalQuery, setInternalQuery] = useState("");
   const [selectedKinds, setSelectedKinds] = useState<CatalogSearchKind[]>(() => {
@@ -179,6 +195,9 @@ export function UniversalCatalogSearch({
       case "open-workflow":
         void onOpenWorkflow(entry.id);
         break;
+      case "open-bundle":
+        onOpenBundle(entry.id);
+        break;
       case "create-with-agent":
         void onCreateWithAgent(entry.id);
         break;
@@ -187,6 +206,9 @@ export function UniversalCatalogSearch({
         break;
       case "inspect-document":
         onInspectDocument(entry.id);
+        break;
+      case "open-ontology":
+        onOpenOntology(entry.id);
         break;
     }
     if (variant === "dialog") onClose?.();
@@ -260,7 +282,7 @@ export function UniversalCatalogSearch({
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setFocused(true)}
           onKeyDown={handleInputKeyDown}
-          placeholder="Search subjects, workflows, agents, forms, and documents…"
+          placeholder="Search workflows, bundles, agents, forms, documents, and ontologies…"
           role="combobox"
           value={query}
         />

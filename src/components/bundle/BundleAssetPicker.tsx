@@ -2,12 +2,19 @@ import { FileJson2, FileText, GitFork, PackageOpen, Plus, RotateCcw, Search, Tra
 import { useMemo, useState } from "react";
 import { parse } from "yaml";
 import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
-import { WORKFLOW_TEMPLATES } from "../../generated/catalog";
 import { bundleAsset } from "../../lib/bundleEditor";
 import type { ArtifactTemplateDefinition, WorkflowBundle } from "../../types";
 
+export interface BundleWorkflowChoice {
+  id: string;
+  ref: string;
+  title: string;
+  description: string;
+}
+
 interface BundleAssetPickerProps {
   bundle: WorkflowBundle;
+  assetTemplates: ArtifactTemplateDefinition[];
   onAttach: (template: ArtifactTemplateDefinition) => void;
   onDetach: (ref: string) => void;
   onNew: () => void;
@@ -15,6 +22,7 @@ interface BundleAssetPickerProps {
   onUseCuratedBundle: (template: ArtifactTemplateDefinition) => void;
   starterLabel: string;
   onWorkflowChange: (workflowId: string) => void;
+  workflowChoices: BundleWorkflowChoice[];
 }
 
 const artifactKinds = ["ontology", "form", "document"] as const;
@@ -33,6 +41,7 @@ const kindIcon = {
 
 export function BundleAssetPicker({
   bundle,
+  assetTemplates,
   onAttach,
   onDetach,
   onNew,
@@ -40,6 +49,7 @@ export function BundleAssetPicker({
   onUseCuratedBundle,
   starterLabel,
   onWorkflowChange,
+  workflowChoices,
 }: BundleAssetPickerProps) {
   const [query, setQuery] = useState("");
   const [industry, setIndustry] = useState("all");
@@ -48,8 +58,8 @@ export function BundleAssetPicker({
     ...(bundle.spec.forms ?? []).map((asset) => asset.ref),
     ...(bundle.spec.documents ?? []).map((asset) => asset.ref),
   ]);
-  const workflowId = bundle.spec.workflowRef.split("/").at(-1) ?? WORKFLOW_TEMPLATES[0]?.id ?? "";
-  const workflow = bundleAsset(bundle.spec.workflowRef);
+  const workflowId = workflowChoices.find((choice) => choice.ref === bundle.spec.workflowRef)?.id ?? workflowChoices[0]?.id ?? "";
+  const workflow = workflowChoices.find((choice) => choice.id === workflowId) ?? bundleAsset(bundle.spec.workflowRef);
   const recommendedBundle = useMemo(
     () =>
       ARTIFACT_TEMPLATES.filter((template) => template.kind === "workflow-bundle")
@@ -60,7 +70,6 @@ export function BundleAssetPicker({
         ),
     [bundle.metadata.name, bundle.spec.workflowRef],
   );
-  const assetTemplates = useMemo(() => ARTIFACT_TEMPLATES.filter((template) => template.kind !== "workflow-bundle"), []);
   const industries = useMemo(() => [...new Set(assetTemplates.map((template) => template.path.split("/")[0]))].sort(), [assetTemplates]);
   const filteredTemplates = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -93,9 +102,9 @@ export function BundleAssetPicker({
           <GitFork size={14} /> Workflow
         </span>
         <select aria-label="Workflow" value={workflowId} onChange={(event) => onWorkflowChange(event.target.value)}>
-          {WORKFLOW_TEMPLATES.map((template) => (
-            <option key={template.id} value={template.id}>
-              {template.area} · {template.title}
+          {workflowChoices.map((choice) => (
+            <option key={choice.ref} value={choice.id}>
+              {choice.ref.includes("/local/") ? `My library · ${choice.title}` : choice.title}
             </option>
           ))}
         </select>
@@ -134,7 +143,7 @@ export function BundleAssetPicker({
           <option value="all">All industries</option>
           {industries.map((value) => (
             <option key={value} value={value}>
-              {value === "fs" ? "Financial services" : value.replaceAll("_", " ")}
+              {value === "fs" ? "Financial services" : value === "my-library" ? "My library" : value.replaceAll("_", " ")}
             </option>
           ))}
         </select>

@@ -1,8 +1,10 @@
-import { AlertTriangle, ArrowLeft, CheckCircle2, FileText, Save, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { parse } from "yaml";
+import { AlertTriangle, ArrowLeft, CheckCircle2, FileText, Plus, Save, Search, Upload } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { parse, stringify } from "yaml";
 import { compiler } from "../../compiler/client";
 import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
+import { createBlankOntology } from "../../lib/ontologyEditor";
+import { importOwlRdfXml, type OwlImportResult } from "../../lib/owlImport";
 import { saveArtifactProject } from "../../lib/persistence";
 import type { Diagnostic, LadderDocument, Ontology, OntologySliceResult, ProjectRecord, WorkflowBundle } from "../../types";
 import { Brand } from "../Brand";
@@ -69,9 +71,13 @@ export default function StructuredArtifactStudio({
 }) {
   const template = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === artifactKind && artifact.id === initialTemplateId);
   const fallback = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === artifactKind);
-  const initialSource = initialProject?.yaml ?? template?.yaml ?? fallback?.yaml ?? "";
+  const initialSource =
+    initialProject?.yaml ??
+    template?.yaml ??
+    (artifactKind === "ontology" && initialTemplateId === "__new__" ? stringify(createBlankOntology()) : (fallback?.yaml ?? ""));
   const [source, setSource] = useState(initialSource);
-  const [savedSource, setSavedSource] = useState(initialSource);
+  const [savedSource, setSavedSource] = useState(initialTemplateId === "__new__" && !initialProject ? "" : initialSource);
+  const [comparisonSource, setComparisonSource] = useState(initialSource);
   const [projectId, setProjectId] = useState<string | null>(initialProject?.id ?? null);
   const [savedAt, setSavedAt] = useState<number | null>(initialProject?.updatedAt ?? null);
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
@@ -81,11 +87,14 @@ export default function StructuredArtifactStudio({
   const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
   const [slicePreview, setSlicePreview] = useState<{ seedId: string; result: OntologySliceResult } | undefined>(undefined);
   const [sliceLoading, setSliceLoading] = useState(false);
+  const [owlImport, setOwlImport] = useState<OwlImportResult | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const owlInput = useRef<HTMLInputElement>(null);
   const artifact = useMemo(() => parseArtifact(source, artifactKind), [artifactKind, source]);
   const initialOntology = useMemo(() => {
-    const initial = parseArtifact(initialSource, artifactKind);
+    const initial = parseArtifact(comparisonSource, artifactKind);
     return initial?.kind === "Ontology" ? initial : undefined;
-  }, [artifactKind, initialSource]);
+  }, [artifactKind, comparisonSource]);
   const label = artifactKind === "ontology" ? "Ontology" : "Document";
 
   useEffect(() => {
@@ -179,6 +188,41 @@ export default function StructuredArtifactStudio({
     }
   };
 
+  const startNewOntology = () => {
+    const nextSource = stringify(createBlankOntology(), { lineWidth: 110 });
+    setSource(nextSource);
+    setSavedSource("");
+    setComparisonSource(nextSource);
+    setProjectId(null);
+    setSavedAt(null);
+    setSelectedId("entity");
+    setSelectedRelationshipId(null);
+    setSlicePreview(undefined);
+    setOwlImport(null);
+    setImportError(null);
+  };
+
+  const importOwl = async (file: File) => {
+    setImportError(null);
+    try {
+      const imported = importOwlRdfXml(await file.text(), file.name);
+      const nextSource = stringify(imported.ontology, { lineWidth: 110 });
+      setSource(nextSource);
+      setSavedSource("");
+      setComparisonSource(nextSource);
+      setProjectId(null);
+      setSavedAt(null);
+      setSelectedId(imported.ontology.spec.types[0]?.id ?? null);
+      setSelectedRelationshipId(null);
+      setSlicePreview(undefined);
+      setOwlImport(imported);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : "OWL import failed.");
+    } finally {
+      if (owlInput.current) owlInput.current.value = "";
+    }
+  };
+
   return (
     <main className="structured-artifact-studio">
       <header className="structured-artifact-header">
@@ -210,6 +254,27 @@ export default function StructuredArtifactStudio({
             )}
           </span>
           <ThemeToggle compact />
+          {artifactKind === "ontology" ? (
+            <>
+              <input
+                accept=".owl,.rdf,.xml,application/rdf+xml,application/xml,text/xml"
+                aria-label="OWL file"
+                hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void importOwl(file);
+                }}
+                ref={owlInput}
+                type="file"
+              />
+              <button className="quiet-button ontology-header-action" onClick={startNewOntology} type="button">
+                <Plus size={14} /> New ontology
+              </button>
+              <button className="quiet-button ontology-header-action" onClick={() => owlInput.current?.click()} type="button">
+                <Upload size={14} /> Import OWL
+              </button>
+            </>
+          ) : null}
           <button
             className="primary-button"
             disabled={!dirty || validating || errors.length > 0 || !artifact}
@@ -267,6 +332,37 @@ export default function StructuredArtifactStudio({
             <h1>{titleFor(artifact, artifactKind)}</h1>
             <p>{artifact?.metadata.description}</p>
           </header>
+          {owlImport ? (
+            <section className="owl-import-report" aria-label="OWL import report">
+              <CheckCircle2 size={16} />
+              <div>
+                <strong>
+                  Imported {owlImport.stats.types} {owlImport.stats.types === 1 ? "type" : "types"}, {owlImport.stats.properties}{" "}
+                  {owlImport.stats.properties === 1 ? "property" : "properties"}, and {owlImport.stats.relationships}{" "}
+                  {owlImport.stats.relationships === 1 ? "relationship" : "relationships"}
+                </strong>
+                <p>RDF/XML OWL was normalized into Ladder’s portable ontology contract. The original file is never executed.</p>
+                {owlImport.warnings.length ? (
+                  <ul>
+                    {owlImport.warnings.map((warning) => (
+                      <li key={`${warning.code}-${warning.message}`}>
+                        <code>{warning.code}</code> {warning.message}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+          {importError ? (
+            <section className="owl-import-report error" role="alert">
+              <AlertTriangle size={16} />
+              <div>
+                <strong>OWL import failed</strong>
+                <p>{importError}</p>
+              </div>
+            </section>
+          ) : null}
           {breakingChanges.length > 0 ? (
             <section className="ontology-breaking-change" role="alert">
               <AlertTriangle size={17} />

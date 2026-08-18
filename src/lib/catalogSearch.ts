@@ -1,8 +1,15 @@
 import { ARTIFACT_INDEX, ROLE_TEMPLATES, WORKFLOW_TEMPLATES } from "../generated/catalog";
 import type { InputModality } from "../types";
 
-export type CatalogSearchKind = "subject" | "workflow" | "agent" | "form" | "document";
-export type CatalogSearchAction = "browse-subject" | "open-workflow" | "create-with-agent" | "open-form" | "inspect-document";
+export type CatalogSearchKind = "subject" | "workflow" | "bundle" | "agent" | "form" | "document" | "ontology";
+export type CatalogSearchAction =
+  | "browse-subject"
+  | "open-workflow"
+  | "open-bundle"
+  | "create-with-agent"
+  | "open-form"
+  | "inspect-document"
+  | "open-ontology";
 
 export interface CatalogSearchSubject {
   name: string;
@@ -46,14 +53,16 @@ export interface CatalogSearchResponse {
   didUseTypoRecovery: boolean;
 }
 
-export const CATALOG_SEARCH_KIND_ORDER: CatalogSearchKind[] = ["subject", "workflow", "agent", "form", "document"];
+export const CATALOG_SEARCH_KIND_ORDER: CatalogSearchKind[] = ["subject", "workflow", "bundle", "agent", "form", "document", "ontology"];
 
 export const CATALOG_SEARCH_KIND_LABELS: Record<CatalogSearchKind, string> = {
   subject: "Subject areas",
   workflow: "Workflows",
+  bundle: "Bundles",
   agent: "Agents",
   form: "Forms",
   document: "Documents",
+  ontology: "Ontologies",
 };
 
 const ARTIFACT_INDUSTRY_TO_SUBJECT: Record<string, string> = {
@@ -183,21 +192,45 @@ export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): Cata
   }
 
   for (const artifact of ARTIFACT_INDEX) {
-    if (artifact.kind !== "form" && artifact.kind !== "document") continue;
+    if (artifact.kind !== "form" && artifact.kind !== "document" && artifact.kind !== "ontology" && artifact.kind !== "workflow-bundle")
+      continue;
     const subjectArea = artifactSubject(artifact.path);
+    const kind = artifact.kind === "workflow-bundle" ? "bundle" : artifact.kind;
+    const action =
+      artifact.kind === "form"
+        ? "open-form"
+        : artifact.kind === "document"
+          ? "inspect-document"
+          : artifact.kind === "ontology"
+            ? "open-ontology"
+            : "open-bundle";
     entries.push({
-      key: `${artifact.kind}:${artifact.id}`,
+      key: `${kind}:${artifact.id}`,
       id: artifact.id,
-      kind: artifact.kind,
+      kind,
       title: artifact.title,
       description: artifact.description,
       subjectAreas: [subjectArea],
       modalities: [],
-      eyebrow: artifact.kind === "form" ? "Portable form" : "Document contract",
-      detail: artifact.kind === "form" ? "Structured human input" : "Extraction and validation contract",
+      eyebrow:
+        artifact.kind === "form"
+          ? "Portable form"
+          : artifact.kind === "document"
+            ? "Document contract"
+            : artifact.kind === "ontology"
+              ? "Semantic contract"
+              : "Portable solution contract",
+      detail:
+        artifact.kind === "form"
+          ? "Structured human input"
+          : artifact.kind === "document"
+            ? "Extraction and validation contract"
+            : artifact.kind === "ontology"
+              ? "Types, properties, and relationships"
+              : "Workflow with governed assets",
       tags: [titleCasePathPart(artifact.path.split("/")[0])],
-      action: artifact.kind === "form" ? "open-form" : "inspect-document",
-      primaryText: `${artifact.title} ${subjectArea} ${artifact.path} ${artifact.kind}`,
+      action,
+      primaryText: `${artifact.title} ${subjectArea} ${artifact.path} ${kind}`,
       secondaryText: artifact.description,
       aliases: [],
     });
@@ -274,7 +307,7 @@ function scoreEntry(entry: CatalogSearchEntry, query: string, allowTypo: boolean
 }
 
 function emptyGroups(): Record<CatalogSearchKind, CatalogSearchMatch[]> {
-  return { subject: [], workflow: [], agent: [], form: [], document: [] };
+  return { subject: [], workflow: [], bundle: [], agent: [], form: [], document: [], ontology: [] };
 }
 
 export function searchCatalog(index: CatalogSearchEntry[], query: string, filters: CatalogSearchFilters = {}): CatalogSearchResponse {
