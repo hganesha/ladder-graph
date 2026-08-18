@@ -1,0 +1,94 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: fact-check-claim-verification
+  title: Fact-check and claim-verification gate
+  description: Decomposes claims, checks sources, validates citation support, and assigns confidence.
+  version: 1.0.0
+spec:
+  objective: Release only claims with traceable and adequately supported evidence.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - editor-approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Claims and source corpus
+      inputSchema:
+        type: object
+        required:
+          - claims
+          - sources
+        x-ladder-input-mode: mixed
+    - id: lookup
+      kind: agent
+      name: Source lookup
+      role: Fact checker
+      prompt: For each claim, find authoritative supporting or contradicting source passages and record citations.
+      capabilities:
+        skills:
+          - evidence-verification
+          - research
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: match
+      kind: agent
+      name: Citation match review
+      role: Citation verifier
+      prompt: Verify that each cited passage actually supports the claim's scope, qualifiers, dates, and numbers.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: confidence
+      kind: evaluate
+      inlineRole: true
+      name: Confidence gate
+      role: Evidence evaluator
+      prompt: Return passed only when claims meet the required support and confidence threshold.
+      config:
+        threshold: 0.85
+    - id: editor-approval
+      kind: approval
+      name: Editor approves exceptions and final claims
+    - id: result
+      kind: output
+      name: Claim verification ledger
+  edges:
+    - id: e1
+      from: intake
+      to: lookup
+      kind: data
+    - id: e2
+      from: lookup
+      to: match
+      kind: data
+    - id: e3
+      from: match
+      to: confidence
+      kind: data
+    - id: e4
+      from: confidence
+      to: result
+      kind: control
+      condition: passed
+    - id: e5
+      from: confidence
+      to: editor-approval
+      kind: control
+      condition: failed
+    - id: e6
+      from: editor-approval
+      to: result
+      kind: dependency
+      condition: approved

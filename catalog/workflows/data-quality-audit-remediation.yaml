@@ -1,0 +1,118 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: data-quality-audit-remediation
+  title: Data quality audit and remediation
+  description: Tests completeness and consistency rules, routes exceptions, and verifies corrective actions.
+  version: 1.0.0
+spec:
+  objective: Improve dataset fitness while preserving an exception audit trail.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - data-steward
+  nodes:
+    - id: intake
+      kind: input
+      name: Dataset and quality rules
+      inputSchema:
+        type: object
+        required:
+          - dataset
+          - rules
+        x-ladder-input-mode: document
+    - id: audit
+      name: Run quality rules
+      kind: agent
+      inlineRole: true
+      role: Data quality auditor
+      prompt: Apply every declared completeness, consistency, and validity rule. Return row- and field-level exceptions,
+        severity, and rule evidence.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+    - id: queue
+      name: Create exception queue
+      kind: agent
+      inlineRole: true
+      role: Data exception coordinator
+      prompt: Group quality exceptions by accountable owner and severity, preserve record identifiers, and order critical
+        exceptions first.
+      capabilities:
+        skills:
+          - evaluation
+          - optimization
+        tools:
+          - read
+        permissions:
+          - read-only
+    - id: remediate
+      kind: agent
+      name: Propose remediation
+      role: Data quality analyst
+      prompt: For each exception, identify cause, correction, owner, source evidence, and whether correction is safe to
+        automate.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: verify
+      kind: loop
+      name: Verify remediation
+      config:
+        body:
+          - audit
+          - queue
+          - remediate
+        exitCondition: audit.criticalExceptions == 0
+        maxIterations: 2
+        onExhausted: warn
+    - id: data-steward
+      kind: approval
+      name: Data steward accepts exceptions and fixes
+    - id: result
+      kind: output
+      name: Audit report, exception queue, and remediation log
+  edges:
+    - id: e1
+      from: intake
+      to: audit
+      kind: data
+    - id: e2
+      from: audit
+      to: queue
+      kind: data
+    - id: e3
+      from: queue
+      to: remediate
+      kind: data
+    - id: e4
+      from: remediate
+      to: verify
+      kind: dependency
+    - id: e5
+      from: verify
+      to: data-steward
+      kind: control
+      condition: loop_exit
+    - id: e6
+      from: data-steward
+      to: result
+      kind: dependency
+      condition: approved
+    - id: verify-exhausted
+      from: verify
+      to: data-steward
+      kind: control
+      condition: loop_exhausted

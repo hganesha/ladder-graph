@@ -1,0 +1,95 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: blameless-incident-postmortem
+  title: Blameless postmortem and incident retrospective
+  description: Creates a fact-based incident retrospective with learning-focused actions and follow-up tracking.
+  version: 1.0.0
+spec:
+  objective: Improve systems and processes without assigning personal blame.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - incident-commander
+  nodes:
+    - id: intake
+      kind: input
+      name: Incident timeline and artifacts
+      inputSchema:
+        type: object
+        required:
+          - incident
+          - timeline
+          - artifacts
+        x-ladder-input-mode: document
+    - id: reconstruct
+      kind: agent
+      name: Reconstruct incident
+      role: Blameless postmortem facilitator
+      prompt: Produce a factual timeline, impact assessment, detection narrative, response analysis, and contributing
+        conditions. Avoid individual blame.
+      capabilities:
+        skills:
+          - incident-response
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: learn
+      kind: agent
+      name: Identify learnings and actions
+      role: Reliability engineer
+      prompt: Identify system, process, tooling, and communication improvements. Assign owners and measurable completion
+        criteria.
+      capabilities:
+        skills:
+          - observability
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: followup
+      name: Create action follow-up schedule
+      kind: agent
+      inlineRole: true
+      role: Incident action coordinator
+      prompt: Turn approved learnings into an action tracker with one owner, due date, verification method, and follow-up
+        cadence per item.
+      capabilities:
+        skills:
+          - operations-planning
+        tools:
+          - read
+        permissions:
+          - read-only
+    - id: incident-commander
+      kind: approval
+      name: Incident commander approves retrospective
+    - id: result
+      kind: output
+      name: Blameless postmortem and action tracker
+  edges:
+    - id: e1
+      from: intake
+      to: reconstruct
+      kind: data
+    - id: e2
+      from: reconstruct
+      to: learn
+      kind: data
+    - id: e3
+      from: learn
+      to: followup
+      kind: data
+    - id: e4
+      from: followup
+      to: incident-commander
+      kind: dependency
+    - id: e5
+      from: incident-commander
+      to: result
+      kind: dependency
+      condition: approved

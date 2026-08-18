@@ -1,0 +1,95 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: onboarding-runbook-curriculum
+  title: Onboarding runbook or curriculum generator
+  description: Creates role-specific onboarding plans with learning objectives, practice, assessments, and owner sign-off.
+  version: 1.0.0
+spec:
+  objective: Deliver a practical onboarding experience tailored to role and operating context.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - program-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Role, audience, and source materials
+      inputSchema:
+        type: object
+        required:
+          - role
+          - audience
+          - materials
+          - duration
+        x-ladder-input-mode: document
+    - id: analyze
+      kind: agent
+      name: Identify required competencies
+      role: Learning designer
+      prompt: Extract role outcomes, skills, systems, policies, stakeholders, and common failure modes from source materials.
+      capabilities:
+        skills:
+          - teaching
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: curriculum
+      kind: agent
+      name: Build onboarding curriculum
+      role: Instructional designer
+      prompt: Create sequenced modules, objectives, exercises, checkpoints, resources, managers, and time estimates.
+      capabilities:
+        skills:
+          - teaching
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: validate
+      kind: agent
+      name: Validate operational readiness
+      role: Role manager
+      prompt: Confirm curriculum covers day-one, first-week, and first-month readiness. Identify gaps and required local
+        adaptations.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: program-owner
+      kind: approval
+      name: Program owner approves runbook
+    - id: result
+      kind: output
+      name: Onboarding runbook, curriculum, and assessment checklist
+  edges:
+    - id: e1
+      from: intake
+      to: analyze
+      kind: data
+    - id: e2
+      from: analyze
+      to: curriculum
+      kind: data
+    - id: e3
+      from: curriculum
+      to: validate
+      kind: data
+    - id: e4
+      from: validate
+      to: program-owner
+      kind: dependency
+    - id: e5
+      from: program-owner
+      to: result
+      kind: dependency
+      condition: approved

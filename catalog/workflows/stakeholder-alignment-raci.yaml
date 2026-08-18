@@ -1,0 +1,101 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: stakeholder-alignment-raci
+  title: Stakeholder alignment and RACI matrix builder
+  description: Maps stakeholders, decisions, responsibilities, dependencies, and unresolved ownership conflicts.
+  version: 1.0.0
+spec:
+  objective: Establish clear accountability and engagement for a program or initiative.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - sponsor-approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Initiative scope and stakeholder list
+      inputSchema:
+        type: object
+        required:
+          - scope
+          - deliverables
+          - stakeholders
+        x-ladder-input-mode: text
+    - id: map
+      kind: agent
+      name: Map stakeholders and decisions
+      role: Program analyst
+      prompt: Identify decisions, deliverables, dependencies, stakeholder interests, and required participation levels.
+      capabilities:
+        skills:
+          - communication
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: raci
+      kind: agent
+      name: Build RACI matrix
+      role: Operating model designer
+      prompt: Assign one accountable party per activity where possible. Flag conflicts, gaps, and overloaded owners.
+      capabilities:
+        skills:
+          - design-review
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: resolve
+      kind: loop
+      name: Resolve ownership conflicts
+      config:
+        body:
+          - map
+          - raci
+        exitCondition: raci.conflicts == 0
+        maxIterations: 2
+        onExhausted: warn
+    - id: sponsor-approval
+      kind: approval
+      name: Sponsor approves RACI
+    - id: result
+      kind: output
+      name: Stakeholder map, RACI, and engagement plan
+  edges:
+    - id: e1
+      from: intake
+      to: map
+      kind: data
+    - id: e2
+      from: map
+      to: raci
+      kind: data
+    - id: e3
+      from: raci
+      to: resolve
+      kind: control
+      condition: failed
+    - id: e4
+      from: raci
+      to: sponsor-approval
+      kind: control
+      condition: passed
+    - id: e5
+      from: resolve
+      to: sponsor-approval
+      kind: control
+      condition: loop_exhausted
+    - id: e6
+      from: sponsor-approval
+      to: result
+      kind: dependency
+      condition: approved
+    - id: resolve-exit
+      from: resolve
+      to: sponsor-approval
+      kind: control
+      condition: loop_exit

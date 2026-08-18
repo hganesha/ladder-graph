@@ -1,0 +1,96 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: compliance-gap-analysis
+  title: Compliance gap analysis
+  description: Maps current-state evidence against a named policy or standard and creates an owned remediation plan.
+  version: 1.0.0
+spec:
+  objective: Identify, prioritize, and remediate compliance gaps.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - compliance-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Standard and current-state evidence
+      inputSchema:
+        type: object
+        required:
+          - standard
+          - evidence
+          - scope
+        x-ladder-input-mode: document
+    - id: requirements
+      kind: agent
+      name: Parse requirements
+      role: Compliance analyst
+      prompt: Extract applicable controls, obligations, evidence expectations, and exceptions from the named standard.
+      capabilities:
+        skills:
+          - compliance-review
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: map
+      kind: agent
+      name: Map evidence to controls
+      role: Compliance assessor
+      prompt: Mark each control compliant, partially compliant, noncompliant, or not applicable with evidence citations.
+      capabilities:
+        skills:
+          - compliance-review
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: plan
+      kind: agent
+      name: Build remediation plan
+      role: Compliance program manager
+      prompt: Prioritize gaps by risk and assign owners, corrective actions, milestones, and required evidence.
+      capabilities:
+        skills:
+          - operations-planning
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: compliance-owner
+      kind: approval
+      name: Compliance owner approves gap register
+    - id: result
+      kind: output
+      name: Compliance gap matrix and remediation roadmap
+  edges:
+    - id: e1
+      from: intake
+      to: requirements
+      kind: data
+    - id: e2
+      from: requirements
+      to: map
+      kind: data
+    - id: e3
+      from: intake
+      to: map
+      kind: data
+    - id: e4
+      from: map
+      to: plan
+      kind: data
+    - id: e5
+      from: plan
+      to: compliance-owner
+      kind: dependency
+    - id: e6
+      from: compliance-owner
+      to: result
+      kind: dependency
+      condition: approved

@@ -1,0 +1,95 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: root-cause-corrective-actions
+  title: Root-cause analysis with corrective-action tracking
+  description: Uses 5-whys and fishbone analysis to identify root causes and track verified corrective actions.
+  version: 1.0.0
+spec:
+  objective: Eliminate or reduce recurrence through evidence-based corrective action.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - problem-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Problem statement and evidence
+      inputSchema:
+        type: object
+        required:
+          - incident
+          - evidence
+          - scope
+        x-ladder-input-mode: text
+    - id: investigate
+      kind: agent
+      name: Analyze causal factors
+      role: Root-cause facilitator
+      prompt: Build 5-whys and fishbone analyses. Distinguish evidence, hypotheses, contributing factors, and root causes.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: actions
+      kind: agent
+      name: Define corrective actions
+      role: Corrective action manager
+      prompt: Create preventive and corrective actions with owners, due dates, verification criteria, and risk of side effects.
+      capabilities:
+        skills:
+          - operations-planning
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: verify
+      kind: loop
+      name: Verify action effectiveness
+      config:
+        body:
+          - investigate
+          - actions
+        exitCondition: actions.effectivenessVerified == true
+        maxIterations: 2
+        onExhausted: warn
+    - id: problem-owner
+      kind: approval
+      name: Problem owner accepts RCA and actions
+    - id: result
+      kind: output
+      name: RCA record and corrective-action tracker
+  edges:
+    - id: e1
+      from: intake
+      to: investigate
+      kind: data
+    - id: e2
+      from: investigate
+      to: actions
+      kind: data
+    - id: e3
+      from: actions
+      to: verify
+      kind: dependency
+    - id: e4
+      from: verify
+      to: problem-owner
+      kind: control
+      condition: loop_exit
+    - id: e5
+      from: problem-owner
+      to: result
+      kind: dependency
+      condition: approved
+    - id: verify-exhausted
+      from: verify
+      to: problem-owner
+      kind: control
+      condition: loop_exhausted

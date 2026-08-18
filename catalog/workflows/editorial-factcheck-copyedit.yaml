@@ -1,0 +1,121 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: editorial-factcheck-copyedit
+  title: Editorial fact-check and copyedit pipeline
+  description: Validates claims, edits language and structure, and runs a final publication-readiness gate.
+  version: 1.0.0
+spec:
+  objective: Publish accurate, clear, and style-compliant content.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - publisher-approval
+  nodes:
+    - id: draft
+      kind: input
+      name: Draft, sources, and style guide
+      inputSchema:
+        type: object
+        required:
+          - document
+          - sources
+          - styleGuide
+        x-ladder-input-mode: document
+    - id: factcheck
+      kind: agent
+      name: Fact-check draft
+      role: Editorial fact checker
+      prompt: Verify factual claims, quotations, dates, figures, and citations. Flag unsupported or misleading statements.
+      capabilities:
+        skills:
+          - evidence-verification
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: copyedit
+      kind: agent
+      name: Copyedit draft
+      role: Copyeditor
+      prompt: Improve clarity, grammar, structure, style, and accessibility while preserving intended meaning. Return tracked
+        edits.
+      capabilities:
+        skills:
+          - writing-editing
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: proof
+      kind: evaluate
+      inlineRole: true
+      name: Publication readiness gate
+      role: Senior editor
+      prompt: Return passed only when factual issues are resolved and editorial standards are met.
+      config:
+        threshold: 0.95
+    - id: revision-loop
+      kind: loop
+      name: Bounded revision loop
+      config:
+        body:
+          - factcheck
+          - copyedit
+          - proof
+        exitCondition: proof.passed == true
+        maxIterations: 2
+        onExhausted: warn
+    - id: publisher-approval
+      kind: approval
+      name: Publisher approves release
+    - id: result
+      kind: output
+      name: Publication-ready document and editorial log
+  edges:
+    - id: e1
+      from: draft
+      to: factcheck
+      kind: data
+    - id: e2
+      from: draft
+      to: copyedit
+      kind: data
+    - id: e3
+      from: factcheck
+      to: proof
+      kind: data
+    - id: e4
+      from: copyedit
+      to: proof
+      kind: data
+    - id: e5
+      from: proof
+      to: publisher-approval
+      kind: control
+      condition: passed
+    - id: e6
+      from: proof
+      to: revision-loop
+      kind: control
+      condition: failed
+    - id: e7
+      from: publisher-approval
+      to: result
+      kind: dependency
+      condition: approved
+    - id: revision-loop-exit
+      from: revision-loop
+      to: publisher-approval
+      kind: control
+      condition: loop_exit
+    - id: revision-loop-exhausted
+      from: revision-loop
+      to: publisher-approval
+      kind: control
+      condition: loop_exhausted

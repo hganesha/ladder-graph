@@ -1,0 +1,110 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: living-monitor-retriage
+  title: Living monitor and re-triage
+  description: Poll a source, deduplicate new records, apply standing criteria, and escalate material changes.
+  version: 1.0.0
+spec:
+  objective: Maintain an up-to-date, criteria-filtered view of a changing source.
+  policies:
+    maxConcurrency: 2
+    onFailure: retry
+    requireApprovalFor:
+      - material-change-review
+  nodes:
+    - id: config
+      kind: input
+      name: Monitor configuration
+      inputSchema:
+        type: object
+        required:
+          - source
+          - cadence
+          - criteria
+          - knownItems
+        x-ladder-input-mode: text
+    - id: poll
+      name: Poll source
+      kind: agent
+      inlineRole: true
+      role: Source monitor
+      prompt: Poll the configured source at the declared cadence and return only records observed in the current polling
+        window with retrieval timestamps.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+    - id: dedupe
+      name: Remove known items
+      kind: transform
+      config:
+        operation: deduplicate
+    - id: triage
+      kind: agent
+      name: Apply standing criteria
+      role: Triage analyst
+      prompt: Evaluate only newly discovered items against the supplied criteria. Mark material changes with evidence.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - classify
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: materiality
+      kind: evaluate
+      inlineRole: true
+      name: Determine material change
+      role: Change evaluator
+      prompt: Return passed only when no new item materially changes the current view.
+      config:
+        threshold: 1
+    - id: material-change-review
+      kind: approval
+      name: Owner reviews material changes
+    - id: result
+      kind: output
+      name: Updated monitor register and re-triage report
+  edges:
+    - id: e1
+      from: config
+      to: poll
+      kind: data
+    - id: e2
+      from: poll
+      to: dedupe
+      kind: data
+    - id: e3
+      from: config
+      to: dedupe
+      kind: data
+    - id: e4
+      from: dedupe
+      to: triage
+      kind: data
+    - id: e5
+      from: triage
+      to: materiality
+      kind: data
+    - id: e6
+      from: materiality
+      to: result
+      kind: control
+      condition: passed
+    - id: e7
+      from: materiality
+      to: material-change-review
+      kind: control
+      condition: failed
+    - id: e8
+      from: material-change-review
+      to: result
+      kind: dependency
+      condition: approved

@@ -1,0 +1,109 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: backlog-prioritization-scoring
+  title: Backlog prioritization scoring
+  description: Scores candidate work using configurable RICE, ICE, or weighted criteria and produces a ranked backlog.
+  version: 1.0.0
+spec:
+  objective: Create a transparent and reviewable priority order.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - portfolio-owner
+  nodes:
+    - id: intake
+      kind: input
+      name: Backlog and scoring model
+      inputSchema:
+        type: object
+        required:
+          - items
+          - model
+          - weights
+        x-ladder-input-mode: text
+    - id: estimate
+      kind: agent
+      name: Estimate scoring inputs
+      role: Product portfolio analyst
+      prompt: Estimate each scoring factor with ranges, evidence, confidence, and stated assumptions.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: score
+      name: Calculate weighted scores
+      kind: agent
+      inlineRole: true
+      role: Portfolio scoring analyst
+      prompt: Calculate the selected RICE, ICE, or weighted score exactly as configured. Preserve ranges, confidence,
+        evidence, and assumptions for every factor.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+    - id: challenge
+      kind: agent
+      name: Challenge outliers
+      role: Independent reviewer
+      prompt: Review unusually high, low, or low-confidence scores. Flag unsupported assumptions and propose corrections.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: rank
+      name: Rank and segment backlog
+      kind: transform
+      config:
+        operation: sort
+    - id: portfolio-owner
+      kind: approval
+      name: Portfolio owner approves ranking
+    - id: result
+      kind: output
+      name: Prioritized backlog and scoring rationale
+  edges:
+    - id: e1
+      from: intake
+      to: estimate
+      kind: data
+    - id: e2
+      from: estimate
+      to: score
+      kind: data
+    - id: e3
+      from: score
+      to: challenge
+      kind: data
+    - id: e4
+      from: challenge
+      to: rank
+      kind: data
+    - id: e5
+      from: score
+      to: rank
+      kind: data
+    - id: e6
+      from: rank
+      to: portfolio-owner
+      kind: dependency
+    - id: e7
+      from: portfolio-owner
+      to: result
+      kind: dependency
+      condition: approved

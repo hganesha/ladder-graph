@@ -1,0 +1,121 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: knowledge-base-staleness-refresh
+  title: Knowledge base staleness detection and refresh
+  description: Monitors knowledge-base content, identifies stale or conflicting articles, refreshes them, and routes
+    material changes for approval.
+  version: 1.0.0
+spec:
+  objective: Keep knowledge content accurate, current, and aligned with authoritative sources.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - knowledge-owner
+  nodes:
+    - id: config
+      kind: input
+      name: Knowledge base and monitoring policy
+      inputSchema:
+        type: object
+        required:
+          - articles
+          - authoritativeSources
+          - cadence
+          - stalenessRules
+        x-ladder-input-mode: document
+    - id: monitor
+      name: Poll authoritative sources
+      kind: agent
+      inlineRole: true
+      role: Knowledge source monitor
+      prompt: Poll the authoritative sources at the declared cadence and return dated changes relevant to the registered
+        knowledge-base articles.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+    - id: detect
+      kind: agent
+      name: Detect stale content
+      role: Knowledge manager
+      prompt: Compare articles against authoritative sources and staleness rules. Flag outdated facts, broken links, missing
+        policies, and contradictions.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - search
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: refresh
+      kind: agent
+      name: Draft article refreshes
+      role: Technical writer
+      prompt: Update only verified stale sections. Preserve article intent, add citations, and list material changes.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - write
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: review
+      kind: evaluate
+      inlineRole: true
+      name: Material-change gate
+      role: Knowledge reviewer
+      prompt: Return passed when no material changes require owner review; otherwise return failed with affected articles.
+      config:
+        threshold: 1
+    - id: knowledge-owner
+      kind: approval
+      name: Knowledge owner approves refreshed content
+    - id: result
+      kind: output
+      name: Refreshed knowledge-base articles and staleness register
+  edges:
+    - id: e1
+      from: config
+      to: monitor
+      kind: data
+    - id: e2
+      from: monitor
+      to: detect
+      kind: data
+    - id: e3
+      from: config
+      to: detect
+      kind: data
+    - id: e4
+      from: detect
+      to: refresh
+      kind: data
+    - id: e5
+      from: refresh
+      to: review
+      kind: data
+    - id: e6
+      from: review
+      to: result
+      kind: control
+      condition: passed
+    - id: e7
+      from: review
+      to: knowledge-owner
+      kind: control
+      condition: failed
+    - id: e8
+      from: knowledge-owner
+      to: result
+      kind: dependency
+      condition: approved

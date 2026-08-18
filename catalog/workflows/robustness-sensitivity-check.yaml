@@ -1,0 +1,113 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: robustness-sensitivity-check
+  title: Robustness and sensitivity check
+  description: Challenge a conclusion through independent tests, input removal, and a recommendation gate.
+  version: 1.0.0
+spec:
+  objective: Determine whether a conclusion remains defensible under plausible alternative assumptions.
+  policies:
+    maxConcurrency: 5
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - recommendation-approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Conclusion, evidence, and assumptions
+      inputSchema:
+        type: object
+        required:
+          - conclusion
+          - evidence
+          - assumptions
+        x-ladder-input-mode: text
+    - id: tests
+      kind: agent
+      name: Independent robustness battery
+      role: Sensitivity analyst
+      prompt: Run independent methodological, data-quality, assumption, and counterexample checks. Return pass or fail per
+        check with evidence.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: threshold
+      kind: evaluate
+      inlineRole: true
+      name: Evaluate disagreement threshold
+      role: Robustness evaluator
+      prompt: Flag the conclusion when the configured number of checks disagree.
+      config:
+        threshold: 0.75
+    - id: ablation
+      kind: agent
+      name: Input-removal analysis
+      role: Independent analyst
+      prompt: For every failed check, test whether the conclusion survives without the disputed input or assumption.
+      capabilities:
+        skills:
+          - decision-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: recommend
+      kind: agent
+      name: Recommend conclusion status
+      role: Decision analyst
+      prompt: Recommend retain, qualify, revise, or reject. Cite robustness results and ablation findings.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: recommendation-approval
+      kind: approval
+      name: Sponsor approves recommendation
+    - id: result
+      kind: output
+      name: Robustness report and recommendation
+  edges:
+    - id: e1
+      from: intake
+      to: tests
+      kind: data
+    - id: e2
+      from: tests
+      to: threshold
+      kind: data
+    - id: e3
+      from: threshold
+      to: ablation
+      kind: control
+      condition: failed
+    - id: e4
+      from: threshold
+      to: recommend
+      kind: control
+      condition: passed
+    - id: e5
+      from: ablation
+      to: recommend
+      kind: data
+    - id: e6
+      from: recommend
+      to: recommendation-approval
+      kind: dependency
+    - id: e7
+      from: recommendation-approval
+      to: result
+      kind: dependency
+      condition: approved

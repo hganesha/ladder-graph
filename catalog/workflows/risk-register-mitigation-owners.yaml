@@ -1,0 +1,94 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: risk-register-mitigation-owners
+  title: Risk register with mitigation owner assignment
+  description: Identifies, scores, assigns, and tracks risks with accountable mitigation plans.
+  version: 1.0.0
+spec:
+  objective: Produce an actionable, owned risk register.
+  policies:
+    maxConcurrency: 3
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - risk-owner-approval
+  nodes:
+    - id: intake
+      kind: input
+      name: Scope and stakeholder roster
+      inputSchema:
+        type: object
+        required:
+          - scope
+          - stakeholders
+        x-ladder-input-mode: text
+    - id: identify
+      kind: agent
+      name: Identify risks
+      role: Risk analyst
+      prompt: Identify operational, financial, legal, technical, and reputational risks. Include triggers and affected
+        objectives.
+      capabilities:
+        skills:
+          - risk-analysis
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: score
+      name: Score risks
+      kind: agent
+      inlineRole: true
+      role: Risk scoring analyst
+      prompt: Score each risk using the declared likelihood, impact, and control-effectiveness scales. Return inherent and
+        residual scores with calculation traceability.
+      capabilities:
+        skills:
+          - risk-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+    - id: mitigate
+      kind: agent
+      name: Define mitigations and owners
+      role: Risk manager
+      prompt: Assign one accountable owner per risk and define preventive actions, contingencies, due dates, and residual risk.
+      capabilities:
+        skills:
+          - operations-planning
+        tools:
+          - read
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: risk-owner-approval
+      kind: approval
+      name: Risk owners accept assignments
+    - id: result
+      kind: output
+      name: Risk register with mitigation tracker
+  edges:
+    - id: e1
+      from: intake
+      to: identify
+      kind: data
+    - id: e2
+      from: identify
+      to: score
+      kind: data
+    - id: e3
+      from: score
+      to: mitigate
+      kind: data
+    - id: e4
+      from: mitigate
+      to: risk-owner-approval
+      kind: dependency
+    - id: e5
+      from: risk-owner-approval
+      to: result
+      kind: dependency
+      condition: approved

@@ -1,0 +1,125 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: dual-extraction-reconciliation
+  title: Dual extraction and reconciliation
+  description: Independently extract structured information, reconcile field-level differences, and lock the final dataset.
+  version: 1.0.0
+spec:
+  objective: Create a validated structured dataset from a shared source.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - lock
+  nodes:
+    - id: source
+      kind: input
+      name: Source and extraction schema
+      inputSchema:
+        type: object
+        required:
+          - asset
+          - schema
+        x-ladder-input-mode: document
+    - id: extract-a
+      kind: agent
+      name: Extraction pass A
+      role: Independent data extractor
+      prompt: Extract every requested field with source locations and nulls for unavailable data.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - extract
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: extract-b
+      kind: agent
+      name: Extraction pass B
+      role: Independent data extractor
+      prompt: Independently extract requested fields with source locations and nulls for unavailable data.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - extract
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: diff
+      name: Field-level diff
+      kind: agent
+      inlineRole: true
+      role: Extraction reconciliation analyst
+      prompt: Compare both extractions field by field. Preserve source locations and return agreed values, discrepancies, and
+        unresolvedFields.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+        permissions:
+          - read-only
+    - id: reconcile
+      kind: loop
+      name: Reconcile extraction differences
+      config:
+        body:
+          - extract-a
+          - extract-b
+          - diff
+        exitCondition: diff.unresolvedFields == 0
+        maxIterations: 2
+        onExhausted: warn
+    - id: lock
+      kind: approval
+      name: Data steward locks reconciled dataset
+    - id: result
+      kind: output
+      name: Signed-off extraction dataset and discrepancy log
+  edges:
+    - id: e1
+      from: source
+      to: extract-a
+      kind: data
+    - id: e2
+      from: source
+      to: extract-b
+      kind: data
+    - id: e3
+      from: extract-a
+      to: diff
+      kind: data
+    - id: e4
+      from: extract-b
+      to: diff
+      kind: data
+    - id: e5
+      from: diff
+      to: reconcile
+      kind: control
+      condition: failed
+    - id: e6
+      from: diff
+      to: lock
+      kind: control
+      condition: passed
+    - id: e7
+      from: reconcile
+      to: lock
+      kind: control
+      condition: loop_exhausted
+    - id: e8
+      from: lock
+      to: result
+      kind: dependency
+      condition: approved
+    - id: reconcile-exit
+      from: reconcile
+      to: lock
+      kind: control
+      condition: loop_exit

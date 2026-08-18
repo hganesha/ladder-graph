@@ -1,0 +1,119 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: vendor-rfp-evaluation-matrix
+  title: Vendor and RFP evaluation matrix
+  description: Independently scores vendor responses against weighted criteria and produces a panel-approved recommendation.
+  version: 1.0.0
+spec:
+  objective: Select vendors through fair, traceable, and comparable evaluation.
+  policies:
+    maxConcurrency: 5
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - procurement-approval
+  nodes:
+    - id: intake
+      kind: input
+      name: RFP responses and evaluation rubric
+      inputSchema:
+        type: object
+        required:
+          - responses
+          - rubric
+          - weights
+        x-ladder-input-mode: document
+    - id: panel
+      kind: agent
+      name: Scoring panel
+      role: Independent evaluator panel
+      prompt: Score assigned vendor responses against every criterion. Cite proposal evidence and disclose conflicts.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: aggregate
+      name: Aggregate panel scores
+      kind: agent
+      inlineRole: true
+      role: Panel scoring analyst
+      prompt: Apply the declared weights to panel scores, preserve evaluator-level evidence and conflicts, and report
+        dispersion and outliers without forcing consensus.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+    - id: outlier-review
+      kind: agent
+      name: Review scoring outliers
+      role: Procurement chair
+      prompt: Review material score dispersion without forcing consensus. Record justified adjustments and unresolved dissent.
+      capabilities:
+        skills:
+          - domain-analysis
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: recommendation
+      name: Rank vendors and summarize
+      kind: agent
+      inlineRole: true
+      role: Procurement recommendation analyst
+      prompt: Rank vendors from the reconciled weighted scores and summarize delivery, commercial, compliance, and
+        concentration risks with traceable evidence.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        permissions:
+          - read-only
+    - id: procurement-approval
+      kind: approval
+      name: Procurement authority approves recommendation
+    - id: result
+      kind: output
+      name: Vendor evaluation matrix and award recommendation
+  edges:
+    - id: e1
+      from: intake
+      to: panel
+      kind: data
+    - id: e2
+      from: panel
+      to: aggregate
+      kind: data
+    - id: e3
+      from: aggregate
+      to: outlier-review
+      kind: data
+    - id: e4
+      from: outlier-review
+      to: recommendation
+      kind: data
+    - id: e5
+      from: aggregate
+      to: recommendation
+      kind: data
+    - id: e6
+      from: recommendation
+      to: procurement-approval
+      kind: dependency
+    - id: e7
+      from: procurement-approval
+      to: result
+      kind: dependency
+      condition: approved

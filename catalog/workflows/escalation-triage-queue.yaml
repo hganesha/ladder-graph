@@ -1,0 +1,97 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: escalation-triage-queue
+  title: Escalation triage queue
+  description: Scores incoming work, routes it to the correct owner, and escalates critical items.
+  version: 1.0.0
+spec:
+  objective: Ensure urgent and high-impact issues receive timely, accountable handling.
+  policies:
+    maxConcurrency: 5
+    onFailure: retry
+    requireApprovalFor:
+      - critical-escalation
+  nodes:
+    - id: intake
+      kind: input
+      name: Incoming escalation queue
+      inputSchema:
+        type: object
+        required:
+          - items
+          - routingRules
+          - sla
+        x-ladder-input-mode: text
+    - id: classify
+      kind: agent
+      name: Classify and score items
+      role: Triage coordinator
+      prompt: Score urgency, impact, risk, customer exposure, and required expertise. Recommend route and SLA.
+      capabilities:
+        skills:
+          - domain-analysis
+          - optimization
+        tools:
+          - read
+          - classify
+        permissions:
+          - read-only
+      inlineRole: true
+    - id: route
+      name: Route by score and ownership
+      kind: agent
+      inlineRole: true
+      role: Escalation routing coordinator
+      prompt: Route each item by priority, required skill, accountable owner, and SLA. Preserve the scoring rationale and flag
+        unowned or overdue work.
+      capabilities:
+        skills:
+          - domain-analysis
+          - optimization
+        tools:
+          - read
+        permissions:
+          - read-only
+    - id: critical
+      kind: evaluate
+      inlineRole: true
+      name: Critical escalation gate
+      role: Escalation evaluator
+      prompt: Return failed when any item meets critical escalation criteria.
+      config:
+        threshold: 1
+    - id: critical-escalation
+      kind: approval
+      name: On-call leader accepts critical escalation
+    - id: result
+      kind: output
+      name: Routed triage queue and escalation log
+  edges:
+    - id: e1
+      from: intake
+      to: classify
+      kind: data
+    - id: e2
+      from: classify
+      to: route
+      kind: data
+    - id: e3
+      from: route
+      to: critical
+      kind: data
+    - id: e4
+      from: critical
+      to: result
+      kind: control
+      condition: passed
+    - id: e5
+      from: critical
+      to: critical-escalation
+      kind: control
+      condition: failed
+    - id: e6
+      from: critical-escalation
+      to: result
+      kind: dependency
+      condition: approved
