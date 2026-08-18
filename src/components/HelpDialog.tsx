@@ -32,7 +32,7 @@ import {
   X,
 } from "lucide-react";
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
-
+import { Brand } from "./Brand";
 export type HelpTopicId = "overview" | "architecture" | "start" | "workflow" | "validate" | "bundle" | "forms" | "ontology" | "trust";
 
 interface HelpPage {
@@ -213,7 +213,7 @@ const HELP_PAGES: HelpPage[] = [
               </ArchitectureLayer>
             </div>
             <div className="help-architecture-inspect" aria-hidden="true">
-              <Network size={25} />
+              <Brand />
               <span>Layer detail</span>
               <strong>Local-first, with explicit boundaries</strong>
               <p>Hover a layer to see its responsibilities and implementation without leaving this system view.</p>
