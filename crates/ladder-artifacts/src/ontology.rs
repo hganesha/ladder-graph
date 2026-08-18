@@ -61,6 +61,22 @@ pub fn validate(ontology: &Value, diagnostics: &mut Vec<Diagnostic>) {
                 "Type IDs must be non-empty and unique.",
             ));
         }
+        if let Some(icon) = ontology_type.get("icon") {
+            let set = icon.get("set").and_then(Value::as_str).unwrap_or_default();
+            let name = icon.get("name").and_then(Value::as_str).unwrap_or_default();
+            let valid_name = !name.is_empty()
+                && name.len() <= 64
+                && name.split('-').all(|part| !part.is_empty() && part.chars().all(|character| character.is_ascii_lowercase() || character.is_ascii_digit()))
+                && lgir_core::is_known_icon_name(name);
+            if set != "lucide" || !valid_name {
+                diagnostics.push(diagnostic(
+                    "LO110",
+                    "warning",
+                    format!("/spec/types/{index}/icon"),
+                    "Ontology icons must use the lucide set and a canonical kebab-case name; the generic ontology icon will be shown.",
+                ));
+            }
+        }
         for (property_index, property) in ontology_type
             .get("properties")
             .and_then(Value::as_array)

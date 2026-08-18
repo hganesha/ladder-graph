@@ -4,6 +4,7 @@ import { parse, stringify } from "yaml";
 import { compiler } from "../../compiler/client";
 import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
 import { downloadText } from "../../lib/download";
+import { resolveOntologyIcon } from "../../lib/nodeIcons";
 import {
   addOntologyProperty,
   addOntologyRelationship,
@@ -28,6 +29,7 @@ import type {
   ProjectRecord,
 } from "../../types";
 import { Brand } from "../Brand";
+import { IconControl } from "../IconControl";
 import { LazyHelpDialog } from "../LazyHelpDialog";
 import { ThemeToggle } from "../ThemeToggle";
 import { OntologyCanvas } from "./OntologyCanvas";
@@ -669,6 +671,17 @@ export default function StructuredArtifactStudio({
                           value={selectedOntologyType.label}
                         />
                       </label>
+                      <IconControl
+                        automaticName={resolveOntologyIcon({ ...selectedOntologyType, icon: undefined }).name}
+                        label="Entity icon"
+                        onChange={(icon) =>
+                          commitOntology(updateOntologyType(artifact, selectedOntologyType.id, { icon }), {
+                            typeId: selectedOntologyType.id,
+                            relationshipId: null,
+                          })
+                        }
+                        value={selectedOntologyType.icon}
+                      />
                       <label>
                         Description
                         <textarea

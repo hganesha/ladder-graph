@@ -56,6 +56,7 @@
               "templateRef": { "type": "string", "pattern": "^[a-z0-9]+(?:[-_.][a-z0-9]+)*$" },
               "inlineRole": { "type": "boolean" },
               "summary": { "type": "string" },
+              "icon": { "$ref": "#/$defs/icon" },
               "role": { "type": "string" },
               "prompt": { "type": "string" },
               "inputSchema": { "type": ["object", "null"] },
@@ -162,7 +163,12 @@
                 }
               },
               "position": { "type": "object" }
-            }
+            },
+            "if": {
+              "properties": { "kind": { "const": "agent" } },
+              "required": ["kind"]
+            },
+            "else": { "not": { "required": ["icon"] } }
           }
         },
         "edges": {
@@ -182,6 +188,17 @@
             }
           }
         }
+      }
+    }
+  },
+  "$defs": {
+    "icon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["set", "name"],
+      "properties": {
+        "set": { "const": "lucide" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
       }
     }
   }

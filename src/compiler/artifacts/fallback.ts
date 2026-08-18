@@ -1,4 +1,5 @@
 import { parseDocument, stringify } from "yaml";
+import { ICON_ALIASES, ICON_NAMES } from "../../generated/iconRegistry";
 import { allFormFields, formSubmissionSchema, formUiSchema } from "../../lib/formOutputs";
 import type {
   ArtifactAnalysisResult,
@@ -32,6 +33,8 @@ const ARTIFACT_KINDS = new Set(["Ontology", "Form", "Document", "WorkflowBundle"
 const DATA_TYPES = new Set(["string", "integer", "number", "decimal", "boolean", "date", "datetime", "array", "object"]);
 const FORM_ROLES = new Set(["start", "clarification", "review", "approval", "exception", "completion"]);
 const TRANSFORMS = new Set(["select", "rename", "merge", "filter", "deduplicate", "sort", "slice"]);
+const ICON_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const KNOWN_ICON_NAMES = new Set<string>([...ICON_NAMES, ...Object.keys(ICON_ALIASES)]);
 
 function issue(code: string, severity: Diagnostic["severity"], path: string, message: string): Diagnostic {
   return { code, severity, path, message };
@@ -141,6 +144,18 @@ function validateOntology(ontology: Ontology, diagnostics: Diagnostic[]) {
     const path = `/spec/types/${typeIndex}`;
     addDuplicate(diagnostics, typeIds, type.id, `${path}/id`, "Type ID");
     if (!type.label?.trim()) diagnostics.push(issue("LO101", "error", `${path}/label`, "Ontology types require a label."));
+    if (
+      type.icon &&
+      (type.icon.set !== "lucide" || type.icon.name.length > 64 || !ICON_NAME.test(type.icon.name) || !KNOWN_ICON_NAMES.has(type.icon.name))
+    )
+      diagnostics.push(
+        issue(
+          "LO110",
+          "warning",
+          `${path}/icon`,
+          "Ontology icons must use the lucide set and a canonical kebab-case name; the generic ontology icon will be shown.",
+        ),
+      );
     const localPropertyIds = new Set<string>();
     for (const [propertyIndex, property] of (type.properties ?? []).entries()) {
       const propertyPath = `${path}/properties/${propertyIndex}`;

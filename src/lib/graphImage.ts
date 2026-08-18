@@ -1,10 +1,13 @@
 import type { Edge, Node, ReactFlowInstance } from "@xyflow/react";
+import { ICON_SPRITE_PATH } from "../generated/iconRegistry";
 import { downloadBlob, downloadUrl } from "./download";
 
 export type GraphImageFormat = "png" | "svg";
 
 const IMAGE_PADDING = 64;
 const MAX_PNG_DIMENSION = 8_192;
+const iconSpriteHref = `${import.meta.env.BASE_URL}${ICON_SPRITE_PATH}`;
+let iconSymbols: Promise<Document | undefined> | undefined;
 
 interface ExportGraphImageOptions<NodeType extends Node, EdgeType extends Edge> {
   format: GraphImageFormat;
@@ -35,6 +38,31 @@ function includeInImage(node: HTMLElement) {
   return !node.classList?.contains("react-flow__handle") && !node.classList?.contains("react-flow__edgeupdater");
 }
 
+function loadIconSymbols() {
+  iconSymbols ??= fetch(iconSpriteHref)
+    .then((response) => (response.ok ? response.text() : Promise.reject(new Error(`Icon sprite returned ${response.status}.`))))
+    .then((source) => new DOMParser().parseFromString(source, "image/svg+xml"))
+    .catch(() => undefined);
+  return iconSymbols;
+}
+
+async function inlineIconsForExport(viewport: HTMLElement) {
+  const icons = [...viewport.querySelectorAll<SVGSVGElement>("svg[data-node-icon]")];
+  if (!icons.length) return () => undefined;
+  const symbols = await loadIconSymbols();
+  if (!symbols) return () => undefined;
+  const originals = icons.map((icon) => ({ icon, content: icon.innerHTML }));
+  for (const icon of icons) {
+    const name = icon.dataset.nodeIcon;
+    const symbol = name ? symbols.getElementById(`lucide-${name}`) : undefined;
+    if (symbol) icon.innerHTML = symbol.innerHTML;
+  }
+  return () =>
+    originals.forEach(({ content, icon }) => {
+      icon.innerHTML = content;
+    });
+}
+
 export async function exportGraphImage<NodeType extends Node, EdgeType extends Edge>({
   format,
   instance,
@@ -58,6 +86,7 @@ export async function exportGraphImage<NodeType extends Node, EdgeType extends E
   };
 
   root.classList.add("graph-exporting");
+  const restoreIcons = await inlineIconsForExport(viewport);
   await nextFrame();
   try {
     const image = await import("html-to-image");
@@ -78,6 +107,7 @@ export async function exportGraphImage<NodeType extends Node, EdgeType extends E
     }
     downloadUrl(filename, await image.toSvg(viewport, options));
   } finally {
+    restoreIcons();
     root.classList.remove("graph-exporting");
   }
 }

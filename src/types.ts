@@ -23,6 +23,11 @@ export interface Position {
   y: number;
 }
 
+export interface IconRef {
+  set: "lucide";
+  name: string;
+}
+
 export interface Branch {
   label: string;
   when: string;
@@ -88,6 +93,8 @@ export interface LgirNode {
   templateRef?: string;
   inlineRole?: boolean;
   summary?: string;
+  /** Explicit presentation override. Supported only when kind is "agent". */
+  icon?: IconRef;
   role?: string;
   prompt?: string;
   inputSchema?: Record<string, unknown> | null;

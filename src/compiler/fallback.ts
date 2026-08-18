@@ -1,4 +1,5 @@
 import { parseDocument, stringify } from "yaml";
+import { ICON_ALIASES, ICON_NAMES } from "../generated/iconRegistry";
 import { inputContractModality } from "../lib/inputContracts";
 import { workflowContractKind } from "../lib/workflowContracts";
 import type { AnalysisResult, CapabilityReport, CompileResult, Diagnostic, FormatResult, LgirNode, Target, Workflow } from "../types";
@@ -24,6 +25,8 @@ const TRANSFORMS = new Set(["select", "rename", "merge", "filter", "deduplicate"
 const AGGREGATIONS = new Set(["collect", "merge", "concat", "vote"]);
 const FEEDBACK_MODES = new Set(["critique", "score", "rubric"]);
 const CONTRACT_USAGES = new Set(["human-interaction", "input", "output", "evidence"]);
+const ICON_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const KNOWN_ICON_NAMES = new Set<string>([...ICON_NAMES, ...Object.keys(ICON_ALIASES)]);
 
 function targetLabel(target: Target) {
   if (target === "codex") return "Codex";
@@ -176,6 +179,21 @@ export async function analyzeFallback(source: string, target?: Target): Promise<
       diagnostics.push(diagnostic("LG112", "error", path, "Agent, evaluator, and teacher nodes require a prompt.", node.id));
     if (node.kind === "agent" && !node.role?.trim())
       diagnostics.push(diagnostic("LG113", "warning", path, "Add a role to make this agent's responsibility explicit.", node.id));
+    if (node.icon && node.kind !== "agent")
+      diagnostics.push(diagnostic("LG198", "error", path, "Only agent nodes may define an icon override.", node.id));
+    else if (
+      node.icon &&
+      (node.icon.set !== "lucide" || node.icon.name.length > 64 || !ICON_NAME.test(node.icon.name) || !KNOWN_ICON_NAMES.has(node.icon.name))
+    )
+      diagnostics.push(
+        diagnostic(
+          "LG199",
+          "warning",
+          path,
+          "Agent icons must use the lucide set and a canonical kebab-case name; the generic agent icon will be shown.",
+          node.id,
+        ),
+      );
     if (node.kind === "tool" && !node.capabilities?.tools?.length)
       diagnostics.push(diagnostic("LG114", "warning", path, "Tool requirement has no declared tool identifier.", node.id));
     if (node.kind === "transform" && !TRANSFORMS.has(node.config?.operation ?? ""))

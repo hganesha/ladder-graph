@@ -277,10 +277,14 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
       const workflow = parseWorkflow(get().source);
       const index = workflow?.spec.nodes.findIndex((node) => node.id === id) ?? -1;
       if (!workflow || index < 0) return;
-      let source = get().source;
+      const document = parseDocument(get().source, { keepSourceTokens: true });
+      if (document.errors.length) return;
       Object.entries(patch).forEach(([key, value]) => {
-        source = patchYaml(source, ["spec", "nodes", index, key], value);
+        const path = ["spec", "nodes", index, key];
+        if (value === undefined) document.deleteIn(path);
+        else document.setIn(path, value);
       });
+      let source = document.toString({ indent: 2, lineWidth: 100 });
       const group = workflow.spec.nodes[index];
       if (group?.kind === "group" && patch.config) {
         const nextGroup = { ...group, ...patch, config: { ...group.config, ...patch.config } };
