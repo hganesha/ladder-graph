@@ -99,7 +99,7 @@ export const SUBJECT_AREAS: SubjectAreaDefinition[] = [
     name: "Supply chain & logistics",
     agentPathPrefixes: ["research/operations/supply-chain"],
     agentIds: [],
-    artifactPathPrefixes: [],
+    artifactPathPrefixes: ["consumer_goods/"],
   },
   {
     name: "HR & talent operations",
@@ -135,7 +135,7 @@ export const SUBJECT_AREAS: SubjectAreaDefinition[] = [
     name: "Manufacturing & industrial operations",
     agentPathPrefixes: ["research/industry/manufacturing"],
     agentIds: [],
-    artifactPathPrefixes: ["manufacturing/"],
+    artifactPathPrefixes: ["manufacturing/", "semiconductor_manufacturing/"],
   },
   {
     name: "Energy & utilities",
@@ -147,7 +147,7 @@ export const SUBJECT_AREAS: SubjectAreaDefinition[] = [
     name: "Transportation & mobility",
     agentPathPrefixes: ["research/industry/mobility"],
     agentIds: [],
-    artifactPathPrefixes: [],
+    artifactPathPrefixes: ["telco/"],
   },
   {
     name: "Real estate & construction",
@@ -267,7 +267,7 @@ export const SUBJECT_AREAS: SubjectAreaDefinition[] = [
     name: "Airline flight operations",
     agentPathPrefixes: ["research/aviation/flight-operations"],
     agentIds: [],
-    artifactPathPrefixes: [],
+    artifactPathPrefixes: ["airline/"],
   },
   {
     name: "Oil & gas drilling & well operations",
@@ -325,9 +325,9 @@ export const SUBJECT_AREAS: SubjectAreaDefinition[] = [
   },
   {
     name: "Life sciences & GxP operations",
-    agentPathPrefixes: [],
+    agentPathPrefixes: ["research/life-sciences/"],
     agentIds: [],
-    artifactPathPrefixes: [],
+    artifactPathPrefixes: ["life_sciences/"],
   },
   {
     name: "Office productivity",
