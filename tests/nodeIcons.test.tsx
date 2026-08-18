@@ -31,10 +31,11 @@ describe("icon control", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /automatic: bot/i }));
     expect(await screen.findByRole("dialog", { name: "Choose node icon" })).toBeInTheDocument();
-    fireEvent.change(screen.getByRole("textbox", { name: "Search icons" }), { target: { value: "database" } });
-    fireEvent.click(await screen.findByRole("button", { name: "Use Database icon" }));
+    expect(screen.getByText("1,544 icons")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox", { name: "Search icons" }), { target: { value: "anchor" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Use Anchor icon" }));
 
-    expect(onChange).toHaveBeenCalledWith({ set: "lucide", name: "database" });
+    expect(onChange).toHaveBeenCalledWith({ set: "lucide", name: "anchor" });
   });
 
   it("returns to automatic by removing the explicit reference", async () => {

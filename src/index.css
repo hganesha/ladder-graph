@@ -4755,6 +4755,12 @@ button:disabled {
   color: var(--text);
   font: inherit;
 }
+.icon-picker-search output {
+  color: var(--dim);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  white-space: nowrap;
+}
 .icon-picker-categories {
   display: flex;
   gap: 5px;
@@ -4841,6 +4847,13 @@ button:disabled {
   align-self: center;
   color: var(--dim);
   text-align: center;
+}
+.icon-picker-grid .icon-picker-more {
+  grid-column: 1 / -1;
+  min-height: 40px;
+  color: var(--cyan);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
 }
 .node-alert {
   margin-left: auto;

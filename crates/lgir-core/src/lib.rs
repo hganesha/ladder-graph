@@ -11,16 +11,17 @@ pub fn is_known_icon_name(name: &str) -> bool {
     static KNOWN_ICON_NAMES: OnceLock<BTreeSet<String>> = OnceLock::new();
     KNOWN_ICON_NAMES
         .get_or_init(|| {
-            let catalog: Value = serde_json::from_str(include_str!("../../../catalog/icon-catalog.json"))
-                .expect("the checked-in icon catalog must be valid JSON");
-            let mut names = catalog
-                .get("icons")
-                .and_then(Value::as_array)
+            let generated_names: Value = serde_json::from_str(include_str!("../../../catalog/icon-names.json"))
+                .expect("the generated icon name catalog must be valid JSON");
+            let mut names = generated_names
+                .as_array()
                 .into_iter()
                 .flatten()
-                .filter_map(|icon| icon.get("name").and_then(Value::as_str))
+                .filter_map(Value::as_str)
                 .map(str::to_owned)
                 .collect::<BTreeSet<_>>();
+            let catalog: Value = serde_json::from_str(include_str!("../../../catalog/icon-catalog.json"))
+                .expect("the checked-in icon catalog must be valid JSON");
             if let Some(aliases) = catalog.get("aliases").and_then(Value::as_object) {
                 names.extend(aliases.keys().cloned());
             }
@@ -1201,6 +1202,8 @@ spec:
 
     #[test]
     fn retains_agent_icons_and_rejects_icons_on_other_node_kinds() {
+        assert!(is_known_icon_name("anchor"));
+        assert!(!is_known_icon_name("not-in-the-catalog"));
         let source = VALID.replace(
             "      name: Writer\n      role: Writer",
             "      name: Writer\n      icon:\n        set: lucide\n        name: search\n      role: Writer",
