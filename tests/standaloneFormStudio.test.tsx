@@ -40,4 +40,22 @@ describe("standalone form studio", () => {
     });
     expect(await screen.findByText(/Standalone form · saved/)).toBeInTheDocument();
   });
+
+  it("imports a JSON Schema into the form builder", async () => {
+    render(<StandaloneFormStudio initialTemplateId="docubricks-manufacturing-quality-inspection-report" onBack={() => undefined} />);
+    await screen.findByRole("heading", { level: 1, name: "Quality Inspection Report" });
+
+    const input = screen.getByRole("button", { name: "Import JSON" }).parentElement?.querySelector('input[type="file"]');
+    expect(input).toBeTruthy();
+    const file = {
+      name: "incident.schema.json",
+      size: 120,
+      text: vi.fn(async () => JSON.stringify({ title: "Incident intake", type: "object", properties: { summary: { type: "string" } } })),
+    } as unknown as File;
+    fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
+
+    expect(await screen.findByText("Imported 1 field from incident.schema.json.")).toBeInTheDocument();
+    expect((await screen.findAllByText("Incident intake", { selector: "strong" })).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Summary").length).toBeGreaterThan(0);
+  });
 });

@@ -3197,6 +3197,18 @@ button:disabled {
   font-family: "IBM Plex Mono", monospace;
   font-size: 9px;
 }
+.form-import-status {
+  overflow: hidden;
+  max-width: 440px;
+  color: var(--cyan);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.form-import-status.error {
+  color: #f0a49b;
+}
 .form-studio-toolbar {
   padding: 0 14px 0 310px;
 }
