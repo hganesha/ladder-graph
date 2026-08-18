@@ -652,23 +652,7 @@ export function Welcome({
                   </button>
                 </div>
               </div>
-              /*
-              <label className="modality-filter">
-                <span className="eyebrow">Modality</span>
-                <select
-                  aria-label="Filter by modality"
-                  value={modality}
-                  onChange={(event) => setModality(event.target.value as ModalityFilter)}
-                >
-                  <option value="all">All modalities</option>
-                  {INPUT_CONTRACT_PRESETS.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              */
+
               <label className={`user-assets-filter ${userAssetCount === 0 ? "disabled" : ""}`}>
                 <span className="eyebrow">Personal library</span>
                 <span className="user-assets-toggle">
