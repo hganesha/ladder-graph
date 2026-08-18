@@ -350,7 +350,7 @@ const HELP_PAGES: HelpPage[] = [
     eyebrow: "06 · About",
     title: "About Ladder Graph",
     description: "An open-source visual studio for designing, validating, and compiling agent workflows.",
-    content: (
+    content: (<div>
        <Brand compact />
         <div className="help-about-copy">
           <span>Created by</span>
