@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 const openInsuranceBundle = async (page: import("@playwright/test").Page) => {
   await page.goto("/");
   await page.getByLabel("Subject area").selectOption("Insurance & underwriting");
+  await page.getByRole("tab", { name: "Bundles", exact: true }).click();
   await page.getByRole("button", { name: "Open Insurance claim review bundle" }).click();
 };
 
@@ -40,6 +41,30 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
   await expect(page.getByRole("button", { name: "Workflow instructions" })).toBeVisible();
   await expect(page.getByRole("button", { name: /First Notice Of Loss input contract/i })).toBeVisible();
 
+  expect(consoleErrors).toEqual([]);
+});
+
+test("uses the available package viewport for the ontology workspace", async ({ page }, testInfo) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await openInsuranceBundle(page);
+  await expect(page.getByText(/deterministic files/)).toBeVisible();
+  await page.getByRole("tab", { name: "Ontology sliver" }).click();
+
+  const tabPanel = page.locator(".bundle-tab-panel");
+  const ontologyWorkspace = page.locator(".bundle-ontology-preview .ontology-visual-workspace");
+  await expect(ontologyWorkspace).toBeVisible();
+
+  const [tabPanelBox, ontologyWorkspaceBox] = await Promise.all([tabPanel.boundingBox(), ontologyWorkspace.boundingBox()]);
+  expect(tabPanelBox).not.toBeNull();
+  expect(ontologyWorkspaceBox).not.toBeNull();
+  expect(ontologyWorkspaceBox!.width).toBeGreaterThan(tabPanelBox!.width * 0.9);
+  expect(ontologyWorkspaceBox!.height).toBeGreaterThan(tabPanelBox!.height * 0.7);
+  await page.screenshot({ path: testInfo.outputPath("package-ontology-full-viewport.png"), fullPage: true });
   expect(consoleErrors).toEqual([]);
 });
 
