@@ -126,6 +126,13 @@ export const ROLE_CATEGORIES: RoleCategory[] = [
     searchTerms: ["chemistry", "materials", "bioinformatics", "climate", "space", "remote sensing"],
   },
   {
+    id: "visual-craft",
+    label: "Visual craft",
+    description: "Photography critique, editing and sequencing, grading, and delivery compliance.",
+    pathPrefix: "research/visual/",
+    searchTerms: ["photography", "photo", "critique", "lighting", "composition", "framing", "grading", "retouching"],
+  },
+  {
     id: "creative-social",
     label: "Creative & social",
     description: "Games, film and post, fashion, social policy, and linguistics.",

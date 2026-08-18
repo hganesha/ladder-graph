@@ -1,0 +1,329 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: wf-photo-04
+  title: Grade consistency across a set
+  description: Grade a reference frame, have reviewers call outliers independently, tally the calls so
+    a contested frame stays contested, and loop the rework until the set holds.
+  version: 1.0.0
+spec:
+  objective: Deliver a set that reads as one body of work, with every outlier called by evidence and contested
+    frames resolved rather than averaged into an acceptable middle.
+  policies:
+    maxConcurrency: 4
+    onFailure: preserve-completed
+    requireApprovalFor:
+      - n-approval
+  nodes:
+    - id: n-intake
+      kind: input
+      name: The set and its output medium
+      summary: The set and its output medium
+      inputSchema:
+        type: object
+        required:
+          - assets
+          - instructions
+        properties:
+          assets:
+            type: array
+            minItems: 1
+            maxItems: 12
+            items:
+              type: object
+              required:
+                - uri
+                - mediaType
+              properties:
+                uri:
+                  type: string
+                  description: A host-provided data URL, local file reference, uploaded-asset identifier,
+                    or authorized HTTPS URL. Ladder Graph does not upload or fetch the asset.
+                mediaType:
+                  type: string
+                  pattern: ^(image|audio|video|application)/
+                name:
+                  type: string
+          instructions:
+            type: string
+          sourceRights:
+            type: string
+            description: User-supplied rights, consent, release, or provenance context when relevant.
+          workflowFields:
+            type: object
+            required:
+              - reference_frame
+              - output_medium
+              - colour_space
+              - coherence_threshold
+            properties:
+              reference_frame: {}
+              output_medium: {}
+              colour_space: {}
+              coherence_threshold: {}
+        x-ladder-input-mode: mixed
+    - id: n-reference
+      kind: agent
+      templateRef: photo-05
+      name: Establish the reference grade
+      summary: Establish the reference the rest of the set is judged against.
+      role: Colourist judging white balance, tonal structure, skin, and consistency across a set.
+      prompt: You are a Colour & Tone Grading Reviewer. You judge white balance and tonal structure against
+        the intent and the output medium, pay particular attention to skin rendering and to colour casts
+        that only show in the neutrals, and you check a set for grade drift frame to frame rather than
+        judging each picture alone. You state which of your observations depend on the display and colour
+        space the file was prepared for, because a grade that is wrong on a calibrated display and a grade
+        that is wrong only on this viewer are different problems.
+      capabilities:
+        skills:
+          - evaluation
+          - teaching
+          - decision-analysis
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+    - id: n-review1
+      kind: agent
+      templateRef: photo-05
+      name: Colour and tone consistency call
+      summary: Judges grade drift across the set. Called independently of the other reviewers.
+      role: Colourist judging white balance, tonal structure, skin, and consistency across a set.
+      prompt: You are a Colour & Tone Grading Reviewer. You judge white balance and tonal structure against
+        the intent and the output medium, pay particular attention to skin rendering and to colour casts
+        that only show in the neutrals, and you check a set for grade drift frame to frame rather than
+        judging each picture alone. You state which of your observations depend on the display and colour
+        space the file was prepared for, because a grade that is wrong on a calibrated display and a grade
+        that is wrong only on this viewer are different problems.
+      capabilities:
+        skills:
+          - evaluation
+          - teaching
+          - decision-analysis
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - outlier_frames
+          - dimension
+          - evidence
+        properties:
+          outlier_frames: {}
+          dimension: {}
+          evidence: {}
+    - id: n-review2
+      kind: agent
+      templateRef: photo-01
+      name: Light and exposure consistency call
+      summary: Judges exposure and contrast drift. Called independently of the other reviewers.
+      role: Critic reading the light in a frame — quality, direction, ratio, and what the exposure protected.
+      prompt: 'You are a Lighting & Exposure Critic. You describe the light actually in the frame — its
+        quality, direction, ratio, and colour — and judge the exposure by what it protected and what it
+        gave up, not by a histogram shape: a deliberately low-key frame with crushed shadows and a badly
+        underexposed one look similar in a thumbnail and are not the same picture. You judge against the
+        photographer''s stated intent and the conventions of the genre, you name the region you are talking
+        about, and you say plainly when the file you were given — a small preview, a baked JPEG, no EXIF
+        — cannot support the judgement being asked of you.'
+      capabilities:
+        skills:
+          - evaluation
+          - teaching
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - outlier_frames
+          - dimension
+          - evidence
+        properties:
+          outlier_frames: {}
+          dimension: {}
+          evidence: {}
+    - id: n-review3
+      kind: agent
+      templateRef: photo-04
+      name: Technical consistency call
+      summary: Judges sharpening and noise treatment drift. Called independently of the other reviewers.
+      role: Inspector separating technical faults from stylistic choices in sharpness, motion, and noise.
+      prompt: 'You are a Focus & Technical Quality Inspector. You assess focus placement and depth of
+        field against what the picture is about, and you distinguish the causes that look alike at a glance
+        — missed focus, subject motion, camera shake, diffraction, over-sharpening, aggressive noise reduction
+        — because each one has a different fix and a different prevention. You separate a fault from a
+        choice: motion blur on a moving subject may be the picture, and you say which reading the evidence
+        in the frame supports rather than defaulting to ''soft''.'
+      capabilities:
+        skills:
+          - teaching
+          - video-processing
+          - decision-analysis
+          - domain-analysis
+          - image-understanding
+        tools:
+          - read
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - outlier_frames
+          - dimension
+          - evidence
+        properties:
+          outlier_frames: {}
+          dimension: {}
+          evidence: {}
+    - id: n-outliers
+      kind: aggregator
+      name: Tally the outlier calls
+      summary: Tally which frames were called outliers; a frame flagged by one reviewer and cleared by
+        another stays a tie rather than being averaged away.
+      config:
+        aggregation: vote
+    - id: n-coherence
+      kind: evaluate
+      inlineRole: true
+      name: Score set coherence
+      summary: Evaluate grade coherence across the set and skin rendering consistency on the output medium.
+      role: Deterministic metric evaluator
+      prompt: Evaluate the upstream result against grade coherence across the set and skin rendering consistency
+        on the output medium. Return a score, pass/fail verdict, the evidence behind the verdict, remaining
+        uncertainty, and the smallest corrective action. Do not claim programmatic measurement unless
+        the host supplies the required tool.
+      capabilities:
+        skills:
+          - evaluation
+        tools:
+          - read
+          - calculate
+        connectors: []
+        permissions:
+          - read-only
+      outputSchema:
+        type: object
+        required:
+          - score
+          - passed
+          - reasons
+        properties:
+          score:
+            type: number
+          passed:
+            type: boolean
+          reasons:
+            type: array
+            items:
+              type: string
+      config:
+        threshold: 0.85
+    - id: n-consistent
+      kind: condition
+      name: Set reads as one body of work?
+      summary: Route on coherence.passed.
+      config:
+        expression: coherence.passed
+        branches:
+          - label: Consistent
+            when: 'true'
+          - label: Rework outliers
+            when: 'false'
+    - id: n-regrade
+      kind: loop
+      name: Rework the outlier frames
+      summary: Repeat a bounded revision sequence until the set clears the declared coherence threshold
+        on the stated output medium.
+      config:
+        body:
+          - n-reference
+          - n-review1
+          - n-review2
+          - n-review3
+          - n-outliers
+          - n-coherence
+          - n-consistent
+        exitCondition: the set clears the declared coherence threshold on the stated output medium
+        maxIterations: 3
+        onExhausted: stop
+    - id: n-approval
+      kind: approval
+      name: Photographer accepts the graded set
+      summary: Pause for the photographer; on timeout, escalate.
+    - id: workflow-output
+      kind: output
+      name: Released deliverable
+      summary: Return the completed Grade consistency across a set deliverable, the evidence behind it,
+        and every unresolved item.
+  edges:
+    - id: wf-photo-04-edge-1
+      from: n-intake
+      to: n-reference
+      kind: data
+    - id: wf-photo-04-edge-2
+      from: n-reference
+      to: n-review1
+      kind: data
+    - id: wf-photo-04-edge-3
+      from: n-reference
+      to: n-review2
+      kind: data
+    - id: wf-photo-04-edge-4
+      from: n-reference
+      to: n-review3
+      kind: data
+    - id: wf-photo-04-edge-5
+      from: n-review1
+      to: n-outliers
+      kind: data
+    - id: wf-photo-04-edge-6
+      from: n-review2
+      to: n-outliers
+      kind: data
+    - id: wf-photo-04-edge-7
+      from: n-review3
+      to: n-outliers
+      kind: data
+    - id: wf-photo-04-edge-8
+      from: n-outliers
+      to: n-coherence
+      kind: data
+    - id: wf-photo-04-edge-9
+      from: n-coherence
+      to: n-consistent
+      kind: data
+    - id: wf-photo-04-edge-10
+      from: n-consistent
+      to: n-approval
+      kind: control
+      condition: 'true'
+    - id: wf-photo-04-edge-11
+      from: n-consistent
+      to: n-regrade
+      kind: control
+      condition: 'false'
+    - id: wf-photo-04-edge-12
+      from: n-regrade
+      to: n-approval
+      kind: control
+      condition: loop_exit
+    - id: wf-photo-04-edge-13
+      from: n-approval
+      to: workflow-output
+      kind: dependency
+      condition: approved

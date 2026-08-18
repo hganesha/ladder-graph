@@ -120,7 +120,7 @@ test("assembles and binds a bundle around another catalog workflow", async ({ pa
   await page.getByRole("button", { name: "New", exact: true }).click();
   await page.getByLabel("Workflow", { exact: true }).selectOption("evidence-research");
   await expect(page.getByRole("heading", { name: "Evidence research bundle" })).toBeVisible();
-  await page.getByRole("button", { name: "Attach Insurance ontology" }).click();
+  await page.getByLabel("Bundle ontology").selectOption("ladder://ontologies/builtin/insurance");
   await page.getByRole("button", { name: "Attach First Notice of Loss" }).click();
   await page.getByRole("button", { name: "Add binding" }).click();
 

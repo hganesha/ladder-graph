@@ -139,6 +139,9 @@
   "Oil & gas drilling & well operations": {
     "agentPathPrefixes": ["research/wells/drilling"]
   },
+  "Photography": {
+    "agentPathPrefixes": ["research/visual/photography"]
+  },
   "Legal & contracts": {
     "artifactPathPrefixes": ["legal/"]
   },

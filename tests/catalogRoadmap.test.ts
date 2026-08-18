@@ -13,8 +13,8 @@ const expectedAreas = new Map([
 
 describe("completed catalog roadmap", () => {
   it("ships every remaining area and cross-area composite", () => {
-    expect(WORKFLOW_TEMPLATES).toHaveLength(125);
-    expect(ROLE_TEMPLATES).toHaveLength(359);
+    expect(WORKFLOW_TEMPLATES).toHaveLength(131);
+    expect(ROLE_TEMPLATES).toHaveLength(367);
     for (const [area, expected] of expectedAreas) {
       expect(
         WORKFLOW_TEMPLATES.filter((workflow) => workflow.area === area),
