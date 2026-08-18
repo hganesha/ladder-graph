@@ -232,6 +232,11 @@ export default function StructuredArtifactStudio({
       relationshipId: added.relationshipId,
     });
   };
+  const connectTypes = (sourceTypeId: string, targetTypeId: string) => {
+    if (artifact?.kind !== "Ontology") return;
+    const added = addOntologyRelationship(artifact, sourceTypeId, targetTypeId);
+    commitOntology(added.ontology, { typeId: sourceTypeId, relationshipId: added.relationshipId });
+  };
   const previewSliver = async () => {
     if (artifact?.kind !== "Ontology" || !selectedOntologyType) return;
     setSliceLoading(true);
@@ -478,6 +483,7 @@ export default function StructuredArtifactStudio({
                 {ontologyView === "graph" ? (
                   <OntologyCanvas
                     ontology={artifact}
+                    onConnect={connectTypes}
                     onSelectRelationship={(id) => {
                       const relationship = artifact.spec.relationships.find((candidate) => candidate.id === id);
                       setSelectedRelationshipId(id);

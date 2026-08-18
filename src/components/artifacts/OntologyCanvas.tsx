@@ -1,5 +1,16 @@
 import dagre from "@dagrejs/dagre";
-import { Background, Controls, Handle, MarkerType, MiniMap, type Node, type NodeProps, Position, ReactFlow } from "@xyflow/react";
+import {
+  Background,
+  type Connection,
+  Controls,
+  Handle,
+  MarkerType,
+  MiniMap,
+  type Node,
+  type NodeProps,
+  Position,
+  ReactFlow,
+} from "@xyflow/react";
 import { Boxes } from "lucide-react";
 import { memo, useMemo } from "react";
 import type { Ontology } from "../../types";
@@ -84,6 +95,7 @@ export function OntologyCanvas({
   selectedTypeId,
   onSelectRelationship,
   onSelectType,
+  onConnect,
 }: {
   ontology: Ontology;
   query: string;
@@ -91,6 +103,7 @@ export function OntologyCanvas({
   selectedTypeId: string | null;
   onSelectRelationship: (id: string) => void;
   onSelectType: (id: string) => void;
+  onConnect?: (sourceTypeId: string, targetTypeId: string) => void;
 }) {
   const { edges, nodes } = useMemo(
     () => graphElements(ontology, query, selectedTypeId, selectedRelationshipId),
@@ -105,9 +118,12 @@ export function OntologyCanvas({
         maxZoom={1.6}
         minZoom={0.15}
         nodes={nodes}
-        nodesConnectable={false}
+        nodesConnectable={Boolean(onConnect)}
         nodesDraggable={false}
         nodeTypes={nodeTypes}
+        onConnect={(connection: Connection) => {
+          if (connection.source && connection.target) onConnect?.(connection.source, connection.target);
+        }}
         onEdgeClick={(_, edge) => onSelectRelationship(edge.id)}
         onNodeClick={(_, node) => onSelectType(node.id)}
         proOptions={{ hideAttribution: true }}

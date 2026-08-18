@@ -65,7 +65,11 @@ export function addOntologyProperty(ontology: Ontology, typeId: string): { ontol
   return { ontology: next, propertyId };
 }
 
-export function addOntologyRelationship(ontology: Ontology, sourceTypeId?: string): { ontology: Ontology; relationshipId: string } {
+export function addOntologyRelationship(
+  ontology: Ontology,
+  sourceTypeId?: string,
+  targetTypeId?: string,
+): { ontology: Ontology; relationshipId: string } {
   const next = copy(ontology);
   if (!next.spec.types.length) {
     const added = addOntologyType(next);
@@ -73,7 +77,8 @@ export function addOntologyRelationship(ontology: Ontology, sourceTypeId?: strin
     sourceTypeId = added.typeId;
   }
   const source = next.spec.types.find((type) => type.id === sourceTypeId) ?? next.spec.types[0];
-  const target = next.spec.types.find((type) => type.id !== source.id) ?? source;
+  const target =
+    next.spec.types.find((type) => type.id === targetTypeId) ?? next.spec.types.find((type) => type.id !== source.id) ?? source;
   const relationshipId = uniqueId("relates-to", new Set(next.spec.relationships.map((relationship) => relationship.id)));
   const relationship: OntologyRelationship = {
     id: relationshipId,
