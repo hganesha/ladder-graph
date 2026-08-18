@@ -1,5 +1,6 @@
 import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
 import { Studio } from "./components/Studio";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UniversalCatalogSearch } from "./components/UniversalCatalogSearch";
 import { CATALOG_SEARCH_SUBJECTS, Welcome } from "./components/Welcome";
 import { useStudioStore } from "./store/useStudioStore";
@@ -54,36 +55,54 @@ export default function App() {
   if (bundleLaunch !== undefined) {
     content = (
       <Suspense fallback={<div className="workspace-loading">Opening bundle workspace…</div>}>
-        <BundleStudio
+        <ErrorBoundary
           key={bundleLaunch.project?.id ?? bundleLaunch.templateId ?? "new-bundle"}
-          initialProject={bundleLaunch.project}
-          initialTemplateId={bundleLaunch.templateId}
-          onBack={() => setBundleLaunch(undefined)}
-        />
+          scope="bundle workspace"
+          onExit={() => setBundleLaunch(undefined)}
+          workflowRecovery={false}
+        >
+          <BundleStudio
+            initialProject={bundleLaunch.project}
+            initialTemplateId={bundleLaunch.templateId}
+            onBack={() => setBundleLaunch(undefined)}
+          />
+        </ErrorBoundary>
       </Suspense>
     );
   } else if (formLaunch !== undefined) {
     content = (
       <Suspense fallback={<div className="workspace-loading">Opening form studio…</div>}>
-        <StandaloneFormStudio
+        <ErrorBoundary
           key={formLaunch.project?.id ?? formLaunch.templateId ?? formLaunch.initialSource ?? "new-form"}
-          initialProject={formLaunch.project}
-          initialSource={formLaunch.initialSource}
-          initialTemplateId={formLaunch.templateId}
-          onBack={() => setFormLaunch(undefined)}
-        />
+          scope="form workspace"
+          onExit={() => setFormLaunch(undefined)}
+          workflowRecovery={false}
+        >
+          <StandaloneFormStudio
+            initialProject={formLaunch.project}
+            initialSource={formLaunch.initialSource}
+            initialTemplateId={formLaunch.templateId}
+            onBack={() => setFormLaunch(undefined)}
+          />
+        </ErrorBoundary>
       </Suspense>
     );
   } else if (structuredLaunch !== undefined) {
     content = (
       <Suspense fallback={<div className="workspace-loading">Opening {structuredLaunch.artifactKind} studio…</div>}>
-        <StructuredArtifactStudio
+        <ErrorBoundary
           key={`${structuredLaunch.artifactKind}:${structuredLaunch.project?.id ?? structuredLaunch.templateId ?? "new"}`}
-          artifactKind={structuredLaunch.artifactKind}
-          initialProject={structuredLaunch.project}
-          initialTemplateId={structuredLaunch.templateId}
-          onBack={() => setStructuredLaunch(undefined)}
-        />
+          scope={`${structuredLaunch.artifactKind} workspace`}
+          onExit={() => setStructuredLaunch(undefined)}
+          workflowRecovery={false}
+        >
+          <StructuredArtifactStudio
+            artifactKind={structuredLaunch.artifactKind}
+            initialProject={structuredLaunch.project}
+            initialTemplateId={structuredLaunch.templateId}
+            onBack={() => setStructuredLaunch(undefined)}
+          />
+        </ErrorBoundary>
       </Suspense>
     );
   } else {

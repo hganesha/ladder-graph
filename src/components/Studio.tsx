@@ -4,6 +4,7 @@ import type { GraphImageFormat } from "../lib/graphImage";
 import { companionPairingState } from "../lib/mcpCompanion";
 import { useStudioStore, useStudioStoreApi } from "../store/useStudioStore";
 import { Diagnostics } from "./Diagnostics";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { GraphCanvas, type GraphCanvasHandle } from "./GraphCanvas";
 import { Inspector } from "./Inspector";
 import { LazyHelpDialog } from "./LazyHelpDialog";
@@ -111,7 +112,11 @@ export function Studio({
           {state.centerMode !== "source" && <GraphCanvas ref={graphCanvasRef} />}
           {state.centerMode !== "canvas" && <SourceEditor />}
         </section>
-        {state.inspectorOpen && <Inspector />}
+        {state.inspectorOpen && (
+          <ErrorBoundary scope="inspector">
+            <Inspector />
+          </ErrorBoundary>
+        )}
         {!state.inspectorOpen && (
           <button className="panel-restore panel-restore-right" type="button" aria-label="Open inspector" onClick={openInspector}>
             <span>Inspector</span>

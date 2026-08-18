@@ -1,7 +1,16 @@
 import { stringify } from "yaml";
 import { create } from "zustand";
 import { compiler } from "../compiler/client";
-import type { Diagnostic, FormField, FormPage, FormSection, LadderForm, Ontology, OntologyProperty } from "../types";
+import type {
+  ArtifactAnalysisResult,
+  Diagnostic,
+  FormField,
+  FormPage,
+  FormSection,
+  LadderForm,
+  Ontology,
+  OntologyProperty,
+} from "../types";
 
 export type FormStudioMode = "builder" | "preview" | "source";
 export type FormViewport = "desktop" | "narrow";
@@ -48,6 +57,15 @@ interface FormStudioState {
 
 const EMPTY_SELECTION: FormSelection = { pageId: null, sectionId: null, fieldId: null };
 let analysisRevision = 0;
+
+function compilerFailure(error: unknown): Diagnostic {
+  return {
+    code: "LF900",
+    severity: "error",
+    path: "/",
+    message: `Compiler unavailable: ${error instanceof Error ? error.message : String(error)}`,
+  };
+}
 
 function cloneForm(form: LadderForm) {
   return structuredClone(form);
@@ -130,7 +148,13 @@ export const useFormStore = create<FormStudioState>((set, get) => {
       past: recordHistory ? [...previous.past.slice(-49), previous.source] : previous.past,
       future: recordHistory ? [] : previous.future,
     });
-    const analysis = await compiler.analyzeArtifact(source);
+    let analysis: ArtifactAnalysisResult;
+    try {
+      analysis = await compiler.analyzeArtifact(source);
+    } catch (error) {
+      if (revision === analysisRevision) set({ busy: false, diagnostics: [compilerFailure(error)] });
+      return;
+    }
     if (revision !== analysisRevision) return;
     const analyzedForm = analysis.normalized?.kind === "Form" ? analysis.normalized : null;
     const form = analyzedForm && analysis.ok ? analyzedForm : null;
@@ -175,10 +199,17 @@ export const useFormStore = create<FormStudioState>((set, get) => {
         past: [],
         future: [],
       });
-      const [formAnalysis, ontologyAnalysis] = await Promise.all([
-        compiler.analyzeArtifact(source),
-        ontologySource ? compiler.analyzeArtifact(ontologySource) : Promise.resolve(null),
-      ]);
+      let formAnalysis: ArtifactAnalysisResult;
+      let ontologyAnalysis: ArtifactAnalysisResult | null;
+      try {
+        [formAnalysis, ontologyAnalysis] = await Promise.all([
+          compiler.analyzeArtifact(source),
+          ontologySource ? compiler.analyzeArtifact(ontologySource) : Promise.resolve(null),
+        ]);
+      } catch (error) {
+        if (revision === analysisRevision) set({ busy: false, diagnostics: [compilerFailure(error)] });
+        return;
+      }
       if (revision !== analysisRevision) return;
       const analyzedForm = formAnalysis.normalized?.kind === "Form" ? formAnalysis.normalized : null;
       const form = analyzedForm && formAnalysis.ok ? analyzedForm : null;

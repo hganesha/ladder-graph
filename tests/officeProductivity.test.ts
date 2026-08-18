@@ -11,12 +11,7 @@ const agents = ROLE_TEMPLATES.filter((agent) => agent.areas.includes(AREA));
 describe("office productivity catalog", () => {
   it("ships the subject, four harnesses, and eight associated agents", () => {
     expect(SUBJECT_AREAS.find((subject) => subject.name === AREA)?.agentPathPrefixes).toEqual(["office/productivity/"]);
-    expect(workflows.map((workflow) => workflow.id)).toEqual([
-      "wf-office-01",
-      "wf-office-02",
-      "wf-office-03",
-      "wf-office-04",
-    ]);
+    expect(workflows.map((workflow) => workflow.id)).toEqual(["wf-office-01", "wf-office-02", "wf-office-03", "wf-office-04"]);
     expect(agents.map((agent) => agent.id)).toEqual([
       "offc-01",
       "offc-02",
@@ -32,9 +27,7 @@ describe("office productivity catalog", () => {
   it("keeps source collection read-only and gates every external write", () => {
     const documents = workflows.map((workflow) => parse(workflow.yaml) as Workflow);
     const writeNodes = documents.flatMap((workflow) =>
-      workflow.spec.nodes
-        .filter((node) => node.capabilities?.permissions?.includes("external-write"))
-        .map((node) => ({ workflow, node })),
+      workflow.spec.nodes.filter((node) => node.capabilities?.permissions?.includes("external-write")).map((node) => ({ workflow, node })),
     );
 
     expect(writeNodes).toHaveLength(2);

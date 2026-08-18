@@ -19,12 +19,22 @@ jobs:
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
         with:
+          components: rustfmt
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - run: npm ci
       - run: cargo install wasm-pack --locked --version 0.15.0
+      - name: Reject numbered sync-conflict copies
+        run: |
+          if git ls-files | grep -Eq '(^|/)Cargo [0-9]+\.toml$| [0-9]+\.(ts|tsx|json|ya?ml|md)$'; then
+            echo "Numbered sync-conflict copies are tracked. Remove or rename them."
+            exit 1
+          fi
       - run: npm run format:check
       - run: npm run lint
+      - run: cargo fmt --all -- --check
+      - run: npm run catalog:audit
+      - run: npm run catalog:sync-roles:check
       - run: npm run typecheck
       - run: npm test
       - run: npm run rust:test
@@ -39,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [chromium, firefox, webkit]
+        project: [chromium, firefox, webkit, pixel-5, iphone-13]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

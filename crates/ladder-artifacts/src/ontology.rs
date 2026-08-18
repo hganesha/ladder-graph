@@ -66,7 +66,12 @@ pub fn validate(ontology: &Value, diagnostics: &mut Vec<Diagnostic>) {
             let name = icon.get("name").and_then(Value::as_str).unwrap_or_default();
             let valid_name = !name.is_empty()
                 && name.len() <= 64
-                && name.split('-').all(|part| !part.is_empty() && part.chars().all(|character| character.is_ascii_lowercase() || character.is_ascii_digit()))
+                && name.split('-').all(|part| {
+                    !part.is_empty()
+                        && part.chars().all(|character| {
+                            character.is_ascii_lowercase() || character.is_ascii_digit()
+                        })
+                })
                 && lgir_core::is_known_icon_name(name);
             if set != "lucide" || !valid_name {
                 diagnostics.push(diagnostic(

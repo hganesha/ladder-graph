@@ -294,6 +294,16 @@ describe("LGIR fallback compiler", () => {
     expect(hostile.diagnostics[0].code).toBe("LG004");
   });
 
+  it("allows tag-like text while rejecting actual YAML tags", async () => {
+    const emphatic = WORKFLOW_TEMPLATES[0].yaml.replace(/title: .*$/m, 'title: "Ship it!!"');
+    const comment = `${WORKFLOW_TEMPLATES[0].yaml}\n# !!python is documentation\n`;
+    const tagged = WORKFLOW_TEMPLATES[0].yaml.replace(/title: .*$/m, "title: !custom Example");
+
+    expect((await analyzeFallback(emphatic)).diagnostics[0]?.code).not.toBe("LG002");
+    expect((await analyzeFallback(comment)).diagnostics[0]?.code).not.toBe("LG002");
+    expect((await analyzeFallback(tagged)).diagnostics[0]?.code).toBe("LG002");
+  });
+
   it("blocks external schema references", async () => {
     const source = WORKFLOW_TEMPLATES[0].yaml.replace("type: object", "$ref: https://example.com/schema.json");
     const result = await analyzeFallback(source);

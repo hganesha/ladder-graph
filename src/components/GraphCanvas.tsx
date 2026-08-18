@@ -65,6 +65,7 @@ export function toFlowNodes(nodes: LgirNode[], onInlineEdit?: WorkflowInlineEdit
 }
 
 export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
+  const nodeIds = new Set(nodes.map((node) => node.id));
   const stored = edges.map((edge) => ({
     id: edge.id,
     source: edge.from,
@@ -82,7 +83,7 @@ export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
   const virtual = nodes
     .filter((node) => node.kind === "group")
     .flatMap((group) => {
-      const members = group.config?.members?.filter((id) => nodes.some((node) => node.id === id)) ?? [];
+      const members = group.config?.members?.filter((id) => nodeIds.has(id)) ?? [];
       if (!members.length) return [];
       const executionEdges =
         group.config?.execution === "sequential"
@@ -144,6 +145,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
   const previousNodeCount = useRef(sourceNodes.length);
   const selectedNode = workflow?.spec.nodes.find((node) => node.id === selectedNodeId);
   const selectedEdge = workflow?.spec.edges.find((edge) => edge.id === selectedEdgeId);
+  const displayNodes = useMemo(() => nodes.map((node) => ({ ...node, selected: node.id === selectedNodeId })), [nodes, selectedNodeId]);
+  const displayEdges = useMemo(
+    () =>
+      edges.map((edge) =>
+        edge.id === selectedEdgeId
+          ? {
+              ...edge,
+              selected: true,
+              style: { ...edge.style, stroke: "var(--cyan)", strokeWidth: 2.4 },
+              labelStyle: { ...edge.labelStyle, fill: "var(--text)", fontWeight: 600 },
+            }
+          : { ...edge, selected: false },
+      ),
+    [edges, selectedEdgeId],
+  );
 
   useImperativeHandle(
     ref,
@@ -186,17 +202,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
         </div>
       )}
       <ReactFlow<WorkflowFlowNode, Edge>
-        nodes={nodes.map((node) => ({ ...node, selected: node.id === selectedNodeId }))}
-        edges={edges.map((edge) =>
-          edge.id === selectedEdgeId
-            ? {
-                ...edge,
-                selected: true,
-                style: { ...edge.style, stroke: "var(--cyan)", strokeWidth: 2.4 },
-                labelStyle: { ...edge.labelStyle, fill: "var(--text)", fontWeight: 600 },
-              }
-            : { ...edge, selected: false },
-        )}
+        nodes={displayNodes}
+        edges={displayEdges}
         nodeTypes={workflowNodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}

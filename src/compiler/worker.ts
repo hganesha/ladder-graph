@@ -36,7 +36,8 @@ async function loadWasm() {
     await module.default();
     wasm = module;
     runtime = "wasm";
-  } catch {
+  } catch (error) {
+    console.warn("Ladder Graph could not initialize WebAssembly; using the TypeScript compiler fallback.", error);
     wasm = null;
     runtime = "fallback";
   }

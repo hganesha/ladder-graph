@@ -1,4 +1,4 @@
-import { parseDocument, stringify } from "yaml";
+import { parseDocument, stringify, visit } from "yaml";
 import { ICON_ALIASES, ICON_NAMES } from "../generated/iconRegistry";
 import { inputContractModality } from "../lib/inputContracts";
 import { workflowContractKind } from "../lib/workflowContracts";
@@ -64,8 +64,6 @@ function validStatePath(path: string) {
 
 function parse(source: string): { workflow?: Workflow; diagnostics: Diagnostic[] } {
   if (source.length > 2_000_000) return { diagnostics: [diagnostic("LG001", "error", "/", "LGIR source exceeds the 2 MB import limit.")] };
-  if (source.includes("!!") || source.includes("!<"))
-    return { diagnostics: [diagnostic("LG002", "error", "/", "Custom YAML tags are not supported.")] };
   if (/(^|\s)[&*][A-Za-z0-9_-]+/.test(source))
     return { diagnostics: [diagnostic("LG004", "error", "/", "YAML anchors and aliases are not supported.")] };
   if (/^\s*["']?\$ref["']?\s*:\s*["']?(?:https?:|\/\/)/m.test(source))
@@ -77,6 +75,13 @@ function parse(source: string): { workflow?: Workflow; diagnostics: Diagnostic[]
         diagnostics: document.errors.map((error) => diagnostic("LG003", "error", "/", `YAML could not be parsed: ${error.message}`)),
       };
     }
+    let hasCustomTag = false;
+    visit(document, {
+      Node: (_key, node) => {
+        if (node.tag) hasCustomTag = true;
+      },
+    });
+    if (hasCustomTag) return { diagnostics: [diagnostic("LG002", "error", "/", "Custom YAML tags are not supported.")] };
     return { workflow: document.toJS({ maxAliasCount: 50 }) as Workflow, diagnostics: [] };
   } catch (error) {
     return {
