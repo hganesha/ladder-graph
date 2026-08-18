@@ -38,7 +38,7 @@ describe("welcome gallery", () => {
       new Set(WORKFLOW_TEMPLATES.map((template) => template.area)).size,
     );
     expect(screen.getByLabelText("Subject area")).toHaveValue("Core patterns");
-    expect(screen.getAllByRole("tab")).toHaveLength(7);
+    expect(screen.getAllByRole("tab")).toHaveLength(8);
     expect(screen.getByRole("tab", { name: "Starter workflows" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Recent projects" })).toHaveAttribute("aria-selected", "false");
     expect(screen.getByRole("tab", { name: "Workflows" })).toHaveAttribute("aria-selected", "true");
@@ -76,21 +76,26 @@ describe("welcome gallery", () => {
     expect(screen.getByLabelText("Subject area")).toHaveValue("Insurance & underwriting");
   });
 
-  it("launches every curated bundle as a first-class starter", () => {
+  it("groups curated bundles in a dedicated subject-filtered tab", () => {
     const onBundle = vi.fn();
     render(<Welcome onBlank={() => undefined} onBundle={onBundle} />);
 
+    expect(screen.queryByRole("heading", { name: "Curated workflow bundles" })).not.toBeInTheDocument();
+    selectArea("Manufacturing & industrial operations");
+    fireEvent.click(screen.getByRole("tab", { name: "Bundles" }));
+
+    expect(screen.getByRole("tab", { name: "Bundles" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("heading", { name: "Curated workflow bundles" })).toBeInTheDocument();
-    expect(screen.getByText("7 bundles")).toBeInTheDocument();
+    expect(screen.getByText("1 bundle")).toBeInTheDocument();
     const manufacturing = screen.getByRole("button", { name: "Open Manufacturing line qualification bundle" });
-    expect(screen.getByRole("button", { name: "Open Regulatory obligations and submission bundle" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open Commercial credit underwriting bundle" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open Energy field operations permit bundle" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open Healthcare clinical claim audit bundle" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open Real estate valuation and diligence bundle" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Regulatory obligations and submission bundle" })).not.toBeInTheDocument();
     fireEvent.click(manufacturing);
 
     expect(onBundle).toHaveBeenCalledWith(undefined, "manufacturing-line-qualification");
+
+    selectArea("Legal & contracts");
+    expect(screen.getByRole("button", { name: "Open Regulatory obligations and submission bundle" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Manufacturing line qualification bundle" })).not.toBeInTheDocument();
   });
 
   it("offers first-class creation entry points for bundles and ontologies", () => {

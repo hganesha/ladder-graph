@@ -14,6 +14,10 @@ test("opens standalone form, document, and ontology workspaces from the artifact
   await expect(page.getByRole("heading", { name: "Workflow library" })).toBeVisible();
 
   await chooseManufacturing(page);
+  await page.getByRole("tab", { name: "Bundles" }).click();
+  await expect(page.getByRole("button", { name: "Open Manufacturing line qualification bundle" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Regulatory obligations and submission bundle" })).toHaveCount(0);
+
   await page.getByRole("tab", { name: "Forms" }).click();
   await page.getByRole("button", { name: "Open Quality Inspection Report form" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Quality Inspection Report" })).toBeVisible();

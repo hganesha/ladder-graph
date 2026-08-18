@@ -253,7 +253,7 @@ export const WORKFLOW_AREAS = [
 ];
 export const CATALOG_SEARCH_SUBJECTS = WORKFLOW_AREAS.map(({ name, description }) => ({ name, description }));
 
-type LibraryTab = "workflows" | "agents" | "forms" | "documents" | "ontologies";
+type LibraryTab = "workflows" | "bundles" | "agents" | "forms" | "documents" | "ontologies";
 type ModalityFilter = "all" | InputModality;
 type GalleryView = "starters" | "recent";
 const BUNDLE_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "workflow-bundle");
@@ -306,6 +306,9 @@ export function Welcome({
     (agent) => modality === "all" || agent.modalities.includes(modality),
   );
   const selectedArtifactIndustry = ARTIFACT_INDUSTRY_BY_AREA[selectedArea.name];
+  const selectedBundles = selectedArtifactIndustry
+    ? BUNDLE_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
+    : [];
   const selectedForms = selectedArtifactIndustry
     ? FORM_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
     : [];
@@ -492,6 +495,19 @@ export function Welcome({
                     <Workflow size={15} aria-hidden="true" /> Workflows <small>{selectedTemplates.length}</small>
                   </button>
                   <button
+                    aria-label="Bundles"
+                    aria-controls="library-panel"
+                    aria-selected={activeLibraryTab === "bundles"}
+                    className={activeLibraryTab === "bundles" ? "active" : undefined}
+                    id="library-tab-bundles"
+                    onClick={() => setActiveLibraryTab("bundles")}
+                    role="tab"
+                    tabIndex={activeLibraryTab === "bundles" ? 0 : -1}
+                    type="button"
+                  >
+                    <PackageOpen size={15} aria-hidden="true" /> Bundles <small>{selectedBundles.length}</small>
+                  </button>
+                  <button
                     aria-label="Forms"
                     aria-controls="library-panel"
                     aria-selected={activeLibraryTab === "forms"}
@@ -572,68 +588,70 @@ export function Welcome({
                 </div>
               </div>
               {activeLibraryTab === "workflows" ? (
-                <>
-                  <div className="template-grid tabbed-template-grid">
-                    {selectedTemplates.map((template) => (
+                <div className="template-grid tabbed-template-grid">
+                  {selectedTemplates.map((template) => (
+                    <button
+                      aria-label={`Open ${template.title} in studio`}
+                      className="template-card"
+                      key={template.id}
+                      onClick={() => void openTemplate(template.id)}
+                      style={{ "--accent": template.accent } as React.CSSProperties}
+                    >
+                      <div className="topology-art" aria-hidden="true">
+                        <SelectedAreaIcon />
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                      <div className="template-meta">
+                        <span>{template.eyebrow}</span>
+                        <span>{template.topology}</span>
+                      </div>
+                      <h3>{template.title}</h3>
+                      <p>{template.description}</p>
+                      <strong>
+                        Open in studio <ArrowRight size={14} />
+                      </strong>
+                    </button>
+                  ))}
+                  {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
+                </div>
+              ) : activeLibraryTab === "bundles" ? (
+                <section className="curated-bundles" aria-labelledby="curated-bundles-title">
+                  <header>
+                    <div>
+                      <span className="eyebrow">Portable solution contracts</span>
+                      <h3 id="curated-bundles-title">Curated workflow bundles</h3>
+                    </div>
+                    <span>
+                      {selectedBundles.length} {selectedBundles.length === 1 ? "bundle" : "bundles"}
+                    </span>
+                  </header>
+                  <div className="bundle-launch-grid">
+                    {selectedBundles.map((template) => (
                       <button
-                        aria-label={`Open ${template.title} in studio`}
-                        className="template-card"
+                        aria-label={`Open ${template.title}`}
+                        className="bundle-launch-card"
                         key={template.id}
-                        onClick={() => void openTemplate(template.id)}
-                        style={{ "--accent": template.accent } as React.CSSProperties}
+                        onClick={() => onBundle(undefined, template.id)}
+                        type="button"
                       >
-                        <div className="topology-art" aria-hidden="true">
-                          <SelectedAreaIcon />
-                          <span />
-                          <span />
-                          <span />
-                        </div>
-                        <div className="template-meta">
-                          <span>{template.eyebrow}</span>
-                          <span>{template.topology}</span>
-                        </div>
-                        <h3>{template.title}</h3>
-                        <p>{template.description}</p>
-                        <strong>
-                          Open in studio <ArrowRight size={14} />
-                        </strong>
+                        <span className="bundle-launch-icon" aria-hidden="true">
+                          <PackageOpen size={22} />
+                        </span>
+                        <span>
+                          <small>{template.path.split("/")[0].replaceAll("_", " ")} · curated bundle</small>
+                          <strong>{template.title}</strong>
+                          <span>{template.description}</span>
+                        </span>
+                        <span className="bundle-launch-action">
+                          Open <ArrowRight size={15} />
+                        </span>
                       </button>
                     ))}
-                    {selectedTemplates.length === 0 && <p className="library-empty">No workflows match this modality.</p>}
                   </div>
-                  <section className="curated-bundles" aria-labelledby="curated-bundles-title">
-                    <header>
-                      <div>
-                        <span className="eyebrow">Portable solution contracts</span>
-                        <h3 id="curated-bundles-title">Curated workflow bundles</h3>
-                      </div>
-                      <span>{BUNDLE_TEMPLATES.length} bundles</span>
-                    </header>
-                    <div className="bundle-launch-grid">
-                      {BUNDLE_TEMPLATES.map((template) => (
-                        <button
-                          aria-label={`Open ${template.title}`}
-                          className="bundle-launch-card"
-                          key={template.id}
-                          onClick={() => onBundle(undefined, template.id)}
-                          type="button"
-                        >
-                          <span className="bundle-launch-icon" aria-hidden="true">
-                            <PackageOpen size={22} />
-                          </span>
-                          <span>
-                            <small>{template.path.split("/")[0].replaceAll("_", " ")} · curated bundle</small>
-                            <strong>{template.title}</strong>
-                            <span>{template.description}</span>
-                          </span>
-                          <span className="bundle-launch-action">
-                            Open <ArrowRight size={15} />
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                </>
+                  {selectedBundles.length === 0 && <p className="library-empty">No bundles for this subject area.</p>}
+                </section>
               ) : activeLibraryTab === "agents" ? (
                 <div className="template-grid tabbed-template-grid agent-template-grid">
                   {selectedAgents.map((agent) => (
