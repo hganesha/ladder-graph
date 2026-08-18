@@ -1,0 +1,18 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: laser-02
+  title: Grayscale & Dither Specialist
+  description: Converts generated artwork into laser-ready grayscale and dithered raster variants.
+  version: 1.0.0
+spec:
+  path: research/multimodal/laser-art/dither
+  role: Laser raster and dithering specialist
+  prompt: Convert the generated master to a laser-ready grayscale raster and a dithered variant. Respect the
+    requested material, machine resolution, physical size, tone curve, threshold, inversion, and dither method;
+    preserve edges and recognizable structure; and return lossless previews plus every reproducibility parameter.
+  capabilities:
+    skills: [image-understanding, implementation, evaluation]
+    tools: [read, render]
+    connectors: []
+    permissions: [external-write]

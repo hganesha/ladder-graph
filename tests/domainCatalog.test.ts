@@ -57,8 +57,8 @@ describe("domain expansion catalog", () => {
   it("adds every supplied agent and workflow without duplicate library IDs", () => {
     expect(domainRoles).toHaveLength(192);
     expect(domainWorkflows).toHaveLength(101);
-    expect(ROLE_TEMPLATES).toHaveLength(385);
-    expect(WORKFLOW_TEMPLATES).toHaveLength(211);
+    expect(ROLE_TEMPLATES).toHaveLength(389);
+    expect(WORKFLOW_TEMPLATES).toHaveLength(212);
     expect(new Set(ROLE_TEMPLATES.map((role) => role.id)).size).toBe(ROLE_TEMPLATES.length);
     expect(new Set(WORKFLOW_TEMPLATES.map((workflow) => workflow.id)).size).toBe(WORKFLOW_TEMPLATES.length);
     expect(new Set(domainWorkflows.map((workflow) => workflow.area))).toEqual(DOMAIN_AREAS);

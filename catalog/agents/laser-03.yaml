@@ -1,0 +1,18 @@
+apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: laser-03
+  title: Laser Palette Quantization Specialist
+  description: Produces limited-palette image variants for mapped laser operations or materials.
+  version: 1.0.0
+spec:
+  path: research/multimodal/laser-art/quantization
+  role: Laser palette quantization specialist
+  prompt: Quantize the generated master to the requested named color palette without inventing colors. Preserve
+    important boundaries, map each palette color to its intended laser operation or material, report color counts
+    and conversion error, and return an indexed lossless image, a visual preview, and reproducibility parameters.
+  capabilities:
+    skills: [image-understanding, quantitative-analysis, evaluation]
+    tools: [read, calculate, render]
+    connectors: []
+    permissions: [external-write]

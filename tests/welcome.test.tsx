@@ -477,6 +477,7 @@ spec:
 
     selectArea("Multimodal");
     expect(screen.getByRole("button", { name: /open multimodal asset production in studio/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open image \+ prompt → laser art variants in studio/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open image → structured text in studio/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open reference image → new image in studio/i })).toBeInTheDocument();
 
@@ -489,7 +490,7 @@ spec:
 
     selectArea("Multimodal");
     fireEvent.change(screen.getByLabelText("Filter by modality"), { target: { value: "image" } });
-    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /open .* in studio/i })).toHaveLength(3);
     expect(screen.queryByRole("button", { name: /open multimodal asset production in studio/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
