@@ -39,6 +39,7 @@ describe("welcome gallery", () => {
     expect(WORKFLOW_AREAS.find((area) => area.name === "Core patterns")?.icon).toBe(Sparkles);
     expect(WORKFLOW_AREAS.find((area) => area.name === "Software engineering")?.icon).toBe(Code2);
     expect(WORKFLOW_AREAS.every((area) => area.icon !== Workflow)).toBe(true);
+    expect(new Set(WORKFLOW_AREAS.map((area) => area.icon)).size).toBe(WORKFLOW_AREAS.length);
   });
 
   it("chooses a subject area, switches starting-point tabs, and opens a template", () => {
