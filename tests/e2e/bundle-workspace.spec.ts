@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 const openInsuranceBundle = async (page: import("@playwright/test").Page) => {
   await page.goto("/");
   await page.getByLabel("Subject area").selectOption("Insurance & underwriting");
+  await page.getByRole("tab", { name: "Bundles", exact: true }).click();
   await page.getByRole("button", { name: "Open Insurance claim review bundle" }).click();
 };
 
@@ -40,6 +41,51 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
   await expect(page.getByRole("button", { name: "Workflow instructions" })).toBeVisible();
   await expect(page.getByRole("button", { name: /First Notice Of Loss input contract/i })).toBeVisible();
 
+  expect(consoleErrors).toEqual([]);
+});
+
+test("uses the available package viewport for the ontology workspace", async ({ page }, testInfo) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await openInsuranceBundle(page);
+  await expect(page.getByText(/deterministic files/)).toBeVisible();
+  await page.getByRole("tab", { name: "Ontology sliver" }).click();
+
+  const tabPanel = page.locator(".bundle-tab-panel");
+  const ontologyWorkspace = page.locator(".bundle-ontology-preview .ontology-visual-workspace");
+  await expect(ontologyWorkspace).toBeVisible();
+
+  const [tabPanelBox, ontologyWorkspaceBox] = await Promise.all([tabPanel.boundingBox(), ontologyWorkspace.boundingBox()]);
+  expect(tabPanelBox).not.toBeNull();
+  expect(ontologyWorkspaceBox).not.toBeNull();
+  expect(ontologyWorkspaceBox!.width).toBeGreaterThan(tabPanelBox!.width * 0.9);
+  expect(ontologyWorkspaceBox!.height).toBeGreaterThan(tabPanelBox!.height * 0.7);
+  await page.screenshot({ path: testInfo.outputPath("package-ontology-full-viewport.png"), fullPage: true });
+  expect(consoleErrors).toEqual([]);
+});
+
+test("edits the bundled workflow visually", async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await openInsuranceBundle(page);
+  await expect(page.getByText(/deterministic files/)).toBeVisible();
+  await page.getByRole("tab", { name: "Workflow graph" }).click();
+  await page.getByRole("button", { name: "Edit workflow visually" }).click();
+  await page.getByLabel("Selected workflow node name").fill("Visual bundle intake");
+  await page.getByRole("button", { name: "Add Agent" }).click();
+  await page.getByRole("button", { name: "Apply visual changes" }).click();
+  await expect(page.getByText(/deterministic files/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Edit workflow YAML" }).click();
+  await expect(page.getByLabel("Bundled workflow YAML source")).toHaveValue(/Visual bundle intake/);
+  await expect(page.getByLabel("Bundled workflow YAML source")).toHaveValue(/name: Agent/);
   expect(consoleErrors).toEqual([]);
 });
 
@@ -90,7 +136,7 @@ test("assembles and binds a bundle around another catalog workflow", async ({ pa
   await page.getByRole("button", { name: "New", exact: true }).click();
   await page.getByLabel("Workflow", { exact: true }).selectOption("evidence-research");
   await expect(page.getByRole("heading", { name: "Evidence research bundle" })).toBeVisible();
-  await page.getByRole("button", { name: "Attach Insurance ontology" }).click();
+  await page.getByLabel("Bundle ontology").selectOption("ladder://ontologies/builtin/insurance");
   await page.getByRole("button", { name: "Attach First Notice of Loss" }).click();
   await page.getByRole("button", { name: "Add binding" }).click();
 

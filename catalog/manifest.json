@@ -1593,6 +1593,72 @@
       "file": "workflows/wf-well-04.yaml"
     },
     {
+      "id": "wf-photo-01",
+      "path": "research/visual/photography/wf-photo-01",
+      "area": "Photography",
+      "title": "Blind critique panel on a single frame",
+      "eyebrow": "Creative feedback",
+      "description": "Four critics read the same photograph blind — light, composition, perspective, technical — their notes stay attributable by dimension, and a teacher model weighs them against the stated intent into a ranked revision plan.",
+      "topology": "Blind critique panel + synthesis",
+      "accent": "#c98ad6",
+      "file": "workflows/wf-photo-01.yaml"
+    },
+    {
+      "id": "wf-photo-02",
+      "path": "research/visual/photography/wf-photo-02",
+      "area": "Photography",
+      "title": "Fix in camera or fix in post",
+      "eyebrow": "Scored queue",
+      "description": "Classify every flaw in a frame, rank by effect, and route each one to a processing recipe, a reshoot plan, or an explicit decision to leave it alone.",
+      "topology": "Scored queue + routing",
+      "accent": "#c98ad6",
+      "file": "workflows/wf-photo-02.yaml"
+    },
+    {
+      "id": "wf-photo-03",
+      "path": "research/visual/photography/wf-photo-03",
+      "area": "Photography",
+      "title": "Cull, edit, and sequence a shoot",
+      "eyebrow": "Ordered assembly",
+      "description": "Collapse near-identical takes, score what survives, cut to length, then build the opening, body, and close in order and critique the sequence as a whole.",
+      "topology": "Cull + ordered sequence",
+      "accent": "#c98ad6",
+      "file": "workflows/wf-photo-03.yaml"
+    },
+    {
+      "id": "wf-photo-04",
+      "path": "research/visual/photography/wf-photo-04",
+      "area": "Photography",
+      "title": "Grade consistency across a set",
+      "eyebrow": "Outlier vote + loop",
+      "description": "Grade a reference frame, have reviewers call outliers independently, tally the calls so a contested frame stays contested, and loop the rework until the set holds.",
+      "topology": "Outlier vote + rework loop",
+      "accent": "#c98ad6",
+      "file": "workflows/wf-photo-04.yaml"
+    },
+    {
+      "id": "wf-photo-05",
+      "path": "research/visual/photography/wf-photo-05",
+      "area": "Photography",
+      "title": "Commercial delivery gate",
+      "eyebrow": "Barrier verification",
+      "description": "Verify coverage, rights, technical specification, colour, and retouching disclosure separately; any one failing stops the delivery rather than being noted in the email.",
+      "topology": "Barrier verification + hard stop",
+      "accent": "#c98ad6",
+      "file": "workflows/wf-photo-05.yaml"
+    },
+    {
+      "id": "wf-photo-06",
+      "path": "research/visual/photography/wf-photo-06",
+      "area": "Photography",
+      "title": "Development loop against stated intent",
+      "eyebrow": "Calibrated judgment",
+      "description": "Three critics assess a body of work blind against the photographer's own stated aims, a rubric teacher calibrates them and issues the next assignment, and the loop warns rather than stops when the bound is reached.",
+      "topology": "Blind panel + teacher loop",
+      "accent": "#c98ad6",
+      "file": "workflows/wf-photo-06.yaml"
+    },
+    {
       "id": "wf-legal-01",
       "path": "research/legal/contracts/wf-legal-01",
       "area": "Legal & contracts",
@@ -3787,6 +3853,54 @@
       "path": "research/wells/drilling",
       "title": "Drilling HSE & Permit Coordinator",
       "file": "agents/well-08.yaml"
+    },
+    {
+      "id": "photo-01",
+      "path": "research/visual/photography",
+      "title": "Lighting & Exposure Critic",
+      "file": "agents/photo-01.yaml"
+    },
+    {
+      "id": "photo-02",
+      "path": "research/visual/photography",
+      "title": "Composition & Framing Analyst",
+      "file": "agents/photo-02.yaml"
+    },
+    {
+      "id": "photo-03",
+      "path": "research/visual/photography",
+      "title": "Perspective & Lens Advisor",
+      "file": "agents/photo-03.yaml"
+    },
+    {
+      "id": "photo-04",
+      "path": "research/visual/photography",
+      "title": "Focus & Technical Quality Inspector",
+      "file": "agents/photo-04.yaml"
+    },
+    {
+      "id": "photo-05",
+      "path": "research/visual/photography",
+      "title": "Colour & Tone Grading Reviewer",
+      "file": "agents/photo-05.yaml"
+    },
+    {
+      "id": "photo-06",
+      "path": "research/visual/photography",
+      "title": "Retouching & Disclosure Reviewer",
+      "file": "agents/photo-06.yaml"
+    },
+    {
+      "id": "photo-07",
+      "path": "research/visual/photography",
+      "title": "Photo Editor & Sequencing Specialist",
+      "file": "agents/photo-07.yaml"
+    },
+    {
+      "id": "photo-08",
+      "path": "research/visual/photography",
+      "title": "Brief, Rights & Deliverable Compliance Checker",
+      "file": "agents/photo-08.yaml"
     },
     {
       "id": "legal-01",

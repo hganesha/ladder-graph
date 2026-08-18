@@ -9,7 +9,7 @@ test("opens a mathematics workflow and finds a physics agent", async ({ page }) 
 
   await expect(page.getByLabel("Workflow graph canvas")).toBeVisible();
   await expect(page.getByRole("button", { name: /0 errors and \d+ warnings/ })).toBeVisible();
-  await expect(page.getByText("359 agents")).toBeVisible();
+  await expect(page.getByText("367 agents")).toBeVisible();
 
   await page.getByPlaceholder("Search library").fill("Quantum Mechanics Tutor");
   await expect(page.getByRole("button", { name: /quantum mechanics tutor/i })).toBeVisible();
