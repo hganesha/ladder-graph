@@ -22,6 +22,14 @@ export const WORKFLOW_AREAS = SUBJECT_AREAS.map(({ name }) => ({
 }));
 export const CATALOG_SEARCH_SUBJECTS = WORKFLOW_AREAS.map(({ name, description }) => ({ name, description }));
 
+const ALL_SUBJECT_AREA = {
+  name: ":all",
+  label: "All subject areas",
+  description: "Every workflow, agent, form, document, ontology, and curated bundle in the catalog.",
+  icon: Workflow,
+};
+const SUBJECT_AREA_OPTIONS = [ALL_SUBJECT_AREA, ...WORKFLOW_AREAS];
+const DEFAULT_SUBJECT_AREA = WORKFLOW_AREAS[0]?.name ?? ALL_SUBJECT_AREA.name;
 type LibraryTab = "workflows" | "bundles" | "agents" | "forms" | "documents" | "ontologies";
 type ModalityFilter = "all" | InputModality;
 type GalleryView = "starters" | "recent";
@@ -91,19 +99,10 @@ export function Welcome({
   const selectedAgents = (allSubjectsSelected ? ROLE_TEMPLATES : roleTemplatesForSubject(selectedArea.name)).filter(
     (agent) => modality === "all" || agent.modalities.includes(modality),
   );
-  const selectedArtifactIndustry = ARTIFACT_INDUSTRY_BY_AREA[selectedArea.name];
-  const selectedBundles = selectedArtifactIndustry
-    ? BUNDLE_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
-    : [];
-  const selectedForms = selectedArtifactIndustry
-    ? FORM_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
-    : [];
-  const selectedDocuments = selectedArtifactIndustry
-    ? DOCUMENT_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
-    : [];
-  const selectedOntologies = selectedArtifactIndustry
-    ? ONTOLOGY_TEMPLATES.filter((template) => template.path.startsWith(`${selectedArtifactIndustry}/`))
-    : [];
+  const selectedBundles = artifactsForSubject(BUNDLE_TEMPLATES, selectedArea.name);
+  const selectedForms = artifactsForSubject(FORM_TEMPLATES, selectedArea.name);
+  const selectedDocuments = artifactsForSubject(DOCUMENT_TEMPLATES, selectedArea.name);
+  const selectedOntologies = artifactsForSubject(ONTOLOGY_TEMPLATES, selectedArea.name);
   const SelectedAreaIcon = selectedArea.icon;
 
   const handleGalleryViewKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
