@@ -13,7 +13,7 @@ import { SourceEditor } from "./SourceEditor";
 import { StorageDialog } from "./StorageDialog";
 import { StudioHeader } from "./StudioHeader";
 
-export function Studio() {
+export function Studio({ onSearch }: { onSearch?: () => void } = {}) {
   const state = useStudioStore();
   const [storageOpen, setStorageOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -69,6 +69,7 @@ export function Studio() {
           graphCanvasRef.current?.exportImage(format) ?? Promise.reject(new Error("Open the canvas before exporting an image."))
         }
         onHelp={() => setHelpOpen(true)}
+        onSearch={onSearch}
         onStorage={() => setStorageOpen(true)}
       />
       <div className="studio-workspace">
