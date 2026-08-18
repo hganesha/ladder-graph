@@ -37,6 +37,12 @@ test("creates a bundle as a first-class project", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Facilities operations bundle" })).toBeVisible();
   await page.getByRole("tab", { name: "Workflow graph" }).click();
   await expect(page.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeVisible();
+  await page.getByRole("button", { name: "Edit workflow" }).click();
+  const sourceEditor = page.getByLabel("Bundled workflow YAML source");
+  const source = await sourceEditor.inputValue();
+  await sourceEditor.fill(source.replace(/title: .*/u, "title: Facilities editable workflow"));
+  await page.getByRole("button", { name: "Apply workflow changes" }).click();
+  await expect(page.getByRole("heading", { name: "Facilities editable workflow" })).toBeVisible();
 });
 
 test("creates an ontology by importing OWL and saves it to My library", async ({ page }) => {
@@ -50,6 +56,13 @@ test("creates an ontology by importing OWL and saves it to My library", async ({
   await expect(page.getByRole("region", { name: "OWL import report" })).toContainText("Imported 2 types, 1 property, and 1 relationship");
   await expect(page.getByRole("region", { name: "Ontology relationship canvas" })).toBeVisible();
   await expect(page.getByLabel("Ontology selection inspector")).toContainText("Facility");
+  await page.getByRole("button", { name: "Add entity" }).click();
+  await page.getByLabel("Entity label").fill("Service location");
+  await page.getByRole("button", { name: "Add attribute" }).click();
+  await page.getByLabel("Attribute entity.attribute label").fill("Location code");
+  await page.getByRole("button", { name: "Add relationship" }).click();
+  await page.getByLabel("Relationship label").fill("Hosts asset");
+  await expect(page.getByLabel("Ontology YAML source")).toHaveValue(/Hosts asset/u);
   await expect(page.getByRole("button", { name: "Save ontology" })).toBeEnabled();
   await page.getByRole("button", { name: "Save ontology" }).click();
 

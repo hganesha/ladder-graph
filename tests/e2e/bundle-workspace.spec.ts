@@ -1,13 +1,19 @@
 import { expect, test } from "@playwright/test";
 
+const openInsuranceBundle = async (page: import("@playwright/test").Page) => {
+  await page.goto("/");
+  await page.getByLabel("Subject area").selectOption("Insurance & underwriting");
+  await page.getByRole("tab", { name: "Bundles" }).click();
+  await page.getByRole("button", { name: /Insurance claim review/ }).click();
+};
+
 test("compiles and explores the insurance workflow bundle", async ({ page }, testInfo) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
 
-  await page.goto("/");
-  await page.getByRole("button", { name: /Insurance claim review/ }).click();
+  await openInsuranceBundle(page);
 
   await expect(page.getByText("Experimental workflow bundle compiler")).toBeVisible();
   await expect(page.getByText(/deterministic files/)).toBeVisible();
@@ -43,8 +49,7 @@ test("authors a domain-bound form field and recompiles it into the bundle", asyn
     if (message.type() === "error") consoleErrors.push(message.text());
   });
 
-  await page.goto("/");
-  await page.getByRole("button", { name: /Insurance claim review/ }).click();
+  await openInsuranceBundle(page);
   await expect(page.getByText(/deterministic files/)).toBeVisible();
   await page.getByRole("tab", { name: "Form preview" }).click();
   await page.getByRole("button", { name: "Edit form" }).click();
@@ -79,8 +84,7 @@ test("assembles and binds a bundle around another catalog workflow", async ({ pa
     if (message.type() === "error") consoleErrors.push(message.text());
   });
 
-  await page.goto("/");
-  await page.getByRole("button", { name: /Insurance claim review/ }).click();
+  await openInsuranceBundle(page);
   await expect(page.getByText(/deterministic files/)).toBeVisible();
 
   await page.getByRole("button", { name: "New", exact: true }).click();
@@ -108,8 +112,7 @@ test("saves, reopens, and restores a DocuBricks-enriched bundle", async ({ page 
     if (message.type() === "error") consoleErrors.push(message.text());
   });
 
-  await page.goto("/");
-  await page.getByRole("button", { name: /Insurance claim review/ }).click();
+  await openInsuranceBundle(page);
   await expect(page.getByText(/deterministic files/)).toBeVisible();
 
   await page.getByLabel("Search bundle assets").fill("mortgage application");

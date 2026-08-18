@@ -259,8 +259,8 @@ export default function BundleStudio({
   const ontology = ontologyOutput ? (parse(ontologyOutput.content) as Ontology) : null;
   const workflowTitle =
     availableWorkflowChoices.find((choice) => choice.ref === bundle.spec.workflowRef)?.title ?? bundleAsset(bundle.spec.workflowRef)?.title;
+  const workflowSource = bundleAssetSource(bundle.spec.workflowRef, sourceOverrides);
   const workflowDefinition = useMemo(() => {
-    const workflowSource = bundleAssetSource(bundle.spec.workflowRef, sourceOverrides);
     if (!workflowSource) return null;
     try {
       const parsed = parse(workflowSource) as Workflow;
@@ -268,7 +268,7 @@ export default function BundleStudio({
     } catch {
       return null;
     }
-  }, [bundle.spec.workflowRef, sourceOverrides]);
+  }, [workflowSource]);
   const sourceByRef = useMemo(
     () => Object.fromEntries(resolveBundleAssets(bundle, sourceOverrides).map((asset) => [asset.ref, asset.source])),
     [bundle, sourceOverrides],
@@ -445,6 +445,14 @@ export default function BundleStudio({
     setSource(nextSource);
     setDirty(true);
     if (compileNow) void compile(nextSource, target, nextOverrides);
+  };
+
+  const applyWorkflowSource = (nextWorkflowSource: string) => {
+    const nextOverrides = { ...sourceOverrides, [bundle.spec.workflowRef]: nextWorkflowSource };
+    setSourceOverrides(nextOverrides);
+    setDirty(true);
+    setNotice("Workflow changes applied to this bundle.");
+    void compile(source, target, nextOverrides);
   };
 
   const setOntologyMode = (mode: "full" | "sliver") => {
@@ -783,8 +791,13 @@ export default function BundleStudio({
               </div>
             ) : null}
             {tab === "workflow" ? (
-              workflowDefinition ? (
-                <BundleWorkflowPreview key={bundle.spec.workflowRef} workflow={workflowDefinition} />
+              workflowDefinition && workflowSource ? (
+                <BundleWorkflowPreview
+                  key={bundle.spec.workflowRef}
+                  onApplySource={applyWorkflowSource}
+                  source={workflowSource}
+                  workflow={workflowDefinition}
+                />
               ) : (
                 <div className="bundle-empty-state">The bundled workflow source is unavailable or invalid.</div>
               )
