@@ -18,6 +18,7 @@ interface BundleAssetPickerProps {
   onAttach: (template: ArtifactTemplateDefinition) => void;
   onDetach: (ref: string) => void;
   onNew: () => void;
+  onNewForm: () => void;
   onRestoreStarter: () => void;
   onUseCuratedBundle: (template: ArtifactTemplateDefinition) => void;
   onOntologyModeChange: (mode: "full" | "sliver") => void;
@@ -52,6 +53,7 @@ export function BundleAssetPicker({
   onAttach,
   onDetach,
   onNew,
+  onNewForm,
   onRestoreStarter,
   onUseCuratedBundle,
   onOntologyModeChange,
@@ -195,6 +197,20 @@ export function BundleAssetPicker({
               </button>
               {isOpen ? (
                 <section aria-label={`${kindLabel[kind]} library`} className="bundle-asset-group-panel" id={panelId}>
+                  {kind === "form" ? (
+                    <div className="bundle-new-asset-card">
+                      <span className="bundle-asset-kind-icon">
+                        <FileText size={17} />
+                      </span>
+                      <span>
+                        <strong>Start from a blank form</strong>
+                        <small>Create pages, sections, fields, and ontology mappings in the visual editor.</small>
+                      </span>
+                      <button className="compile-button" onClick={onNewForm} type="button">
+                        <Plus size={13} /> New form
+                      </button>
+                    </div>
+                  ) : null}
                   {kind === "ontology" && bundle.spec.ontology ? (
                     <div className="bundle-ontology-output-control">
                       <span>

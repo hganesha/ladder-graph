@@ -1518,6 +1518,37 @@ button:disabled {
   border-top: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 86%, transparent);
 }
+.bundle-new-asset-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 11px;
+  border: 1px dashed color-mix(in srgb, var(--cyan) 55%, var(--border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--cyan) 5%, var(--surface-2));
+}
+.bundle-new-asset-card > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.bundle-new-asset-card > span:nth-child(2) strong {
+  font-size: 10px;
+}
+.bundle-new-asset-card > span:nth-child(2) small {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+.bundle-new-asset-card .compile-button {
+  grid-column: 1 / -1;
+  justify-content: center;
+  min-height: 30px;
+  padding: 6px 8px;
+  font-size: 9px;
+}
 .bundle-ontology-output-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1567,6 +1598,12 @@ button:disabled {
   .bundle-asset-card-grid,
   .bundle-ontology-output-control {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bundle-new-asset-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .bundle-new-asset-card .compile-button {
+    grid-column: auto;
   }
 }
 .bundle-asset-card-grid article {
@@ -7943,7 +7980,8 @@ button:disabled {
     display: none;
   }
   .bundle-asset-card-grid,
-  .bundle-ontology-output-control {
+  .bundle-ontology-output-control,
+  .bundle-new-asset-card {
     grid-template-columns: minmax(0, 1fr);
   }
   .bundle-identity-editor > div {

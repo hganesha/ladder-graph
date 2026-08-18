@@ -144,6 +144,81 @@ function parsedBundle(source: string) {
   return parse(source) as WorkflowBundle;
 }
 
+function artifactSlug(value: string) {
+  return (
+    value
+      .normalize("NFKD")
+      .replace(/[^a-zA-Z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "")
+      .toLowerCase() || "bundle"
+  );
+}
+
+function formTemplateFromSource(ref: string, source: string): ArtifactTemplateDefinition | null {
+  try {
+    const form = parse(source) as LadderForm;
+    if (form.kind !== "Form") return null;
+    const id = ref.split("/").at(-1) ?? artifactSlug(form.metadata.name);
+    return {
+      id,
+      kind: "form",
+      path: "bundle-owned/forms",
+      title: form.metadata.title ?? form.metadata.name,
+      description: form.metadata.description ?? "Form owned by this portable bundle.",
+      file: `bundle:${id}`,
+      yaml: source,
+      ref,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function newBundleFormTemplate(bundle: WorkflowBundle, sourceOverrides: Record<string, string>): ArtifactTemplateDefinition {
+  const base = `${artifactSlug(bundle.metadata.name)}-form`;
+  const attachedRefs = new Set((bundle.spec.forms ?? []).map((attachment) => attachment.ref));
+  let sequence = 1;
+  let id = base;
+  let ref = `ladder://forms/local/${id}`;
+  while (attachedRefs.has(ref) || sourceOverrides[ref]) {
+    sequence += 1;
+    id = `${base}-${sequence}`;
+    ref = `ladder://forms/local/${id}`;
+  }
+  const title = sequence === 1 ? "Untitled form" : `Untitled form ${sequence}`;
+  const form: LadderForm = {
+    apiVersion: "ladder.dev/v1alpha1",
+    kind: "Form",
+    metadata: {
+      name: id,
+      title,
+      description: "Bundle-owned form created from scratch.",
+      version: "1.0.0",
+      source: { system: "ladder", sourceId: bundle.metadata.name },
+    },
+    spec: {
+      role: "start",
+      pages: [
+        {
+          id: "page-1",
+          title: "Page 1",
+          sections: [{ id: "section-1", title: "Section 1", fields: [] }],
+        },
+      ],
+    },
+  };
+  return {
+    id,
+    kind: "form",
+    path: "bundle-owned/forms",
+    title,
+    description: form.metadata.description ?? "Bundle-owned form.",
+    file: `bundle:${id}`,
+    yaml: stringify(form, { lineWidth: 110 }),
+    ref,
+  };
+}
+
 function firstAttachedFormId(source: string) {
   const firstRef = parsedBundle(source).spec.forms?.[0]?.ref;
   return FORM_TEMPLATES.find((template) => template.ref === firstRef)?.id ?? "";
@@ -270,17 +345,31 @@ export default function BundleStudio({
       }),
     [libraryProjects],
   );
-  const assetTemplates = useMemo(
-    () => [...ARTIFACT_TEMPLATES.filter((template) => template.kind !== "workflow-bundle"), ...localArtifactTemplates],
-    [localArtifactTemplates],
+  const bundleOwnedFormTemplates = useMemo(
+    () =>
+      (bundle.spec.forms ?? []).flatMap((attachment) => {
+        const isKnown = ARTIFACT_TEMPLATES.some((template) => template.ref === attachment.ref);
+        if (isKnown || localArtifactTemplates.some((template) => template.ref === attachment.ref)) return [];
+        const template = formTemplateFromSource(attachment.ref, sourceOverrides[attachment.ref] ?? "");
+        return template ? [template] : [];
+      }),
+    [bundle.spec.forms, localArtifactTemplates, sourceOverrides],
   );
+  const assetTemplates = useMemo(() => {
+    const templates = [
+      ...ARTIFACT_TEMPLATES.filter((template) => template.kind !== "workflow-bundle"),
+      ...localArtifactTemplates,
+      ...bundleOwnedFormTemplates,
+    ];
+    return [...new Map(templates.map((template) => [template.ref, template])).values()];
+  }, [bundleOwnedFormTemplates, localArtifactTemplates]);
   const attachedForms = useMemo(
     () =>
       (bundle.spec.forms ?? []).flatMap((attachment) => {
-        const template = FORM_TEMPLATES.find((candidate) => candidate.ref === attachment.ref);
+        const template = assetTemplates.find((candidate) => candidate.kind === "form" && candidate.ref === attachment.ref);
         return template ? [template] : [];
       }),
-    [bundle],
+    [assetTemplates, bundle.spec.forms],
   );
   const activeFormId = attachedForms.some((template) => template.id === formId) ? formId : (attachedForms[0]?.id ?? "");
   const selectedForm = attachedForms.find((template) => template.id === activeFormId);
@@ -517,6 +606,16 @@ export default function BundleStudio({
     applyBundle(next, true);
   };
 
+  const createBlankForm = () => {
+    const template = newBundleFormTemplate(bundle, sourceOverrides);
+    const nextOverrides = { ...sourceOverrides, [template.ref]: template.yaml };
+    setSourceOverrides(nextOverrides);
+    setFormId(template.id);
+    setNotice(null);
+    applyBundle(attachBundleArtifact(bundle, template), false, nextOverrides);
+    setEditingFormRef(template.ref);
+  };
+
   const restoreStarter = () => {
     const starter = parsedBundle(starterSource);
     setSourceOverrides(DEFAULT_SOURCE_OVERRIDES);
@@ -568,18 +667,24 @@ export default function BundleStudio({
   const ontologyBoundBindings = (bundle.spec.bindings ?? []).filter((binding) => binding.ontologyPropertyRef).length;
 
   if (editingFormRef) {
-    const editingTemplate = FORM_TEMPLATES.find((template) => template.ref === editingFormRef);
-    if (editingTemplate) {
+    const editingTemplate = attachedForms.find((template) => template.ref === editingFormRef);
+    const editingSource = sourceOverrides[editingFormRef] ?? editingTemplate?.yaml;
+    if (editingSource) {
       return (
         <Suspense fallback={<div className="workspace-loading">Opening form studio…</div>}>
           <FormStudio
-            initialSource={sourceOverrides[editingFormRef] ?? editingTemplate.yaml}
+            initialSource={editingSource}
             ontologySource={ontologySource}
-            onBack={() => setEditingFormRef(null)}
+            onBack={() => {
+              setEditingFormRef(null);
+              setTab("bundle");
+            }}
             onSave={(nextFormSource) => {
               const nextOverrides = { ...sourceOverrides, [editingFormRef]: nextFormSource };
               setSourceOverrides(nextOverrides);
               setEditingFormRef(null);
+              setTab("form");
+              setNotice("Form changes applied to this bundle.");
               void compile(source, target, nextOverrides);
             }}
           />
@@ -748,6 +853,7 @@ export default function BundleStudio({
                   }}
                   onDetach={(ref) => applyBundle(detachBundleArtifact(bundle, ref), true)}
                   onNew={startNew}
+                  onNewForm={createBlankForm}
                   onOntologyModeChange={setOntologyMode}
                   onRestoreStarter={restoreStarter}
                   onUseCuratedBundle={useCuratedBundle}
