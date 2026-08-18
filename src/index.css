@@ -1310,6 +1310,10 @@ button:disabled {
   border-radius: 14px;
   background: var(--surface);
 }
+.bundle-assets-editor {
+  container-name: bundle-assets;
+  container-type: inline-size;
+}
 .bundle-assets-editor > header,
 .binding-inspector > header {
   display: flex;
@@ -1343,27 +1347,23 @@ button:disabled {
   padding: 6px 8px;
   font-size: 10px;
 }
-.bundle-workflow-select,
-.bundle-ontology-select {
+.bundle-workflow-select {
   display: grid;
   gap: 8px;
   padding: 16px 18px;
   border-bottom: 1px solid var(--border);
 }
-.bundle-workflow-select > span,
-.bundle-ontology-select > span {
+.bundle-workflow-select > span {
   display: flex;
   align-items: center;
   gap: 7px;
   font-size: 11px;
   font-weight: 700;
 }
-.bundle-workflow-select > span svg,
-.bundle-ontology-select > span svg {
+.bundle-workflow-select > span svg {
   color: var(--cyan);
 }
 .bundle-workflow-select select,
-.bundle-ontology-select select,
 .binding-card input,
 .binding-card select {
   min-width: 0;
@@ -1375,8 +1375,7 @@ button:disabled {
   background: var(--surface-2);
   font-size: 11px;
 }
-.bundle-workflow-select small,
-.bundle-ontology-select small {
+.bundle-workflow-select small {
   color: var(--muted);
   font-size: 10px;
   line-height: 1.45;
@@ -1428,66 +1427,219 @@ button:disabled {
   font-size: 9px;
   white-space: nowrap;
 }
-.bundle-asset-groups {
+.bundle-asset-accordion {
   display: grid;
-  gap: 16px;
-  padding: 18px;
+  gap: 10px;
+  padding: 14px 18px 18px;
 }
-.bundle-asset-groups fieldset {
-  display: grid;
-  gap: 7px;
+.bundle-asset-group {
   min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.bundle-asset-groups legend {
-  margin-bottom: 5px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 650;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.bundle-asset-groups legend span {
-  margin-left: 4px;
-  color: var(--cyan);
-}
-.bundle-asset-groups article {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 9px;
-  padding: 10px;
+  overflow: hidden;
   border: 1px solid var(--border);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--surface-2) 78%, transparent);
+}
+.bundle-asset-group.open {
+  border-color: color-mix(in srgb, var(--cyan) 42%, var(--border));
+  box-shadow: 0 12px 30px rgb(0 0 0 / 12%);
+}
+.bundle-asset-group-trigger {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 0;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+}
+.bundle-asset-group-trigger:hover {
+  background: color-mix(in srgb, var(--cyan) 5%, var(--surface-2));
+}
+.bundle-asset-kind-icon,
+.bundle-asset-card-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 25%, var(--border));
   border-radius: 9px;
-  background: var(--surface-2);
-}
-.bundle-asset-groups article.attached {
-  border-color: color-mix(in srgb, var(--cyan) 55%, var(--border));
-  background: color-mix(in srgb, var(--cyan) 6%, var(--surface-2));
-}
-.bundle-asset-groups article > svg {
   color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 7%, var(--surface));
 }
-.bundle-asset-groups article > span {
+.bundle-asset-kind-copy {
   display: grid;
   min-width: 0;
   gap: 3px;
 }
-.bundle-asset-groups article strong,
-.bundle-asset-groups article small {
+.bundle-asset-kind-copy strong {
+  font-family: "Syne", sans-serif;
+  font-size: 13px;
+}
+.bundle-asset-kind-copy small {
   overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.bundle-asset-groups article em {
+.bundle-asset-kind-metrics {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 5px;
+  color: var(--muted);
+  text-align: right;
+}
+.bundle-asset-kind-metrics strong {
   color: var(--cyan);
+  font-size: 15px;
+}
+.bundle-asset-kind-metrics small {
+  font-size: 8px;
+  text-transform: uppercase;
+}
+.bundle-asset-kind-metrics > span {
+  grid-column: 1 / -1;
+  color: var(--dim);
+  font-size: 8px;
+}
+.bundle-asset-chevron {
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+.bundle-asset-group.open .bundle-asset-chevron {
+  transform: rotate(180deg);
+}
+.bundle-asset-group-panel {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+}
+.bundle-ontology-output-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 28%, var(--border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--cyan) 6%, var(--surface-2));
+}
+.bundle-ontology-output-control > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.bundle-ontology-output-control > span small {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bundle-ontology-output-control > span strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bundle-ontology-output-control .ontology-mode-control legend {
+  margin-bottom: 4px;
+  font-size: 9px;
+}
+.bundle-ontology-output-control .ontology-mode-control button {
+  padding: 6px 8px;
+  font-size: 9px;
+}
+.bundle-asset-card-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  max-height: 460px;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+}
+@container bundle-assets (min-width: 700px) {
+  .bundle-asset-card-grid,
+  .bundle-ontology-output-control {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.bundle-asset-card-grid article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 76px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-2);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
+}
+.bundle-asset-card-grid article.attached {
+  border-color: color-mix(in srgb, var(--cyan) 55%, var(--border));
+  background: color-mix(in srgb, var(--cyan) 6%, var(--surface-2));
+}
+.bundle-asset-card-icon {
+  width: 30px;
+  height: 30px;
+}
+.bundle-asset-card-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.bundle-asset-card-copy > strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bundle-asset-card-copy > small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.bundle-asset-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.bundle-asset-card-tags em {
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 8%, transparent);
   font-family: "IBM Plex Mono", monospace;
-  font-size: 7px;
+  font-size: 6px;
   font-style: normal;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.bundle-asset-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 5px 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  color: var(--cyan);
+  background: var(--surface);
+  font-size: 8px;
+}
+.bundle-asset-action.danger {
+  color: var(--coral);
 }
 .bundle-library-empty {
   margin: 0;
@@ -1497,13 +1649,6 @@ button:disabled {
   color: var(--muted);
   font-size: 11px;
   text-align: center;
-}
-.bundle-asset-groups article strong {
-  font-size: 11px;
-}
-.bundle-asset-groups article small {
-  color: var(--muted);
-  font-size: 9px;
 }
 .icon-button.danger {
   color: var(--coral);
@@ -7789,6 +7934,16 @@ button:disabled {
     grid-column: 2;
   }
   .bundle-library-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bundle-asset-group-trigger {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .bundle-asset-kind-metrics {
+    display: none;
+  }
+  .bundle-asset-card-grid,
+  .bundle-ontology-output-control {
     grid-template-columns: minmax(0, 1fr);
   }
   .bundle-identity-editor > div {
