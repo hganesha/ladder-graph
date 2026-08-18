@@ -1,0 +1,591 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Ontology
+metadata:
+  name: life-sciences
+  title: Life Sciences and Pharma Ontology
+  description: Fundamental entities and relationships shared across Life Sciences and Pharmaceutical decision contracts.
+  version: 0.1.0
+  source:
+    system: lattice
+    sourceId: life-sciences-ontology
+    sourceVersion: 0.1.0
+    sourceDigest: sha256:6cd2c0dbee1641e515a7165ec8063b6d636f1a1c1290153a6ddc18edcdc342f0
+spec:
+  types:
+    - id: drug_product
+      label: Drug Product
+      description: A governed drug product (SKU) including molecule, dosage, and form.
+      sourcePath: /ontology/entityTypes/0
+      properties:
+        - id: drug_product.drug_product_id
+          label: Drug Product Id
+          description: Stable drug product identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/0/properties/0
+        - id: drug_product.trade_name
+          label: Trade Name
+          description: Brand or trade name.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/1
+        - id: drug_product.generic_name
+          label: Generic Name
+          description: INN or generic name of the active substance.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/2
+        - id: drug_product.dosage_form
+          label: Dosage Form
+          description: Tablet, capsule, injection, inhaler, etc.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/3
+        - id: drug_product.strength
+          label: Strength
+          description: Strength such as 10mg, 5mg/ml.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/4
+        - id: drug_product.ndc
+          label: NDC
+          description: National Drug Code.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/0/properties/5
+    - id: clinical_trial
+      label: Clinical Trial
+      description: A governed clinical trial study.
+      sourcePath: /ontology/entityTypes/1
+      properties:
+        - id: clinical_trial.trial_id
+          label: Trial Id
+          description: Stable trial identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/1/properties/0
+        - id: clinical_trial.protocol_number
+          label: Protocol Number
+          description: Protocol or study code.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/1
+        - id: clinical_trial.phase
+          label: Phase
+          description: Trial phase such as Phase 1, 2, 3, 4.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/2
+        - id: clinical_trial.indication
+          label: Indication
+          description: Indication or therapeutic area.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/3
+        - id: clinical_trial.status
+          label: Status
+          description: Planned, recruiting, active, completed, terminated.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/4
+        - id: clinical_trial.start_date
+          label: Start Date
+          description: Trial start date.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/5
+        - id: clinical_trial.primary_completion_date
+          label: Primary Completion Date
+          description: Primary completion date.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/1/properties/6
+    - id: trial_subject
+      label: Trial Subject
+      description: A de-identified subject enrolled in a clinical trial.
+      sourcePath: /ontology/entityTypes/2
+      properties:
+        - id: trial_subject.subject_id
+          label: Subject Id
+          description: De-identified subject identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/2/properties/0
+        - id: trial_subject.enrollment_date
+          label: Enrollment Date
+          description: Date of enrollment.
+          dataType: date
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/1
+        - id: trial_subject.arm
+          label: Arm
+          description: Treatment arm such as placebo, low dose, high dose.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/2
+        - id: trial_subject.status
+          label: Status
+          description: Enrolled, active, withdrawn, completed, screen failure.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/3
+        - id: trial_subject.site_id
+          label: Site Id
+          description: Clinical site identifier.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/2/properties/4
+    - id: adverse_event
+      label: Adverse Event
+      description: A governed adverse event or safety report.
+      sourcePath: /ontology/entityTypes/3
+      properties:
+        - id: adverse_event.event_id
+          label: Adverse Event Id
+          description: Stable adverse event identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/3/properties/0
+        - id: adverse_event.onset_at
+          label: Onset At
+          description: Onset date and time.
+          dataType: datetime
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/1
+        - id: adverse_event.severity
+          label: Severity
+          description: Mild, moderate, severe, life-threatening, fatal.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/2
+        - id: adverse_event.serious
+          label: Serious
+          description: Whether the event is a serious adverse event (SAE).
+          dataType: boolean
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/3
+        - id: adverse_event.meddra_term
+          label: MedDRA Term
+          description: MedDRA preferred term or LLT.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/4
+        - id: adverse_event.causality
+          label: Causality
+          description: Investigator causality assessment.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/3/properties/5
+    - id: batch_record
+      label: Batch Record
+      description: A governed pharmaceutical or biotech manufacturing batch.
+      sourcePath: /ontology/entityTypes/4
+      properties:
+        - id: batch_record.batch_id
+          label: Batch Id
+          description: Stable batch identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/4/properties/0
+        - id: batch_record.batch_number
+          label: Batch Number
+          description: Manufacturing batch number.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/1
+        - id: batch_record.manufacturing_date
+          label: Manufacturing Date
+          description: Date the batch was manufactured.
+          dataType: date
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/2
+        - id: batch_record.batch_size
+          label: Batch Size
+          description: Planned batch size with unit.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/3
+        - id: batch_record.status
+          label: Status
+          description: Released, on hold, rejected, quarantined.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/4
+        - id: batch_record.expiry_date
+          label: Expiry Date
+          description: Expiration date of the batch.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/4/properties/5
+    - id: regulatory_submission
+      label: Regulatory Submission
+      description: A governed regulatory submission to a health authority.
+      sourcePath: /ontology/entityTypes/5
+      properties:
+        - id: regulatory_submission.submission_id
+          label: Submission Id
+          description: Stable submission identifier.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/5/properties/0
+        - id: regulatory_submission.agency
+          label: Agency
+          description: Health authority such as FDA, EMA, MHRA, PMDA.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/1
+        - id: regulatory_submission.submission_type
+          label: Submission Type
+          description: IND, NDA, BLA, MAA, CTA, etc.
+          dataType: string
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/2
+        - id: regulatory_submission.submitted_at
+          label: Submitted At
+          description: Date of submission.
+          dataType: date
+          required: true
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/3
+        - id: regulatory_submission.status
+          label: Status
+          description: Draft, submitted, under review, approved, rejected, withdrawn.
+          dataType: string
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/4
+        - id: regulatory_submission.decision_at
+          label: Decision At
+          description: Date of regulatory decision.
+          dataType: date
+          required: false
+          identifier: false
+          sourcePath: /ontology/entityTypes/5/properties/5
+    # Shared core types
+    - id: person
+      label: Person
+      description: A human being identified in a governed business context.
+      sourcePath: /ontology/entityTypes/6
+      properties:
+        - id: person.person_id
+          label: Person identifier
+          description: Stable governed identifier for the person.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/6/properties/0
+        - id: person.display_name
+          label: Display name
+          description: Preferred name used in governed interfaces.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/6/properties/1
+        - id: person.effective_from
+          label: Effective from
+          description: Time from which this person record is valid.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/6/properties/2
+    - id: organization
+      label: Organization
+      description: A governed legal, public, or operating organization.
+      sourcePath: /ontology/entityTypes/7
+      properties:
+        - id: organization.organization_id
+          label: Organization identifier
+          description: Stable governed identifier for the organization.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/7/properties/0
+        - id: organization.legal_name
+          label: Legal name
+          description: Registered or otherwise authoritative organization name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/7/properties/1
+        - id: organization.organization_type
+          label: Organization type
+          description: Governed classification of the organization.
+          dataType: string
+          sourcePath: /ontology/entityTypes/7/properties/2
+    - id: agent
+      label: Agent
+      description: A human or software actor authorized to perform governed activity.
+      sourcePath: /ontology/entityTypes/8
+      properties:
+        - id: agent.agent_id
+          label: Agent identifier
+          description: Stable governed identifier for the actor.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/8/properties/0
+        - id: agent.agent_type
+          label: Agent type
+          description: Whether the actor is human, service, or automated.
+          dataType: string
+          sourcePath: /ontology/entityTypes/8/properties/1
+        - id: agent.active
+          label: Active
+          description: Whether the agent is currently authorized.
+          dataType: boolean
+          sourcePath: /ontology/entityTypes/8/properties/2
+    - id: location
+      label: Location
+      description: A physical, administrative, or virtual place relevant to governed activity.
+      sourcePath: /ontology/entityTypes/9
+      properties:
+        - id: location.location_id
+          label: Location identifier
+          description: Stable governed identifier for the location.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/9/properties/0
+        - id: location.name
+          label: Location name
+          description: Human-readable location name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/9/properties/1
+        - id: location.country_code
+          label: Country code
+          description: ISO country code when applicable.
+          dataType: string
+          sourcePath: /ontology/entityTypes/9/properties/2
+    - id: document
+      label: Document
+      description: A governed information artifact with identity, version, and provenance.
+      sourcePath: /ontology/entityTypes/10
+      properties:
+        - id: document.document_id
+          label: Document identifier
+          description: Stable governed identifier for the document.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/10/properties/0
+        - id: document.title
+          label: Title
+          description: Authoritative document title.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/10/properties/1
+        - id: document.version
+          label: Version
+          description: Document version or revision.
+          dataType: string
+          sourcePath: /ontology/entityTypes/10/properties/2
+        - id: document.issued_at
+          label: Issued at
+          description: Time at which the document was issued.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/10/properties/3
+    - id: event
+      label: Event
+      description: A governed occurrence bounded by time and business meaning.
+      sourcePath: /ontology/entityTypes/11
+      properties:
+        - id: event.event_id
+          label: Event identifier
+          description: Stable governed identifier for the event.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/11/properties/0
+        - id: event.event_type
+          label: Event type
+          description: Governed classification of the event.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/11/properties/1
+        - id: event.occurred_at
+          label: Occurred at
+          description: Time at which the event occurred.
+          dataType: datetime
+          required: true
+          sourcePath: /ontology/entityTypes/11/properties/2
+    - id: asset
+      label: Asset
+      description: A governed physical, digital, or financial resource.
+      sourcePath: /ontology/entityTypes/12
+      properties:
+        - id: asset.asset_id
+          label: Asset identifier
+          description: Stable governed identifier for the asset.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/12/properties/0
+        - id: asset.name
+          label: Asset name
+          description: Human-readable asset name.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/12/properties/1
+        - id: asset.asset_type
+          label: Asset type
+          description: Governed classification of the asset.
+          dataType: string
+          sourcePath: /ontology/entityTypes/12/properties/2
+    - id: policy
+      label: Policy
+      description: A versioned rule or standard governing decisions and actions.
+      sourcePath: /ontology/entityTypes/13
+      properties:
+        - id: policy.policy_id
+          label: Policy identifier
+          description: Stable governed identifier for the policy.
+          dataType: string
+          required: true
+          identifier: true
+          sourcePath: /ontology/entityTypes/13/properties/0
+        - id: policy.title
+          label: Policy title
+          description: Authoritative policy title.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/13/properties/1
+        - id: policy.version
+          label: Version
+          description: Approved policy version.
+          dataType: string
+          required: true
+          sourcePath: /ontology/entityTypes/13/properties/2
+        - id: policy.effective_from
+          label: Effective from
+          description: Time from which the policy applies.
+          dataType: datetime
+          sourcePath: /ontology/entityTypes/13/properties/3
+  relationships:
+    - id: trial_investigates_drug
+      label: INVESTIGATES_DRUG
+      description: Clinical trial investigates a drug product.
+      sourceTypeId: clinical_trial
+      targetTypeId: drug_product
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/0
+    - id: subject_enrolled_in_trial
+      label: ENROLLED_IN
+      description: Trial subject is enrolled in a clinical trial.
+      sourceTypeId: trial_subject
+      targetTypeId: clinical_trial
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/1
+    - id: adverse_event_for_subject
+      label: FOR_SUBJECT
+      description: Adverse event associated with a trial subject.
+      sourceTypeId: adverse_event
+      targetTypeId: trial_subject
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/2
+    - id: adverse_event_involves_drug
+      label: INVOLVES_DRUG
+      description: Adverse event involves a drug product.
+      sourceTypeId: adverse_event
+      targetTypeId: drug_product
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/3
+    - id: batch_yields_drug_product
+      label: YIELDS_DRUG_PRODUCT
+      description: Batch record yields a drug product.
+      sourceTypeId: batch_record
+      targetTypeId: drug_product
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/4
+    - id: submission_for_drug
+      label: FOR_DRUG_PRODUCT
+      description: Regulatory submission references a drug product.
+      sourceTypeId: regulatory_submission
+      targetTypeId: drug_product
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/5
+    - id: submission_for_trial
+      label: FOR_TRIAL
+      description: Regulatory submission references a clinical trial.
+      sourceTypeId: regulatory_submission
+      targetTypeId: clinical_trial
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/6
+    - id: member_of
+      label: MEMBER_OF
+      description: A person is affiliated with an organization.
+      sourceTypeId: person
+      targetTypeId: organization
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/7
+    - id: acts_for
+      label: ACTS_FOR
+      description: An agent acts on behalf of an organization.
+      sourceTypeId: agent
+      targetTypeId: organization
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/8
+    - id: located_at
+      label: LOCATED_AT
+      description: An organization operates at a location.
+      sourceTypeId: organization
+      targetTypeId: location
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/9
+    - id: documents
+      label: DOCUMENTS
+      description: A document records or describes an event.
+      sourceTypeId: document
+      targetTypeId: event
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/10
+    - id: involves_asset
+      label: INVOLVES_ASSET
+      description: An event involves a governed asset.
+      sourceTypeId: event
+      targetTypeId: asset
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/11
+    - id: governed_by_policy
+      label: GOVERNED_BY_POLICY
+      description: An event is governed by an applicable policy.
+      sourceTypeId: event
+      targetTypeId: policy
+      cardinality: many-to-many
+      sourcePath: /ontology/relationshipTypes/12
+    - id: owned_by_organization
+      label: OWNED_BY_ORGANIZATION
+      description: An asset is owned or stewarded by an organization.
+      sourceTypeId: asset
+      targetTypeId: organization
+      cardinality: many-to-one
+      sourcePath: /ontology/relationshipTypes/13

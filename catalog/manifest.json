@@ -56,6 +56,46 @@
       "description": "Portable real-estate semantics imported from the Lattice industry ontology.",
       "file": "ontologies/real-estate.yaml",
       "ref": "ladder://ontologies/builtin/real-estate"
+    },
+    {
+      "id": "airline",
+      "path": "airline/ontology",
+      "title": "Airline ontology",
+      "description": "Portable airline semantics imported from the supplied Lattice ontology.",
+      "file": "ontologies/airline.yaml",
+      "ref": "ladder://ontologies/builtin/airline"
+    },
+    {
+      "id": "telco",
+      "path": "telco/ontology",
+      "title": "Telecommunications ontology",
+      "description": "Portable telecommunications semantics imported from the supplied Lattice ontology.",
+      "file": "ontologies/telco.yaml",
+      "ref": "ladder://ontologies/builtin/telco"
+    },
+    {
+      "id": "semiconductor-manufacturing",
+      "path": "semiconductor_manufacturing/ontology",
+      "title": "Semiconductor manufacturing ontology",
+      "description": "Portable semiconductor-manufacturing semantics imported from the supplied Lattice ontology.",
+      "file": "ontologies/semiconductor-manufacturing.yaml",
+      "ref": "ladder://ontologies/builtin/semiconductor-manufacturing"
+    },
+    {
+      "id": "consumer-goods",
+      "path": "consumer_goods/ontology",
+      "title": "Consumer goods ontology",
+      "description": "Portable consumer-goods semantics imported from the supplied Lattice ontology.",
+      "file": "ontologies/consumer-goods.yaml",
+      "ref": "ladder://ontologies/builtin/consumer-goods"
+    },
+    {
+      "id": "life-sciences",
+      "path": "life_sciences/ontology",
+      "title": "Life sciences and pharma ontology",
+      "description": "Portable life-sciences and pharmaceutical semantics imported from the supplied Lattice ontology.",
+      "file": "ontologies/life-sciences.yaml",
+      "ref": "ladder://ontologies/builtin/life-sciences"
     }
   ],
   "forms": [

@@ -4,7 +4,7 @@ import { importDocuBricksSchema, importLatticeOntology } from "../src/compiler/a
 
 describe("portable artifact importers", () => {
   it("publishes a traceable report for every curated Lattice ontology import", () => {
-    expect(latticeReport.imports).toHaveLength(7);
+    expect(latticeReport.imports).toHaveLength(12);
     expect(latticeReport.imports.every((entry) => entry.sourceDigest.startsWith("sha256:"))).toBe(true);
     expect(latticeReport.imports.every((entry) => entry.omittedSemantics.includes("runtime behavior"))).toBe(true);
   });
