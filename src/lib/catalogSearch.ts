@@ -1,4 +1,4 @@
-import { ARTIFACT_TEMPLATES, ROLE_TEMPLATES, WORKFLOW_TEMPLATES } from "../generated/catalog";
+import { ARTIFACT_INDEX, ROLE_TEMPLATES, WORKFLOW_TEMPLATES } from "../generated/catalog";
 import type { InputModality } from "../types";
 
 export type CatalogSearchKind = "subject" | "workflow" | "agent" | "form" | "document";
@@ -104,10 +104,6 @@ function tokens(value: string) {
   return normalize(value).split(" ").filter(Boolean);
 }
 
-function unique(values: string[]) {
-  return [...new Set(values.map(normalize).filter(Boolean))];
-}
-
 function titleCasePathPart(value: string) {
   return value
     .replaceAll("_", " ")
@@ -129,15 +125,6 @@ function yamlTerms(yaml: string) {
     if (values.length >= 80) break;
   }
   return values;
-}
-
-function countYamlItems(yaml: string, marker: "fields" | "validationRules") {
-  const markerIndex = yaml.indexOf(`\n  ${marker}:`);
-  if (markerIndex < 0) return 0;
-  const tail = yaml.slice(markerIndex + marker.length + 4);
-  const nextSection = tail.search(/\n  [a-zA-Z]/);
-  const section = nextSection >= 0 ? tail.slice(0, nextSection) : tail;
-  return (section.match(/\n    - id:/g) ?? []).length;
 }
 
 export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): CatalogSearchEntry[] {
@@ -170,7 +157,7 @@ export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): Cata
       detail: workflow.topology,
       tags: workflow.modalities,
       action: "open-workflow",
-      primaryText: `${workflow.title} ${workflow.area} ${workflow.eyebrow}`,
+      primaryText: `${workflow.title} ${workflow.area} ${workflow.eyebrow} workflow`,
       secondaryText: `${workflow.description} ${workflow.topology} ${workflow.path} ${yamlTerms(workflow.yaml).join(" ")}`,
       aliases: [],
     });
@@ -189,17 +176,15 @@ export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): Cata
       detail: `${agent.skills.length} skills`,
       tags: agent.skills.slice(0, 3),
       action: "create-with-agent",
-      primaryText: `${agent.name} ${agent.role} ${agent.areas.join(" ")}`,
+      primaryText: `${agent.name} ${agent.role} ${agent.areas.join(" ")} agent`,
       secondaryText: `${agent.prompt} ${agent.skills.join(" ")} ${agent.path} ${agent.modalities.join(" ")}`,
       aliases: [],
     });
   }
 
-  for (const artifact of ARTIFACT_TEMPLATES) {
+  for (const artifact of ARTIFACT_INDEX) {
     if (artifact.kind !== "form" && artifact.kind !== "document") continue;
     const subjectArea = artifactSubject(artifact.path);
-    const fieldCount = countYamlItems(artifact.yaml, "fields");
-    const validationCount = artifact.kind === "document" ? countYamlItems(artifact.yaml, "validationRules") : 0;
     entries.push({
       key: `${artifact.kind}:${artifact.id}`,
       id: artifact.id,
@@ -209,14 +194,11 @@ export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): Cata
       subjectAreas: [subjectArea],
       modalities: [],
       eyebrow: artifact.kind === "form" ? "Portable form" : "Document contract",
-      detail:
-        artifact.kind === "form"
-          ? `${fieldCount || "Structured"} ${fieldCount === 1 ? "field" : "fields"}`
-          : `${fieldCount || "Structured"} fields${validationCount ? ` · ${validationCount} rules` : ""}`,
+      detail: artifact.kind === "form" ? "Structured human input" : "Extraction and validation contract",
       tags: [titleCasePathPart(artifact.path.split("/")[0])],
       action: artifact.kind === "form" ? "open-form" : "inspect-document",
-      primaryText: `${artifact.title} ${subjectArea} ${artifact.path}`,
-      secondaryText: `${artifact.description} ${yamlTerms(artifact.yaml).join(" ")}`,
+      primaryText: `${artifact.title} ${subjectArea} ${artifact.path} ${artifact.kind}`,
+      secondaryText: artifact.description,
       aliases: [],
     });
   }
@@ -295,11 +277,7 @@ function emptyGroups(): Record<CatalogSearchKind, CatalogSearchMatch[]> {
   return { subject: [], workflow: [], agent: [], form: [], document: [] };
 }
 
-export function searchCatalog(
-  index: CatalogSearchEntry[],
-  query: string,
-  filters: CatalogSearchFilters = {},
-): CatalogSearchResponse {
+export function searchCatalog(index: CatalogSearchEntry[], query: string, filters: CatalogSearchFilters = {}): CatalogSearchResponse {
   const normalizedQuery = normalize(query);
   const groups = emptyGroups();
   const selectedKinds = new Set(filters.kinds ?? []);
@@ -310,12 +288,13 @@ export function searchCatalog(
     return true;
   });
 
-  const exactMatches = normalizedQuery.length >= 2
-    ? baseCandidates.flatMap((entry) => {
-        const scored = scoreEntry(entry, normalizedQuery, false);
-        return scored ? [{ ...entry, ...scored }] : [];
-      })
-    : [];
+  const exactMatches =
+    normalizedQuery.length >= 2
+      ? baseCandidates.flatMap((entry) => {
+          const scored = scoreEntry(entry, normalizedQuery, false);
+          return scored ? [{ ...entry, ...scored }] : [];
+        })
+      : [];
   const allowTypo = exactMatches.length < 3 && tokens(normalizedQuery).every((term) => term.length >= 4);
   const matches = allowTypo
     ? baseCandidates.flatMap((entry) => {
@@ -326,7 +305,9 @@ export function searchCatalog(
 
   for (const match of matches) groups[match.kind].push(match);
   for (const kind of CATALOG_SEARCH_KIND_ORDER) {
-    groups[kind].sort((left, right) => right.score - left.score || left.title.localeCompare(right.title) || left.id.localeCompare(right.id));
+    groups[kind].sort(
+      (left, right) => right.score - left.score || left.title.localeCompare(right.title) || left.id.localeCompare(right.id),
+    );
   }
 
   const counts = Object.fromEntries(CATALOG_SEARCH_KIND_ORDER.map((kind) => [kind, groups[kind].length])) as Record<

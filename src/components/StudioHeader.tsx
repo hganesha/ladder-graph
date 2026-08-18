@@ -14,6 +14,7 @@ import {
   Minus,
   Plus,
   Redo2,
+  Search,
   Undo2,
   WandSparkles,
 } from "lucide-react";
@@ -27,12 +28,14 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export function StudioHeader({
   onHelp,
+  onSearch,
   onStorage,
   canExportImage,
   mcpPaired,
   onExportImage,
 }: {
   onHelp: () => void;
+  onSearch?: () => void;
   onStorage: () => void;
   canExportImage: boolean;
   mcpPaired: boolean;
@@ -121,6 +124,13 @@ export function StudioHeader({
         )}
       </div>
       <div className="header-actions">
+        {onSearch ? (
+          <button className="catalog-search-trigger" onClick={onSearch} type="button" aria-label="Search catalog">
+            <Search size={14} aria-hidden="true" />
+            <span>Search</span>
+            <kbd>⌘K</kbd>
+          </button>
+        ) : null}
         <ThemeToggle compact />
         <button className="icon-button" title="Intro and help" aria-label="Open intro and help" onClick={onHelp} type="button">
           <CircleHelp size={15} aria-hidden="true" />

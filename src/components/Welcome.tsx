@@ -38,6 +38,7 @@ import { Brand } from "./Brand";
 import { LazyHelpDialog } from "./LazyHelpDialog";
 import { StorageDialog } from "./StorageDialog";
 import { ThemeToggle } from "./ThemeToggle";
+import { UniversalCatalogSearch } from "./UniversalCatalogSearch";
 
 const DESCRIBED_WORKFLOW_AREAS = [
   { name: "Core patterns", description: "Reusable orchestration shapes for critique and bounded refinement.", icon: Sparkles },
@@ -240,7 +241,7 @@ const DESCRIBED_WORKFLOW_AREAS = [
 ] as const;
 
 const describedAreaNames = new Set<string>(DESCRIBED_WORKFLOW_AREAS.map((area) => area.name));
-const WORKFLOW_AREAS = [
+export const WORKFLOW_AREAS = [
   ...DESCRIBED_WORKFLOW_AREAS,
   ...[...new Set(WORKFLOW_TEMPLATES.map((template) => template.area))]
     .filter((name) => !describedAreaNames.has(name))
@@ -250,6 +251,7 @@ const WORKFLOW_AREAS = [
       icon: Workflow,
     })),
 ];
+export const CATALOG_SEARCH_SUBJECTS = WORKFLOW_AREAS.map(({ name, description }) => ({ name, description }));
 
 type LibraryTab = "workflows" | "agents" | "forms" | "documents" | "ontologies";
 type ModalityFilter = "all" | InputModality;
@@ -285,12 +287,16 @@ export function Welcome({
   const openAgentTemplate = useStudioStore((state) => state.openAgentTemplate);
   const openProject = useStudioStore((state) => state.openProject);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
-  const [activeArea, setActiveArea] = useState("Core patterns");
+  const [activeArea, setActiveArea] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get("subject");
+    return WORKFLOW_AREAS.some((area) => area.name === requested) ? requested! : "Core patterns";
+  });
   const [modality, setModality] = useState<ModalityFilter>("all");
   const [helpOpen, setHelpOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
   const [activeGalleryView, setActiveGalleryView] = useState<GalleryView>("starters");
   const [activeLibraryTab, setActiveLibraryTab] = useState<LibraryTab>("workflows");
+  const [catalogQuery, setCatalogQuery] = useState(() => new URLSearchParams(window.location.search).get("q") ?? "");
 
   const selectedArea = WORKFLOW_AREAS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
   const selectedTemplates = WORKFLOW_TEMPLATES.filter(
@@ -336,6 +342,34 @@ export function Welcome({
     };
   }, []);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement
+      )
+        return;
+      event.preventDefault();
+      document.querySelector<HTMLInputElement>(".catalog-search-inline input")?.focus();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const browseSubject = (event: Event) => {
+      const subject = (event as CustomEvent<string>).detail;
+      if (!WORKFLOW_AREAS.some((area) => area.name === subject)) return;
+      setActiveArea(subject);
+      setActiveGalleryView("starters");
+      setCatalogQuery("");
+    };
+    window.addEventListener("ladder-browse-subject", browseSubject);
+    return () => window.removeEventListener("ladder-browse-subject", browseSubject);
+  }, []);
+
   return (
     <main className="welcome-shell">
       <header className="welcome-header">
@@ -353,16 +387,40 @@ export function Welcome({
         </div>
       </header>
 
-      <section className="gallery-section workflow-library" aria-labelledby="gallery-title">
+      <section
+        className={`gallery-section workflow-library ${catalogQuery.trim().length >= 2 ? "search-active" : ""}`}
+        aria-labelledby="gallery-title"
+      >
         <div className="section-heading library-heading">
           <div>
             <h1 id="gallery-title">Workflow library</h1>
             <p>Start from a proven workflow or agent template, or reopen work saved in this browser.</p>
           </div>
-          <button className="quiet-button new-workflow-button" onClick={onBlank}>
-            <span>New workflow</span> <ArrowRight size={15} />
-          </button>
+          <div className="library-create-actions" aria-label="Create new project">
+            <button aria-label="New workflow" className="quiet-button new-workflow-button" onClick={onBlank} type="button">
+              <Workflow size={15} aria-hidden="true" /> <span>New workflow</span>
+            </button>
+            <button aria-label="New bundle" className="quiet-button" onClick={() => onBundle(undefined, "__new__")} type="button">
+              <PackageOpen size={15} aria-hidden="true" /> <span>New bundle</span>
+            </button>
+            <button aria-label="New ontology" className="quiet-button" onClick={() => onOntology(undefined, "__new__")} type="button">
+              <Boxes size={15} aria-hidden="true" /> <span>New ontology</span>
+            </button>
+          </div>
         </div>
+        <UniversalCatalogSearch
+          onBrowseSubject={(subject) => {
+            setActiveArea(subject);
+            setActiveGalleryView("starters");
+          }}
+          onCreateWithAgent={openAgentTemplate}
+          onInspectDocument={(templateId) => onDocument(undefined, templateId)}
+          onOpenForm={(templateId) => onForm(undefined, templateId)}
+          onOpenWorkflow={openTemplate}
+          onQueryChange={setCatalogQuery}
+          query={catalogQuery}
+          subjects={CATALOG_SEARCH_SUBJECTS}
+        />
         <div className="gallery-view-tabs" role="tablist" aria-label="Workflow library view">
           <button
             aria-controls="gallery-panel-starters"

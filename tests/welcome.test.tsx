@@ -22,6 +22,7 @@ describe("welcome gallery", () => {
   beforeEach(() => {
     vi.mocked(listProjects).mockResolvedValue([]);
     window.localStorage.clear();
+    window.history.replaceState({}, "", "/");
     document.documentElement.dataset.theme = "light";
     useStudioStore.setState({ view: "gallery", analysis: null, projectId: null });
   });
@@ -58,6 +59,23 @@ describe("welcome gallery", () => {
     expect(openAgentTemplate).toHaveBeenCalledTimes(1);
   });
 
+  it("searches the full catalog from a partial word and browses a subject result", () => {
+    render(<Welcome onBlank={() => undefined} />);
+
+    const search = screen.getByRole("combobox", { name: "Search the Ladder catalog" });
+    fireEvent.change(search, { target: { value: "underw" } });
+
+    expect(screen.getByRole("option", { name: /Insurance & underwriting, Subject areas, Browse subject/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Workflows/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Agents/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Forms/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Documents/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("option", { name: /Insurance & underwriting, Subject areas, Browse subject/i }));
+    expect(search).toHaveValue("");
+    expect(screen.getByLabelText("Subject area")).toHaveValue("Insurance & underwriting");
+  });
+
   it("launches every curated bundle as a first-class starter", () => {
     const onBundle = vi.fn();
     render(<Welcome onBlank={() => undefined} onBundle={onBundle} />);
@@ -73,6 +91,21 @@ describe("welcome gallery", () => {
     fireEvent.click(manufacturing);
 
     expect(onBundle).toHaveBeenCalledWith(undefined, "manufacturing-line-qualification");
+  });
+
+  it("offers first-class creation entry points for bundles and ontologies", () => {
+    const onBlank = vi.fn();
+    const onBundle = vi.fn();
+    const onOntology = vi.fn();
+    render(<Welcome onBlank={onBlank} onBundle={onBundle} onOntology={onOntology} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "New workflow" }));
+    fireEvent.click(screen.getByRole("button", { name: "New bundle" }));
+    fireEvent.click(screen.getByRole("button", { name: "New ontology" }));
+
+    expect(onBlank).toHaveBeenCalledOnce();
+    expect(onBundle).toHaveBeenCalledWith(undefined, "__new__");
+    expect(onOntology).toHaveBeenCalledWith(undefined, "__new__");
   });
 
   it("opens industry forms as standalone projects", () => {
