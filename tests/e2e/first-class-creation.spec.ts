@@ -70,3 +70,22 @@ test("creates an ontology by importing OWL and saves it to My library", async ({
   await page.getByRole("tab", { name: "Recent projects" }).click();
   await expect(page.getByRole("button", { name: /Facilities Ontology/ })).toBeVisible();
 });
+
+test("uses the available viewport for a new ontology workspace", async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1000 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "New ontology" }).click();
+
+  const preview = page.locator(".ontology-artifact-layout .structured-artifact-preview");
+  const source = page.locator(".ontology-artifact-layout .structured-artifact-source");
+  const workspace = page.locator(".ontology-artifact-layout .ontology-visual-workspace");
+  await expect(workspace).toBeVisible();
+
+  const [previewBox, sourceBox, workspaceBox] = await Promise.all([preview.boundingBox(), source.boundingBox(), workspace.boundingBox()]);
+  expect(previewBox).not.toBeNull();
+  expect(sourceBox).not.toBeNull();
+  expect(workspaceBox).not.toBeNull();
+  expect(sourceBox!.width).toBeLessThanOrEqual(440);
+  expect(workspaceBox!.width).toBeGreaterThan(previewBox!.width * 0.95);
+  expect(workspaceBox!.height).toBeGreaterThan(previewBox!.height * 0.75);
+});

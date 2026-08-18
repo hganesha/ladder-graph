@@ -2412,10 +2412,16 @@ button:disabled {
   min-height: 0;
 }
 .structured-artifact-layout.ontology-artifact-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 34vw);
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 440px);
 }
 .ontology-artifact-layout .structured-artifact-preview {
   padding: 20px;
+}
+.ontology-artifact-layout .ontology-visual-workspace {
+  width: 100%;
+  max-width: none;
+  min-height: max(620px, calc(100dvh - var(--header-h) - 132px));
+  margin: 0;
 }
 .ontology-artifact-layout .structured-artifact-preview > header,
 .ontology-artifact-layout .ontology-breaking-change {
