@@ -97,6 +97,24 @@ describe("bundle workspace", () => {
     expect(screen.getByText("1 included properties")).toBeInTheDocument();
   });
 
+  it("reveals compiled output after a manual compile and keeps validation in context", async () => {
+    render(<BundleStudio onBack={() => undefined} />);
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "Compile bundle" }));
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("tab", { name: "Compiled output" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("navigation", { name: "Agent-ready content" })).toBeInTheDocument();
+    expect(screen.getByText("Bundle compiled: 2 deterministic files.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Bundle & bindings" }));
+    fireEvent.change(screen.getByLabelText("Bundle title"), { target: { value: "Validated bundle" } });
+    fireEvent.click(screen.getByRole("button", { name: "Validate changes" }));
+    await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(3));
+    expect(screen.getByRole("tab", { name: "Bundle & bindings" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Bundle validated: 2 deterministic files.")).toBeInTheDocument();
+  });
+
   it("edits the attached workflow source and recompiles it as a bundle-owned asset", async () => {
     render(<BundleStudio onBack={() => undefined} />);
     await waitFor(() => expect(compileBundle).toHaveBeenCalledTimes(1));

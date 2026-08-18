@@ -16,10 +16,15 @@ test("compiles and explores the insurance workflow bundle", async ({ page }, tes
   await openInsuranceBundle(page);
 
   await expect(page.getByText("Experimental workflow bundle compiler")).toBeVisible();
-  await expect(page.getByText(/deterministic files/)).toBeVisible();
+  await expect(page.getByText(/^\d+ deterministic files$/)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Attached assets" })).toBeVisible();
   await expect(page.getByText("Semantic bindings")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("bundle-workspace.png"), fullPage: true });
+
+  await page.getByRole("button", { name: "Compile bundle" }).click();
+  await expect(page.getByRole("tab", { name: "Compiled output" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByText(/Bundle compiled: \d+ deterministic files/)).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Agent-ready content" })).toBeVisible();
 
   await page.getByRole("tab", { name: "Workflow graph" }).click();
   await expect(page.getByRole("region", { name: "Bundled workflow graph canvas" })).toBeVisible();
@@ -122,7 +127,7 @@ test("assembles and binds a bundle around another catalog workflow", async ({ pa
   await expect(page.getByLabel("Binding binding-1 source asset")).toHaveValue("ladder://forms/builtin/first-notice-of-loss");
   await expect(page.getByText("Changes pending validation")).toBeVisible();
   await page.getByRole("button", { name: "Validate changes" }).click();
-  await expect(page.getByText(/deterministic files/)).toBeVisible();
+  await expect(page.getByText(/^\d+ deterministic files$/)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("general-bundle-builder.png"), fullPage: true });
 
   await page.getByRole("tab", { name: "Compiled output" }).click();

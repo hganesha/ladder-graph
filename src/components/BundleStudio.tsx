@@ -329,6 +329,29 @@ export default function BundleStudio({
     }
   };
 
+  const compileFromHeader = async () => {
+    const validatingChanges = dirty;
+    setNotice(null);
+    const compiled = await compile();
+    if (!compiled) return;
+    const errors = compiled.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
+    const warnings = compiled.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length;
+    if (validatingChanges) {
+      setNotice(
+        errors
+          ? `Validation completed with ${errors} blocking ${errors === 1 ? "error" : "errors"}.`
+          : `Bundle validated: ${compiled.artifacts.length} deterministic files${warnings ? ` and ${warnings} warnings` : ""}.`,
+      );
+      return;
+    }
+    setTab("output");
+    setNotice(
+      errors
+        ? `Compilation completed with ${errors} blocking ${errors === 1 ? "error" : "errors"}.`
+        : `Bundle compiled: ${compiled.artifacts.length} deterministic files${warnings ? ` and ${warnings} warnings` : ""}.`,
+    );
+  };
+
   useEffect(() => {
     let active = true;
     void listProjects().then((projects) => {
@@ -617,7 +640,7 @@ export default function BundleStudio({
             <option value="python">Python</option>
             <option value="typescript">TypeScript</option>
           </select>
-          <button className="compile-button" disabled={busy} onClick={() => void compile()} type="button">
+          <button className="compile-button" disabled={busy} onClick={() => void compileFromHeader()} type="button">
             <WandSparkles size={15} /> {busy ? "Compiling…" : dirty ? "Validate changes" : "Compile bundle"}
           </button>
           <button className="compile-button bundle-save-button" disabled={busy} onClick={() => void saveBundle()} type="button">
