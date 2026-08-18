@@ -1,0 +1,76 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: tutor-program-vetting
+  title: Tutor or extracurricular program vetting
+  description: Vet a tutor, camp, or extracurricular program by checking credentials and background information and reading review sentiment, then score fit before a parent decides.
+  version: 1.0.0
+spec:
+  objective: Produce a scored, parent-approved vetting summary for a candidate tutor, camp, or extracurricular program.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor: [parent-approval]
+  nodes:
+    - id: program-candidate-info
+      kind: input
+      name: Program candidate and child profile
+      summary: The tutor, camp, or extracurricular program being considered and the child's needs.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The tutor, camp, or extracurricular program being considered and the child's needs." }
+        x-ladder-input-mode: text
+    - id: credential-background-checker
+      kind: agent
+      inlineRole: true
+      name: Credential and background checker
+      summary: Checks stated credentials and publicly available background information.
+      role: Credential and background-check researcher
+      prompt: Research the tutor or program's stated credentials, certifications, and any publicly available background-check or licensing information. Describe which official registries, licensing boards, or background-check services to consult rather than asserting unverified claims. This is not legal advice, and the family should independently verify credentials and run any required background checks themselves before enrolling the child.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: review-sentiment-reader
+      kind: agent
+      inlineRole: true
+      name: Review sentiment reader
+      summary: Summarizes parent and student review sentiment.
+      role: Parent review sentiment analyst
+      prompt: Read available parent and student reviews of the program and summarize the overall sentiment, common praise, and recurring concerns. Note the approximate volume of reviews so a single outlier review is not overweighted, and describe where the family can read the original reviews themselves.
+      capabilities: { skills: [decision-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: parallel-vetting-group
+      kind: group
+      name: Parallel credential and review check
+      summary: Runs the credential check and review-sentiment read side by side.
+      config: { members: [credential-background-checker, review-sentiment-reader], execution: parallel, exit: aggregate }
+    - id: vote-on-findings
+      kind: aggregator
+      name: Vote on combined findings
+      summary: Combines findings so no single outlier review or claim dominates.
+      config: { aggregation: vote }
+    - id: score-program-safety-fit
+      kind: evaluate
+      inlineRole: true
+      name: Score program safety and fit
+      summary: Scores the combined findings for safety, credibility, and fit.
+      role: Independent program safety and fit evaluator
+      prompt: Evaluate the combined credential and review findings and return a score, pass/fail, and clear reasons covering safety, credibility, and fit for the child. This is advisory research support only, not a professional safety certification, and the family should confirm any credential or background claim independently before enrolling.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.75 }
+    - id: parent-approval
+      kind: approval
+      name: Parent sign-off on program
+      summary: Pause for the parent to review the vetting summary and decide.
+    - id: vetting-output
+      kind: output
+      name: Program vetting summary and decision
+      summary: The final vetting summary and the parent's decision.
+  edges:
+    - { id: e1, from: program-candidate-info, to: parallel-vetting-group, kind: data }
+    - { id: e2, from: parallel-vetting-group, to: vote-on-findings, kind: data }
+    - { id: e3, from: vote-on-findings, to: score-program-safety-fit, kind: data }
+    - { id: e4, from: score-program-safety-fit, to: parent-approval, kind: data }
+    - { id: e5, from: parent-approval, to: vetting-output, kind: dependency, condition: approved }

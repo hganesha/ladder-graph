@@ -1,0 +1,49 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: moving-checklist
+  title: Moving checklist and timeline builder
+  description: Build a task list with due dates counted back from moving day, then sort it into a usable timeline.
+  version: 1.0.0
+spec:
+  objective: Produce a clear, dated checklist so nothing about the move is forgotten or left too late.
+  policies: { maxConcurrency: 2, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Move date and household details
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions, including the target move date, household size, and whether movers or a rental truck are involved. }
+        x-ladder-input-mode: text
+    - id: task-builder
+      kind: agent
+      inlineRole: true
+      name: Move task-list builder
+      role: Planner who builds a moving checklist by working backward from the move date.
+      prompt: Build a list of moving tasks (e.g., booking movers, transferring utilities, changing address, packing by room, canceling or transferring subscriptions) and assign each a due date by counting backward from the given move date. Group tasks into rough timeframes such as eight weeks out, two weeks out, moving week, and moving day. Flag any task that seems time-sensitive given the stated move date.
+      capabilities: { skills: [operations-planning], tools: [read], permissions: [read-only] }
+      outputSchema:
+        type: object
+        properties:
+          tasks:
+            type: array
+            items:
+              type: object
+              properties:
+                task: { type: string }
+                dueDate: { type: string }
+                category: { type: string }
+    - id: sorted
+      kind: transform
+      name: Sort tasks into a timeline
+      config: { operation: sort, expression: "sort tasks ascending by dueDate" }
+    - id: result
+      kind: output
+      name: Dated moving checklist
+  edges:
+    - { id: e1, from: intake, to: task-builder, kind: data }
+    - { id: e2, from: task-builder, to: sorted, kind: data }
+    - { id: e3, from: sorted, to: result, kind: data }

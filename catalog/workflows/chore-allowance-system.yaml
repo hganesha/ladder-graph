@@ -1,0 +1,64 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: chore-allowance-system
+  title: Chore and allowance system design for kids
+  description: Design a fair, age-appropriate chore and allowance system for a family's children, revise it against a fairness check, and get parent sign-off.
+  version: 1.0.0
+spec:
+  objective: Produce a workable, fair, age-appropriate chore and allowance system that the parents approve.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [approval] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Family context and constraints
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The children's ages, current chores, household goals, and any constraints the parents want reflected in the system." }
+        x-ladder-input-mode: text
+    - id: draft
+      kind: agent
+      inlineRole: true
+      name: Draft the chore and allowance system
+      role: Designer of practical household chore and allowance systems for families.
+      prompt: Draft a concrete chore and allowance system from the stated children's ages, existing chores, and household goals. Assign chores by age-appropriate difficulty, propose an allowance structure tied to completion, and state any assumptions you made about ages or expectations explicitly.
+      capabilities: { skills: [domain-analysis], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [deliverable, assumptions], properties: { deliverable: { type: string }, assumptions: { type: array, items: { type: string } } } }
+    - id: check
+      kind: evaluate
+      inlineRole: true
+      name: Fairness and age-appropriateness check
+      role: Independent evaluator focused on fairness across siblings and age-appropriateness of assigned chores.
+      prompt: Score the draft system against fairness across children of different ages, age-appropriateness of each chore, clarity of the allowance rules, and whether effort and reward are proportionate. Return a score, a pass/fail verdict, and specific reasons.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.85 }
+    - id: revise
+      kind: agent
+      inlineRole: true
+      name: Revise the chore and allowance system
+      role: Revision specialist for household systems.
+      prompt: Revise the chore and allowance system using the evaluator's specific findings on fairness and age-appropriateness. Preserve the parts of the system that already worked well and explain what changed and why.
+      capabilities: { skills: [domain-analysis], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [deliverable, resolved], properties: { deliverable: { type: string }, resolved: { type: array, items: { type: string } } } }
+    - id: revision-loop
+      kind: loop
+      name: Revision loop
+      config: { body: [check, revise], exitCondition: "check.passed == true", maxIterations: 2, onExhausted: warn }
+    - id: approval
+      kind: approval
+      name: Parent sign-off
+    - id: result
+      kind: output
+      name: Approved chore and allowance system
+  edges:
+    - { id: e1, from: intake, to: draft, kind: data }
+    - { id: e2, from: draft, to: check, kind: data }
+    - { id: e3, from: check, to: revise, kind: control, condition: "passed == false" }
+    - { id: e3-pass, from: check, to: approval, kind: control, condition: "passed == true" }
+    - { id: e4, from: revise, to: revision-loop, kind: dependency }
+    - { id: e5, from: revision-loop, to: approval, kind: control, condition: loop_exit }
+    - { id: e5-exhausted, from: revision-loop, to: approval, kind: control, condition: loop_exhausted }
+    - { id: e6, from: approval, to: result, kind: dependency, condition: approved }

@@ -1,0 +1,71 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: trade-school-research
+  title: Trade school / certification program research
+  description: Check accreditation and licensing eligibility and analyze cost and job placement for candidate vocational or certification programs.
+  version: 1.0.0
+spec:
+  objective: Produce a scored comparison of candidate trade or certification programs covering accreditation validity, licensing eligibility, and cost/outcomes.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: candidate-programs
+      kind: input
+      name: Candidate trade programs and constraints
+      summary: The candidate programs, budget, and location constraints.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The candidate trade or certification programs, budget, and location constraints." }
+        x-ladder-input-mode: text
+    - id: accreditation-licensing-checker
+      kind: agent
+      inlineRole: true
+      name: Accreditation and licensing checker
+      summary: Checks accreditation status and licensing-exam eligibility.
+      role: Vocational accreditation and licensing researcher
+      prompt: Check whether each candidate program is properly accredited and whether its certificate qualifies graduates for the relevant state licensing exam or credential. Describe which accreditation databases and state licensing board pages to check rather than asserting unverified accreditation status. This is not legal advice, and the family should confirm licensing requirements directly with the state licensing board.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: job-placement-cost-analyst
+      kind: agent
+      inlineRole: true
+      name: Job placement and cost analyst
+      summary: Researches tuition, time to completion, and placement outcomes.
+      role: Program cost and job-placement researcher
+      prompt: Research each program's published tuition, fees, typical time to completion, and job-placement or outcomes statistics. Describe what official disclosures to check, such as gainful-employment disclosures and placement reports, rather than inventing figures. This is not financial advice, and the family should confirm actual costs and outcomes with the school's admissions office.
+      capabilities: { skills: [finance-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: parallel-check-group
+      kind: group
+      name: Parallel accreditation and cost check
+      summary: Runs the accreditation and cost/placement checks side by side.
+      config: { members: [accreditation-licensing-checker, job-placement-cost-analyst], execution: parallel, exit: aggregate }
+    - id: collect-findings
+      kind: aggregator
+      name: Collect findings
+      summary: Collects both analysts' findings for scoring.
+      config: { aggregation: collect }
+    - id: score-program-viability
+      kind: evaluate
+      inlineRole: true
+      name: Score program viability
+      summary: Scores each program on accreditation, licensing, and cost reasonableness.
+      role: Independent program-viability evaluator
+      prompt: Evaluate the collected findings for each program and return a score, pass/fail, and reasons covering accreditation validity, licensing eligibility, and cost or outcome reasonableness. This is advisory research support only and not a guarantee of licensure or employment outcomes.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.7 }
+    - id: program-comparison-output
+      kind: output
+      name: Trade program comparison summary
+      summary: The scored comparison across candidate programs.
+  edges:
+    - { id: e1, from: candidate-programs, to: parallel-check-group, kind: data }
+    - { id: e2, from: parallel-check-group, to: collect-findings, kind: data }
+    - { id: e3, from: collect-findings, to: score-program-viability, kind: data }
+    - { id: e4, from: score-program-viability, to: program-comparison-output, kind: data }

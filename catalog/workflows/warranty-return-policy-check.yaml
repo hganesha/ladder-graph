@@ -1,0 +1,67 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: warranty-return-policy-check
+  title: Warranty and return policy comparison before buying
+  description: Pull out the return and warranty terms that actually matter across retailers and score the risk before buying.
+  version: 1.0.0
+spec:
+  objective: Make sure a shopper understands the real return window, fees, and warranty coverage before committing to a purchase.
+  policies:
+    maxConcurrency: 2
+    onFailure: stop
+    requireApprovalFor: []
+  nodes:
+    - id: intake
+      kind: input
+      name: Retailer policy pages
+      summary: The product plus the retailer policy pages, terms, or receipts to review.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The product being bought, plus the retailer return policy, warranty terms, or receipt text for each retailer under consideration. }
+        x-ladder-input-mode: document
+    - id: extract-retailer-a
+      kind: agent
+      inlineRole: true
+      name: Policy extractor, first retailer
+      summary: Pulls the return and warranty terms out of the first retailer's policy text.
+      role: Careful reader who turns dense policy language into plain terms.
+      prompt: Read the first retailer's return policy and warranty text and extract the actual terms in plain language, such as the return window, restocking fee, warranty length, and who pays return shipping. Quote or closely paraphrase the source rather than assuming a standard industry term applies. Note explicitly any term that is not stated or is ambiguous in the source text.
+      capabilities: { skills: [compliance-review], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: extract-retailer-b
+      kind: agent
+      inlineRole: true
+      name: Policy extractor, second retailer
+      summary: Pulls the return and warranty terms out of the second retailer's policy text and combines them with the first.
+      role: Careful reader who turns dense policy language into plain terms.
+      prompt: Read the second retailer's return policy and warranty text and extract the actual terms in plain language, such as the return window, restocking fee, warranty length, and who pays return shipping. Combine this with the first retailer's extracted terms into one side-by-side set, without changing or assuming anything about the first retailer's terms. Note explicitly any term that is not stated or is ambiguous in the source text.
+      capabilities: { skills: [compliance-review], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: select-key-terms
+      kind: transform
+      name: Select the terms that matter
+      summary: Narrow the extracted policies down to the fields that actually drive risk.
+      config: { operation: select, expression: "keep only return window, restocking fee, warranty length, and who pays return shipping for each retailer" }
+    - id: risk-evaluate
+      kind: evaluate
+      inlineRole: true
+      name: Purchase risk score
+      summary: Score how risky each retailer's terms are for this purchase.
+      role: Neutral evaluator scoring buyer risk from stated policy terms alone.
+      prompt: Using the selected terms, score how much buyer risk each retailer's return and warranty terms create, such as a short return window, a high restocking fee, a short warranty, or shipping costs the buyer must cover. Base the score only on the terms actually extracted, and treat any missing or ambiguous term as added risk rather than assuming a favorable default. Explain the specific terms driving the score for each retailer.
+      capabilities: { skills: [risk-analysis], tools: [read, calculate], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.6 }
+    - id: result
+      kind: output
+      name: Policy risk comparison
+      summary: The side-by-side terms and risk score for each retailer.
+  edges:
+    - { id: e1, from: intake, to: extract-retailer-a, kind: data }
+    - { id: e2, from: extract-retailer-a, to: extract-retailer-b, kind: data }
+    - { id: e3, from: extract-retailer-b, to: select-key-terms, kind: data }
+    - { id: e4, from: select-key-terms, to: risk-evaluate, kind: data }
+    - { id: e5, from: risk-evaluate, to: result, kind: data }

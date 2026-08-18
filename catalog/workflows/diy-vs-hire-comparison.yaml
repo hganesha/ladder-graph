@@ -1,0 +1,61 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: diy-vs-hire-comparison
+  title: DIY vs. hire-out cost and effort comparison
+  description: Estimate DIY and hire-out paths in parallel, merge the signals, and recommend which approach fits the household.
+  version: 1.0.0
+spec:
+  objective: Help a household decide whether to do a home project themselves or hire it out.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Project description and constraints
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions, including the project, the household's skill level, available time, and any budget ceiling. }
+        x-ladder-input-mode: text
+    - id: diy-estimator
+      kind: agent
+      inlineRole: true
+      name: DIY cost, time, and risk estimator
+      role: Estimator sizing the do-it-yourself path for a home project.
+      prompt: Describe what materials and tools the project would likely require and how to look up typical price ranges for them, estimate the time a person at the stated skill level would need, and flag safety, permit, or code risks that make the project unsuitable for DIY. Do not invent specific prices; describe where to check current costs and note the uncertainty in any estimate.
+      capabilities: { skills: [domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: hire-estimator
+      kind: agent
+      inlineRole: true
+      name: Hire-out cost and time estimator
+      role: Estimator sizing the hire-a-professional path for a home project.
+      prompt: Describe the typical scope of work a hired professional would cover for this project, how to gather comparable local quotes, and a rough turnaround time based on project complexity. Do not fabricate specific contractor names or prices; describe what to look up and how wide quote ranges typically are.
+      capabilities: { skills: [domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: estimate-group
+      kind: group
+      name: Parallel DIY and hire-out estimation
+      config: { members: [diy-estimator, hire-estimator], execution: parallel, exit: aggregate }
+    - id: merge-estimates
+      kind: aggregator
+      name: Merge DIY and hire-out estimates
+      config: { aggregation: merge }
+    - id: recommendation
+      kind: evaluate
+      inlineRole: true
+      name: DIY vs. hire recommendation
+      role: Independent evaluator weighing cost, time, and risk to recommend an approach.
+      prompt: Weigh the merged DIY and hire-out estimates against the household's stated skill level, available time, and budget ceiling, and recommend which approach fits best. Return the recommendation with a score reflecting confidence and the concrete reasons behind it, including any risk factors that should override a purely cost-based choice.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.6 }
+    - id: result
+      kind: output
+      name: DIY vs. hire recommendation with reasoning
+  edges:
+    - { id: e1, from: intake, to: estimate-group, kind: data }
+    - { id: e2, from: estimate-group, to: merge-estimates, kind: data }
+    - { id: e3, from: merge-estimates, to: recommendation, kind: data }
+    - { id: e4, from: recommendation, to: result, kind: data }

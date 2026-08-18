@@ -1,0 +1,57 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: fitness-nutrition-plan
+  title: Fitness or nutrition plan draft with iteration
+  description: Draft a fitness or nutrition plan from stated goals and constraints, then iteratively refine it against realism and safety checks.
+  version: 1.0.0
+spec:
+  objective: Produce a realistic, appropriately cautious draft fitness or nutrition plan matched to the person's stated goals and constraints, flagging anything that should be reviewed by a professional first.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Goals and constraints
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The person's fitness or nutrition goals, current activity level, and any constraints such as existing conditions, injuries, or pregnancy. }
+        x-ladder-input-mode: text
+    - id: draft-plan
+      kind: agent
+      inlineRole: true
+      name: Plan drafter
+      role: Practical fitness and nutrition plan drafter, cautious about medical constraints.
+      prompt: Draft a general fitness or nutrition plan based on the stated goals, current activity level, and constraints. This is general wellness information only, not medical or nutritional prescription; do not diagnose any condition and do not recommend medication changes. If any stated constraint sounds like it needs a doctor's or registered dietitian's input before proceeding, such as an existing condition, pregnancy, or an injury, explicitly flag it in the plan and recommend professional consultation before starting. Always note that anyone should stop and seek professional care if something feels wrong.
+      capabilities: { skills: [research, clinical-review], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: check-plan
+      kind: evaluate
+      inlineRole: true
+      name: Plan realism and safety checker
+      role: Cautious checker of plan realism, goal alignment, and flagged medical constraints.
+      prompt: Check the drafted plan against the stated goals, flagged medical constraints, and general realism, such as reasonable pace of progression. Confirm that any constraint needing a doctor's or registered dietitian's input, such as an existing condition, pregnancy, or an injury, has been clearly flagged with a recommendation to consult that professional before proceeding. Do not diagnose or make medical claims yourself; only assess whether the plan is realistic and appropriately cautious. Mark passed as true only when the plan is realistic and all relevant constraints are flagged for professional review.
+      capabilities: { skills: [evaluation, clinical-review], tools: [read], permissions: [read-only] }
+      outputSchema:
+        type: object
+        required: [score, passed, reasons]
+        properties:
+          score: { type: number }
+          passed: { type: boolean }
+          reasons: { type: array, items: { type: string } }
+      config: { threshold: 0.7 }
+    - id: refine-loop
+      kind: loop
+      name: Draft-and-check refinement loop
+      config: { body: [draft-plan, check-plan], exitCondition: "check-plan.passed == true", maxIterations: 3, onExhausted: warn }
+    - id: result
+      kind: output
+      name: Draft plan with flagged professional-review items
+  edges:
+    - { id: e1, from: intake, to: draft-plan, kind: data }
+    - { id: e2, from: draft-plan, to: check-plan, kind: data }
+    - { id: e3, from: check-plan, to: result, kind: control, condition: "passed == true" }
+    - { id: e4, from: check-plan, to: refine-loop, kind: control, condition: "passed == false" }
+    - { id: e5, from: refine-loop, to: result, kind: control, condition: loop_exit }
+    - { id: e6, from: refine-loop, to: result, kind: control, condition: loop_exhausted }

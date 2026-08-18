@@ -1,0 +1,68 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: financial-aid-search
+  title: Financial aid and scholarship search
+  description: Find plausible financial aid and scholarship options for a student, filter to eligible and unique entries, and compile deadlines and requirements.
+  version: 1.0.0
+spec:
+  objective: Produce a deduplicated, eligibility-filtered list of financial aid and scholarship options with compiled deadlines and requirements.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: student-financial-profile
+      kind: input
+      name: Student and family financial profile
+      summary: The student's academic profile, family financial situation, and target schools or programs.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The student's academic profile, family financial situation, and target schools or programs." }
+        x-ladder-input-mode: text
+    - id: aid-scholarship-finder
+      kind: agent
+      inlineRole: true
+      name: Aid and scholarship finder
+      summary: Searches for categories of aid and scholarships that could match the student.
+      role: Financial aid and scholarship researcher
+      prompt: Search for categories of financial aid, grants, and scholarships that could plausibly match the student's profile, such as need-based aid, merit scholarships, local or community scholarships, and field-of-study scholarships. Describe what official sources to check, such as FAFSA, school financial aid pages, and scholarship databases, rather than inventing specific award amounts or deadlines you have not verified. This is not financial advice, and the family should confirm every detail on the official aid office or scholarship provider page before applying.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: filter-eligible
+      kind: transform
+      name: Filter to likely-eligible options
+      summary: Keeps only aid and scholarships the student plausibly qualifies for.
+      config: { operation: filter, expression: "keep only aid and scholarships the student plausibly qualifies for" }
+    - id: dedup-options
+      kind: transform
+      name: Remove duplicate listings
+      summary: Removes duplicate aid and scholarship entries found across sources.
+      config: { operation: deduplicate, expression: "remove duplicate aid and scholarship entries across sources" }
+    - id: compile-deadlines-requirements
+      kind: agent
+      inlineRole: true
+      name: Deadline and requirements compiler
+      summary: Compiles application requirements and deadline structure for each option.
+      role: Financial aid deadline and requirements compiler
+      prompt: For each remaining aid or scholarship option, compile the application requirements and deadline structure, noting where the family must verify the exact date and document list on the official page. Do not fabricate specific deadlines or amounts; flag anything unverified as needing confirmation. This is informational only, not financial advice, and the family must confirm final details with the official aid office or scholarship page before applying.
+      capabilities: { skills: [product-management], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: collect-aid-options
+      kind: aggregator
+      name: Collect final aid list
+      summary: Collects the compiled aid and scholarship entries into one list.
+      config: { aggregation: collect }
+    - id: aid-options-output
+      kind: output
+      name: Financial aid and scholarship shortlist
+      summary: The final filtered, deduplicated list with deadlines and requirements.
+  edges:
+    - { id: e1, from: student-financial-profile, to: aid-scholarship-finder, kind: data }
+    - { id: e2, from: aid-scholarship-finder, to: filter-eligible, kind: data }
+    - { id: e3, from: filter-eligible, to: dedup-options, kind: data }
+    - { id: e4, from: dedup-options, to: compile-deadlines-requirements, kind: data }
+    - { id: e5, from: compile-deadlines-requirements, to: collect-aid-options, kind: data }
+    - { id: e6, from: collect-aid-options, to: aid-options-output, kind: data }

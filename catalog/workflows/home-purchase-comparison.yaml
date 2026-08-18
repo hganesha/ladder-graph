@@ -1,0 +1,75 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: home-purchase-comparison
+  title: "Home purchase or rental comparison"
+  description: Compare candidate homes or rentals on price/value, schools/commute, and safety/flood risk, then score them against the family's stated priorities.
+  version: 1.0.0
+spec:
+  objective: Help a family decide whether their current candidate homes are ready to shortlist or whether the search should expand.
+  policies: { maxConcurrency: 4, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Candidate homes and family priorities
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The candidate homes/listings, the family's stated priorities (e.g. schools, commute, budget), and any constraints. }
+        x-ladder-input-mode: text
+    - id: price-value-analyst
+      kind: agent
+      inlineRole: true
+      name: Price and value analyst
+      role: Analyst assessing price and value for each candidate home.
+      prompt: Assess each candidate home's asking price relative to comparable recent listings in the area, describing the comparison in relative terms rather than asserting a specific fair-market number as fact. Note which figures depend on current market data and should be re-checked before any offer.
+      capabilities: { skills: [research, domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, properties: { per_home_value_notes: { type: array, items: { type: string } } } }
+    - id: schools-commute-analyst
+      kind: agent
+      inlineRole: true
+      name: Schools and commute analyst
+      role: Analyst assessing school quality signals and commute impact for each candidate home.
+      prompt: Research general school-quality signals and estimate typical commute times from each candidate home to the family's stated work/school locations, describing these as estimates to verify rather than fixed facts. Flag that school ratings and commute times should be reconfirmed with current data before deciding.
+      capabilities: { skills: [research, domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, properties: { per_home_school_commute_notes: { type: array, items: { type: string } } } }
+    - id: safety-risk-analyst
+      kind: agent
+      inlineRole: true
+      name: Safety and flood-risk analyst
+      role: Analyst assessing safety and environmental risk signals for each candidate home.
+      prompt: Research publicly available safety and flood/environmental risk signals for each candidate home's area, describing risk categories rather than asserting a specific official risk rating as fact. Point to where to verify current flood zone or hazard designations. Flag that these designations can change and should be reconfirmed before closing.
+      capabilities: { skills: [research, domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, properties: { per_home_risk_notes: { type: array, items: { type: string } } } }
+    - id: comparison-group
+      kind: group
+      name: Parallel home comparison analyses
+      config: { members: [price-value-analyst, schools-commute-analyst, safety-risk-analyst], execution: parallel, exit: aggregate }
+    - id: merged-profile
+      kind: aggregator
+      name: Merge per-home analyses into one profile per candidate
+      config: { aggregation: merge }
+    - id: weighted-score
+      kind: evaluate
+      inlineRole: true
+      name: Score candidates against family priorities
+      role: Independent evaluator who scores each candidate home against the family's stated priorities.
+      prompt: Using the merged price/value, schools/commute, and safety/risk notes, score each candidate home against the family's stated priorities and determine whether the current candidates are strong enough to shortlist or whether the search should expand. Explain the reasoning behind the score and note any figures that still need to be reconfirmed before a decision is finalized.
+      capabilities: { skills: [evaluation, domain-analysis], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [scores, ready_to_shortlist, reasoning], properties: { scores: { type: array, items: { type: object, properties: { home: { type: string }, score: { type: number } } } }, ready_to_shortlist: { type: boolean }, reasoning: { type: string } } }
+      config: { threshold: 0.65 }
+    - id: decision
+      kind: condition
+      name: Shortlist readiness
+      config: { expression: "weighted-score.ready_to_shortlist", branches: [ { label: "Shortlist ready", when: shortlist_ready }, { label: "Expand search", when: expand_search } ] }
+    - id: result
+      kind: output
+      name: Home comparison outcome
+  edges:
+    - { id: e1, from: intake, to: comparison-group, kind: data }
+    - { id: e2, from: comparison-group, to: merged-profile, kind: data }
+    - { id: e3, from: merged-profile, to: weighted-score, kind: data }
+    - { id: e4, from: weighted-score, to: decision, kind: data }
+    - { id: e5, from: decision, to: result, kind: control, condition: shortlist_ready }
+    - { id: e6, from: decision, to: result, kind: control, condition: expand_search }

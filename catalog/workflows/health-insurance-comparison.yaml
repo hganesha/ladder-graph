@@ -1,0 +1,72 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: health-insurance-comparison
+  title: Health insurance plan comparison during open enrollment
+  description: Normalize and compare candidate health insurance plans on cost and coverage to help a family choose during open enrollment.
+  version: 1.0.0
+spec:
+  objective: Give the family a clear, comparable estimate of annual cost and coverage fit across candidate health insurance plans, without offering medical advice.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Candidate plan documents and household needs
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The candidate plan documents or summaries, plus the household's expected care needs and providers. }
+        x-ladder-input-mode: text
+    - id: normalize-plans
+      kind: transform
+      name: Normalize plan documents to comparable fields
+      config: { operation: select, expression: "extract premium, deductible, out-of-pocket max, copays, and network fields from each plan document" }
+    - id: cost-analyst
+      kind: agent
+      inlineRole: true
+      name: Premium and out-of-pocket cost analyst
+      role: Careful analyst of insurance premium and out-of-pocket cost structures.
+      prompt: Analyze the normalized plan fields for premiums, deductibles, copays, and out-of-pocket maximums for each candidate plan. Present this as general cost-structure information only; this workflow does not provide medical advice, does not diagnose, and does not recommend treatment or medication changes. Note that actual costs depend on real usage and the household should confirm details with the insurer before enrolling.
+      capabilities: { skills: [research, risk-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: coverage-analyst
+      kind: agent
+      inlineRole: true
+      name: Coverage and network analyst
+      role: Careful analyst of plan coverage terms and provider network breadth.
+      prompt: Analyze the normalized plan fields for covered services, exclusions, and network breadth relative to the household's stated needs and providers. This is general coverage information only, not medical advice; it does not diagnose or recommend treatment. Note that the household should verify specific coverage and provider network status directly with the insurer before enrolling, and consult a doctor for any clinical questions.
+      capabilities: { skills: [research, risk-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: analysis-group
+      kind: group
+      name: Parallel plan analysis
+      config: { members: [cost-analyst, coverage-analyst], execution: parallel, exit: aggregate }
+    - id: merge-analysis
+      kind: aggregator
+      name: Merge cost and coverage analysis
+      config: { aggregation: merge }
+    - id: estimate-fit
+      kind: evaluate
+      inlineRole: true
+      name: Annual cost and fit estimator
+      role: Neutral estimator of total expected annual cost and overall fit for each plan.
+      prompt: Combine the cost and coverage analysis to estimate total expected annual cost and an overall fit score for each candidate plan against the household's stated needs. This is a financial and logistical estimate only, not medical advice, and does not diagnose or recommend any treatment or medication. Remind the household that estimates depend on assumptions about usage and should be confirmed with the insurer before the enrollment deadline.
+      capabilities: { skills: [evaluation, risk-analysis], tools: [read], permissions: [read-only] }
+      outputSchema:
+        type: object
+        required: [score, passed, reasons]
+        properties:
+          score: { type: number }
+          passed: { type: boolean }
+          reasons: { type: array, items: { type: string } }
+      config: { threshold: 0.5 }
+    - id: result
+      kind: output
+      name: Plan comparison with estimated annual cost and fit
+  edges:
+    - { id: e1, from: intake, to: normalize-plans, kind: data }
+    - { id: e2, from: normalize-plans, to: analysis-group, kind: data }
+    - { id: e3, from: analysis-group, to: merge-analysis, kind: data }
+    - { id: e4, from: merge-analysis, to: estimate-fit, kind: data }
+    - { id: e5, from: estimate-fit, to: result, kind: data }

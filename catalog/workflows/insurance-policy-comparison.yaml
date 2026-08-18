@@ -1,0 +1,66 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: insurance-policy-comparison
+  title: Life, auto, or home insurance policy comparison
+  description: Normalize and compare insurance policy quotes on price and coverage gaps, then score overall value and fit.
+  version: 1.0.0
+spec:
+  objective: Help a family compare life, auto, or home insurance policy options on price and coverage, and produce a value/fit score with clear reasoning, as general informational research rather than financial advice.
+  policies: { maxConcurrency: 3, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Policy quotes and family requirements
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The policy quotes or documents to compare, plus the family's coverage needs and budget. }
+        x-ladder-input-mode: document
+    - id: normalize-terms
+      kind: transform
+      name: Normalize policy terms
+      config: { operation: select, expression: "extract premium, deductible, coverage limits, exclusions, and term length into comparable fields per policy" }
+    - id: price-analyst
+      kind: agent
+      inlineRole: true
+      name: Price analyst
+      role: Careful, non-advisory analyst of insurance pricing.
+      prompt: Compare the normalized premiums, deductibles, and fees across the policies. State plainly that this is general informational research only, not financial advice, and recommend the family confirm final numbers with a licensed insurance advisor before purchasing. Summarize which policy is cheapest under which assumptions.
+      capabilities: { skills: [research, finance-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: coverage-gap-analyst
+      kind: agent
+      inlineRole: true
+      name: Coverage-gap analyst
+      role: Careful, non-advisory analyst of insurance coverage gaps.
+      prompt: Compare the normalized coverage limits and exclusions across the policies against the family's stated needs. State plainly that this is general informational research only, not financial advice, and recommend the family confirm coverage adequacy with a licensed insurance advisor before purchasing. List any gaps or exclusions that could matter to this family.
+      capabilities: { skills: [research, risk-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: compare-group
+      kind: group
+      name: Parallel price and coverage comparison
+      config: { members: [price-analyst, coverage-gap-analyst], execution: parallel, exit: aggregate }
+    - id: merge-findings
+      kind: aggregator
+      name: Merge price and coverage findings
+      config: { aggregation: merge }
+    - id: value-fit-score
+      kind: evaluate
+      inlineRole: true
+      name: Value and fit score
+      role: Independent evaluator of overall policy value and fit.
+      prompt: Using the merged price and coverage findings, score how well each policy fits the family's stated needs and budget. This is general informational research only, not financial advice; recommend the family confirm the final choice with a licensed insurance advisor. Return score, passed, and reasons.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.7 }
+    - id: result
+      kind: output
+      name: Policy comparison and value/fit score
+  edges:
+    - { id: e1, from: intake, to: normalize-terms, kind: data }
+    - { id: e2, from: normalize-terms, to: compare-group, kind: data }
+    - { id: e3, from: compare-group, to: merge-findings, kind: data }
+    - { id: e4, from: merge-findings, to: value-fit-score, kind: data }
+    - { id: e5, from: value-fit-score, to: result, kind: data }

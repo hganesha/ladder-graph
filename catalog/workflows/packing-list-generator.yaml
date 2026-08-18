@@ -1,0 +1,39 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: packing-list-generator
+  title: "Packing list generator tailored to trip and forecast"
+  description: Build a packing list from the trip's planned activities and expected conditions, then organize it by category for easy use.
+  version: 1.0.0
+spec:
+  objective: Produce a categorized packing list tailored to the trip's activities and expected weather.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Trip details
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: Destination, travel dates, planned activities, and traveler count. }
+        x-ladder-input-mode: text
+    - id: list-builder
+      kind: agent
+      inlineRole: true
+      name: Packing list builder
+      role: Trip planner who builds a packing list from activities and expected conditions.
+      prompt: Build a packing list based on the planned activities and the general expected weather pattern for the travel window, describing conditions in general terms rather than a specific forecast. Include activity-specific gear and general essentials, and flag that the weather outlook should be re-checked close to departure and the list adjusted if it changes.
+      capabilities: { skills: [operations-planning], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, required: [items], properties: { items: { type: array, items: { type: object, properties: { name: { type: string }, category: { type: string } } } }, recheck_note: { type: string } } }
+    - id: category-sort
+      kind: transform
+      name: Group and sort items by category
+      config: { operation: sort, expression: "group items by category, then sort alphabetically within each category" }
+    - id: result
+      kind: output
+      name: Categorized packing list
+  edges:
+    - { id: e1, from: intake, to: list-builder, kind: data }
+    - { id: e2, from: list-builder, to: category-sort, kind: data }
+    - { id: e3, from: category-sort, to: result, kind: data }

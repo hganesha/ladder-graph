@@ -1,0 +1,70 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: study-abroad-research
+  title: Study-abroad / gap-year program research
+  description: Research a candidate study-abroad or gap-year program's academics and credit transfer alongside its safety and cost profile, then score readiness for a parent decision.
+  version: 1.0.0
+spec:
+  objective: Produce a scored, parent-approved readiness summary for a candidate study-abroad or gap-year program.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor: [parent-approval]
+  nodes:
+    - id: program-candidate-brief
+      kind: input
+      name: Study-abroad or gap-year program brief
+      summary: The candidate program, student goals, and budget.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The candidate study-abroad or gap-year program, student goals, and budget." }
+        x-ladder-input-mode: text
+    - id: program-credit-researcher
+      kind: agent
+      inlineRole: true
+      name: Program and academic-credit researcher
+      summary: Researches the curriculum and credit-transfer policy.
+      role: Study-abroad academic and credit-transfer researcher
+      prompt: Research the program's academic curriculum, credit-transfer policy, and how it aligns with the student's degree requirements. Describe which official program and home-institution registrar pages to check rather than asserting unverified transfer-credit specifics. This is informational research only, and the family should confirm actual credit transfer with the student's registrar.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: safety-cost-researcher
+      kind: agent
+      inlineRole: true
+      name: Safety and cost researcher
+      summary: Researches destination safety considerations and program cost and logistics.
+      role: Travel safety and program cost researcher
+      prompt: Research the destination's general safety considerations using official travel-advisory sources, and the program's published cost, insurance, and logistics details. Describe what travel-advisory and program-disclosure pages to check rather than inventing specific prices or safety ratings. This is not professional safety or financial advice, and the family should confirm current advisories and costs with official sources before committing.
+      capabilities: { skills: [risk-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: parallel-research-group
+      kind: group
+      name: Parallel program and safety research
+      summary: Runs the academic-credit and safety/cost research side by side.
+      config: { members: [program-credit-researcher, safety-cost-researcher], execution: parallel, exit: aggregate }
+    - id: score-program-readiness
+      kind: evaluate
+      inlineRole: true
+      name: Score program readiness
+      summary: Scores the combined academic and safety/cost findings for decision readiness.
+      role: Independent program-readiness evaluator
+      prompt: Using the combined academic and safety-or-cost findings, return a score, pass/fail, and reasons on whether the program looks ready for family decision-making. This is advisory research support only, not a guarantee of safety, cost, or credit transfer, and the family should verify current details with official sources before committing.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.75 }
+    - id: parent-approval
+      kind: approval
+      name: Parent sign-off on program
+      summary: Pause for the parent to review the readiness summary and decide.
+    - id: study-abroad-output
+      kind: output
+      name: Study-abroad program decision summary
+      summary: The final readiness summary and the parent's decision.
+  edges:
+    - { id: e1, from: program-candidate-brief, to: parallel-research-group, kind: data }
+    - { id: e2, from: parallel-research-group, to: score-program-readiness, kind: data }
+    - { id: e4, from: score-program-readiness, to: parent-approval, kind: data }
+    - { id: e5, from: parent-approval, to: study-abroad-output, kind: dependency, condition: approved }

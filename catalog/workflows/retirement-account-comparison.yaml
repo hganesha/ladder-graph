@@ -1,0 +1,44 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: retirement-account-comparison
+  title: Retirement or education savings account comparison (401k/IRA/529)
+  description: Research retirement and education savings account options and score their fit against a family's stated goals and timeline.
+  version: 1.0.0
+spec:
+  objective: Provide general informational research comparing 401k, IRA, and 529 account options against a family's stated goals and timeline, and a fit score, without giving financial advice.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Family goals, timeline, and constraints
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The family's savings goals, time horizon, income situation, and any employer plan details. }
+        x-ladder-input-mode: text
+    - id: account-researcher
+      kind: agent
+      inlineRole: true
+      name: Retirement and education account researcher
+      role: Careful, non-advisory researcher on retirement and education savings accounts.
+      prompt: Research the general characteristics of 401k, traditional and Roth IRA, and 529 accounts relevant to the family's stated goals, timeline, and constraints, including contribution limits, tax treatment, and withdrawal rules. State plainly that this is general informational research only, not financial advice, and recommend the family confirm any decision with a licensed financial advisor before acting. List open questions for that advisor.
+      capabilities: { skills: [research, finance-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: fit-score
+      kind: evaluate
+      inlineRole: true
+      name: Goal and timeline fit score
+      role: Independent evaluator of account fit against the family's stated goals.
+      prompt: Score how well each researched account type fits the family's stated goals, timeline, and constraints. This is general informational research only, not financial advice; recommend the family confirm the final choice with a licensed financial advisor before acting. Return score, passed, and reasons.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.75 }
+    - id: result
+      kind: output
+      name: Account comparison and fit score
+  edges:
+    - { id: e1, from: intake, to: account-researcher, kind: data }
+    - { id: e2, from: account-researcher, to: fit-score, kind: data }
+    - { id: e3, from: fit-score, to: result, kind: data }

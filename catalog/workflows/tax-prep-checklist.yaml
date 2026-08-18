@@ -1,0 +1,51 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: tax-prep-checklist
+  title: Tax-prep document checklist and deduction research
+  description: Build a document checklist and research potentially relevant deductions or credits in parallel, then collect both into one packet.
+  version: 1.0.0
+spec:
+  objective: Help a household get organized for tax filing with a document checklist and informational deduction research.
+  policies: { maxConcurrency: 2, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Household tax situation
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The requester's objective, source material, or instructions, including filing status, income sources, and any major life events for the tax year. }
+        x-ladder-input-mode: text
+    - id: checklist-builder
+      kind: agent
+      inlineRole: true
+      name: Tax document checklist builder
+      role: Organizer who builds a checklist of documents typically needed for a household's tax filing situation.
+      prompt: Based on the stated filing status, income sources, and life events, build a checklist of documents that are typically needed for filing (such as income statements, receipts for deductible expenses, prior-year returns, and records of major life events). This is general informational research only, not tax advice; state clearly that the household should confirm the exact document requirements with a CPA, enrolled agent, or the relevant tax authority's official guidance before filing.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: deduction-researcher
+      kind: agent
+      inlineRole: true
+      name: Deduction and credit researcher
+      role: Researcher identifying deductions or credits that may be worth investigating for this household's situation.
+      prompt: Based on the stated income sources and life events, research categories of deductions or credits that commonly apply to similar situations (such as dependent-related credits, education expenses, or home-office use) and describe what documentation each would require. Do not state specific dollar amounts or eligibility as fact. This is general informational research only, not tax advice; recommend the household confirm actual eligibility and amounts with a CPA or the relevant tax authority's official guidance before filing.
+      capabilities: { skills: [research], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: research-group
+      kind: group
+      name: Parallel checklist and deduction research
+      config: { members: [checklist-builder, deduction-researcher], execution: parallel, exit: aggregate }
+    - id: collect-results
+      kind: aggregator
+      name: Collect checklist and research findings
+      config: { aggregation: collect }
+    - id: result
+      kind: output
+      name: Tax-prep packet with checklist and informational research
+  edges:
+    - { id: e1, from: intake, to: research-group, kind: data }
+    - { id: e2, from: research-group, to: collect-results, kind: data }
+    - { id: e3, from: collect-results, to: result, kind: data }

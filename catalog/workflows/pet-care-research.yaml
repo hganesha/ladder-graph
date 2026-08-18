@@ -1,0 +1,44 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: pet-care-research
+  title: Vet, pet insurance, and adoption research
+  description: Research veterinary care, pet insurance, and breed or adoption options and score their fit and cost for a family's situation.
+  version: 1.0.0
+spec:
+  objective: Provide general informational research on veterinary care, pet insurance, and breed or adoption options, and a fit and cost score, for a family considering a pet decision.
+  policies: { maxConcurrency: 2, onFailure: stop, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Family situation and pet preferences
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The family's living situation, budget, activity level, and preferences for a pet, breed, or adoption option. }
+        x-ladder-input-mode: text
+    - id: pet-researcher
+      kind: agent
+      inlineRole: true
+      name: Vet, insurance, and adoption researcher
+      role: Careful, non-advisory researcher on pet care options.
+      prompt: Research veterinary care norms, pet insurance options, and breed or adoption paths relevant to the family's stated situation and preferences. State plainly that this is general informational research only, not veterinary or financial advice, and recommend the family confirm specifics with a licensed veterinarian and, for insurance, review policy terms directly with the insurer before deciding. Note typical costs and care requirements.
+      capabilities: { skills: [research, domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: fit-cost-score
+      kind: evaluate
+      inlineRole: true
+      name: Fit and cost score
+      role: Independent evaluator of pet-option fit and affordability.
+      prompt: Score how well each researched option fits the family's stated situation, preferences, and budget, weighing likely ongoing costs. This is general informational research only, not veterinary or financial advice; recommend the family confirm final choices with a licensed veterinarian and the relevant insurer or shelter. Return score, passed, and reasons.
+      capabilities: { skills: [evaluation], tools: [read], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.7 }
+    - id: result
+      kind: output
+      name: Pet care research and fit/cost score
+  edges:
+    - { id: e1, from: intake, to: pet-researcher, kind: data }
+    - { id: e2, from: pet-researcher, to: fit-cost-score, kind: data }
+    - { id: e3, from: fit-cost-score, to: result, kind: data }

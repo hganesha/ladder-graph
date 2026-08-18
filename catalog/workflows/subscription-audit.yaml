@@ -1,0 +1,65 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: subscription-audit
+  title: Subscription and recurring-charge audit
+  description: Scan bank or card statements for recurring charges, spot the ones nobody is using, and recommend keep, downgrade, or cancel.
+  version: 1.0.0
+spec:
+  objective: Help a household find forgotten or underused subscriptions and decide what to do about each one.
+  policies:
+    maxConcurrency: 2
+    onFailure: preserve-completed
+    requireApprovalFor: []
+  nodes:
+    - id: intake
+      kind: input
+      name: Statements or subscription list
+      summary: The bank or card statements, or a list of known subscriptions, to audit.
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: The bank or card statement text, or a list of known subscriptions with amounts and how they get used. }
+        x-ladder-input-mode: document
+    - id: dedupe-merchants
+      kind: transform
+      name: Deduplicate merchant entries
+      summary: Collapse duplicate or renamed merchant entries into a single recurring charge per service.
+      config: { operation: deduplicate, expression: "merge entries that are the same recurring charge under a renamed or slightly different merchant string" }
+    - id: usage-analyst
+      kind: agent
+      inlineRole: true
+      name: Usage analyst
+      summary: Flags subscriptions that look rarely used or forgotten.
+      role: Analyst looking for subscriptions that quietly keep charging without being used.
+      prompt: Review the deduplicated recurring charges and, using whatever usage signals are available, flag subscriptions that look rarely used, duplicated by a similar service, or simply forgotten. State your confidence for each flag, since usage evidence from statements alone is often incomplete. Do not assume a subscription is unused just because it is unfamiliar; look for actual signals before flagging it.
+      capabilities: { skills: [finance-analysis], tools: [read, calculate], permissions: [read-only] }
+      outputSchema: { type: object }
+    - id: savings-evaluate
+      kind: evaluate
+      inlineRole: true
+      name: Savings and confidence score
+      summary: Score the potential savings and confidence for each flagged subscription.
+      role: Neutral evaluator turning usage flags into a savings estimate with a clear recommendation.
+      prompt: For each subscription, weigh the usage analyst's flag against its cost to estimate potential savings and a confidence level, and settle on a recommendation of keep, downgrade, or cancel for each one. Prefer downgrade over cancel when a cheaper tier of the same service would likely cover actual usage. Do not state a specific dollar savings figure that is not derivable from the charges actually seen.
+      capabilities: { skills: [evaluation], tools: [read, calculate], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons, recommendation], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } }, recommendation: { type: string, enum: [keep, downgrade, cancel] } } }
+      config: { threshold: 0.6 }
+    - id: decision
+      kind: condition
+      name: Keep, downgrade, or cancel
+      summary: Route each subscription to its recommended action.
+      config: { expression: "savings-evaluate.recommendation", branches: [ { label: "Keep", when: "keep" }, { label: "Downgrade", when: "downgrade" }, { label: "Cancel", when: "cancel" } ] }
+    - id: result
+      kind: output
+      name: Subscription audit report
+      summary: The recommended action for each subscription with the savings and confidence behind it.
+  edges:
+    - { id: e1, from: intake, to: dedupe-merchants, kind: data }
+    - { id: e2, from: dedupe-merchants, to: usage-analyst, kind: data }
+    - { id: e3, from: usage-analyst, to: savings-evaluate, kind: data }
+    - { id: e4, from: savings-evaluate, to: decision, kind: data }
+    - { id: e5, from: decision, to: result, kind: control, condition: "keep" }
+    - { id: e6, from: decision, to: result, kind: control, condition: "downgrade" }
+    - { id: e7, from: decision, to: result, kind: control, condition: "cancel" }

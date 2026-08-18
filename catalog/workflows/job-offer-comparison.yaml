@@ -1,0 +1,66 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: job-offer-comparison
+  title: Job offer comparison (comp, benefits, commute, culture)
+  description: Compare multiple job offers across compensation, benefits, commute, and culture to produce a weighted recommendation.
+  version: 1.0.0
+spec:
+  objective: Help the candidate decide between job offers using a consistent, weighted comparison of compensation, benefits, commute, and culture.
+  policies: { maxConcurrency: 3, onFailure: preserve-completed, requireApprovalFor: [] }
+  nodes:
+    - id: intake
+      kind: input
+      name: Offer details and priorities
+      inputSchema:
+        type: object
+        required: [text]
+        properties:
+          text: { type: string, description: "The offer letters or terms for each job, plus the candidate's priorities (e.g. weight given to pay, benefits, commute, culture)." }
+        x-ladder-input-mode: text
+    - id: normalize
+      kind: transform
+      name: Normalize offer terms
+      config: { operation: select, expression: "select base pay, bonus, equity, benefits, PTO, commute distance/time, and location fields from each offer" }
+    - id: comp-analyst
+      kind: agent
+      inlineRole: true
+      name: Total-compensation analyst
+      role: Compensation analyst who evaluates the full economic value of a job offer.
+      prompt: Compare the offers' base pay, bonus, equity, benefits, and PTO on a like-for-like basis. Note where offers use different structures (e.g. equity vesting schedules, signing bonuses) that make raw numbers misleading, and normalize accordingly.
+      capabilities: { skills: [domain-analysis], tools: [read, calculate], permissions: [read-only] }
+      outputSchema: { type: object, required: [comparison], properties: { comparison: { type: string }, notes: { type: array, items: { type: string } } } }
+    - id: culture-analyst
+      kind: agent
+      inlineRole: true
+      name: Culture and commute analyst
+      role: Analyst who evaluates workplace culture, commute burden, and day-to-day fit.
+      prompt: Compare the offers' stated work arrangement, commute distance or time, and any culture or team information provided. Flag anything unclear that the candidate should ask about before deciding.
+      capabilities: { skills: [domain-analysis], tools: [read, search], permissions: [read-only] }
+      outputSchema: { type: object, required: [comparison], properties: { comparison: { type: string }, notes: { type: array, items: { type: string } } } }
+    - id: offer-group
+      kind: group
+      name: Parallel offer analysis
+      config: { members: [comp-analyst, culture-analyst], execution: parallel, exit: aggregate }
+    - id: merge
+      kind: aggregator
+      name: Merge offer analysis
+      config: { aggregation: merge }
+    - id: score
+      kind: evaluate
+      inlineRole: true
+      name: Weighted decision score
+      role: Independent evaluator who combines multiple analyses into a single weighted recommendation.
+      prompt: Combine the compensation and culture/commute analyses using the candidate's stated priorities to compute a weighted score per offer. Return the scores, a recommended offer, and the reasons behind the ranking.
+      capabilities: { skills: [evaluation], tools: [read, calculate], permissions: [read-only] }
+      outputSchema: { type: object, required: [score, passed, reasons], properties: { score: { type: number }, passed: { type: boolean }, reasons: { type: array, items: { type: string } } } }
+      config: { threshold: 0.7 }
+    - id: result
+      kind: output
+      name: Offer comparison and recommendation
+  edges:
+    - { id: e1, from: intake, to: normalize, kind: data }
+    - { id: e2, from: normalize, to: offer-group, kind: data }
+    - { id: e3, from: offer-group, to: merge, kind: data }
+    - { id: e4, from: merge, to: score, kind: data }
+    - { id: e5, from: score, to: result, kind: data }
