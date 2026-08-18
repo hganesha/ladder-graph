@@ -34,15 +34,24 @@ import {
   Sparkles,
   Target,
   Trash2,
+  UserRound,
   Workflow,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ARTIFACT_INDEX, SUBJECT_AREAS } from "../generated/catalog";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
-import { deleteProject, listProjects } from "../lib/persistence";
+import { deleteProject, listProjects, listUserTemplates, type UserTemplateRecord } from "../lib/persistence";
 import { roleSubcategory } from "../lib/roleCategories";
 import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../lib/templates";
+import {
+  USER_ASSETS_SUBJECT,
+  userAgentTemplate,
+  userProjectWorkflow,
+  userWorkflowTemplate,
+  type UserAgentTemplate,
+  type UserWorkflowTemplate,
+} from "../lib/userCatalogAssets";
 import { useStudioStore } from "../store/useStudioStore";
 import type { InputModality, ProjectRecord } from "../types";
 import { Brand } from "./Brand";
@@ -110,6 +119,7 @@ const SUBJECT_AREA_ICONS: Record<string, LucideIcon> = {
   "Supply chain & logistics": Boxes,
   "Transportation & mobility": Boxes,
   Writing: Feather,
+  [USER_ASSETS_SUBJECT]: UserRound,
 };
 
 export const WORKFLOW_AREAS = SUBJECT_AREAS.map(({ name }) => ({
@@ -157,6 +167,7 @@ function pathMatchesPrefix(path: string, prefix: string): boolean {
 }
 
 function subjectForAgent(agent: (typeof ROLE_TEMPLATES)[number]): string {
+  if (agent.areas.includes(USER_ASSETS_SUBJECT)) return USER_ASSETS_SUBJECT;
   const declaredArea = agent.areas.find((area) => SUBJECT_AREAS.some((subject) => subject.name === area));
   if (declaredArea) return declaredArea;
 
@@ -171,6 +182,13 @@ function subjectForAgent(agent: (typeof ROLE_TEMPLATES)[number]): string {
       .sort((left, right) => right.prefix.length - left.prefix.length || compareCatalogLabels(left.name, right.name))[0]?.name ??
     "Uncategorized"
   );
+}
+
+function agentMatchesSubject(agent: (typeof ROLE_TEMPLATES)[number], subjectName: string): boolean {
+  if (agent.areas.includes(subjectName)) return true;
+  const subject = SUBJECT_AREAS.find((candidate) => candidate.name === subjectName);
+  if (!subject) return false;
+  return subject.agentIds.includes(agent.id) || subject.agentPathPrefixes.some((prefix) => pathMatchesPrefix(agent.path, prefix));
 }
 
 function subjectForArtifact(artifact: (typeof ARTIFACT_INDEX)[number]): string {
@@ -275,8 +293,11 @@ export function Welcome({
 }) {
   const openTemplate = useStudioStore((state) => state.openTemplate);
   const openAgentTemplate = useStudioStore((state) => state.openAgentTemplate);
+  const openUserTemplate = useStudioStore((state) => state.openUserTemplate);
   const openProject = useStudioStore((state) => state.openProject);
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
+  const [userTemplates, setUserTemplates] = useState<UserTemplateRecord[]>([]);
+  const [includeUserAssets, setIncludeUserAssets] = useState(false);
   const [activeArea, setActiveArea] = useState(() => {
     const requested = new URLSearchParams(window.location.search).get("subject");
     return SUBJECT_AREA_OPTIONS.some((area) => area.name === requested) ? requested! : DEFAULT_SUBJECT_AREA;
@@ -292,11 +313,29 @@ export function Welcome({
 
   const selectedArea = SUBJECT_AREA_OPTIONS.find((area) => area.name === activeArea) ?? WORKFLOW_AREAS[0];
   const allSubjectsSelected = selectedArea.name === ALL_SUBJECT_AREA.name;
-  const selectedTemplates = WORKFLOW_TEMPLATES.filter(
-    (template) =>
-      (allSubjectsSelected || template.area === selectedArea.name) && (modality === "all" || template.modalities.includes(modality)),
-  ).sort((left, right) => compareCatalogLabels(left.title, right.title));
-  const selectedAgents = (allSubjectsSelected ? ROLE_TEMPLATES : roleTemplatesForSubject(selectedArea.name))
+  const userWorkflowTemplates = useMemo(
+    () =>
+      [...userTemplates.map(userWorkflowTemplate), ...projects.map(userProjectWorkflow)].filter(
+        (template): template is UserWorkflowTemplate => Boolean(template),
+      ),
+    [projects, userTemplates],
+  );
+  const userAgentTemplates = useMemo(
+    () => userTemplates.map(userAgentTemplate).filter((template): template is UserAgentTemplate => Boolean(template)),
+    [userTemplates],
+  );
+  const userAssetCount = userWorkflowTemplates.length + userAgentTemplates.length;
+  const availableWorkflowTemplates = includeUserAssets ? [...WORKFLOW_TEMPLATES, ...userWorkflowTemplates] : WORKFLOW_TEMPLATES;
+  const availableAgentTemplates = includeUserAssets ? [...ROLE_TEMPLATES, ...userAgentTemplates] : ROLE_TEMPLATES;
+  const selectedTemplates = availableWorkflowTemplates
+    .filter(
+      (template) =>
+        (allSubjectsSelected || template.area === selectedArea.name) && (modality === "all" || template.modalities.includes(modality)),
+    )
+    .sort((left, right) => compareCatalogLabels(left.title, right.title));
+  const selectedAgents = (
+    allSubjectsSelected ? availableAgentTemplates : availableAgentTemplates.filter((agent) => agentMatchesSubject(agent, selectedArea.name))
+  )
     .filter((agent) => modality === "all" || agent.modalities.includes(modality))
     .sort((left, right) => compareCatalogLabels(left.name, right.name));
   const selectedBundles = artifactsForSubject(BUNDLE_TEMPLATES, selectedArea.name);
@@ -340,8 +379,10 @@ export function Welcome({
 
   useEffect(() => {
     let active = true;
-    void listProjects().then((records) => {
-      if (active) setProjects(records);
+    void Promise.all([listProjects(), listUserTemplates()]).then(([projectRecords, templateRecords]) => {
+      if (!active) return;
+      setProjects(projectRecords);
+      setUserTemplates(templateRecords);
     });
     return () => {
       active = false;
@@ -576,6 +617,24 @@ export function Welcome({
                   ))}
                 </select>
               </label>
+              <label className={`user-assets-filter ${userAssetCount === 0 ? "disabled" : ""}`}>
+                <span className="eyebrow">Personal library</span>
+                <span className="user-assets-toggle">
+                  <input
+                    aria-label="Include your assets"
+                    checked={includeUserAssets}
+                    disabled={userAssetCount === 0}
+                    onChange={(event) => setIncludeUserAssets(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span aria-hidden="true" className="toggle-track">
+                    <span />
+                  </span>
+                  <span>
+                    Include your assets <small>{userAssetCount}</small>
+                  </span>
+                </span>
+              </label>
             </fieldset>
             <section aria-labelledby={`library-tab-${activeLibraryTab}`} className="workflow-tab-panel" id="library-panel" role="tabpanel">
               <div className="workflow-group-heading">
@@ -594,31 +653,43 @@ export function Welcome({
                   groupBySubject={allSubjectsSelected}
                   items={selectedTemplates}
                   pluralLabel="workflows"
-                  renderItem={(template) => (
-                    <button
-                      aria-label={`Open ${template.title} in studio`}
-                      className="template-card"
-                      key={template.id}
-                      onClick={() => void openTemplate(template.id)}
-                      style={{ "--accent": template.accent } as React.CSSProperties}
-                    >
-                      <div className="topology-art" aria-hidden="true">
-                        <SelectedAreaIcon />
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                      <div className="template-meta">
-                        <span>{template.eyebrow}</span>
-                        <span>{template.topology}</span>
-                      </div>
-                      <h3>{template.title}</h3>
-                      <p>{template.description}</p>
-                      <strong>
-                        Open in studio <ArrowRight size={14} />
-                      </strong>
-                    </button>
-                  )}
+                  renderItem={(template) => {
+                    const ItemSubjectIcon = SUBJECT_AREA_ICONS[template.area] ?? Workflow;
+                    const { userProject, userRecord } = template as Partial<UserWorkflowTemplate>;
+                    const userAsset = userProject ?? userRecord;
+                    return (
+                      <button
+                        aria-label={`Open ${template.title} in studio`}
+                        className="template-card"
+                        data-asset-origin={userAsset ? "user" : "builtin"}
+                        key={`${userAsset ? "user" : "builtin"}:${template.id}`}
+                        onClick={() =>
+                          void (userProject
+                            ? openProject(userProject)
+                            : userRecord
+                              ? openUserTemplate(userRecord)
+                              : openTemplate(template.id))
+                        }
+                        style={{ "--accent": template.accent } as React.CSSProperties}
+                      >
+                        <div className="topology-art" aria-hidden="true">
+                          <ItemSubjectIcon />
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                        <div className="template-meta">
+                          <span>{userProject ? "Yours · project" : userRecord ? "Yours · workflow" : template.eyebrow}</span>
+                          <span>{template.topology}</span>
+                        </div>
+                        <h3>{template.title}</h3>
+                        <p>{template.description}</p>
+                        <strong>
+                          Open in studio <ArrowRight size={14} />
+                        </strong>
+                      </button>
+                    );
+                  }}
                   singularLabel="workflow"
                   subjectForItem={(template) => template.area}
                 />
@@ -671,33 +742,39 @@ export function Welcome({
                   groupBySubject={allSubjectsSelected}
                   items={selectedAgents}
                   pluralLabel="agents"
-                  renderItem={(agent) => (
-                    <button
-                      aria-label={`Start workflow with ${agent.name}`}
-                      className="template-card agent-template-card"
-                      key={agent.id}
-                      onClick={() => void openAgentTemplate(agent.id)}
-                      style={{ "--accent": "#e86b5d" } as React.CSSProperties}
-                    >
-                      <div className="agent-card-icon" aria-hidden="true">
-                        <Bot />
-                      </div>
-                      <div className="template-meta">
-                        <span>{roleSubcategory(agent)}</span>
-                        <span>{agent.skills.length} skills</span>
-                      </div>
-                      <h3>{agent.name}</h3>
-                      <p>{agent.role}</p>
-                      <div className="agent-skill-list" aria-hidden="true">
-                        {agent.skills.slice(0, 3).map((skill) => (
-                          <span key={skill}>{skill}</span>
-                        ))}
-                      </div>
-                      <strong>
-                        Create workflow <ArrowRight size={14} />
-                      </strong>
-                    </button>
-                  )}
+                  renderItem={(agent) => {
+                    const subject = allSubjectsSelected ? subjectForAgent(agent) : selectedArea.name;
+                    const ItemSubjectIcon = SUBJECT_AREA_ICONS[subject] ?? Bot;
+                    const userRecord = (agent as Partial<UserAgentTemplate>).userRecord;
+                    return (
+                      <button
+                        aria-label={`Start workflow with ${agent.name}`}
+                        className="template-card agent-template-card"
+                        data-asset-origin={userRecord ? "user" : "builtin"}
+                        key={`${userRecord ? "user" : "builtin"}:${agent.id}`}
+                        onClick={() => void (userRecord ? openUserTemplate(userRecord) : openAgentTemplate(agent.id))}
+                        style={{ "--accent": "#e86b5d" } as React.CSSProperties}
+                      >
+                        <div className="agent-card-icon" aria-hidden="true">
+                          <ItemSubjectIcon />
+                        </div>
+                        <div className="template-meta">
+                          <span>{userRecord ? "Yours · agent" : roleSubcategory(agent)}</span>
+                          <span>{agent.skills.length} skills</span>
+                        </div>
+                        <h3>{agent.name}</h3>
+                        <p>{agent.role}</p>
+                        <div className="agent-skill-list" aria-hidden="true">
+                          {agent.skills.slice(0, 3).map((skill) => (
+                            <span key={skill}>{skill}</span>
+                          ))}
+                        </div>
+                        <strong>
+                          Create workflow <ArrowRight size={14} />
+                        </strong>
+                      </button>
+                    );
+                  }}
                   singularLabel="agent"
                   subjectForItem={subjectForAgent}
                 />

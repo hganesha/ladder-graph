@@ -319,7 +319,7 @@ button:disabled {
 .library-controls {
   display: grid;
   flex: none;
-  grid-template-columns: minmax(240px, 1fr) auto minmax(150px, 180px);
+  grid-template-columns: minmax(240px, 1fr) auto minmax(150px, 180px) auto;
   align-items: end;
   gap: 14px;
   min-width: 0;
@@ -329,10 +329,75 @@ button:disabled {
   padding: 12px 0;
 }
 .subject-area-control,
-.starting-point-control {
+.starting-point-control,
+.user-assets-filter {
   display: grid;
   min-width: 0;
   gap: 7px;
+}
+.user-assets-filter.disabled {
+  opacity: 0.48;
+}
+.user-assets-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  color: #9ba8b1;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.user-assets-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.toggle-track {
+  display: flex;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  align-items: center;
+  border: 1px solid #36434b;
+  border-radius: 999px;
+  padding: 2px;
+  background: #10161a;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+.toggle-track > span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #718089;
+  transition:
+    transform 120ms ease,
+    background-color 120ms ease;
+}
+.user-assets-toggle input:checked + .toggle-track {
+  border-color: color-mix(in srgb, var(--cyan) 70%, #36434b);
+  background: color-mix(in srgb, var(--cyan) 15%, #10161a);
+}
+.user-assets-toggle input:checked + .toggle-track > span {
+  transform: translateX(12px);
+  background: var(--cyan);
+}
+.user-assets-toggle input:focus-visible + .toggle-track {
+  outline: 2px solid color-mix(in srgb, var(--cyan) 48%, transparent);
+  outline-offset: 2px;
+}
+.user-assets-toggle small {
+  color: inherit;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  opacity: 0.72;
 }
 .subject-area-select {
   display: grid;
@@ -6570,6 +6635,13 @@ button:disabled {
   background: var(--surface-2);
   color: var(--text);
 }
+:root[data-theme="light"] .user-assets-toggle {
+  color: var(--muted);
+}
+:root[data-theme="light"] .toggle-track {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
 :root[data-theme="light"] .library-heading,
 :root[data-theme="light"] .gallery-view-tabs,
 :root[data-theme="light"] .library-controls,
@@ -7046,8 +7118,17 @@ button:disabled {
     padding: 9px 0;
   }
   .subject-area-control,
-  .starting-point-control {
+  .starting-point-control,
+  .user-assets-filter {
     gap: 5px;
+  }
+  .user-assets-filter {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+  .user-assets-toggle {
+    min-height: 34px;
+    justify-content: flex-end;
   }
   .subject-area-select {
     height: 40px;

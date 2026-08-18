@@ -7,7 +7,9 @@ import { autoLayout, groupMemberPosition, scaleNodeSpacing } from "../lib/layout
 import { type MacroKind, materializeMacro } from "../lib/macros";
 import { defaultNode, ROLE_TEMPLATES } from "../lib/nodeMeta";
 import { requestPersistentStorage, saveProject } from "../lib/persistence";
+import type { UserTemplateRecord } from "../lib/persistence";
 import { BLANK_WORKFLOW, WORKFLOW_TEMPLATES } from "../lib/templates";
+import { userAgentTemplate } from "../lib/userCatalogAssets";
 import { deleteWorkflowElements } from "../lib/workflowEditing";
 import type { AnalysisResult, CompileResult, Diagnostic, LgirEdge, LgirNode, NodeKind, ProjectRecord, Target, Workflow } from "../types";
 
@@ -40,6 +42,7 @@ export interface StudioState {
   setView: (view: ViewMode) => void;
   openTemplate: (id: string) => Promise<void>;
   openAgentTemplate: (id: string) => Promise<void>;
+  openUserTemplate: (template: UserTemplateRecord) => Promise<void>;
   openBlank: () => Promise<void>;
   openProject: (project: ProjectRecord) => Promise<void>;
   setSource: (source: string, recordHistory?: boolean) => Promise<void>;
@@ -195,6 +198,26 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
         selectedEdgeId: null,
         outputOpen: false,
         compileResult: null,
+        past: [],
+        future: [],
+      });
+      await analyzeAndPersist(runtime, set, get, source);
+    },
+    openUserTemplate: async (template) => {
+      const agent = userAgentTemplate(template);
+      const rawSource = agent ? createAgentStarterSource(agent) : template.yaml;
+      const workflow = parseWorkflow(rawSource);
+      const source = workflow ? patchYaml(rawSource, ["spec", "nodes"], autoLayout(workflow.spec.nodes, workflow.spec.edges)) : rawSource;
+      set({
+        view: "studio",
+        projectId: null,
+        source,
+        lastValidSource: source,
+        selectedNodeId: agent ? "agent-1" : null,
+        selectedEdgeId: null,
+        outputOpen: false,
+        compileResult: null,
+        nodeSpacing: 1,
         past: [],
         future: [],
       });

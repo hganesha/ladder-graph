@@ -3,7 +3,7 @@ import { Code2, Sparkles, Workflow } from "lucide-react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Welcome, WORKFLOW_AREAS } from "../src/components/Welcome";
 import { ARTIFACT_INDEX } from "../src/generated/catalog";
-import { deleteProject, listProjects } from "../src/lib/persistence";
+import { deleteProject, listProjects, listUserTemplates } from "../src/lib/persistence";
 import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../src/lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
 import { useStudioStore } from "../src/store/useStudioStore";
@@ -11,6 +11,7 @@ import { useStudioStore } from "../src/store/useStudioStore";
 vi.mock("../src/lib/persistence", () => ({
   deleteProject: vi.fn(async () => undefined),
   listProjects: vi.fn(async () => []),
+  listUserTemplates: vi.fn(async () => []),
   saveProject: vi.fn(async () => ({ id: "test-project", updatedAt: Date.now() })),
   requestPersistentStorage: vi.fn(async () => false),
 }));
@@ -27,6 +28,7 @@ describe("welcome gallery", () => {
   beforeEach(() => {
     vi.mocked(deleteProject).mockResolvedValue(undefined);
     vi.mocked(listProjects).mockResolvedValue([]);
+    vi.mocked(listUserTemplates).mockResolvedValue([]);
     window.localStorage.clear();
     window.history.replaceState({}, "", "/");
     document.documentElement.dataset.theme = "light";
@@ -139,6 +141,112 @@ describe("welcome gallery", () => {
     expect(
       within(screen.getByRole("tabpanel", { name: "Ontologies" })).queryByRole("region", { name: / ontologies$/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("keeps each card's subject icon when all subjects are selected", () => {
+    render(<Welcome onBlank={() => undefined} />);
+    selectArea(":all");
+
+    const workflowGroup = screen.getByRole("region", { name: "Software engineering workflows" });
+    expect(workflowGroup.querySelector(".topology-art svg")).toHaveClass("lucide-code-xml");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
+    const agentGroup = screen.getByRole("region", { name: "Software engineering agents" });
+    expect(agentGroup.querySelector(".agent-card-icon svg")).toHaveClass("lucide-code-xml");
+  });
+
+  it("optionally includes reusable user workflows and agents", async () => {
+    const openUserTemplate = vi.fn(async () => undefined);
+    const openProject = vi.fn(async () => undefined);
+    useStudioStore.setState({ openProject, openUserTemplate });
+    vi.mocked(listProjects).mockResolvedValue([
+      {
+        id: "saved-workflow",
+        name: "My saved workflow",
+        artifactKind: "workflow",
+        yaml: "kind: Workflow",
+        lastValidYaml: `apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: my-saved-workflow
+  title: My saved workflow
+spec:
+  nodes: []
+  edges: []`,
+        target: "codex",
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]);
+    vi.mocked(listUserTemplates).mockResolvedValue([
+      {
+        id: "user-workflow",
+        kind: "workflow",
+        path: "research/software/custom",
+        title: "My delivery workflow",
+        yaml: `apiVersion: ladder.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: my-delivery-workflow
+  title: My delivery workflow
+  description: A personal delivery sequence.
+spec:
+  nodes:
+    - id: request
+      kind: input
+      inputSchema:
+        x-ladder-input-mode: text
+  edges: []`,
+        createdAt: 1,
+        updatedAt: 2,
+      },
+      {
+        id: "user-agent",
+        kind: "agent-template",
+        path: "research/legal/custom",
+        title: "My contract reviewer",
+        yaml: `apiVersion: ladder.dev/v1alpha1
+kind: AgentTemplate
+metadata:
+  name: my-contract-reviewer
+  title: My contract reviewer
+spec:
+  path: research/legal/custom
+  areas: [Legal & contracts]
+  modalities: [document]
+  role: Reviews contracts against my checklist.
+  prompt: Review the contract and return evidenced findings.
+  capabilities:
+    skills: [contract-review]
+    tools: [read]`,
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]);
+
+    render(<Welcome onBlank={() => undefined} />);
+    const includeUserAssets = screen.getByRole("checkbox", { name: "Include your assets" });
+    await waitFor(() => expect(includeUserAssets).toBeEnabled());
+    selectArea(":all");
+    expect(screen.queryByRole("button", { name: "Open My delivery workflow in studio" })).not.toBeInTheDocument();
+
+    fireEvent.click(includeUserAssets);
+    const userWorkflow = screen.getByRole("button", { name: "Open My delivery workflow in studio" });
+    expect(userWorkflow).toHaveAttribute("data-asset-origin", "user");
+    expect(userWorkflow.querySelector(".topology-art svg")).toHaveClass("lucide-code-xml");
+    fireEvent.click(userWorkflow);
+    const savedWorkflow = screen.getByRole("button", { name: "Open My saved workflow in studio" });
+    expect(savedWorkflow).toHaveAttribute("data-asset-origin", "user");
+    fireEvent.click(savedWorkflow);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
+    const userAgent = screen.getByRole("button", { name: "Start workflow with My contract reviewer" });
+    expect(userAgent).toHaveAttribute("data-asset-origin", "user");
+    expect(userAgent.querySelector(".agent-card-icon svg")).toHaveClass("lucide-scale");
+    fireEvent.click(userAgent);
+
+    expect(openUserTemplate).toHaveBeenCalledTimes(2);
+    expect(openProject).toHaveBeenCalledWith(expect.objectContaining({ id: "saved-workflow" }));
   });
 
   it("searches the full catalog from a partial word and browses a subject result", () => {
