@@ -125,33 +125,101 @@ spec:
       severity: error
       description: bom_number is required for Bill of Materials extraction.
       rule:
-        op: present
-        field: bom_number
+        op: and
+        rules:
+          - op: present
+            field: bom_number
+          - op: gt
+            left:
+              length: bom_number
+            right:
+              value: 0
       sourceExpression: bom_number IS NOT NULL AND LENGTH(TRIM(bom_number)) > 0
       supported: true
     - id: bom-revision-present
       severity: error
       description: bom_revision is required for Bill of Materials extraction.
       rule:
-        op: present
-        field: bom_revision
+        op: and
+        rules:
+          - op: present
+            field: bom_revision
+          - op: gt
+            left:
+              length: bom_revision
+            right:
+              value: 0
       sourceExpression: bom_revision IS NOT NULL AND LENGTH(TRIM(bom_revision)) > 0
       supported: true
     - id: parent-part-number-present
       severity: error
       description: parent_part_number is required for Bill of Materials extraction.
       rule:
-        op: present
-        field: parent_part_number
+        op: and
+        rules:
+          - op: present
+            field: parent_part_number
+          - op: gt
+            left:
+              length: parent_part_number
+            right:
+              value: 0
       sourceExpression: parent_part_number IS NOT NULL AND LENGTH(TRIM(parent_part_number)) > 0
       supported: true
     - id: component-items-present
       severity: error
       description: component_items is required for Bill of Materials extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: component_items
+          - op: gt
+            left:
+              length: component_items
+            right:
+              value: 0
       sourceExpression: component_items IS NOT NULL AND JSON_ARRAY_LENGTH(component_items) > 0
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      bom_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Bill of Materials workflow.
+      bom_revision:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Bill of Materials workflow.
+      parent_part_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Bill of Materials workflow.
+      component_items:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Bill of Materials workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Bill of Materials documents combine manufacturing, quality, supplier, material, and operational
+      control context.
   outputSchema:
     type: object
     properties:

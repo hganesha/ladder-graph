@@ -1,0 +1,19 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: manufacturing-procurement-receipt
+  title: Manufacturing procurement receipt bundle
+  description: Purchase-order and receiving evidence for governed procurement receipt.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-supply-02
+  ontology:
+    ref: ladder://ontologies/builtin/manufacturing
+    mode: sliver
+    selection:
+      propertyRefs: [supplier.supplier_name, purchase_order.purchase_order_number, purchase_order.total_amount, receiving_record.receiving_report_number, receiving_record.receipt_date]
+      relationshipIds: [supplied_by, orders, fulfilled_by]
+  forms:
+    - { ref: ladder://forms/docubricks/manufacturing/receiving_report, role: completion }
+  documents:
+    - { ref: ladder://documents/docubricks/manufacturing/purchase_order, role: supporting }

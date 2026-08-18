@@ -187,28 +187,129 @@ spec:
       severity: error
       description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
         audit trail, and deduplication
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: document_id
+          - op: gt
+            left:
+              length: document_id
+            right:
+              value: 0
       sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
-      supported: false
+      supported: true
     - id: avg-confidence-acceptable
       severity: warning
       description: Overall extraction confidence below 0.68 indicates the filing may be a low-quality scan,
         handwritten, or in an unsupported format; route to quarantine for human review
+      rule:
+        op: gte
+        left:
+          field: avg_confidence
+        right:
+          value: 0.68
       sourceExpression: avg_confidence >= 0.68
-      supported: false
+      supported: true
     - id: filing-type-valid-enum
       severity: warning
       description: Filing type must be a recognized enumeration; invalid values break routing to litigation
         management and e-discovery workflows
+      rule:
+        op: or
+        rules:
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Complaint
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Answer
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Motion
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Brief
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Opposition
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Reply
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Order
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Judgment
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Stipulation
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Subpoena
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Notice
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Declaration
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Deposition
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Petition
+          - op: eq
+            left:
+              field: filing_type
+            right:
+              value: Other
       sourceExpression: filing_type IN ('Complaint', 'Answer', 'Motion', 'Brief', 'Opposition', 'Reply', 'Order',
         'Judgment', 'Stipulation', 'Subpoena', 'Notice', 'Declaration', 'Deposition', 'Petition', 'Other')
-      supported: false
+      supported: true
     - id: case-number-not-null
       severity: warning
       description: Case number is the primary docket identifier; records without a case number cannot be linked to a
         matter or tracked in litigation management systems
       rule:
-        op: present
-        field: case_number
+        op: and
+        rules:
+          - op: present
+            field: case_number
+          - op: gt
+            left:
+              length: case_number
+            right:
+              value: 0
       sourceExpression: case_number IS NOT NULL AND LENGTH(TRIM(case_number)) > 0
       supported: true
     - id: court-name-present
@@ -216,8 +317,15 @@ spec:
       description: Court name is required to determine jurisdiction, applicable rules, and routing to the correct
         legal team; absence triggers review
       rule:
-        op: present
-        field: court_name
+        op: and
+        rules:
+          - op: present
+            field: court_name
+          - op: gt
+            left:
+              length: court_name
+            right:
+              value: 0
       sourceExpression: court_name IS NOT NULL AND LENGTH(TRIM(court_name)) > 0
       supported: true
     - id: filing-date-present
@@ -233,10 +341,122 @@ spec:
       severity: warning
       description: Hearing date cannot precede filing date; inversion indicates a date extraction error and flags
         the record for human review
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: hearing_date
+          - op: not
+            rule:
+              op: present
+              field: filing_date
+          - op: gte
+            left:
+              field: hearing_date
+            right:
+              field: filing_date
       sourceExpression: hearing_date IS NULL OR filing_date IS NULL OR hearing_date >= filing_date
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      case_number:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Case number is the primary docket identifier for linking filings across a matter; must be extracted
+          exactly as formatted to ensure accurate docket tracking and e-filing compliance
+      filing_date:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Filing date is the legal anchor for calculating deadlines, statutes of limitations, and response
+          windows; even a one-day error can constitute a missed deadline with procedural consequences
+      court_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Court name determines jurisdiction, applicable procedural rules, and routing to the responsible
+          legal team; errors cause misrouting of matter management tasks
+      bar_number:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Attorney bar number is required for e-filing system validation and professional responsibility
+          tracking; inaccurate values prevent filing acceptance
+      filing_type:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Filing type determines routing to litigation workflows (discovery, motions calendar, hearing
+          scheduling) and sets response deadline calculation logic
+      case_name:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Case name is used for display and search in matter management systems; must match the official case
+          caption
+      plaintiff_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Plaintiff identity is required for matter management, conflict-of-interest checks, and case
+          strategy routing
+      defendant_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Defendant identity is required for conflict-of-interest checks, OFAC screening, and litigation risk
+          assessment
+      hearing_date:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Hearing date drives calendar management and deadline reminders for litigation teams; errors can
+          cause missed court appearances
+      attorney_name:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Attorney name is required for matter management and professional responsibility tracking
+      jury_demand:
+        minConfidence: 0.82
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Jury demand status affects trial scheduling and litigation strategy; false negatives may waive jury
+          rights under applicable rules
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-claude-haiku
+    maxTokens: 8192
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Court filings and legal pleadings require precise extraction of structured case identifiers (case
+      numbers, court names, judge assignments) as well as nuanced classification of filing types, causes of
+      action, and jurisdictional bases. Legal pleadings contain specialized terminology and cross-referential
+      language that benefits from Claude Sonnet's strong legal domain understanding. The higher token budget
+      (8192) accommodates lengthy briefs, complaints with multiple counts, and motions with attached exhibits
+      or declarations. Temperature 0.0 ensures deterministic extraction of case numbers, bar numbers, and
+      filing dates — all of which must match exactly for e-filing system validation and docket management.
+      Claude Haiku serves as fallback for simple, short-form court documents such as notices, stipulations,
+      and one-page orders.
   outputSchema:
     type: object
     properties:

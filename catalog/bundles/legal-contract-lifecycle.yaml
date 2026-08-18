@@ -1,0 +1,18 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: legal-contract-lifecycle
+  title: Legal contract lifecycle bundle
+  description: Agreement and statement-of-work evidence for governed contract review.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-legal-01
+  ontology:
+    ref: ladder://ontologies/builtin/legal
+    mode: sliver
+    selection:
+      propertyRefs: [agreement.agreement_type, agreement.effective_date, agreement.governing_law, statement_of_work.sow_number, statement_of_work.total_contract_value]
+      relationshipIds: [has_party, contains, governed_by]
+  documents:
+    - { ref: ladder://documents/docubricks/legal/nda_msa, role: supporting }
+    - { ref: ladder://documents/docubricks/legal/sow, role: supporting }

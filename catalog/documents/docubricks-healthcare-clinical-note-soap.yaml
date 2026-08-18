@@ -245,16 +245,29 @@ spec:
       description: Document/encounter ID is the EMR primary key for note attribution — without it the record cannot
         be linked to an encounter, clinician, or patient in downstream systems
       rule:
-        op: present
-        field: document_id
+        op: and
+        rules:
+          - op: present
+            field: document_id
+          - op: gt
+            left:
+              length: document_id
+            right:
+              value: 0
       sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
       supported: true
     - id: avg-confidence-minimum
       severity: warning
       description: Overall extraction confidence below 0.60 indicates severe document quality issues (handwriting,
         fax artifacts, non-SOAP formatting) — route to clinical review queue rather than ingest
+      rule:
+        op: gte
+        left:
+          field: avg_confidence
+        right:
+          value: 0.6
       sourceExpression: avg_confidence >= 0.60
-      supported: false
+      supported: true
     - id: note-date-not-null
       severity: warning
       description: Note date is required for clinical timeline integrity, regulatory retention schedules, and
@@ -269,33 +282,185 @@ spec:
       description: Provider name is required for attribution, peer review routing, credentialing verification, and
         medical-legal documentation; anonymous notes must be quarantined
       rule:
-        op: present
-        field: provider_name
+        op: and
+        rules:
+          - op: present
+            field: provider_name
+          - op: gt
+            left:
+              length: provider_name
+            right:
+              value: 0
       sourceExpression: provider_name IS NOT NULL AND LENGTH(TRIM(provider_name)) > 0
       supported: true
     - id: note-type-valid-enum
       severity: warning
       description: Note type must be a recognized clinical note category for downstream care management and quality
         reporting routing; unrecognized types flag for reclassification
+      rule:
+        op: or
+        rules:
+          - op: eq
+            left:
+              field: note_type
+            right:
+              value: Progress
+          - op: eq
+            left:
+              field: note_type
+            right:
+              value: Discharge
+          - op: eq
+            left:
+              field: note_type
+            right:
+              value: Consultation
+          - op: eq
+            left:
+              field: note_type
+            right:
+              value: Admission
       sourceExpression: note_type IN ('Progress', 'Discharge', 'Consultation', 'Admission')
-      supported: false
+      supported: true
     - id: chief-complaint-present
       severity: warning
       description: Chief complaint is a core clinical documentation element; its absence may indicate extraction
         failure or a structurally incomplete note requiring clinical review
       rule:
-        op: present
-        field: chief_complaint
+        op: and
+        rules:
+          - op: present
+            field: chief_complaint
+          - op: gt
+            left:
+              length: chief_complaint
+            right:
+              value: 0
       sourceExpression: chief_complaint IS NOT NULL AND LENGTH(TRIM(chief_complaint)) > 0
       supported: true
     - id: assessment-diagnoses-present
       severity: warning
       description: At least one diagnosis must be present in the Assessment section for care coordination, billing
         code mapping, and quality measure attribution; absence flags documentation gap
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: assessment_diagnoses
+          - op: gt
+            left:
+              length: assessment_diagnoses
+            right:
+              value: 0
       sourceExpression: assessment_diagnoses IS NOT NULL AND ARRAY_SIZE(assessment_diagnoses) > 0
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      note_date:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Note date is required for clinical timeline integrity, HIPAA minimum necessary documentation, and
+          regulatory retention scheduling; incorrect dates create medical-legal liability
+      provider_npi:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Provider NPI links note to credentialed clinician record for quality reporting, attestation
+          workflows, and FHIR Practitioner resource matching; format validation is critical
+      patient_mrn:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: MRN is the EMR patient master identifier; extraction errors cause wrong-patient note attribution —
+          a patient safety event and HIPAA violation risk
+      patient_dob:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Date of birth is a required patient identity verification field and is used for age-based clinical
+          decision support; errors may cause mismatched records
+      assessment_diagnoses:
+        minConfidence: 0.8
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Diagnoses drive billing code generation, quality measure attribution, and care gap identification;
+          clinical notes often use informal terminology requiring ICD-10 inference — lower threshold reflects
+          this complexity
+      objective_vitals:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Vital signs are critical for clinical decision support (e.g., sepsis alerts, hypertension
+          management) and population health analytics; structured extraction must preserve units and values
+          accurately
+      chief_complaint:
+        minConfidence: 0.82
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Chief complaint drives care pathway routing and patient communication; lower threshold acceptable
+          as it is often free text in provider's words rather than a labeled field
+      provider_name:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Provider name required for note attribution, medical staff credentialing verification, and peer
+          review workflows; format variability (signature vs. header) reduces achievable confidence
+      note_type:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Note type classification routes records to appropriate downstream workflows (discharge planning,
+          consultation reply, admission H&P); misclassification is recoverable through human review
+      medications_mentioned:
+        minConfidence: 0.78
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Medication extraction from free-text clinical notes is inherently approximate due to abbreviations,
+          brand/generic mixing, and contextual usage; lower threshold reflects extraction complexity
+      follow_up_timeframe:
+        minConfidence: 0.75
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Follow-up timeframe supports care gap and no-show tracking; acceptable at lower confidence as it is
+          often embedded in narrative Plan text rather than a discrete field
+      document_id:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Clinical Note SOAP extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-dbrx-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Clinical SOAP notes require deep medical terminology comprehension, ICD-10 code inference from
+      narrative descriptions, structured extraction from free-form prose sections, and clinical reasoning to
+      classify diagnosis status (Active/Chronic/Resolved/New/Suspected). Claude Sonnet excels at understanding
+      nuanced clinical language, correctly mapping informal clinical shorthand to structured fields (e.g.,
+      'HTN' to Essential hypertension, 'DM2' to Type 2 diabetes), and producing deterministic zero-temperature
+      extractions essential for clinical data integrity. Temperature is set to 0.0 to eliminate hallucination
+      risk — critical when generating ICD-10 codes that feed billing and quality programs. DBRX Instruct
+      serves as fallback for well-structured EHR-exported notes with discrete labeled sections where medical
+      reasoning depth is less critical.
   outputSchema:
     type: object
     properties:

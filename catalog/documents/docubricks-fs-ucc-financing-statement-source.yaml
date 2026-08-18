@@ -1,0 +1,395 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-ucc-financing-statement-source
+  title: Ucc Financing Statement Source
+  description: Ucc Financing Statement contract normalized from the DocuBricks Financial services library.
+  version: fs_ucc_financing_statement_v1
+  source:
+    system: docubricks
+    sourceId: fs/ucc_financing_statement
+    sourcePath: Schemas/fs/ucc_financing_statement
+    sourceVersion: fs_ucc_financing_statement_v1
+    sourceDigest: 8ff8955790aea30fd1d81c6d5cba4ad27fdfdc7ea1d983a44c9d1cbba45dde43
+    derivedFrom: docubricks-fs-ucc-financing-statement
+spec:
+  documentType: ucc_financing_statement
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - filing-date
+        - lapse-date
+        - termination-indicator
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - continuation-indicator
+        - filing-jurisdiction
+        - filing-number
+        - filing-office
+        - filing-type
+        - fixture-filing-indicator
+        - manufactured-home-indicator
+        - public-finance-indicator
+        - related-filing-number
+        - transmitting-utility-indicator
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - assignee-name
+        - debtor-names
+        - secured-party-addresses
+        - secured-party-names
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - collateral-description
+        - debtor-addresses
+  fields:
+    - id: filing-type
+      name: filing_type
+      label: Filing Type
+      description: Initial financing statement, amendment, continuation, assignment, termination, fixture filing, or
+        other.
+      dataType: string
+      sourcePath: /fields/filing_type
+    - id: filing-number
+      name: filing_number
+      label: Filing Number
+      description: State filing or document number.
+      dataType: string
+      required: true
+      sourcePath: /fields/filing_number
+    - id: filing-date
+      name: filing_date
+      label: Filing Date
+      description: Filing date.
+      dataType: date
+      required: true
+      sourcePath: /fields/filing_date
+    - id: lapse-date
+      name: lapse_date
+      label: Lapse Date
+      description: Lapse or continuation deadline if present.
+      dataType: date
+      sourcePath: /fields/lapse_date
+    - id: filing-office
+      name: filing_office
+      label: Filing Office
+      description: Secretary of State, county, or filing office.
+      dataType: string
+      sourcePath: /fields/filing_office
+    - id: filing-jurisdiction
+      name: filing_jurisdiction
+      label: Filing Jurisdiction
+      description: State or jurisdiction.
+      dataType: string
+      sourcePath: /fields/filing_jurisdiction
+    - id: debtor-names
+      name: debtor_names
+      label: Debtor Names
+      description: Debtor legal names.
+      dataType: array
+      required: true
+      sourcePath: /fields/debtor_names
+    - id: debtor-addresses
+      name: debtor_addresses
+      label: Debtor Addresses
+      description: Debtor addresses.
+      dataType: array
+      sourcePath: /fields/debtor_addresses
+    - id: secured-party-names
+      name: secured_party_names
+      label: Secured Party Names
+      description: Secured party names.
+      dataType: array
+      sourcePath: /fields/secured_party_names
+    - id: secured-party-addresses
+      name: secured_party_addresses
+      label: Secured Party Addresses
+      description: Secured party addresses.
+      dataType: array
+      sourcePath: /fields/secured_party_addresses
+    - id: collateral-description
+      name: collateral_description
+      label: Collateral Description
+      description: UCC collateral text.
+      dataType: string
+      sourcePath: /fields/collateral_description
+    - id: fixture-filing-indicator
+      name: fixture_filing_indicator
+      label: Fixture Filing Indicator
+      description: Whether fixture filing is indicated.
+      dataType: boolean
+      sourcePath: /fields/fixture_filing_indicator
+    - id: transmitting-utility-indicator
+      name: transmitting_utility_indicator
+      label: Transmitting Utility Indicator
+      description: Whether debtor is transmitting utility.
+      dataType: boolean
+      sourcePath: /fields/transmitting_utility_indicator
+    - id: public-finance-indicator
+      name: public_finance_indicator
+      label: Public Finance Indicator
+      description: Public finance transaction indicator.
+      dataType: boolean
+      sourcePath: /fields/public_finance_indicator
+    - id: manufactured-home-indicator
+      name: manufactured_home_indicator
+      label: Manufactured Home Indicator
+      description: Manufactured home transaction indicator.
+      dataType: boolean
+      sourcePath: /fields/manufactured_home_indicator
+    - id: related-filing-number
+      name: related_filing_number
+      label: Related Filing Number
+      description: Original filing number for amendment, continuation, termination, or assignment.
+      dataType: string
+      sourcePath: /fields/related_filing_number
+    - id: assignee-name
+      name: assignee_name
+      label: Assignee Name
+      description: Assignee if assignment is present.
+      dataType: string
+      sourcePath: /fields/assignee_name
+    - id: termination-indicator
+      name: termination_indicator
+      label: Termination Indicator
+      description: Whether filing terminates a record.
+      dataType: boolean
+      sourcePath: /fields/termination_indicator
+    - id: continuation-indicator
+      name: continuation_indicator
+      label: Continuation Indicator
+      description: Whether filing continues a record.
+      dataType: boolean
+      sourcePath: /fields/continuation_indicator
+  validationRules:
+    - id: filing-number-present
+      severity: error
+      description: UCC filings require a filing number for public-record matching.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: filing_number
+          - op: gt
+            left:
+              length: filing_number
+            right:
+              value: 0
+      sourceExpression: filing_number IS NOT NULL AND LENGTH(TRIM(filing_number)) > 0
+      supported: true
+    - id: filing-date-present
+      severity: warning
+      description: Filing date is required for perfection and lapse monitoring.
+      rule:
+        op: present
+        field: filing_date
+      sourceExpression: filing_date IS NOT NULL
+      supported: true
+    - id: debtor-names-present
+      severity: error
+      description: At least one debtor name is required.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: debtor_names
+          - op: gt
+            left:
+              length: debtor_names
+            right:
+              value: 0
+      sourceExpression: debtor_names IS NOT NULL AND JSON_ARRAY_LENGTH(debtor_names) > 0
+      supported: true
+    - id: secured-party-names-present
+      severity: warning
+      description: Secured party should be present for lien management.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: secured_party_names
+          - op: gt
+            left:
+              length: secured_party_names
+            right:
+              value: 0
+      sourceExpression: secured_party_names IS NOT NULL AND JSON_ARRAY_LENGTH(secured_party_names) > 0
+      supported: true
+    - id: lapse-after-filing-date
+      severity: warning
+      description: Lapse date should be after filing date.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: lapse_date
+          - op: not
+            rule:
+              op: present
+              field: filing_date
+          - op: gt
+            left:
+              field: lapse_date
+            right:
+              field: filing_date
+      sourceExpression: lapse_date IS NULL OR filing_date IS NULL OR lapse_date > filing_date
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      filing_number:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Filing number is the primary public-record key.
+      filing_date:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Filing date drives perfection and lapse calculations.
+      debtor_names:
+        minConfidence: 0.94
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Debtor legal names are critical for lien search and perfection.
+      secured_party_names:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Secured party names identify lender or agent interest.
+      collateral_description:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Collateral text determines scope of perfection.
+  modelRouting:
+    primary: databricks-meta-llama-3-70b-instruct
+    fallbackChain:
+      - databricks-claude-sonnet
+    maxTokens: 3072
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: UCC financing statements are structured filing forms. Llama is suitable for high-volume form
+      extraction, with Claude retained for messy scanned filings and long collateral text.
+  outputSchema:
+    type: object
+    properties:
+      filing_type:
+        type: string
+        description: Initial financing statement, amendment, continuation, assignment, termination, fixture filing, or
+          other.
+      filing_number:
+        type: string
+        description: State filing or document number.
+      filing_date:
+        type: date
+        description: Filing date.
+        format: date
+      lapse_date:
+        type: date
+        description: Lapse or continuation deadline if present.
+        format: date
+      filing_office:
+        type: string
+        description: Secretary of State, county, or filing office.
+      filing_jurisdiction:
+        type: string
+        description: State or jurisdiction.
+      debtor_names:
+        type: array
+        items:
+          type: string
+        description: Debtor legal names.
+      debtor_addresses:
+        type: array
+        items:
+          type: string
+        description: Debtor addresses.
+      secured_party_names:
+        type: array
+        items:
+          type: string
+        description: Secured party names.
+      secured_party_addresses:
+        type: array
+        items:
+          type: string
+        description: Secured party addresses.
+      collateral_description:
+        type: string
+        description: UCC collateral text.
+      fixture_filing_indicator:
+        type: boolean
+        description: Whether fixture filing is indicated.
+      transmitting_utility_indicator:
+        type: boolean
+        description: Whether debtor is transmitting utility.
+      public_finance_indicator:
+        type: boolean
+        description: Public finance transaction indicator.
+      manufactured_home_indicator:
+        type: boolean
+        description: Manufactured home transaction indicator.
+      related_filing_number:
+        type: string
+        description: Original filing number for amendment, continuation, termination, or assignment.
+      assignee_name:
+        type: string
+        description: Assignee if assignment is present.
+      termination_indicator:
+        type: boolean
+        description: Whether filing terminates a record.
+      continuation_indicator:
+        type: boolean
+        description: Whether filing continues a record.
+    required:
+      - filing_number
+      - filing_date
+      - debtor_names
+    additionalProperties: false
+  inertSourceMetadata:
+    family: commercial_lending
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - filing_number
+          - filing_date
+          - debtor_names
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+          - property_or_asset
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

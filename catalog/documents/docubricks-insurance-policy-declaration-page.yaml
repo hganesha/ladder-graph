@@ -156,39 +156,109 @@ spec:
       severity: error
       description: policy_number is required for Policy Declaration Page extraction.
       rule:
-        op: present
-        field: policy_number
+        op: and
+        rules:
+          - op: present
+            field: policy_number
+          - op: gt
+            left:
+              length: policy_number
+            right:
+              value: 0
       sourceExpression: policy_number IS NOT NULL AND LENGTH(TRIM(policy_number)) > 0
       supported: true
     - id: named-insured-present
       severity: error
       description: named_insured is required for Policy Declaration Page extraction.
       rule:
-        op: present
-        field: named_insured
+        op: and
+        rules:
+          - op: present
+            field: named_insured
+          - op: gt
+            left:
+              length: named_insured
+            right:
+              value: 0
       sourceExpression: named_insured IS NOT NULL AND LENGTH(TRIM(named_insured)) > 0
       supported: true
     - id: carrier-name-present
       severity: error
       description: carrier_name is required for Policy Declaration Page extraction.
       rule:
-        op: present
-        field: carrier_name
+        op: and
+        rules:
+          - op: present
+            field: carrier_name
+          - op: gt
+            left:
+              length: carrier_name
+            right:
+              value: 0
       sourceExpression: carrier_name IS NOT NULL AND LENGTH(TRIM(carrier_name)) > 0
       supported: true
     - id: premium-total-non-negative
       severity: warning
       description: premium_total should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: premium_total
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: premium_total
+          - op: gte
+            left:
+              field: premium_total
+            right:
+              value: 0
       sourceExpression: premium_total IS NULL OR premium_total >= 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      policy_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Policy Declaration Page workflow.
+      named_insured:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Policy Declaration Page workflow.
+      policy_period_start:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Policy Declaration Page workflow.
+      policy_period_end:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Policy Declaration Page workflow.
+      carrier_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Policy declaration page extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Policy Declaration Page documents mix policy, coverage, claim, party, financial, and regulatory
+      notice context.
   outputSchema:
     type: object
     properties:

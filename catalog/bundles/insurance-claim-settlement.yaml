@@ -1,0 +1,20 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: insurance-claim-settlement
+  title: Insurance claim settlement bundle
+  description: Proof of loss, adjuster review, and denial communication for governed claim settlement.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-insr-02
+  ontology:
+    ref: ladder://ontologies/builtin/insurance
+    mode: sliver
+    selection:
+      propertyRefs: [insurance_claim.claim_number, coverage.coverage_analysis, claim_adjustment.recommended_reserve, claim_adjustment.recommended_payment]
+      relationshipIds: [arises_from, evaluated_as, contains]
+  forms:
+    - { ref: ladder://forms/docubricks/insurance/proof_of_loss, role: completion }
+    - { ref: ladder://forms/docubricks/insurance/claims_adjuster_report, role: review }
+  documents:
+    - { ref: ladder://documents/docubricks/insurance/insurance_claim_denial_letter, role: supporting }

@@ -19,6 +19,7 @@ import type {
   ResolvedBundleAsset,
   SafeRule,
   Target,
+  ValidationRule,
   Workflow,
   WorkflowBundle,
 } from "../../types";
@@ -193,7 +194,14 @@ function ruleFields(rule: SafeRule): string[] {
   if (rule.op === "present") return [rule.field];
   if (rule.op === "not") return ruleFields(rule.rule);
   if (rule.op === "and" || rule.op === "or") return rule.rules.flatMap(ruleFields);
-  if ("left" in rule) return ["field" in rule.left ? rule.left.field : "", "field" in rule.right ? rule.right.field : ""].filter(Boolean);
+  if ("left" in rule) {
+    const operands = "right" in rule ? [rule.left, rule.right] : [rule.left];
+    return operands.flatMap((operand) => {
+      if ("field" in operand) return [operand.field];
+      if ("length" in operand) return [operand.length];
+      return [];
+    });
+  }
   return [];
 }
 
@@ -202,6 +210,37 @@ function validateSafeRule(rule: SafeRule | undefined, fields: Set<string>, path:
   if (ruleDepth(rule) > 4) diagnostics.push(issue("LF130", "error", path, "Declarative form rules are limited to four levels."));
   for (const field of ruleFields(rule)) {
     if (!fields.has(field)) diagnostics.push(issue("LF131", "error", path, `Rule references missing field '${field}'.`));
+  }
+  if (rule.op === "matches") {
+    try {
+      new RegExp(rule.pattern);
+    } catch {
+      diagnostics.push(issue("LF132", "error", `${path}/pattern`, `Rule contains invalid regular expression '${rule.pattern}'.`));
+    }
+  }
+}
+
+function validateRules(
+  rules: ValidationRule[] | undefined,
+  fields: Set<string>,
+  path: string,
+  unsupportedCode: string,
+  diagnostics: Diagnostic[],
+) {
+  const availableFields = new Set([...fields, "avg_confidence", "document_id"]);
+  for (const [index, rule] of (rules ?? []).entries()) {
+    const rulePath = `${path}/${index}`;
+    if (!rule.supported) {
+      const reason = rule.unsupportedReason ? ` Reason: ${rule.unsupportedReason}` : "";
+      diagnostics.push(
+        issue(
+          unsupportedCode,
+          "warning",
+          rulePath,
+          `Rule '${rule.id}' is preserved as inert source metadata and will not execute.${reason}`,
+        ),
+      );
+    } else validateSafeRule(rule.rule, availableFields, `${rulePath}/rule`, diagnostics);
   }
 }
 
@@ -240,6 +279,7 @@ function validateForm(form: LadderForm, diagnostics: Diagnostic[]) {
     validateSafeRule(field.value.visibleWhen, names, `${field.path}/visibleWhen`, diagnostics);
     validateSafeRule(field.value.enabledWhen, names, `${field.path}/enabledWhen`, diagnostics);
   }
+  validateRules(form.spec?.validationRules, names, "/spec/validationRules", "LF120", diagnostics);
 }
 
 function validateDocument(document: LadderDocument, diagnostics: Diagnostic[]) {
@@ -261,18 +301,7 @@ function validateDocument(document: LadderDocument, diagnostics: Diagnostic[]) {
         );
     }
   }
-  for (const [index, rule] of (document.spec?.validationRules ?? []).entries()) {
-    if (!rule.supported)
-      diagnostics.push(
-        issue(
-          "LD120",
-          "warning",
-          `/spec/validationRules/${index}`,
-          `Rule '${rule.id}' is preserved as inert source metadata and will not execute.`,
-        ),
-      );
-    else validateSafeRule(rule.rule, names, `/spec/validationRules/${index}/rule`, diagnostics);
-  }
+  validateRules(document.spec?.validationRules, names, "/spec/validationRules", "LD120", diagnostics);
 }
 
 function validPointer(path: string) {

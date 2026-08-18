@@ -145,36 +145,107 @@ spec:
       severity: error
       description: letter_date is required for Insurance Claim Denial Letter extraction.
       rule:
-        op: present
-        field: letter_date
+        op: and
+        rules:
+          - op: present
+            field: letter_date
+          - op: gt
+            left:
+              length: letter_date
+            right:
+              value: 0
       sourceExpression: letter_date IS NOT NULL AND LENGTH(TRIM(letter_date)) > 0
       supported: true
     - id: claim-number-present
       severity: error
       description: claim_number is required for Insurance Claim Denial Letter extraction.
       rule:
-        op: present
-        field: claim_number
+        op: and
+        rules:
+          - op: present
+            field: claim_number
+          - op: gt
+            left:
+              length: claim_number
+            right:
+              value: 0
       sourceExpression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
       supported: true
     - id: policy-number-present
       severity: error
       description: policy_number is required for Insurance Claim Denial Letter extraction.
       rule:
-        op: present
-        field: policy_number
+        op: and
+        rules:
+          - op: present
+            field: policy_number
+          - op: gt
+            left:
+              length: policy_number
+            right:
+              value: 0
       sourceExpression: policy_number IS NOT NULL AND LENGTH(TRIM(policy_number)) > 0
       supported: true
     - id: denial-reason-present
       severity: error
       description: denial_reason is required for Insurance Claim Denial Letter extraction.
       rule:
-        op: present
-        field: denial_reason
+        op: and
+        rules:
+          - op: present
+            field: denial_reason
+          - op: gt
+            left:
+              length: denial_reason
+            right:
+              value: 0
       sourceExpression: denial_reason IS NOT NULL AND LENGTH(TRIM(denial_reason)) > 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      claim_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Claim Denial Letter workflow.
+      policy_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Claim Denial Letter workflow.
+      coverage_denied:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Claim Denial Letter workflow.
+      denial_reason:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Claim Denial Letter workflow.
+      letter_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Claim denial letter extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Insurance Claim Denial Letter documents mix policy, coverage, claim, party, financial, and
+      regulatory notice context.
   outputSchema:
     type: object
     properties:

@@ -174,47 +174,141 @@ spec:
       severity: error
       description: Collateral schedule must identify the borrower or collateral owner.
       rule:
-        op: present
-        field: borrower_name
+        op: and
+        rules:
+          - op: present
+            field: borrower_name
+          - op: gt
+            left:
+              length: borrower_name
+            right:
+              value: 0
       sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
       supported: true
     - id: collateral-description-present
       severity: warning
       description: Collateral description is required to use the schedule.
       rule:
-        op: present
-        field: collateral_description
+        op: and
+        rules:
+          - op: present
+            field: collateral_description
+          - op: gt
+            left:
+              length: collateral_description
+            right:
+              value: 0
       sourceExpression: collateral_description IS NOT NULL AND LENGTH(TRIM(collateral_description)) > 0
       supported: true
     - id: collateral-value-non-negative
       severity: warning
       description: Collateral value cannot be negative.
       rule:
-        op: gte
-        left:
-          field: total_collateral_value
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: total_collateral_value
+          - op: gte
+            left:
+              field: total_collateral_value
+            right:
+              value: 0
       sourceExpression: total_collateral_value IS NULL OR total_collateral_value >= 0
       supported: true
     - id: advance-rate-range
       severity: warning
       description: Advance rate should be between 0 and 100 percent.
       rule:
-        op: gte
-        left:
-          field: advance_rate_percent
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: advance_rate_percent
+          - op: and
+            rules:
+              - op: gte
+                left:
+                  field: advance_rate_percent
+                right:
+                  value: 0
+              - op: lte
+                left:
+                  field: advance_rate_percent
+                right:
+                  value: 100
       sourceExpression: advance_rate_percent IS NULL OR (advance_rate_percent >= 0 AND advance_rate_percent <= 100)
       supported: true
     - id: collateral-items-array-valid
       severity: warning
       description: Item-level collateral should be represented as an array.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: collateral_items
+          - op: gte
+            left:
+              length: collateral_items
+            right:
+              value: 0
       sourceExpression: collateral_items IS NULL OR JSON_ARRAY_LENGTH(collateral_items) >= 0
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      borrower_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Borrower identity links collateral to the credit facility.
+      collateral_category:
+        minConfidence: 0.86
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Collateral category determines monitoring and perfection controls.
+      total_collateral_value:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Collateral value affects borrowing base and exposure coverage.
+      borrowing_base_amount:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Borrowing base amount controls availability.
+      lien_position:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Lien priority is central to secured credit risk.
+      collateral_description:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Collateral schedule extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Collateral schedules may include tables, asset identifiers, valuation methods, lien position, and
+      borrowing base calculations.
   outputSchema:
     type: object
     properties:

@@ -159,7 +159,10 @@ describe("welcome gallery", () => {
 
     expect(screen.getByRole("tab", { name: "Bundles" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("heading", { name: "Curated workflow bundles" })).toBeInTheDocument();
-    expect(screen.getByText("1 bundle")).toBeInTheDocument();
+    const manufacturingBundleCount = ARTIFACT_INDEX.filter(
+      (artifact) => artifact.kind === "workflow-bundle" && artifact.path.startsWith("manufacturing/"),
+    ).length;
+    expect(screen.getByText(`${manufacturingBundleCount} bundles`)).toBeInTheDocument();
     const manufacturing = screen.getByRole("button", { name: "Open Manufacturing line qualification bundle" });
     expect(screen.queryByRole("button", { name: "Open Regulatory obligations and submission bundle" })).not.toBeInTheDocument();
     fireEvent.click(manufacturing);

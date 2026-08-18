@@ -1,0 +1,20 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: fs-financial-crime-investigation
+  title: Financial-crime investigation bundle
+  description: Suspicious-activity review, issue management, and regulatory reporting evidence.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cross-03
+  ontology:
+    ref: ladder://ontologies/builtin/financial-services
+    mode: sliver
+    selection:
+      propertyRefs: [customer_party.subject_name, compliance_case.suspicious_activity_type, compliance_case.issue_id, regulatory_filing.report_name]
+      relationshipIds: [subject_of, reported_through]
+  forms:
+    - { ref: ladder://forms/docubricks/fs/aml_sar, role: review }
+    - { ref: ladder://forms/docubricks/fs/issue_management_record, role: exception }
+  documents:
+    - { ref: ladder://documents/docubricks/fs/regulatory_reporting_package, role: supporting }

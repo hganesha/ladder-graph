@@ -1,0 +1,420 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-fs-covenant-compliance-certificate-source
+  title: Covenant Compliance Certificate Source
+  description: Covenant Compliance Certificate contract normalized from the DocuBricks Financial services library.
+  version: fs_covenant_compliance_certificate_v1
+  source:
+    system: docubricks
+    sourceId: fs/covenant_compliance_certificate
+    sourcePath: Schemas/fs/covenant_compliance_certificate
+    sourceVersion: fs_covenant_compliance_certificate_v1
+    sourceDigest: 19794ea24829bb20bb49cb8791ba70ccf4717a637f5854996e3ad45b90a5de77
+    derivedFrom: docubricks-fs-covenant-compliance-certificate
+spec:
+  documentType: covenant_compliance_certificate
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - certificate-date
+        - reporting-period-end-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - agreement-reference
+        - borrowing-base-actual
+        - borrowing-base-required
+        - dscr-actual
+        - dscr-required
+        - financial-statements-attached
+        - leverage-actual
+        - leverage-required
+        - liquidity-actual
+        - liquidity-required
+        - net-worth-actual
+        - net-worth-required
+        - signer-title
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - exceptions-or-waivers
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - borrower-name
+        - lender-name
+        - signer-name
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - compliance-status
+        - default-declared
+  fields:
+    - id: certificate-date
+      name: certificate_date
+      label: Certificate Date
+      description: Date signed or delivered.
+      dataType: date
+      sourcePath: /fields/certificate_date
+    - id: reporting-period-end-date
+      name: reporting_period_end_date
+      label: Reporting Period End Date
+      description: Financial reporting period end.
+      dataType: date
+      required: true
+      sourcePath: /fields/reporting_period_end_date
+    - id: borrower-name
+      name: borrower_name
+      label: Borrower Name
+      description: Borrower or obligor.
+      dataType: string
+      required: true
+      sourcePath: /fields/borrower_name
+    - id: lender-name
+      name: lender_name
+      label: Lender Name
+      description: Lender, bank, or administrative agent.
+      dataType: string
+      sourcePath: /fields/lender_name
+    - id: agreement-reference
+      name: agreement_reference
+      label: Agreement Reference
+      description: Loan agreement name/date referenced.
+      dataType: string
+      sourcePath: /fields/agreement_reference
+    - id: signer-name
+      name: signer_name
+      label: Signer Name
+      description: Authorized signer.
+      dataType: string
+      sourcePath: /fields/signer_name
+    - id: signer-title
+      name: signer_title
+      label: Signer Title
+      description: Signer title.
+      dataType: string
+      sourcePath: /fields/signer_title
+    - id: compliance-status
+      name: compliance_status
+      label: Compliance Status
+      description: In compliance, not in compliance, default, waiver requested, or other.
+      dataType: string
+      sourcePath: /fields/compliance_status
+    - id: default-declared
+      name: default_declared
+      label: Default Declared
+      description: Whether a default or event of default is disclosed.
+      dataType: boolean
+      sourcePath: /fields/default_declared
+    - id: dscr-required
+      name: dscr_required
+      label: Dscr Required
+      description: Required debt service coverage ratio.
+      dataType: number
+      sourcePath: /fields/dscr_required
+    - id: dscr-actual
+      name: dscr_actual
+      label: Dscr Actual
+      description: Actual DSCR.
+      dataType: number
+      sourcePath: /fields/dscr_actual
+    - id: leverage-required
+      name: leverage_required
+      label: Leverage Required
+      description: Required maximum leverage ratio.
+      dataType: number
+      sourcePath: /fields/leverage_required
+    - id: leverage-actual
+      name: leverage_actual
+      label: Leverage Actual
+      description: Actual leverage ratio.
+      dataType: number
+      sourcePath: /fields/leverage_actual
+    - id: liquidity-required
+      name: liquidity_required
+      label: Liquidity Required
+      description: Required minimum liquidity.
+      dataType: number
+      sourcePath: /fields/liquidity_required
+    - id: liquidity-actual
+      name: liquidity_actual
+      label: Liquidity Actual
+      description: Actual liquidity.
+      dataType: number
+      sourcePath: /fields/liquidity_actual
+    - id: net-worth-required
+      name: net_worth_required
+      label: Net Worth Required
+      description: Required minimum net worth.
+      dataType: number
+      sourcePath: /fields/net_worth_required
+    - id: net-worth-actual
+      name: net_worth_actual
+      label: Net Worth Actual
+      description: Actual net worth.
+      dataType: number
+      sourcePath: /fields/net_worth_actual
+    - id: borrowing-base-required
+      name: borrowing_base_required
+      label: Borrowing Base Required
+      description: Required borrowing base or availability.
+      dataType: number
+      sourcePath: /fields/borrowing_base_required
+    - id: borrowing-base-actual
+      name: borrowing_base_actual
+      label: Borrowing Base Actual
+      description: Actual borrowing base or availability.
+      dataType: number
+      sourcePath: /fields/borrowing_base_actual
+    - id: exceptions-or-waivers
+      name: exceptions_or_waivers
+      label: Exceptions Or Waivers
+      description: Exceptions, waivers, cure periods, or explanations.
+      dataType: array
+      sourcePath: /fields/exceptions_or_waivers
+    - id: financial-statements-attached
+      name: financial_statements_attached
+      label: Financial Statements Attached
+      description: Whether financial statements are attached or certified.
+      dataType: boolean
+      sourcePath: /fields/financial_statements_attached
+  validationRules:
+    - id: borrower-name-present
+      severity: error
+      description: Certificate must identify the borrower.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: borrower_name
+          - op: gt
+            left:
+              length: borrower_name
+            right:
+              value: 0
+      sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
+      supported: true
+    - id: reporting-period-present
+      severity: warning
+      description: Reporting period is required to evaluate covenant compliance.
+      rule:
+        op: present
+        field: reporting_period_end_date
+      sourceExpression: reporting_period_end_date IS NOT NULL
+      supported: true
+    - id: compliance-status-present
+      severity: warning
+      description: Compliance status should be explicitly captured or reviewed.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: compliance_status
+          - op: gt
+            left:
+              length: compliance_status
+            right:
+              value: 0
+      sourceExpression: compliance_status IS NOT NULL AND LENGTH(TRIM(compliance_status)) > 0
+      supported: true
+    - id: actual-ratios-non-negative
+      severity: warning
+      description: Actual covenant ratios should not be negative.
+      rule:
+        op: and
+        rules:
+          - op: or
+            rules:
+              - op: not
+                rule:
+                  op: present
+                  field: dscr_actual
+              - op: gte
+                left:
+                  field: dscr_actual
+                right:
+                  value: 0
+          - op: or
+            rules:
+              - op: not
+                rule:
+                  op: present
+                  field: leverage_actual
+              - op: gte
+                left:
+                  field: leverage_actual
+                right:
+                  value: 0
+      sourceExpression: (dscr_actual IS NULL OR dscr_actual >= 0) AND (leverage_actual IS NULL OR leverage_actual >= 0)
+      supported: true
+    - id: exceptions-array-valid
+      severity: warning
+      description: Exceptions and waivers should be represented as an array.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: exceptions_or_waivers
+          - op: gte
+            left:
+              length: exceptions_or_waivers
+            right:
+              value: 0
+      sourceExpression: exceptions_or_waivers IS NULL OR JSON_ARRAY_LENGTH(exceptions_or_waivers) >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      borrower_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Borrower identity links the certificate to a credit facility.
+      reporting_period_end_date:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Reporting period controls covenant timeliness.
+      compliance_status:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Compliance status routes exceptions and defaults.
+      default_declared:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Default disclosures require prompt credit action.
+      dscr_actual:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Actual DSCR is a core covenant measurement.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Compliance certificates are semi-structured but require accurate extraction of ratios, thresholds,
+      reporting periods, and default statements.
+  outputSchema:
+    type: object
+    properties:
+      certificate_date:
+        type: date
+        description: Date signed or delivered.
+        format: date
+      reporting_period_end_date:
+        type: date
+        description: Financial reporting period end.
+        format: date
+      borrower_name:
+        type: string
+        description: Borrower or obligor.
+      lender_name:
+        type: string
+        description: Lender, bank, or administrative agent.
+      agreement_reference:
+        type: string
+        description: Loan agreement name/date referenced.
+      signer_name:
+        type: string
+        description: Authorized signer.
+      signer_title:
+        type: string
+        description: Signer title.
+      compliance_status:
+        type: string
+        description: In compliance, not in compliance, default, waiver requested, or other.
+      default_declared:
+        type: boolean
+        description: Whether a default or event of default is disclosed.
+      dscr_required:
+        type: number
+        description: Required debt service coverage ratio.
+      dscr_actual:
+        type: number
+        description: Actual DSCR.
+      leverage_required:
+        type: number
+        description: Required maximum leverage ratio.
+      leverage_actual:
+        type: number
+        description: Actual leverage ratio.
+      liquidity_required:
+        type: number
+        description: Required minimum liquidity.
+      liquidity_actual:
+        type: number
+        description: Actual liquidity.
+      net_worth_required:
+        type: number
+        description: Required minimum net worth.
+      net_worth_actual:
+        type: number
+        description: Actual net worth.
+      borrowing_base_required:
+        type: number
+        description: Required borrowing base or availability.
+      borrowing_base_actual:
+        type: number
+        description: Actual borrowing base or availability.
+      exceptions_or_waivers:
+        type: array
+        items:
+          type: string
+        description: Exceptions, waivers, cure periods, or explanations.
+      financial_statements_attached:
+        type: boolean
+        description: Whether financial statements are attached or certified.
+    required:
+      - reporting_period_end_date
+      - borrower_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: commercial_lending
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - reporting_period_end_date
+          - borrower_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - line_items
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

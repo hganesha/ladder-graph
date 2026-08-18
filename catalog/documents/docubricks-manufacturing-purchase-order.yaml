@@ -159,82 +159,194 @@ spec:
       severity: error
       description: purchase_order_number is required for Purchase Order extraction.
       rule:
-        op: present
-        field: purchase_order_number
+        op: and
+        rules:
+          - op: present
+            field: purchase_order_number
+          - op: gt
+            left:
+              length: purchase_order_number
+            right:
+              value: 0
       sourceExpression: purchase_order_number IS NOT NULL AND LENGTH(TRIM(purchase_order_number)) > 0
       supported: true
     - id: po-date-present
       severity: error
       description: po_date is required for Purchase Order extraction.
       rule:
-        op: present
-        field: po_date
+        op: and
+        rules:
+          - op: present
+            field: po_date
+          - op: gt
+            left:
+              length: po_date
+            right:
+              value: 0
       sourceExpression: po_date IS NOT NULL AND LENGTH(TRIM(po_date)) > 0
       supported: true
     - id: buyer-name-present
       severity: error
       description: buyer_name is required for Purchase Order extraction.
       rule:
-        op: present
-        field: buyer_name
+        op: and
+        rules:
+          - op: present
+            field: buyer_name
+          - op: gt
+            left:
+              length: buyer_name
+            right:
+              value: 0
       sourceExpression: buyer_name IS NOT NULL AND LENGTH(TRIM(buyer_name)) > 0
       supported: true
     - id: supplier-name-present
       severity: error
       description: supplier_name is required for Purchase Order extraction.
       rule:
-        op: present
-        field: supplier_name
+        op: and
+        rules:
+          - op: present
+            field: supplier_name
+          - op: gt
+            left:
+              length: supplier_name
+            right:
+              value: 0
       sourceExpression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
       supported: true
     - id: line-items-present
       severity: error
       description: line_items is required for Purchase Order extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: line_items
+          - op: gt
+            left:
+              length: line_items
+            right:
+              value: 0
       sourceExpression: line_items IS NOT NULL AND JSON_ARRAY_LENGTH(line_items) > 0
-      supported: false
+      supported: true
     - id: total-amount-present
       severity: error
       description: total_amount is required for Purchase Order extraction.
       rule:
-        op: present
-        field: total_amount
+        op: and
+        rules:
+          - op: present
+            field: total_amount
+          - op: gt
+            left:
+              length: total_amount
+            right:
+              value: 0
       sourceExpression: total_amount IS NOT NULL AND LENGTH(TRIM(total_amount)) > 0
       supported: true
     - id: subtotal-amount-non-negative
       severity: warning
       description: subtotal_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: subtotal_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: subtotal_amount
+          - op: gte
+            left:
+              field: subtotal_amount
+            right:
+              value: 0
       sourceExpression: subtotal_amount IS NULL OR subtotal_amount >= 0
       supported: true
     - id: tax-amount-non-negative
       severity: warning
       description: tax_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: tax_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: tax_amount
+          - op: gte
+            left:
+              field: tax_amount
+            right:
+              value: 0
       sourceExpression: tax_amount IS NULL OR tax_amount >= 0
       supported: true
     - id: total-amount-non-negative
       severity: warning
       description: total_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: total_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: total_amount
+          - op: gte
+            left:
+              field: total_amount
+            right:
+              value: 0
       sourceExpression: total_amount IS NULL OR total_amount >= 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      purchase_order_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Purchase Order workflow.
+      supplier_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Purchase Order workflow.
+      line_items:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Purchase Order workflow.
+      total_amount:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Purchase Order workflow.
+      po_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Purchase order extraction.
+      buyer_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Purchase order extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Purchase Order documents combine manufacturing, quality, supplier, material, and operational
+      control context.
   outputSchema:
     type: object
     properties:

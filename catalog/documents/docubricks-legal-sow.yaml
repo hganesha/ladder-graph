@@ -209,14 +209,30 @@ spec:
       severity: error
       description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
         audit trail, and deduplication
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: document_id
+          - op: gt
+            left:
+              length: document_id
+            right:
+              value: 0
       sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
-      supported: false
+      supported: true
     - id: avg-confidence-acceptable
       severity: warning
       description: Overall extraction confidence below 0.68 indicates the document may be a scan of low quality,
         partially missing, or in an unsupported format; route to quarantine for human review
+      rule:
+        op: gte
+        left:
+          field: avg_confidence
+        right:
+          value: 0.68
       sourceExpression: avg_confidence >= 0.68
-      supported: false
+      supported: true
     - id: effective-date-not-null
       severity: warning
       description: Effective date is required to anchor the project timeline, trigger billing schedules, and manage
@@ -230,31 +246,171 @@ spec:
       severity: warning
       description: Contract value must be positive when present; zero or negative values indicate an extraction
         error or corrupt financial data
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: total_contract_value
+          - op: gt
+            left:
+              field: total_contract_value
+            right:
+              value: 0
       sourceExpression: total_contract_value IS NULL OR total_contract_value > 0
-      supported: false
+      supported: true
     - id: deliverables-present
       severity: warning
       description: A SOW should define at least one deliverable; absence may indicate extraction failure or an
         incomplete document requiring human review
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: deliverables
+          - op: gt
+            left:
+              length: deliverables
+            right:
+              value: 0
       sourceExpression: deliverables IS NOT NULL AND JSON_ARRAY_LENGTH(deliverables) > 0
-      supported: false
+      supported: true
     - id: payment-terms-present
       severity: warning
       description: Payment terms are required for accounts payable / receivable processing; absence blocks invoice
         automation
       rule:
-        op: present
-        field: payment_terms
+        op: and
+        rules:
+          - op: present
+            field: payment_terms
+          - op: gt
+            left:
+              length: payment_terms
+            right:
+              value: 0
       sourceExpression: payment_terms IS NOT NULL AND LENGTH(TRIM(payment_terms)) > 0
       supported: true
     - id: end-date-after-effective-date
       severity: warning
       description: End date must be after effective date if both are present; inversion indicates a date extraction
         or data entry error
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: end_date
+          - op: not
+            rule:
+              op: present
+              field: effective_date
+          - op: gt
+            left:
+              field: end_date
+            right:
+              field: effective_date
       sourceExpression: end_date IS NULL OR effective_date IS NULL OR end_date > effective_date
-      supported: false
+      supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      total_contract_value:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Contract value drives accounts payable/receivable workflows, budget tracking, and financial
+          reporting; errors cascade to P&L impacts and procurement thresholds
+      sow_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: SOW number is the primary identifier for linking invoices, purchase orders, and deliverable
+          tracking; extraction errors cause reconciliation failures
+      payment_terms:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Payment terms directly drive invoice automation and cash flow management; inaccurate extraction
+          causes late payments or disputes
+      ip_ownership:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: IP ownership classification affects asset registration, licensing strategy, and competitive
+          positioning; errors have long-term legal consequences
+      effective_date:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Effective date anchors SLA obligations, billing start, and project timeline; must be accurately
+          extracted
+      end_date:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: End date triggers project close-out, final invoicing, and renewal evaluation; accuracy required for
+          contract lifecycle management
+      client_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Client identity required for CRM linkage, revenue attribution, and contract reporting
+      vendor_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Vendor identity required for vendor management, OFAC screening, and payment routing
+      pricing_model:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Pricing model determines billing automation logic and financial controls; errors cause incorrect
+          invoice processing
+      deliverables:
+        minConfidence: 0.8
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Deliverable list drives project milestone tracking and acceptance workflow; incomplete extraction
+          causes gaps in obligation management
+      governing_law:
+        minConfidence: 0.82
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Governing law determines applicable contract and dispute rules; lower threshold acceptable as this
+          rarely changes payment workflows
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-claude-haiku
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Statements of Work require careful extraction of structured financial data (contract value, payment
+      schedules, pricing model), project deliverables with associated dates, and governance provisions (IP
+      ownership, change order process). SOW documents often include structured tables for deliverable
+      schedules and payment milestones that require table-parsing capabilities. Claude Sonnet is preferred for
+      its strong numerical accuracy, ability to distinguish T&M caps from fixed prices, and reliable
+      extraction of multi-row deliverable tables. The token budget (6144) balances coverage of typical SOW
+      lengths (10-30 pages) with cost efficiency. Temperature 0.0 ensures consistent financial field
+      extraction. Claude Haiku serves as fallback for simple single-deliverable SOWs or time-constrained
+      processing queues.
   outputSchema:
     type: object
     properties:

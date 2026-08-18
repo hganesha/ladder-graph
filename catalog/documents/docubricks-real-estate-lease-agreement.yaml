@@ -159,82 +159,198 @@ spec:
       severity: error
       description: lease_date is required for Lease Agreement extraction.
       rule:
-        op: present
-        field: lease_date
+        op: and
+        rules:
+          - op: present
+            field: lease_date
+          - op: gt
+            left:
+              length: lease_date
+            right:
+              value: 0
       sourceExpression: lease_date IS NOT NULL AND LENGTH(TRIM(lease_date)) > 0
       supported: true
     - id: landlord-name-present
       severity: error
       description: landlord_name is required for Lease Agreement extraction.
       rule:
-        op: present
-        field: landlord_name
+        op: and
+        rules:
+          - op: present
+            field: landlord_name
+          - op: gt
+            left:
+              length: landlord_name
+            right:
+              value: 0
       sourceExpression: landlord_name IS NOT NULL AND LENGTH(TRIM(landlord_name)) > 0
       supported: true
     - id: tenant-name-present
       severity: error
       description: tenant_name is required for Lease Agreement extraction.
       rule:
-        op: present
-        field: tenant_name
+        op: and
+        rules:
+          - op: present
+            field: tenant_name
+          - op: gt
+            left:
+              length: tenant_name
+            right:
+              value: 0
       sourceExpression: tenant_name IS NOT NULL AND LENGTH(TRIM(tenant_name)) > 0
       supported: true
     - id: property-address-present
       severity: error
       description: property_address is required for Lease Agreement extraction.
       rule:
-        op: present
-        field: property_address
+        op: and
+        rules:
+          - op: present
+            field: property_address
+          - op: gt
+            left:
+              length: property_address
+            right:
+              value: 0
       sourceExpression: property_address IS NOT NULL AND LENGTH(TRIM(property_address)) > 0
       supported: true
     - id: lease-start-date-present
       severity: error
       description: lease_start_date is required for Lease Agreement extraction.
       rule:
-        op: present
-        field: lease_start_date
+        op: and
+        rules:
+          - op: present
+            field: lease_start_date
+          - op: gt
+            left:
+              length: lease_start_date
+            right:
+              value: 0
       sourceExpression: lease_start_date IS NOT NULL AND LENGTH(TRIM(lease_start_date)) > 0
       supported: true
     - id: lease-end-date-present
       severity: error
       description: lease_end_date is required for Lease Agreement extraction.
       rule:
-        op: present
-        field: lease_end_date
+        op: and
+        rules:
+          - op: present
+            field: lease_end_date
+          - op: gt
+            left:
+              length: lease_end_date
+            right:
+              value: 0
       sourceExpression: lease_end_date IS NOT NULL AND LENGTH(TRIM(lease_end_date)) > 0
       supported: true
     - id: base-rent-amount-present
       severity: error
       description: base_rent_amount is required for Lease Agreement extraction.
       rule:
-        op: present
-        field: base_rent_amount
+        op: and
+        rules:
+          - op: present
+            field: base_rent_amount
+          - op: gt
+            left:
+              length: base_rent_amount
+            right:
+              value: 0
       sourceExpression: base_rent_amount IS NOT NULL AND LENGTH(TRIM(base_rent_amount)) > 0
       supported: true
     - id: base-rent-amount-non-negative
       severity: warning
       description: base_rent_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: base_rent_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: base_rent_amount
+          - op: gte
+            left:
+              field: base_rent_amount
+            right:
+              value: 0
       sourceExpression: base_rent_amount IS NULL OR base_rent_amount >= 0
       supported: true
     - id: security-deposit-amount-non-negative
       severity: warning
       description: security_deposit_amount should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: security_deposit_amount
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: security_deposit_amount
+          - op: gte
+            left:
+              field: security_deposit_amount
+            right:
+              value: 0
       sourceExpression: security_deposit_amount IS NULL OR security_deposit_amount >= 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      landlord_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Lease Agreement workflow.
+      tenant_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Lease Agreement workflow.
+      property_address:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Lease Agreement workflow.
+      lease_start_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Lease Agreement workflow.
+      lease_end_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Lease Agreement workflow.
+      base_rent_amount:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Lease Agreement workflow.
+      lease_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Lease Agreement workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Lease Agreement documents combine real estate parties, property, title, lease, financial, and
+      operating context.
   outputSchema:
     type: object
     properties:

@@ -47,6 +47,7 @@
         },
         "validationRules": { "type": "array", "items": { "type": "object" } },
         "reviewPolicy": { "type": "object" },
+        "modelRouting": { "type": "object" },
         "outputSchema": { "type": "object" },
         "inertSourceMetadata": { "type": "object" }
       }

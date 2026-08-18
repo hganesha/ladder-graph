@@ -1,0 +1,511 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-legal-regulatory-submission-source
+  title: Regulatory Submission Source
+  description: Regulatory Submission contract normalized from the DocuBricks Legal library.
+  version: legal_regulatory_submission_v1
+  source:
+    system: docubricks
+    sourceId: legal/regulatory_submission
+    sourcePath: Schemas/legal/regulatory_submission
+    sourceVersion: legal_regulatory_submission_v1
+    sourceDigest: ade1432ee052eb8ca9ad61046f1c2748b23b95b4d2927bd7e785b0def0f8b818
+    derivedFrom: docubricks-legal-regulatory-submission
+spec:
+  documentType: regulatory_submission
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - acceptance-date
+        - cover-letter-date
+        - decision-date
+        - filing-period-from
+        - filing-period-to
+        - submission-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - confidentiality-request
+        - regulator
+        - review-division
+        - subject-of-submission
+        - submission-id
+        - submission-type
+        - submitting-entity-id
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - submitting-entity-name
+    - id: property-or-asset
+      title: Property Or Asset
+      description: Property Or Asset fields extracted from the document.
+      fieldIds:
+        - material-change-described
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - submission-status
+  fields:
+    - id: submission-type
+      name: submission_type
+      label: Submission Type
+      description: "The specific type of regulatory submission. Examples:"
+      dataType: string
+      required: true
+      sourcePath: /fields/submission_type
+    - id: regulator
+      name: regulator
+      label: Regulator
+      description: "The regulatory body receiving the submission. One of: FDA | SEC | FinCEN | CFTC | FINRA | FTC |
+        CFPB | State | Other"
+      dataType: string
+      sourcePath: /fields/regulator
+    - id: submission-date
+      name: submission_date
+      label: Submission Date
+      description: Date the submission was filed or submitted, format YYYY-MM-DD
+      dataType: date
+      sourcePath: /fields/submission_date
+    - id: acceptance-date
+      name: acceptance_date
+      label: Acceptance Date
+      description: Date the regulator formally accepted the submission for review, format YYYY-MM-DD (null if not stated)
+      dataType: date
+      sourcePath: /fields/acceptance_date
+    - id: decision-date
+      name: decision_date
+      label: Decision Date
+      description: Date the regulator issued a final decision, format YYYY-MM-DD (null if pending or not stated)
+      dataType: date
+      sourcePath: /fields/decision_date
+    - id: submission-status
+      name: submission_status
+      label: Submission Status
+      description: "Current status of the submission. One of: Accepted | Under_Review | Approved | Refused |
+        Withdrawn | Pending | Deficient | null"
+      dataType: string
+      sourcePath: /fields/submission_status
+    - id: submission-id
+      name: submission_id
+      label: Submission Id
+      description: The unique identifier assigned to the submission. This may be a docket number (FDA), accession
+        number (SEC EDGAR), CTR/SAR reference number (FinCEN), or other regulatory reference ID
+      dataType: string
+      sourcePath: /fields/submission_id
+    - id: cover-letter-date
+      name: cover_letter_date
+      label: Cover Letter Date
+      description: Date of the cover letter accompanying the submission, format YYYY-MM-DD (null if no cover letter)
+      dataType: date
+      sourcePath: /fields/cover_letter_date
+    - id: filing-period-from
+      name: filing_period_from
+      label: Filing Period From
+      description: Start date of the filing period (e.g., fiscal year start for 10-K, quarter start for 10-Q),
+        format YYYY-MM-DD
+      dataType: string
+      sourcePath: /fields/filing_period_from
+    - id: filing-period-to
+      name: filing_period_to
+      label: Filing Period To
+      description: End date of the filing period (e.g., fiscal year end for 10-K), format YYYY-MM-DD
+      dataType: string
+      sourcePath: /fields/filing_period_to
+    - id: submitting-entity-name
+      name: submitting_entity_name
+      label: Submitting Entity Name
+      description: Full legal name of the entity filing the submission
+      dataType: string
+      required: true
+      sourcePath: /fields/submitting_entity_name
+    - id: submitting-entity-id
+      name: submitting_entity_id
+      label: Submitting Entity Id
+      description: The primary regulatory identifier for the submitting entity. This may be a CIK (SEC), LEI, EIN,
+        FDA Establishment Identifier, or other ID
+      dataType: string
+      sourcePath: /fields/submitting_entity_id
+    - id: review-division
+      name: review_division
+      label: Review Division
+      description: The specific division, branch, or office within the regulator that reviews this submission (null
+        if not applicable or not stated)
+      dataType: string
+      sourcePath: /fields/review_division
+    - id: subject-of-submission
+      name: subject_of_submission
+      label: Subject Of Submission
+      description: Brief description of the subject matter of the filing (up to 300 chars)
+      dataType: string
+      sourcePath: /fields/subject_of_submission
+    - id: material-change-described
+      name: material_change_described
+      label: Material Change Described
+      description: Boolean — true if the submission discloses or describes a material change, event, or condition
+      dataType: string
+      sourcePath: /fields/material_change_described
+    - id: confidentiality-request
+      name: confidentiality_request
+      label: Confidentiality Request
+      description: Boolean — true if the submitting entity has requested confidential treatment of all or part of
+        the submission
+      dataType: string
+      sourcePath: /fields/confidentiality_request
+  validationRules:
+    - id: document-id-present
+      severity: error
+      description: Every extracted record must carry a document_id — system invariant required for lineage tracking,
+        regulatory audit trail, and deduplication
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: document_id
+          - op: gt
+            left:
+              length: document_id
+            right:
+              value: 0
+      sourceExpression: document_id IS NOT NULL AND LENGTH(TRIM(document_id)) > 0
+      supported: true
+    - id: avg-confidence-acceptable
+      severity: warning
+      description: Regulatory submissions require a higher confidence threshold (0.72) due to the legal and
+        compliance risk of misclassified filings; route low-confidence records to human review
+      rule:
+        op: gte
+        left:
+          field: avg_confidence
+        right:
+          value: 0.72
+      sourceExpression: avg_confidence >= 0.72
+      supported: true
+    - id: submission-type-valid
+      severity: warning
+      description: Submission type is required to route the record to the correct compliance workflow; null or empty
+        values prevent downstream processing
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: submission_type
+          - op: gt
+            left:
+              length: submission_type
+            right:
+              value: 0
+      sourceExpression: submission_type IS NOT NULL AND LENGTH(TRIM(submission_type)) > 0
+      supported: true
+    - id: submitting-entity-name-not-null
+      severity: warning
+      description: The submitting entity name is a critical identifier for regulatory tracking and OFAC/KYC
+        screening; records without it cannot be processed
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: submitting_entity_name
+          - op: gt
+            left:
+              length: submitting_entity_name
+            right:
+              value: 0
+      sourceExpression: submitting_entity_name IS NOT NULL AND LENGTH(TRIM(submitting_entity_name)) > 0
+      supported: true
+    - id: submission-id-present
+      severity: warning
+      description: Submission ID (docket number, accession number, reference ID) is required to correlate with
+        regulator records and track filing status
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: submission_id
+          - op: gt
+            left:
+              length: submission_id
+            right:
+              value: 0
+      sourceExpression: submission_id IS NOT NULL AND LENGTH(TRIM(submission_id)) > 0
+      supported: true
+    - id: submission-date-present
+      severity: warning
+      description: Submission date is necessary to calculate response deadlines, monitor review timelines, and meet
+        regulatory reporting SLAs
+      rule:
+        op: present
+        field: submission_date
+      sourceExpression: submission_date IS NOT NULL
+      supported: true
+    - id: decision-date-after-submission
+      severity: warning
+      description: Decision date cannot precede submission date; inversion indicates a date extraction error and
+        flags the record for human review
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: decision_date
+          - op: not
+            rule:
+              op: present
+              field: submission_date
+          - op: gte
+            left:
+              field: decision_date
+            right:
+              field: submission_date
+      sourceExpression: decision_date IS NULL OR submission_date IS NULL OR decision_date >= submission_date
+      supported: true
+    - id: submission-status-valid-enum
+      severity: warning
+      description: Submission status must be a recognized enumeration for accurate compliance dashboard reporting
+        and workflow routing
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: submission_status
+          - op: or
+            rules:
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Accepted
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Under_Review
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Approved
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Refused
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Withdrawn
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Pending
+              - op: eq
+                left:
+                  field: submission_status
+                right:
+                  value: Deficient
+      sourceExpression: submission_status IS NULL OR submission_status IN ('Accepted', 'Under_Review', 'Approved',
+        'Refused', 'Withdrawn', 'Pending', 'Deficient')
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      submission_id:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Submission ID (docket number, accession number) is the primary key for correlating with regulator
+          records; must be extracted exactly as formatted to ensure accurate docket tracking
+      submission_date:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Submission date is the legal anchor for calculating regulatory response deadlines, review clocks,
+          and compliance reporting periods; errors can cause missed deadlines with enforcement consequences
+      submitting_entity_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Entity name is required for OFAC screening, KYC/AML compliance, and regulatory relationship
+          management; errors affect reporting accuracy
+      submission_status:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Submission status drives compliance dashboard reporting and escalation workflows; an incorrect
+          status can mask deficiencies requiring immediate action
+      submission_type:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Submission type routes the record to the correct regulatory workflow; misclassification leads to
+          wrong review procedures and reporting errors
+      regulator:
+        minConfidence: 0.95
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Regulator identification is essential for routing to the correct compliance team and external
+          reporting system
+      submitting_entity_id:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: Entity ID (CIK, LEI, EIN) is required for automated regulatory lookup and entity resolution; errors
+          break cross-system reconciliation
+      decision_date:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Decision date drives compliance lifecycle close-out and regulatory timeline reporting; must be
+          accurate
+      filing_period_from:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Filing period start anchors the reporting period for financial and regulatory analysis
+      filing_period_to:
+        minConfidence: 0.85
+        reviewOnBreach: false
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Filing period end defines the scope of reported data; must align with the reporting period declared
+          in the submission
+      material_change_described:
+        minConfidence: 0.8
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Material change flag triggers escalation to legal and compliance review teams; false negatives
+          could suppress critical alerts
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-claude-haiku
+    maxTokens: 8192
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Regulatory submissions span a wide range of formats and lengths — from short FinCEN CTR forms to
+      multi-hundred-page FDA PMAs and SEC 10-K filings. Claude Sonnet is preferred for its ability to
+      correctly classify submission types across different regulatory domains (FDA, SEC, FinCEN, CFTC, FINRA),
+      accurately extract regulatory identifiers in varying formats (EDGAR accession numbers, FDA K-numbers,
+      SEC CIK codes), and interpret regulatory-specific terminology. The maximum token budget (8192) is
+      required to accommodate lengthy regulatory filings, cover letters, and supporting summaries. Temperature
+      0.0 ensures deterministic extraction of regulatory identifiers and dates where precision is legally
+      required. Claude Haiku serves as fallback for simple, structured form submissions (e.g., FinCEN CTR)
+      where the layout is predictable and reasoning depth is less critical.
+  outputSchema:
+    type: object
+    properties:
+      submission_type:
+        type: string
+        description: "The specific type of regulatory submission. Examples:"
+      regulator:
+        type: string
+        description: "The regulatory body receiving the submission. One of: FDA | SEC | FinCEN | CFTC | FINRA | FTC |
+          CFPB | State | Other"
+      submission_date:
+        type: date
+        description: Date the submission was filed or submitted, format YYYY-MM-DD
+        format: date
+      acceptance_date:
+        type: date
+        description: Date the regulator formally accepted the submission for review, format YYYY-MM-DD (null if not
+          stated)
+        format: date
+      decision_date:
+        type: date
+        description: Date the regulator issued a final decision, format YYYY-MM-DD (null if pending or not stated)
+        format: date
+      submission_status:
+        type: string
+        description: "Current status of the submission. One of: Accepted | Under_Review | Approved | Refused |
+          Withdrawn | Pending | Deficient | null"
+      submission_id:
+        type: string
+        description: The unique identifier assigned to the submission. This may be a docket number (FDA), accession
+          number (SEC EDGAR), CTR/SAR reference number (FinCEN), or other regulatory reference ID
+      cover_letter_date:
+        type: date
+        description: Date of the cover letter accompanying the submission, format YYYY-MM-DD (null if no cover letter)
+        format: date
+      filing_period_from:
+        type: string
+        description: Start date of the filing period (e.g., fiscal year start for 10-K, quarter start for 10-Q),
+          format YYYY-MM-DD
+      filing_period_to:
+        type: string
+        description: End date of the filing period (e.g., fiscal year end for 10-K), format YYYY-MM-DD
+      submitting_entity_name:
+        type: string
+        description: Full legal name of the entity filing the submission
+      submitting_entity_id:
+        type: string
+        description: The primary regulatory identifier for the submitting entity. This may be a CIK (SEC), LEI, EIN,
+          FDA Establishment Identifier, or other ID
+      review_division:
+        type: string
+        description: The specific division, branch, or office within the regulator that reviews this submission (null
+          if not applicable or not stated)
+      subject_of_submission:
+        type: string
+        description: Brief description of the subject matter of the filing (up to 300 chars)
+      material_change_described:
+        type: string
+        description: Boolean — true if the submission discloses or describes a material change, event, or condition
+      confidentiality_request:
+        type: string
+        description: Boolean — true if the submitting entity has requested confidential treatment of all or part of
+          the submission
+    required:
+      - submission_type
+      - submitting_entity_name
+    additionalProperties: false
+  inertSourceMetadata:
+    family: regulatory_exams_audit
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - submission_type
+          - submitting_entity_name
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - parties
+          - property_or_asset
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

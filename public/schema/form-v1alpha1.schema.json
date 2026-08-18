@@ -16,6 +16,9 @@
       "properties": {
         "role": { "enum": ["start", "clarification", "review", "approval", "exception", "completion"] },
         "pages": { "type": "array", "items": { "$ref": "#/$defs/page" } },
+        "validationRules": { "type": "array", "items": { "type": "object" } },
+        "reviewPolicy": { "type": "object" },
+        "modelRouting": { "type": "object" },
         "submissionSchema": { "type": "object" }
       }
     }

@@ -138,6 +138,148 @@ spec:
               description: Submitted, quoted, bound, declined, pending, or other status.
               dataType: string
               widget: text
+  validationRules:
+    - id: applicant-name-present
+      severity: error
+      description: applicant_name is required for Insurance Policy Application extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: applicant_name
+          - op: gt
+            left:
+              length: applicant_name
+            right:
+              value: 0
+      sourceExpression: applicant_name IS NOT NULL AND LENGTH(TRIM(applicant_name)) > 0
+      supported: true
+    - id: policy-type-requested-present
+      severity: error
+      description: policy_type_requested is required for Insurance Policy Application extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: policy_type_requested
+          - op: gt
+            left:
+              length: policy_type_requested
+            right:
+              value: 0
+      sourceExpression: policy_type_requested IS NOT NULL AND LENGTH(TRIM(policy_type_requested)) > 0
+      supported: true
+    - id: effective-date-requested-present
+      severity: error
+      description: effective_date_requested is required for Insurance Policy Application extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: effective_date_requested
+          - op: gt
+            left:
+              length: effective_date_requested
+            right:
+              value: 0
+      sourceExpression: effective_date_requested IS NOT NULL AND LENGTH(TRIM(effective_date_requested)) > 0
+      supported: true
+    - id: coverage-limit-requested-non-negative
+      severity: warning
+      description: coverage_limit_requested should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: coverage_limit_requested
+          - op: gte
+            left:
+              field: coverage_limit_requested
+            right:
+              value: 0
+      sourceExpression: coverage_limit_requested IS NULL OR coverage_limit_requested >= 0
+      supported: true
+    - id: deductible-requested-non-negative
+      severity: warning
+      description: deductible_requested should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: deductible_requested
+          - op: gte
+            left:
+              field: deductible_requested
+            right:
+              value: 0
+      sourceExpression: deductible_requested IS NULL OR deductible_requested >= 0
+      supported: true
+    - id: annual-revenue-non-negative
+      severity: warning
+      description: annual_revenue should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: annual_revenue
+          - op: gte
+            left:
+              field: annual_revenue
+            right:
+              value: 0
+      sourceExpression: annual_revenue IS NULL OR annual_revenue >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      applicant_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Policy Application workflow.
+      policy_type_requested:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Policy Application workflow.
+      coverage_limit_requested:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Policy Application workflow.
+      underwriting_status:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Insurance Policy Application workflow.
+      effective_date_requested:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Insurance policy application extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Insurance Policy Application documents mix policy, coverage, claim, party, financial, and
+      regulatory notice context.
   submissionSchema:
     type: object
     properties:
@@ -201,55 +343,6 @@ spec:
       - effective_date_requested
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: applicant_name_present
-          rule_type: presence
-          fields:
-            - applicant_name
-          expression: applicant_name IS NOT NULL AND LENGTH(TRIM(applicant_name)) > 0
-          severity: fail
-          description: applicant_name is required for Insurance Policy Application extraction.
-          field_name: applicant_name
-        - name: policy_type_requested_present
-          rule_type: presence
-          fields:
-            - policy_type_requested
-          expression: policy_type_requested IS NOT NULL AND LENGTH(TRIM(policy_type_requested)) > 0
-          severity: fail
-          description: policy_type_requested is required for Insurance Policy Application extraction.
-          field_name: policy_type_requested
-        - name: effective_date_requested_present
-          rule_type: presence
-          fields:
-            - effective_date_requested
-          expression: effective_date_requested IS NOT NULL AND LENGTH(TRIM(effective_date_requested)) > 0
-          severity: fail
-          description: effective_date_requested is required for Insurance Policy Application extraction.
-          field_name: effective_date_requested
-        - name: coverage_limit_requested_non_negative
-          rule_type: range
-          fields:
-            - coverage_limit_requested
-          expression: coverage_limit_requested IS NULL OR coverage_limit_requested >= 0
-          severity: warn
-          description: coverage_limit_requested should be non-negative when present.
-          field_name: coverage_limit_requested
-        - name: deductible_requested_non_negative
-          rule_type: range
-          fields:
-            - deductible_requested
-          expression: deductible_requested IS NULL OR deductible_requested >= 0
-          severity: warn
-          description: deductible_requested should be non-negative when present.
-          field_name: deductible_requested
-        - name: annual_revenue_non_negative
-          rule_type: range
-          fields:
-            - annual_revenue
-          expression: annual_revenue IS NULL OR annual_revenue >= 0
-          severity: warn
-          description: annual_revenue should be non-negative when present.
-          field_name: annual_revenue
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

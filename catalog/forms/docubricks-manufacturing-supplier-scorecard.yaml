@@ -131,6 +131,212 @@ spec:
               description: Responsiveness rating.
               dataType: string
               widget: text
+  validationRules:
+    - id: scorecard-period-present
+      severity: error
+      description: scorecard_period is required for Supplier Scorecard extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: scorecard_period
+          - op: gt
+            left:
+              length: scorecard_period
+            right:
+              value: 0
+      sourceExpression: scorecard_period IS NOT NULL AND LENGTH(TRIM(scorecard_period)) > 0
+      supported: true
+    - id: supplier-name-present
+      severity: error
+      description: supplier_name is required for Supplier Scorecard extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: supplier_name
+          - op: gt
+            left:
+              length: supplier_name
+            right:
+              value: 0
+      sourceExpression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
+      supported: true
+    - id: on-time-delivery-rate-present
+      severity: error
+      description: on_time_delivery_rate is required for Supplier Scorecard extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: on_time_delivery_rate
+          - op: gt
+            left:
+              length: on_time_delivery_rate
+            right:
+              value: 0
+      sourceExpression: on_time_delivery_rate IS NOT NULL AND LENGTH(TRIM(on_time_delivery_rate)) > 0
+      supported: true
+    - id: quality-ppm-present
+      severity: error
+      description: quality_ppm is required for Supplier Scorecard extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: quality_ppm
+          - op: gt
+            left:
+              length: quality_ppm
+            right:
+              value: 0
+      sourceExpression: quality_ppm IS NOT NULL AND LENGTH(TRIM(quality_ppm)) > 0
+      supported: true
+    - id: overall-score-present
+      severity: error
+      description: overall_score is required for Supplier Scorecard extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: overall_score
+          - op: gt
+            left:
+              length: overall_score
+            right:
+              value: 0
+      sourceExpression: overall_score IS NOT NULL AND LENGTH(TRIM(overall_score)) > 0
+      supported: true
+    - id: on-time-delivery-rate-non-negative
+      severity: warning
+      description: on_time_delivery_rate should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: on_time_delivery_rate
+          - op: gte
+            left:
+              field: on_time_delivery_rate
+            right:
+              value: 0
+      sourceExpression: on_time_delivery_rate IS NULL OR on_time_delivery_rate >= 0
+      supported: true
+    - id: quality-ppm-non-negative
+      severity: warning
+      description: quality_ppm should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: quality_ppm
+          - op: gte
+            left:
+              field: quality_ppm
+            right:
+              value: 0
+      sourceExpression: quality_ppm IS NULL OR quality_ppm >= 0
+      supported: true
+    - id: nonconformance-count-non-negative
+      severity: warning
+      description: nonconformance_count should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: nonconformance_count
+          - op: gte
+            left:
+              field: nonconformance_count
+            right:
+              value: 0
+      sourceExpression: nonconformance_count IS NULL OR nonconformance_count >= 0
+      supported: true
+    - id: cost-variance-percent-non-negative
+      severity: warning
+      description: cost_variance_percent should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: cost_variance_percent
+          - op: gte
+            left:
+              field: cost_variance_percent
+            right:
+              value: 0
+      sourceExpression: cost_variance_percent IS NULL OR cost_variance_percent >= 0
+      supported: true
+    - id: overall-score-non-negative
+      severity: warning
+      description: overall_score should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: overall_score
+          - op: gte
+            left:
+              field: overall_score
+            right:
+              value: 0
+      sourceExpression: overall_score IS NULL OR overall_score >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      supplier_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Supplier Scorecard workflow.
+      on_time_delivery_rate:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Supplier Scorecard workflow.
+      quality_ppm:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Supplier Scorecard workflow.
+      overall_score:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Supplier Scorecard workflow.
+      scorecard_period:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Supplier scorecard extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Supplier Scorecard documents combine manufacturing, quality, supplier, material, and operational
+      control context.
   submissionSchema:
     type: object
     properties:
@@ -187,77 +393,6 @@ spec:
       - overall_score
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: scorecard_period_present
-          rule_type: presence
-          fields:
-            - scorecard_period
-          expression: scorecard_period IS NOT NULL AND LENGTH(TRIM(scorecard_period)) > 0
-          severity: fail
-          description: scorecard_period is required for Supplier Scorecard extraction.
-        - name: supplier_name_present
-          rule_type: presence
-          fields:
-            - supplier_name
-          expression: supplier_name IS NOT NULL AND LENGTH(TRIM(supplier_name)) > 0
-          severity: fail
-          description: supplier_name is required for Supplier Scorecard extraction.
-        - name: on_time_delivery_rate_present
-          rule_type: presence
-          fields:
-            - on_time_delivery_rate
-          expression: on_time_delivery_rate IS NOT NULL AND LENGTH(TRIM(on_time_delivery_rate)) > 0
-          severity: fail
-          description: on_time_delivery_rate is required for Supplier Scorecard extraction.
-        - name: quality_ppm_present
-          rule_type: presence
-          fields:
-            - quality_ppm
-          expression: quality_ppm IS NOT NULL AND LENGTH(TRIM(quality_ppm)) > 0
-          severity: fail
-          description: quality_ppm is required for Supplier Scorecard extraction.
-        - name: overall_score_present
-          rule_type: presence
-          fields:
-            - overall_score
-          expression: overall_score IS NOT NULL AND LENGTH(TRIM(overall_score)) > 0
-          severity: fail
-          description: overall_score is required for Supplier Scorecard extraction.
-        - name: on_time_delivery_rate_non_negative
-          rule_type: range
-          fields:
-            - on_time_delivery_rate
-          expression: on_time_delivery_rate IS NULL OR on_time_delivery_rate >= 0
-          severity: warn
-          description: on_time_delivery_rate should be non-negative when present.
-        - name: quality_ppm_non_negative
-          rule_type: range
-          fields:
-            - quality_ppm
-          expression: quality_ppm IS NULL OR quality_ppm >= 0
-          severity: warn
-          description: quality_ppm should be non-negative when present.
-        - name: nonconformance_count_non_negative
-          rule_type: range
-          fields:
-            - nonconformance_count
-          expression: nonconformance_count IS NULL OR nonconformance_count >= 0
-          severity: warn
-          description: nonconformance_count should be non-negative when present.
-        - name: cost_variance_percent_non_negative
-          rule_type: range
-          fields:
-            - cost_variance_percent
-          expression: cost_variance_percent IS NULL OR cost_variance_percent >= 0
-          severity: warn
-          description: cost_variance_percent should be non-negative when present.
-        - name: overall_score_non_negative
-          rule_type: range
-          fields:
-            - overall_score
-          expression: overall_score IS NULL OR overall_score >= 0
-          severity: warn
-          description: overall_score should be non-negative when present.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

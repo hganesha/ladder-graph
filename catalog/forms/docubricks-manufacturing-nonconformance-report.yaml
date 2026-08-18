@@ -131,6 +131,144 @@ spec:
               description: Open, in review, closed, overdue, or other status.
               dataType: string
               widget: text
+  validationRules:
+    - id: ncr-number-present
+      severity: error
+      description: ncr_number is required for Nonconformance Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: ncr_number
+          - op: gt
+            left:
+              length: ncr_number
+            right:
+              value: 0
+      sourceExpression: ncr_number IS NOT NULL AND LENGTH(TRIM(ncr_number)) > 0
+      supported: true
+    - id: ncr-date-present
+      severity: error
+      description: ncr_date is required for Nonconformance Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: ncr_date
+          - op: gt
+            left:
+              length: ncr_date
+            right:
+              value: 0
+      sourceExpression: ncr_date IS NOT NULL AND LENGTH(TRIM(ncr_date)) > 0
+      supported: true
+    - id: part-number-present
+      severity: error
+      description: part_number is required for Nonconformance Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: part_number
+          - op: gt
+            left:
+              length: part_number
+            right:
+              value: 0
+      sourceExpression: part_number IS NOT NULL AND LENGTH(TRIM(part_number)) > 0
+      supported: true
+    - id: nonconformance-description-present
+      severity: error
+      description: nonconformance_description is required for Nonconformance Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: nonconformance_description
+          - op: gt
+            left:
+              length: nonconformance_description
+            right:
+              value: 0
+      sourceExpression: nonconformance_description IS NOT NULL AND LENGTH(TRIM(nonconformance_description)) > 0
+      supported: true
+    - id: disposition-present
+      severity: error
+      description: disposition is required for Nonconformance Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: disposition
+          - op: gt
+            left:
+              length: disposition
+            right:
+              value: 0
+      sourceExpression: disposition IS NOT NULL AND LENGTH(TRIM(disposition)) > 0
+      supported: true
+    - id: quantity-affected-non-negative
+      severity: warning
+      description: quantity_affected should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: quantity_affected
+          - op: gte
+            left:
+              field: quantity_affected
+            right:
+              value: 0
+      sourceExpression: quantity_affected IS NULL OR quantity_affected >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      ncr_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Nonconformance Report workflow.
+      part_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Nonconformance Report workflow.
+      nonconformance_description:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Nonconformance Report workflow.
+      disposition:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Nonconformance Report workflow.
+      ncr_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Nonconformance report extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Nonconformance Report documents combine manufacturing, quality, supplier, material, and operational
+      control context.
   submissionSchema:
     type: object
     properties:
@@ -188,49 +326,6 @@ spec:
       - disposition
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: ncr_number_present
-          rule_type: presence
-          fields:
-            - ncr_number
-          expression: ncr_number IS NOT NULL AND LENGTH(TRIM(ncr_number)) > 0
-          severity: fail
-          description: ncr_number is required for Nonconformance Report extraction.
-        - name: ncr_date_present
-          rule_type: presence
-          fields:
-            - ncr_date
-          expression: ncr_date IS NOT NULL AND LENGTH(TRIM(ncr_date)) > 0
-          severity: fail
-          description: ncr_date is required for Nonconformance Report extraction.
-        - name: part_number_present
-          rule_type: presence
-          fields:
-            - part_number
-          expression: part_number IS NOT NULL AND LENGTH(TRIM(part_number)) > 0
-          severity: fail
-          description: part_number is required for Nonconformance Report extraction.
-        - name: nonconformance_description_present
-          rule_type: presence
-          fields:
-            - nonconformance_description
-          expression: nonconformance_description IS NOT NULL AND LENGTH(TRIM(nonconformance_description)) > 0
-          severity: fail
-          description: nonconformance_description is required for Nonconformance Report extraction.
-        - name: disposition_present
-          rule_type: presence
-          fields:
-            - disposition
-          expression: disposition IS NOT NULL AND LENGTH(TRIM(disposition)) > 0
-          severity: fail
-          description: disposition is required for Nonconformance Report extraction.
-        - name: quantity_affected_non_negative
-          rule_type: range
-          fields:
-            - quantity_affected
-          expression: quantity_affected IS NULL OR quantity_affected >= 0
-          severity: warn
-          description: quantity_affected should be non-negative when present.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

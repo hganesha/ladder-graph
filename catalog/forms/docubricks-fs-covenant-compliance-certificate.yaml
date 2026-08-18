@@ -166,6 +166,137 @@ spec:
               description: Whether a default or event of default is disclosed.
               dataType: boolean
               widget: checkbox
+  validationRules:
+    - id: borrower-name-present
+      severity: error
+      description: Certificate must identify the borrower.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: borrower_name
+          - op: gt
+            left:
+              length: borrower_name
+            right:
+              value: 0
+      sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
+      supported: true
+    - id: reporting-period-present
+      severity: warning
+      description: Reporting period is required to evaluate covenant compliance.
+      rule:
+        op: present
+        field: reporting_period_end_date
+      sourceExpression: reporting_period_end_date IS NOT NULL
+      supported: true
+    - id: compliance-status-present
+      severity: warning
+      description: Compliance status should be explicitly captured or reviewed.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: compliance_status
+          - op: gt
+            left:
+              length: compliance_status
+            right:
+              value: 0
+      sourceExpression: compliance_status IS NOT NULL AND LENGTH(TRIM(compliance_status)) > 0
+      supported: true
+    - id: actual-ratios-non-negative
+      severity: warning
+      description: Actual covenant ratios should not be negative.
+      rule:
+        op: and
+        rules:
+          - op: or
+            rules:
+              - op: not
+                rule:
+                  op: present
+                  field: dscr_actual
+              - op: gte
+                left:
+                  field: dscr_actual
+                right:
+                  value: 0
+          - op: or
+            rules:
+              - op: not
+                rule:
+                  op: present
+                  field: leverage_actual
+              - op: gte
+                left:
+                  field: leverage_actual
+                right:
+                  value: 0
+      sourceExpression: (dscr_actual IS NULL OR dscr_actual >= 0) AND (leverage_actual IS NULL OR leverage_actual >= 0)
+      supported: true
+    - id: exceptions-array-valid
+      severity: warning
+      description: Exceptions and waivers should be represented as an array.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: exceptions_or_waivers
+          - op: gte
+            left:
+              length: exceptions_or_waivers
+            right:
+              value: 0
+      sourceExpression: exceptions_or_waivers IS NULL OR JSON_ARRAY_LENGTH(exceptions_or_waivers) >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      borrower_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Borrower identity links the certificate to a credit facility.
+      reporting_period_end_date:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Reporting period controls covenant timeliness.
+      compliance_status:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Compliance status routes exceptions and defaults.
+      default_declared:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Default disclosures require prompt credit action.
+      dscr_actual:
+        minConfidence: 0.88
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Actual DSCR is a core covenant measurement.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Compliance certificates are semi-structured but require accurate extraction of ratios, thresholds,
+      reporting periods, and default statements.
   submissionSchema:
     type: object
     properties:
@@ -241,43 +372,6 @@ spec:
       - borrower_name
     additionalProperties: false
     x-ladder-docubricks:
-      validationRules:
-        - name: borrower_name_present
-          rule_type: presence
-          fields:
-            - borrower_name
-          expression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
-          severity: fail
-          description: Certificate must identify the borrower.
-        - name: reporting_period_present
-          rule_type: presence
-          fields:
-            - reporting_period_end_date
-          expression: reporting_period_end_date IS NOT NULL
-          severity: drop
-          description: Reporting period is required to evaluate covenant compliance.
-        - name: compliance_status_present
-          rule_type: presence
-          fields:
-            - compliance_status
-          expression: compliance_status IS NOT NULL AND LENGTH(TRIM(compliance_status)) > 0
-          severity: warn
-          description: Compliance status should be explicitly captured or reviewed.
-        - name: actual_ratios_non_negative
-          rule_type: range
-          fields:
-            - dscr_actual
-            - leverage_actual
-          expression: (dscr_actual IS NULL OR dscr_actual >= 0) AND (leverage_actual IS NULL OR leverage_actual >= 0)
-          severity: warn
-          description: Actual covenant ratios should not be negative.
-        - name: exceptions_array_valid
-          rule_type: array
-          fields:
-            - exceptions_or_waivers
-          expression: exceptions_or_waivers IS NULL OR JSON_ARRAY_LENGTH(exceptions_or_waivers) >= 0
-          severity: warn
-          description: Exceptions and waivers should be represented as an array.
       completenessChecklist:
         - id: required_fields_present
           description: All required fields are present or explicitly null with low confidence when absent.

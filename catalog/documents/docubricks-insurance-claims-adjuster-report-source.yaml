@@ -1,0 +1,433 @@
+apiVersion: ladder.dev/v1alpha1
+kind: Document
+metadata:
+  name: docubricks-insurance-claims-adjuster-report-source
+  title: Claims Adjuster Report Source
+  description: Claims Adjuster Report contract normalized from the DocuBricks Insurance library.
+  version: insurance_claims_adjuster_report_v1
+  source:
+    system: docubricks
+    sourceId: insurance/claims_adjuster_report
+    sourcePath: Schemas/insurance/claims_adjuster_report
+    sourceVersion: insurance_claims_adjuster_report_v1
+    sourceDigest: 17e7c34636a678b769c6752282f0bdf31877ddc5a2a848882d4df9ea173b618b
+    derivedFrom: docubricks-insurance-claims-adjuster-report
+spec:
+  documentType: claims_adjuster_report
+  sections:
+    - id: dates-and-terms
+      title: Dates And Terms
+      description: Dates And Terms fields extracted from the document.
+      fieldIds:
+        - inspection-date
+        - loss-date
+        - recommended-payment
+        - recommended-reserve
+        - report-date
+    - id: document-details
+      title: Document Details
+      description: Document Details fields extracted from the document.
+      fieldIds:
+        - cause-of-loss-assessment
+        - claim-number
+        - damage-scope
+        - estimated-gross-loss
+        - salvage-or-subrogation-potential
+    - id: financials
+      title: Financials
+      description: Financials fields extracted from the document.
+      fieldIds:
+        - deductible-amount
+    - id: line-items
+      title: Line Items
+      description: Line Items fields extracted from the document.
+      fieldIds:
+        - open-items
+    - id: parties
+      title: Parties
+      description: Parties fields extracted from the document.
+      fieldIds:
+        - adjuster-name
+        - insured-name
+    - id: risk-and-compliance
+      title: Risk And Compliance
+      description: Risk And Compliance fields extracted from the document.
+      fieldIds:
+        - coverage-analysis
+        - policy-number
+  fields:
+    - id: report-date
+      name: report_date
+      label: Report Date
+      description: Date of adjuster report.
+      dataType: date
+      required: true
+      sourcePath: /fields/report_date
+    - id: claim-number
+      name: claim_number
+      label: Claim Number
+      description: Claim number.
+      dataType: string
+      required: true
+      sourcePath: /fields/claim_number
+    - id: adjuster-name
+      name: adjuster_name
+      label: Adjuster Name
+      description: Adjuster name.
+      dataType: string
+      required: true
+      sourcePath: /fields/adjuster_name
+    - id: policy-number
+      name: policy_number
+      label: Policy Number
+      description: Policy number.
+      dataType: string
+      sourcePath: /fields/policy_number
+    - id: insured-name
+      name: insured_name
+      label: Insured Name
+      description: Named insured.
+      dataType: string
+      sourcePath: /fields/insured_name
+    - id: loss-date
+      name: loss_date
+      label: Loss Date
+      description: Date of loss.
+      dataType: date
+      sourcePath: /fields/loss_date
+    - id: inspection-date
+      name: inspection_date
+      label: Inspection Date
+      description: Date of inspection.
+      dataType: date
+      sourcePath: /fields/inspection_date
+    - id: cause-of-loss-assessment
+      name: cause_of_loss_assessment
+      label: Cause Of Loss Assessment
+      description: Adjuster's cause of loss assessment.
+      dataType: string
+      sourcePath: /fields/cause_of_loss_assessment
+    - id: coverage-analysis
+      name: coverage_analysis
+      label: Coverage Analysis
+      description: Coverage analysis or applicable coverage position.
+      dataType: string
+      required: true
+      sourcePath: /fields/coverage_analysis
+    - id: damage-scope
+      name: damage_scope
+      label: Damage Scope
+      description: Scope of covered or claimed damage.
+      dataType: array
+      sourcePath: /fields/damage_scope
+    - id: estimated-gross-loss
+      name: estimated_gross_loss
+      label: Estimated Gross Loss
+      description: Gross loss estimate.
+      dataType: number
+      sourcePath: /fields/estimated_gross_loss
+    - id: deductible-amount
+      name: deductible_amount
+      label: Deductible Amount
+      description: Deductible amount.
+      dataType: number
+      sourcePath: /fields/deductible_amount
+    - id: recommended-reserve
+      name: recommended_reserve
+      label: Recommended Reserve
+      description: Recommended reserve.
+      dataType: number
+      sourcePath: /fields/recommended_reserve
+    - id: recommended-payment
+      name: recommended_payment
+      label: Recommended Payment
+      description: Recommended payment.
+      dataType: number
+      sourcePath: /fields/recommended_payment
+    - id: salvage-or-subrogation-potential
+      name: salvage_or_subrogation_potential
+      label: Salvage Or Subrogation Potential
+      description: Salvage or subrogation potential.
+      dataType: string
+      sourcePath: /fields/salvage_or_subrogation_potential
+    - id: open-items
+      name: open_items
+      label: Open Items
+      description: Open information requests or pending items.
+      dataType: array
+      sourcePath: /fields/open_items
+  validationRules:
+    - id: report-date-present
+      severity: error
+      description: report_date is required for Claims Adjuster Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: report_date
+          - op: gt
+            left:
+              length: report_date
+            right:
+              value: 0
+      sourceExpression: report_date IS NOT NULL AND LENGTH(TRIM(report_date)) > 0
+      supported: true
+    - id: claim-number-present
+      severity: error
+      description: claim_number is required for Claims Adjuster Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: claim_number
+          - op: gt
+            left:
+              length: claim_number
+            right:
+              value: 0
+      sourceExpression: claim_number IS NOT NULL AND LENGTH(TRIM(claim_number)) > 0
+      supported: true
+    - id: adjuster-name-present
+      severity: error
+      description: adjuster_name is required for Claims Adjuster Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: adjuster_name
+          - op: gt
+            left:
+              length: adjuster_name
+            right:
+              value: 0
+      sourceExpression: adjuster_name IS NOT NULL AND LENGTH(TRIM(adjuster_name)) > 0
+      supported: true
+    - id: coverage-analysis-present
+      severity: error
+      description: coverage_analysis is required for Claims Adjuster Report extraction.
+      rule:
+        op: and
+        rules:
+          - op: present
+            field: coverage_analysis
+          - op: gt
+            left:
+              length: coverage_analysis
+            right:
+              value: 0
+      sourceExpression: coverage_analysis IS NOT NULL AND LENGTH(TRIM(coverage_analysis)) > 0
+      supported: true
+    - id: estimated-gross-loss-non-negative
+      severity: warning
+      description: estimated_gross_loss should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: estimated_gross_loss
+          - op: gte
+            left:
+              field: estimated_gross_loss
+            right:
+              value: 0
+      sourceExpression: estimated_gross_loss IS NULL OR estimated_gross_loss >= 0
+      supported: true
+    - id: deductible-amount-non-negative
+      severity: warning
+      description: deductible_amount should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: deductible_amount
+          - op: gte
+            left:
+              field: deductible_amount
+            right:
+              value: 0
+      sourceExpression: deductible_amount IS NULL OR deductible_amount >= 0
+      supported: true
+    - id: recommended-reserve-non-negative
+      severity: warning
+      description: recommended_reserve should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: recommended_reserve
+          - op: gte
+            left:
+              field: recommended_reserve
+            right:
+              value: 0
+      sourceExpression: recommended_reserve IS NULL OR recommended_reserve >= 0
+      supported: true
+    - id: recommended-payment-non-negative
+      severity: warning
+      description: recommended_payment should be non-negative when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: recommended_payment
+          - op: gte
+            left:
+              field: recommended_payment
+            right:
+              value: 0
+      sourceExpression: recommended_payment IS NULL OR recommended_payment >= 0
+      supported: true
+  reviewPolicy:
+    unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      claim_number:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Claims Adjuster Report workflow.
+      coverage_analysis:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Claims Adjuster Report workflow.
+      recommended_reserve:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Claims Adjuster Report workflow.
+      recommended_payment:
+        minConfidence: 0.85
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: true
+        rationale: High-impact field for Claims Adjuster Report workflow.
+      report_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Claims adjuster report extraction.
+      adjuster_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: Required field for Claims adjuster report extraction.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Claims Adjuster Report documents mix policy, coverage, claim, party, financial, and regulatory
+      notice context.
+  outputSchema:
+    type: object
+    properties:
+      report_date:
+        type: date
+        description: Date of adjuster report.
+        format: date
+      claim_number:
+        type: string
+        description: Claim number.
+      adjuster_name:
+        type: string
+        description: Adjuster name.
+      policy_number:
+        type: string
+        description: Policy number.
+      insured_name:
+        type: string
+        description: Named insured.
+      loss_date:
+        type: date
+        description: Date of loss.
+        format: date
+      inspection_date:
+        type: date
+        description: Date of inspection.
+        format: date
+      cause_of_loss_assessment:
+        type: string
+        description: Adjuster's cause of loss assessment.
+      coverage_analysis:
+        type: string
+        description: Coverage analysis or applicable coverage position.
+      damage_scope:
+        type: array
+        items:
+          type: string
+        description: Scope of covered or claimed damage.
+      estimated_gross_loss:
+        type: number
+        description: Gross loss estimate.
+      deductible_amount:
+        type: number
+        description: Deductible amount.
+      recommended_reserve:
+        type: number
+        description: Recommended reserve.
+      recommended_payment:
+        type: number
+        description: Recommended payment.
+      salvage_or_subrogation_potential:
+        type: string
+        description: Salvage or subrogation potential.
+      open_items:
+        type: array
+        items:
+          type: string
+        description: Open information requests or pending items.
+    required:
+      - report_date
+      - claim_number
+      - adjuster_name
+      - coverage_analysis
+    additionalProperties: false
+  inertSourceMetadata:
+    family: insurance_claims
+    outputContract:
+      fields_object: extracted_fields
+      confidence_object: confidence
+      metadata_object: extraction_metadata
+    completenessChecklist:
+      - id: required_fields_present
+        description: All required fields are present or explicitly null with low confidence when absent.
+        fields:
+          - report_date
+          - claim_number
+          - adjuster_name
+          - coverage_analysis
+      - id: section_coverage_reviewed
+        description: Each declared section was reviewed for extractable evidence.
+        sections:
+          - dates_and_terms
+          - document_details
+          - financials
+          - line_items
+          - parties
+          - risk_and_compliance
+      - id: nested_lists_normalized
+        description: Object array fields use their item_schema for consistent nested extraction.
+        fields: []
+    sourceFiles:
+      - fields.json
+      - validation_rules.json
+      - field_thresholds.json
+      - model_routing.json

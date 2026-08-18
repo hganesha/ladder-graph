@@ -1,0 +1,19 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: fs-third-party-risk
+  title: Third-party risk bundle
+  description: Vendor risk assessment and invoice evidence for a governed third-party decision.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-cross-05
+  ontology:
+    ref: ladder://ontologies/builtin/financial-services
+    mode: sliver
+    selection:
+      propertyRefs: [third_party_risk.criticality_tier, third_party_risk.information_security_rating, payment_obligation.vendor_name, payment_obligation.invoice_number]
+      relationshipIds: [evaluates, owes]
+  forms:
+    - { ref: ladder://forms/docubricks/fs/third_party_risk_assessment, role: review }
+  documents:
+    - { ref: ladder://documents/docubricks/fs/invoice, role: supporting }

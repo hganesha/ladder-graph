@@ -1,0 +1,21 @@
+apiVersion: ladder.dev/v1alpha1
+kind: WorkflowBundle
+metadata:
+  name: real-estate-lease-administration
+  title: Real-estate lease administration bundle
+  description: Tenant certification, lease terms, rent roll, and property-management evidence.
+  version: 1.0.0
+spec:
+  workflowRef: ladder://workflows/builtin/wf-acct-02
+  ontology:
+    ref: ladder://ontologies/builtin/real-estate
+    mode: sliver
+    selection:
+      propertyRefs: [real_property.property_address, real_estate_party.tenant_name, lease.lease_end_date, rent_roll.monthly_scheduled_rent, property_management.management_fee_terms]
+      relationshipIds: [describes, has_party, managed_by, summarized_by]
+  forms:
+    - { ref: ladder://forms/docubricks/real_estate/tenant_estoppel_certificate, role: completion }
+  documents:
+    - { ref: ladder://documents/docubricks/real_estate/lease_agreement, role: supporting }
+    - { ref: ladder://documents/docubricks/real_estate/rent_roll, role: supporting }
+    - { ref: ladder://documents/docubricks/real_estate/property_management_agreement, role: supporting }

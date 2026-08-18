@@ -156,38 +156,126 @@ spec:
       severity: error
       description: Guaranty agreement must identify the guarantor.
       rule:
-        op: present
-        field: guarantor_name
+        op: and
+        rules:
+          - op: present
+            field: guarantor_name
+          - op: gt
+            left:
+              length: guarantor_name
+            right:
+              value: 0
       sourceExpression: guarantor_name IS NOT NULL AND LENGTH(TRIM(guarantor_name)) > 0
       supported: true
     - id: borrower-name-present
       severity: warning
       description: Borrower should be captured to link guaranty to the obligation.
       rule:
-        op: present
-        field: borrower_name
+        op: and
+        rules:
+          - op: present
+            field: borrower_name
+          - op: gt
+            left:
+              length: borrower_name
+            right:
+              value: 0
       sourceExpression: borrower_name IS NOT NULL AND LENGTH(TRIM(borrower_name)) > 0
       supported: true
     - id: maximum-liability-positive
       severity: warning
       description: Liability cap must be positive when present.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: maximum_liability_amount
+          - op: gt
+            left:
+              field: maximum_liability_amount
+            right:
+              value: 0
       sourceExpression: maximum_liability_amount IS NULL OR maximum_liability_amount > 0
-      supported: false
+      supported: true
     - id: waivers-array-valid
       severity: warning
       description: Waivers should be represented as an array.
+      rule:
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: waivers
+          - op: gte
+            left:
+              length: waivers
+            right:
+              value: 0
       sourceExpression: waivers IS NULL OR JSON_ARRAY_LENGTH(waivers) >= 0
-      supported: false
+      supported: true
     - id: governing-law-present
       severity: warning
       description: Governing law should be captured for enforceability review.
       rule:
-        op: present
-        field: governing_law
+        op: and
+        rules:
+          - op: present
+            field: governing_law
+          - op: gt
+            left:
+              length: governing_law
+            right:
+              value: 0
       sourceExpression: governing_law IS NOT NULL AND LENGTH(TRIM(governing_law)) > 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      guarantor_name:
+        minConfidence: 0.94
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: false
+        rationale: Guarantor identity anchors credit support.
+      borrower_name:
+        minConfidence: 0.92
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Borrower links guaranty to the loan obligation.
+      guaranty_type:
+        minConfidence: 0.86
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Guaranty type affects enforcement and exposure analysis.
+      maximum_liability_amount:
+        minConfidence: 0.93
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Liability cap materially limits credit support.
+      continuing_guaranty:
+        minConfidence: 0.84
+        reviewOnBreach: true
+        failOnBreach: false
+        regulatoryRequired: false
+        rationale: Continuing status affects future advances.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 4096
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Guaranty agreements require legal-term extraction around scope, limits, waivers, and continuing
+      obligations.
   outputSchema:
     type: object
     properties:

@@ -153,99 +153,207 @@ spec:
       severity: error
       description: production_date is required for Production Report extraction.
       rule:
-        op: present
-        field: production_date
+        op: and
+        rules:
+          - op: present
+            field: production_date
+          - op: gt
+            left:
+              length: production_date
+            right:
+              value: 0
       sourceExpression: production_date IS NOT NULL AND LENGTH(TRIM(production_date)) > 0
       supported: true
     - id: lease-name-present
       severity: error
       description: lease_name is required for Production Report extraction.
       rule:
-        op: present
-        field: lease_name
+        op: and
+        rules:
+          - op: present
+            field: lease_name
+          - op: gt
+            left:
+              length: lease_name
+            right:
+              value: 0
       sourceExpression: lease_name IS NOT NULL AND LENGTH(TRIM(lease_name)) > 0
       supported: true
     - id: operator-name-present
       severity: error
       description: operator_name is required for Production Report extraction.
       rule:
-        op: present
-        field: operator_name
+        op: and
+        rules:
+          - op: present
+            field: operator_name
+          - op: gt
+            left:
+              length: operator_name
+            right:
+              value: 0
       sourceExpression: operator_name IS NOT NULL AND LENGTH(TRIM(operator_name)) > 0
       supported: true
     - id: oil-volume-bbl-present
       severity: error
       description: oil_volume_bbl is required for Production Report extraction.
       rule:
-        op: present
-        field: oil_volume_bbl
+        op: and
+        rules:
+          - op: present
+            field: oil_volume_bbl
+          - op: gt
+            left:
+              length: oil_volume_bbl
+            right:
+              value: 0
       sourceExpression: oil_volume_bbl IS NOT NULL AND LENGTH(TRIM(oil_volume_bbl)) > 0
       supported: true
     - id: gas-volume-mcf-present
       severity: error
       description: gas_volume_mcf is required for Production Report extraction.
       rule:
-        op: present
-        field: gas_volume_mcf
+        op: and
+        rules:
+          - op: present
+            field: gas_volume_mcf
+          - op: gt
+            left:
+              length: gas_volume_mcf
+            right:
+              value: 0
       sourceExpression: gas_volume_mcf IS NOT NULL AND LENGTH(TRIM(gas_volume_mcf)) > 0
       supported: true
     - id: well-count-non-negative
       severity: warning
       description: well_count should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: well_count
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: well_count
+          - op: gte
+            left:
+              field: well_count
+            right:
+              value: 0
       sourceExpression: well_count IS NULL OR well_count >= 0
       supported: true
     - id: oil-volume-bbl-non-negative
       severity: warning
       description: oil_volume_bbl should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: oil_volume_bbl
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: oil_volume_bbl
+          - op: gte
+            left:
+              field: oil_volume_bbl
+            right:
+              value: 0
       sourceExpression: oil_volume_bbl IS NULL OR oil_volume_bbl >= 0
       supported: true
     - id: gas-volume-mcf-non-negative
       severity: warning
       description: gas_volume_mcf should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: gas_volume_mcf
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: gas_volume_mcf
+          - op: gte
+            left:
+              field: gas_volume_mcf
+            right:
+              value: 0
       sourceExpression: gas_volume_mcf IS NULL OR gas_volume_mcf >= 0
       supported: true
     - id: water-volume-bbl-non-negative
       severity: warning
       description: water_volume_bbl should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: water_volume_bbl
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: water_volume_bbl
+          - op: gte
+            left:
+              field: water_volume_bbl
+            right:
+              value: 0
       sourceExpression: water_volume_bbl IS NULL OR water_volume_bbl >= 0
       supported: true
     - id: ngl-volume-bbl-non-negative
       severity: warning
       description: ngl_volume_bbl should be non-negative when present.
       rule:
-        op: gte
-        left:
-          field: ngl_volume_bbl
-        right:
-          value: 0
+        op: or
+        rules:
+          - op: not
+            rule:
+              op: present
+              field: ngl_volume_bbl
+          - op: gte
+            left:
+              field: ngl_volume_bbl
+            right:
+              value: 0
       sourceExpression: ngl_volume_bbl IS NULL OR ngl_volume_bbl >= 0
       supported: true
   reviewPolicy:
     unsupportedRuleAction: human-review
+    defaultConfidenceThreshold: 0.75
+    fieldConfidence:
+      production_date:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Production Report workflow.
+      lease_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Production Report workflow.
+      operator_name:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Production Report workflow.
+      oil_volume_bbl:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Production Report workflow.
+      gas_volume_mcf:
+        minConfidence: 0.9
+        reviewOnBreach: true
+        failOnBreach: true
+        regulatoryRequired: true
+        rationale: High-impact field for Production Report workflow.
+  modelRouting:
+    primary: databricks-claude-sonnet
+    fallbackChain:
+      - databricks-meta-llama-3-70b-instruct
+    maxTokens: 6144
+    temperature: 0
+    timeoutSeconds: 30
+    maxRetries: 2
+    tierOverrides: {}
+    rationale: Production Report documents combine upstream operations, production accounting, field services,
+      HSE, and lease control context.
   outputSchema:
     type: object
     properties:
