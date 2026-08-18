@@ -154,11 +154,26 @@ describe("welcome gallery", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
     const agentGroup = screen.getByRole("region", { name: "Software engineering agents" });
     expect(agentGroup.querySelector(".agent-card-icon svg")).toHaveClass("lucide-code-xml");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Bundles" }));
+    const bundleGroup = screen.getByRole("region", { name: "Manufacturing & industrial operations bundles" });
+    expect(bundleGroup.querySelector(".bundle-launch-icon svg")).not.toHaveClass("lucide-package-open");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Forms" }));
+    const formGroup = screen.getByRole("region", { name: "Manufacturing & industrial operations forms" });
+    expect(formGroup.querySelector(".agent-card-icon svg")).not.toHaveClass("lucide-file-text");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Documents" }));
+    const documentGroup = screen.getByRole("region", { name: "Manufacturing & industrial operations documents" });
+    expect(documentGroup.querySelector(".agent-card-icon svg")).not.toHaveClass("lucide-book-open");
   });
 
-  it("optionally includes reusable user workflows and agents", async () => {
+  it("optionally includes user workflows, agents, bundles, forms, and documents", async () => {
     const openUserTemplate = vi.fn(async () => undefined);
     const openProject = vi.fn(async () => undefined);
+    const onBundle = vi.fn();
+    const onDocument = vi.fn();
+    const onForm = vi.fn();
     useStudioStore.setState({ openProject, openUserTemplate });
     vi.mocked(listProjects).mockResolvedValue([
       {
@@ -178,6 +193,27 @@ spec:
         createdAt: 1,
         updatedAt: 2,
       },
+      ...(
+        [
+          ["saved-bundle", "My saved bundle", "workflow-bundle", "WorkflowBundle"],
+          ["saved-form", "My saved form", "form", "Form"],
+          ["saved-document", "My saved document", "document", "Document"],
+        ] as const
+      ).map(([id, name, artifactKind, kind]) => ({
+        id,
+        name,
+        artifactKind,
+        yaml: `kind: ${kind}`,
+        lastValidYaml: `apiVersion: ladder.dev/v1alpha1
+kind: ${kind}
+metadata:
+  name: ${id}
+  title: ${name}
+spec: {}`,
+        target: "codex" as const,
+        createdAt: 1,
+        updatedAt: 2,
+      })),
     ]);
     vi.mocked(listUserTemplates).mockResolvedValue([
       {
@@ -225,7 +261,7 @@ spec:
       },
     ]);
 
-    render(<Welcome onBlank={() => undefined} />);
+    render(<Welcome onBlank={() => undefined} onBundle={onBundle} onDocument={onDocument} onForm={onForm} />);
     const includeUserAssets = screen.getByRole("checkbox", { name: "Include your assets" });
     await waitFor(() => expect(includeUserAssets).toBeEnabled());
     selectArea(":all");
@@ -246,8 +282,29 @@ spec:
     expect(userAgent.querySelector(".agent-card-icon svg")).toHaveClass("lucide-scale");
     fireEvent.click(userAgent);
 
+    fireEvent.click(screen.getByRole("tab", { name: "Bundles" }));
+    const userBundle = screen.getByRole("button", { name: "Open My saved bundle" });
+    expect(userBundle).toHaveAttribute("data-asset-origin", "user");
+    expect(userBundle.querySelector(".bundle-launch-icon svg")).toHaveClass("lucide-user-round");
+    fireEvent.click(userBundle);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Forms" }));
+    const userForm = screen.getByRole("button", { name: "Open My saved form form" });
+    expect(userForm).toHaveAttribute("data-asset-origin", "user");
+    expect(userForm.querySelector(".agent-card-icon svg")).toHaveClass("lucide-user-round");
+    fireEvent.click(userForm);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Documents" }));
+    const userDocument = screen.getByRole("button", { name: "Open My saved document document" });
+    expect(userDocument).toHaveAttribute("data-asset-origin", "user");
+    expect(userDocument.querySelector(".agent-card-icon svg")).toHaveClass("lucide-user-round");
+    fireEvent.click(userDocument);
+
     expect(openUserTemplate).toHaveBeenCalledTimes(2);
     expect(openProject).toHaveBeenCalledWith(expect.objectContaining({ id: "saved-workflow" }));
+    expect(onBundle).toHaveBeenCalledWith(expect.objectContaining({ id: "saved-bundle" }));
+    expect(onForm).toHaveBeenCalledWith(expect.objectContaining({ id: "saved-form" }));
+    expect(onDocument).toHaveBeenCalledWith(expect.objectContaining({ id: "saved-document" }));
   });
 
   it("searches the full catalog from a partial word and browses a subject result", () => {
