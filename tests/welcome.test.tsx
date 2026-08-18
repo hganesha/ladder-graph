@@ -65,7 +65,7 @@ describe("welcome gallery", () => {
     expect(openAgentTemplate).toHaveBeenCalledTimes(1);
   });
 
-  it("sorts subject areas, workflows, bundles, and agents alphabetically", () => {
+  it("groups all catalog items by alphabetized subject areas and sorts each group", () => {
     render(<Welcome onBlank={() => undefined} />);
 
     const subjectValues = within(screen.getByLabelText("Subject area"))
@@ -74,27 +74,61 @@ describe("welcome gallery", () => {
     expect(subjectValues).toEqual([":all", ...alphabetically(subjectValues.slice(1))]);
 
     selectArea(":all");
-    const workflowNames = within(screen.getByRole("tabpanel", { name: "Workflows" }))
-      .getAllByRole("button", { name: /^Open .* in studio$/ })
-      .map((button) =>
-        button
-          .getAttribute("aria-label")!
-          .replace(/^Open /, "")
-          .replace(/ in studio$/, ""),
-      );
-    expect(workflowNames).toEqual(alphabetically(workflowNames));
+    const categories = [
+      {
+        tab: "Workflows",
+        plural: "workflows",
+        buttonName: /^Open .* in studio$/,
+        itemName: (label: string) => label.replace(/^Open /, "").replace(/ in studio$/, ""),
+      },
+      { tab: "Bundles", plural: "bundles", buttonName: /^Open /, itemName: (label: string) => label.replace(/^Open /, "") },
+      {
+        tab: "Agents",
+        plural: "agents",
+        buttonName: /^Start workflow with /,
+        itemName: (label: string) => label.replace(/^Start workflow with /, ""),
+      },
+      {
+        tab: "Forms",
+        plural: "forms",
+        buttonName: /^Open .* form$/,
+        itemName: (label: string) => label.replace(/^Open /, "").replace(/ form$/, ""),
+      },
+      {
+        tab: "Documents",
+        plural: "documents",
+        buttonName: /^Open .* document$/,
+        itemName: (label: string) => label.replace(/^Open /, "").replace(/ document$/, ""),
+      },
+      {
+        tab: "Ontologies",
+        plural: "ontologies",
+        buttonName: /^Open .* ontology$/,
+        itemName: (label: string) => label.replace(/^Open /, "").replace(/ ontology$/, ""),
+      },
+    ];
 
-    fireEvent.click(screen.getByRole("tab", { name: "Bundles" }));
-    const bundleNames = within(screen.getByRole("tabpanel", { name: "Bundles" }))
-      .getAllByRole("button", { name: /^Open / })
-      .map((button) => button.getAttribute("aria-label")!.replace(/^Open /, ""));
-    expect(bundleNames).toEqual(alphabetically(bundleNames));
+    for (const category of categories) {
+      if (category.tab !== "Workflows") fireEvent.click(screen.getByRole("tab", { name: category.tab }));
+      const panel = screen.getByRole("tabpanel", { name: category.tab });
+      const groups = within(panel)
+        .getAllByRole("region", { name: new RegExp(` ${category.plural}$`) })
+        .filter((group) => group.classList.contains("catalog-subject-group"));
+      const groupSubjects = groups.map((group) => group.getAttribute("aria-label")!.replace(new RegExp(` ${category.plural}$`), ""));
+      expect(groupSubjects).toEqual(alphabetically(groupSubjects));
 
-    fireEvent.click(screen.getByRole("tab", { name: "Agents" }));
-    const agentNames = within(screen.getByRole("tabpanel", { name: "Agents" }))
-      .getAllByRole("button", { name: /^Start workflow with / })
-      .map((button) => button.getAttribute("aria-label")!.replace(/^Start workflow with /, ""));
-    expect(agentNames).toEqual(alphabetically(agentNames));
+      for (const group of groups) {
+        const itemNames = within(group)
+          .getAllByRole("button", { name: category.buttonName })
+          .map((button) => category.itemName(button.getAttribute("aria-label")!));
+        expect(itemNames).toEqual(alphabetically(itemNames));
+      }
+    }
+
+    selectArea("Software engineering");
+    expect(
+      within(screen.getByRole("tabpanel", { name: "Ontologies" })).queryByRole("region", { name: / ontologies$/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("searches the full catalog from a partial word and browses a subject result", () => {

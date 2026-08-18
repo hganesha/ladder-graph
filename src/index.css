@@ -554,6 +554,40 @@ button:disabled {
 .tabbed-template-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+.catalog-subject-groups {
+  display: grid;
+  gap: 28px;
+}
+.catalog-subject-group {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 18px;
+  border-top: 1px solid #1d252b;
+}
+.catalog-subject-group:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.catalog-subject-group > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.catalog-subject-group > header h3 {
+  margin: 0;
+  font-family: "Syne", sans-serif;
+  font-size: 15px;
+  font-weight: 560;
+}
+.catalog-subject-group > header span {
+  color: #74818a;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .template-card {
   position: relative;
   min-height: 292px;
