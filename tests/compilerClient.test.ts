@@ -37,7 +37,7 @@ describe("compiler worker client", () => {
         data: {
           id: 2,
           ok: true,
-          runtime: "fallback",
+          runtime: "wasm",
           result: { ok: false, sourceHash: "", diagnostics: [], nodeOrder: [], stats: {} },
         },
       }),

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
-import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import {
   attachBundleArtifact,
   attachReferencedWorkflowContracts,
@@ -20,7 +20,7 @@ describe("general bundle editing", () => {
     if (!workflow) throw new Error("Expected evidence research workflow.");
 
     const bundle = createBundleForWorkflow(workflow);
-    const assets = resolveBundleAssets(bundle);
+    const assets = resolveBundleAssets(bundle, { [bundle.spec.workflowRef]: workflow.yaml });
 
     expect(bundle.metadata.title).toBe("Evidence research bundle");
     expect(bundle.spec.workflowRef).toBe("ladder://workflows/builtin/evidence-research");

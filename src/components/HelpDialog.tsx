@@ -200,7 +200,7 @@ const HELP_PAGES: HelpPage[] = [
               </ArchitectureLayer>
               <ArchitectureLayer icon={Cpu} standard="Domain service" title="In-browser compiler" technology="Web Worker → Rust/WASM">
                 A dedicated worker runs Rust lgir-core and ladder-artifacts compiled to WebAssembly for analysis, formatting, migration, and
-                compilation; a TypeScript implementation is the fallback.
+                compilation. If the WebAssembly module cannot initialize, compilation stops with an explicit diagnostic.
               </ArchitectureLayer>
               <ArchitectureLayer
                 icon={Database}

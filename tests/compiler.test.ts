@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { parse, stringify } from "yaml";
-import { analyzeFallback, compileFallback, formatFallback } from "../src/compiler/fallback";
-import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import type { Workflow } from "../src/types";
+import { analyzeWasm as analyzeFallback, compileWasm as compileFallback, formatWasm as formatFallback } from "./wasmCompiler";
 
-describe("LGIR fallback compiler", () => {
+describe("Rust/Wasm LGIR compiler", () => {
   const primitiveWorkflow: Workflow = {
     apiVersion: "ladder.dev/v1alpha1",
     kind: "Workflow",

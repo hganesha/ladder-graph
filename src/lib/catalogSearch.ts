@@ -125,17 +125,6 @@ function artifactSubject(path: string) {
   return ARTIFACT_INDUSTRY_TO_SUBJECT[industry] ?? titleCasePathPart(industry);
 }
 
-function yamlTerms(yaml: string) {
-  const values: string[] = [];
-  for (const line of yaml.split("\n")) {
-    const match = line.match(/^\s+(?:label|title|documentType|role|name):\s+(.+)$/);
-    if (!match) continue;
-    values.push(match[1].replace(/^['"]|['"]$/g, ""));
-    if (values.length >= 80) break;
-  }
-  return values;
-}
-
 export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): CatalogSearchEntry[] {
   const entries: CatalogSearchEntry[] = subjects.map((subject) => ({
     key: `subject:${normalize(subject.name).replaceAll(" ", "-")}`,
@@ -167,7 +156,7 @@ export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): Cata
       tags: workflow.modalities,
       action: "open-workflow",
       primaryText: `${workflow.title} ${workflow.area} ${workflow.eyebrow} workflow`,
-      secondaryText: `${workflow.description} ${workflow.topology} ${workflow.path} ${yamlTerms(workflow.yaml).join(" ")}`,
+      secondaryText: `${workflow.description} ${workflow.topology} ${workflow.path}`,
       aliases: [],
     });
   }
@@ -186,7 +175,7 @@ export function createCatalogSearchIndex(subjects: CatalogSearchSubject[]): Cata
       tags: agent.skills.slice(0, 3),
       action: "create-with-agent",
       primaryText: `${agent.name} ${agent.role} ${agent.areas.join(" ")} agent`,
-      secondaryText: `${agent.prompt} ${agent.skills.join(" ")} ${agent.path} ${agent.modalities.join(" ")}`,
+      secondaryText: `${agent.role} ${agent.skills.join(" ")} ${agent.path} ${agent.modalities.join(" ")}`,
       aliases: [],
     });
   }

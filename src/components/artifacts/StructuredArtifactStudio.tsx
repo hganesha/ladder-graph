@@ -2,7 +2,8 @@ import { AlertTriangle, ArrowLeft, CheckCircle2, CircleHelp, Download, FileText,
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parse, stringify } from "yaml";
 import { compiler } from "../../compiler/client";
-import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
+import { ARTIFACT_INDEX, ARTIFACT_USAGE_INDEX } from "../../generated/catalog";
+import { loadArtifactTemplate } from "../../lib/catalogRepository";
 import { downloadText } from "../../lib/download";
 import { resolveOntologyIcon } from "../../lib/nodeIcons";
 import {
@@ -96,12 +97,10 @@ export default function StructuredArtifactStudio({
   initialTemplateId?: string;
   onBack: () => void;
 }) {
-  const template = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === artifactKind && artifact.id === initialTemplateId);
-  const fallback = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === artifactKind);
+  const template = ARTIFACT_INDEX.find((artifact) => artifact.kind === artifactKind && artifact.id === initialTemplateId);
+  const fallback = ARTIFACT_INDEX.find((artifact) => artifact.kind === artifactKind);
   const initialSource =
-    initialProject?.yaml ??
-    template?.yaml ??
-    (artifactKind === "ontology" && initialTemplateId === "__new__" ? stringify(createBlankOntology()) : (fallback?.yaml ?? ""));
+    initialProject?.yaml ?? (artifactKind === "ontology" && initialTemplateId === "__new__" ? stringify(createBlankOntology()) : "");
   const [source, setSource] = useState(initialSource);
   const [savedSource, setSavedSource] = useState(initialTemplateId === "__new__" && !initialProject ? "" : initialSource);
   const [comparisonSource, setComparisonSource] = useState(initialSource);
@@ -117,6 +116,8 @@ export default function StructuredArtifactStudio({
   const [owlImport, setOwlImport] = useState<OwlImportResult | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(!initialSource);
+  const [catalogError, setCatalogError] = useState<string>();
   const ontologyView = useOntologyStore((state) => state.view);
   const setOntologyView = useOntologyStore((state) => state.setView);
   const reconcileOntologyStore = useOntologyStore((state) => state.reconcile);
@@ -127,6 +128,32 @@ export default function StructuredArtifactStudio({
     return initial?.kind === "Ontology" ? initial : undefined;
   }, [artifactKind, comparisonSource]);
   const label = artifactKind === "ontology" ? "Ontology" : "Document";
+
+  useEffect(() => {
+    if (initialSource) return;
+    let active = true;
+    const selected = template ?? fallback;
+    if (!selected) {
+      setCatalogLoading(false);
+      return;
+    }
+    void loadArtifactTemplate(selected.id)
+      .then((body) => {
+        if (!active) return;
+        setSource(body.yaml);
+        setSavedSource(body.yaml);
+        setComparisonSource(body.yaml);
+      })
+      .catch((error: unknown) => {
+        if (active) setCatalogError(error instanceof Error ? error.message : `The ${artifactKind} could not be loaded.`);
+      })
+      .finally(() => {
+        if (active) setCatalogLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [artifactKind, fallback, initialSource, template]);
 
   useEffect(() => {
     if (artifact?.kind === "Ontology") reconcileOntologyStore(artifact);
@@ -209,7 +236,7 @@ export default function StructuredArtifactStudio({
       ? artifact.spec.relationships.find((relationship) => relationship.id === selectedRelationshipId)
       : undefined;
   const ontologyUsageEntries = useMemo(
-    () => (artifact?.kind === "Ontology" ? buildOntologyUsage(artifact, ARTIFACT_TEMPLATES) : []),
+    () => (artifact?.kind === "Ontology" ? buildOntologyUsage(artifact, ARTIFACT_USAGE_INDEX) : []),
     [artifact],
   );
   const selectedTypeUsage = selectedOntologyType ? usageForType(ontologyUsageEntries, selectedOntologyType.id) : [];
@@ -291,6 +318,14 @@ export default function StructuredArtifactStudio({
     const filename = `${artifact.metadata.name.replace(/[^a-zA-Z0-9._-]+/g, "-") || "ontology"}.owl`;
     downloadText(filename, exportOntologyToOwl(artifact), "application/rdf+xml;charset=utf-8");
   };
+
+  if (catalogLoading) return <div className="workspace-loading">Opening {artifactKind}…</div>;
+  if (catalogError)
+    return (
+      <div className="workspace-loading">
+        Could not open {artifactKind}: {catalogError}
+      </div>
+    );
 
   return (
     <main className="structured-artifact-studio">

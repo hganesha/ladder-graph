@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: ["src/compiler/fallback.ts", "src/lib/**/*.ts", "src/store/**/*.ts"],
+      include: ["src/lib/**/*.ts", "src/store/**/*.ts"],
     },
   },
 });

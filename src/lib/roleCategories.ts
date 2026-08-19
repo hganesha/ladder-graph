@@ -1,4 +1,4 @@
-import type { RoleTemplate } from "./roleTemplates";
+import type { RoleTemplateMetadata } from "./roleTemplates";
 
 export interface RoleCategory {
   id: string;
@@ -9,7 +9,7 @@ export interface RoleCategory {
 }
 
 export interface RoleCategoryGroup extends RoleCategory {
-  roles: RoleTemplate[];
+  roles: RoleTemplateMetadata[];
 }
 
 export const ROLE_CATEGORIES: RoleCategory[] = [
@@ -155,7 +155,7 @@ export const ROLE_CATEGORIES: RoleCategory[] = [
   },
 ];
 
-export function groupRoleTemplates(roles: RoleTemplate[], query = ""): RoleCategoryGroup[] {
+export function groupRoleTemplates(roles: RoleTemplateMetadata[], query = ""): RoleCategoryGroup[] {
   const normalizedQuery = query.trim().toLowerCase();
   const fixedGroups = ROLE_CATEGORIES.map((category) => {
     const categorySearchText = `${category.label} ${category.description} ${category.searchTerms.join(" ")}`.toLowerCase();
@@ -172,7 +172,7 @@ export function groupRoleTemplates(roles: RoleTemplate[], query = ""): RoleCateg
   const categorized = new Set(
     roles.filter((role) => ROLE_CATEGORIES.some((category) => role.path.startsWith(category.pathPrefix))).map((role) => role.id),
   );
-  const dynamicGroups = new Map<string, RoleTemplate[]>();
+  const dynamicGroups = new Map<string, RoleTemplateMetadata[]>();
 
   for (const role of roles) {
     if (categorized.has(role.id)) continue;
@@ -198,7 +198,7 @@ export function groupRoleTemplates(roles: RoleTemplate[], query = ""): RoleCateg
   ];
 }
 
-export function roleSubcategory(role: RoleTemplate): string {
+export function roleSubcategory(role: Pick<RoleTemplateMetadata, "path">): string {
   const segment = role.path.split("/").at(-1) ?? role.path;
   return segment
     .split("-")

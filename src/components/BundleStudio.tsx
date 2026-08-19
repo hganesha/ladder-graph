@@ -18,8 +18,7 @@ import {
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { parse, stringify } from "yaml";
 import { compiler } from "../compiler/client";
-import { ARTIFACT_TEMPLATES } from "../generated/artifactCatalog";
-import { WORKFLOW_TEMPLATES } from "../generated/catalog";
+import { ARTIFACT_INDEX, WORKFLOW_TEMPLATES } from "../generated/catalog";
 import { createBundleArchive, parseBundleArchive } from "../lib/bundleArchive";
 import {
   attachBundleArtifact,
@@ -32,7 +31,9 @@ import {
   resolveBundleAssets,
   updateBundleMetadata,
 } from "../lib/bundleEditor";
+import { loadArtifactTemplate, loadWorkflowTemplate } from "../lib/catalogRepository";
 import { listBundleAssets, listProjects, saveArtifactProject, saveBundleAssets } from "../lib/persistence";
+import { nodeContractRefs } from "../lib/workflowContracts";
 import type {
   ArtifactTemplateDefinition,
   BundleCompileResult,
@@ -46,7 +47,7 @@ import type {
 } from "../types";
 import { Brand } from "./Brand";
 import { BindingInspector } from "./bundle/BindingInspector";
-import type { BundleWorkflowChoice } from "./bundle/BundleAssetPicker";
+import type { BundleArtifactChoice, BundleWorkflowChoice } from "./bundle/BundleAssetPicker";
 import { BundleAssetPicker } from "./bundle/BundleAssetPicker";
 import { BundleHistoryDialog } from "./bundle/BundleHistoryDialog";
 import { BundleIdentityEditor } from "./bundle/BundleIdentityEditor";
@@ -58,12 +59,45 @@ import { ThemeToggle } from "./ThemeToggle";
 
 type WorkspaceTab = "bundle" | "workflow" | "form" | "ontology" | "output";
 
-const BUNDLE_TEMPLATE = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance-claim-review");
-const BUNDLE_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "workflow-bundle");
-const FORM_TEMPLATES = ARTIFACT_TEMPLATES.filter((artifact) => artifact.kind === "form");
-const DEFAULT_BUNDLE_SOURCE = BUNDLE_TEMPLATE?.yaml ?? stringify(createBundleForWorkflow(WORKFLOW_TEMPLATES[0]));
-const DEFAULT_SOURCE_OVERRIDES = Object.fromEntries(FORM_TEMPLATES.map((artifact) => [artifact.ref, artifact.yaml]));
+const BUNDLE_TEMPLATE = ARTIFACT_INDEX.find((artifact) => artifact.id === "insurance-claim-review");
+const BUNDLE_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "workflow-bundle");
+const FORM_TEMPLATES = ARTIFACT_INDEX.filter((artifact) => artifact.kind === "form");
+const DEFAULT_BUNDLE_SOURCE = stringify(createBundleForWorkflow(WORKFLOW_TEMPLATES[0]));
+const DEFAULT_SOURCE_OVERRIDES: Record<string, string> = {};
 const FormStudio = lazy(() => import("./form/FormStudio"));
+
+function placeholderBundleSource(template = BUNDLE_TEMPLATE) {
+  const bundle = createBundleForWorkflow(WORKFLOW_TEMPLATES[0]);
+  if (template) {
+    bundle.metadata.name = template.id;
+    bundle.metadata.title = template.title;
+    bundle.metadata.description = template.description;
+    if (template.bundleSummary) bundle.spec.workflowRef = template.bundleSummary.workflowRef;
+  }
+  return stringify(bundle);
+}
+
+async function catalogSourcesForBundle(bundle: WorkflowBundle) {
+  const sources: Record<string, string> = {};
+  const workflow = WORKFLOW_TEMPLATES.find((template) => `ladder://workflows/builtin/${template.id}` === bundle.spec.workflowRef);
+  const artifactRefs = [
+    bundle.spec.ontology?.ref,
+    ...(bundle.spec.forms ?? []).map((asset) => asset.ref),
+    ...(bundle.spec.documents ?? []).map((asset) => asset.ref),
+  ].filter(Boolean) as string[];
+  await Promise.all([
+    workflow
+      ? loadWorkflowTemplate(workflow.id).then((body) => {
+          sources[bundle.spec.workflowRef] = body.yaml;
+        })
+      : Promise.resolve(),
+    ...artifactRefs.map(async (ref) => {
+      const metadata = ARTIFACT_INDEX.find((artifact) => artifact.ref === ref);
+      if (metadata) sources[ref] = (await loadArtifactTemplate(metadata.id)).yaml;
+    }),
+  ]);
+  return sources;
+}
 
 function downloadArtifact(artifact: CompiledArtifact) {
   const url = URL.createObjectURL(new Blob([artifact.content], { type: artifact.mimeType }));
@@ -250,10 +284,7 @@ export default function BundleStudio({
   initialTemplateId?: string;
 }) {
   const starterTemplate = BUNDLE_TEMPLATES.find((template) => template.id === initialTemplateId) ?? BUNDLE_TEMPLATE;
-  const starterSource =
-    initialTemplateId === "__new__"
-      ? stringify(createBundleForWorkflow(WORKFLOW_TEMPLATES[0]))
-      : (starterTemplate?.yaml ?? DEFAULT_BUNDLE_SOURCE);
+  const starterSource = initialTemplateId === "__new__" ? DEFAULT_BUNDLE_SOURCE : placeholderBundleSource(starterTemplate);
   const initialSource = initialProject?.yaml ?? starterSource;
   const [source, setSource] = useState(initialSource);
   const [target, setTarget] = useState<Target>(initialProject?.target ?? "codex");
@@ -352,16 +383,16 @@ export default function BundleStudio({
   const bundleOwnedFormTemplates = useMemo(
     () =>
       (bundle.spec.forms ?? []).flatMap((attachment) => {
-        const isKnown = ARTIFACT_TEMPLATES.some((template) => template.ref === attachment.ref);
+        const isKnown = ARTIFACT_INDEX.some((template) => template.ref === attachment.ref);
         if (isKnown || localArtifactTemplates.some((template) => template.ref === attachment.ref)) return [];
         const template = formTemplateFromSource(attachment.ref, sourceOverrides[attachment.ref] ?? "");
         return template ? [template] : [];
       }),
     [bundle.spec.forms, localArtifactTemplates, sourceOverrides],
   );
-  const assetTemplates = useMemo(() => {
+  const assetTemplates = useMemo<BundleArtifactChoice[]>(() => {
     const templates = [
-      ...ARTIFACT_TEMPLATES.filter((template) => template.kind !== "workflow-bundle"),
+      ...ARTIFACT_INDEX.filter((template) => template.kind !== "workflow-bundle"),
       ...localArtifactTemplates,
       ...bundleOwnedFormTemplates,
     ];
@@ -377,7 +408,9 @@ export default function BundleStudio({
   );
   const activeFormId = attachedForms.some((template) => template.id === formId) ? formId : (attachedForms[0]?.id ?? "");
   const selectedForm = attachedForms.find((template) => template.id === activeFormId);
-  const selectedFormSource = selectedForm ? (sourceOverrides[selectedForm.ref] ?? selectedForm.yaml) : undefined;
+  const selectedFormSource = selectedForm
+    ? (sourceOverrides[selectedForm.ref] ?? ("yaml" in selectedForm ? selectedForm.yaml : undefined))
+    : undefined;
   const form = selectedFormSource ? (parse(selectedFormSource) as LadderForm) : null;
   const ontologySource = bundle.spec.ontology ? bundleAssetSource(bundle.spec.ontology.ref, sourceOverrides) : undefined;
   const ontologyOutput = result?.artifacts.find((artifact) => artifact.path.startsWith("ontology/") && artifact.path.endsWith(".yaml"));
@@ -458,13 +491,25 @@ export default function BundleStudio({
   useEffect(() => {
     let active = true;
     const revision = ++compileRevision.current;
-    const initialSource = initialProject?.yaml ?? starterSource;
+    let initialSource = initialProject?.yaml ?? starterSource;
     const initialTarget = initialProject?.target ?? "codex";
-    void (initialProject ? listBundleAssets(initialProject.id) : Promise.resolve([]))
-      .then((records) => {
-        const overrides = records.length
-          ? Object.fromEntries(records.map((record) => [record.ref, record.source]))
-          : DEFAULT_SOURCE_OVERRIDES;
+    void Promise.all([
+      initialProject ? listBundleAssets(initialProject.id) : Promise.resolve([]),
+      !initialProject && initialTemplateId !== "__new__" && starterTemplate
+        ? loadArtifactTemplate(starterTemplate.id)
+        : Promise.resolve(undefined),
+    ])
+      .then(async ([records, selectedStarter]) => {
+        if (selectedStarter) initialSource = selectedStarter.yaml;
+        const catalogSources = await catalogSourcesForBundle(parsedBundle(initialSource));
+        const overrides = {
+          ...catalogSources,
+          ...Object.fromEntries(records.map((record) => [record.ref, record.source])),
+        };
+        if (active) {
+          setSource(initialSource);
+          setFormId(firstAttachedFormId(initialSource));
+        }
         if (active) setSourceOverrides(overrides);
         return compiler.compileBundle(initialSource, resolveBundleAssets(parsedBundle(initialSource), overrides), initialTarget);
       })
@@ -483,7 +528,7 @@ export default function BundleStudio({
     return () => {
       active = false;
     };
-  }, [initialProject, starterSource]);
+  }, [initialProject, initialTemplateId, starterSource, starterTemplate]);
 
   const restoreArchive = async (body: string) => {
     try {
@@ -595,13 +640,24 @@ export default function BundleStudio({
     if (compileNow) void compile(nextSource, target, nextOverrides);
   };
 
-  const applyWorkflowSource = (nextWorkflowSource: string) => {
+  const applyWorkflowSource = async (nextWorkflowSource: string) => {
     const nextOverrides = { ...sourceOverrides, [bundle.spec.workflowRef]: nextWorkflowSource };
     let nextBundle = bundle;
     let autoAttached = 0;
     try {
       const nextWorkflow = parse(nextWorkflowSource) as Workflow;
-      const reconciled = attachReferencedWorkflowContracts(bundle, nextWorkflow, assetTemplates);
+      const referencedRefs = new Set(nextWorkflow.spec.nodes.flatMap((node) => nodeContractRefs(node).map((contract) => contract.ref)));
+      const catalogTemplates = await Promise.all(
+        [...referencedRefs].flatMap((ref) => {
+          const metadata = ARTIFACT_INDEX.find((candidate) => candidate.ref === ref);
+          return metadata ? [loadArtifactTemplate(metadata.id)] : [];
+        }),
+      );
+      const fullTemplates = [
+        ...assetTemplates.filter((template): template is ArtifactTemplateDefinition => "yaml" in template),
+        ...catalogTemplates,
+      ];
+      const reconciled = attachReferencedWorkflowContracts(bundle, nextWorkflow, fullTemplates);
       nextBundle = reconciled.bundle;
       autoAttached = reconciled.attached.length;
       for (const template of reconciled.attached) {
@@ -639,32 +695,38 @@ export default function BundleStudio({
     setEditingFormRef(template.ref);
   };
 
-  const restoreStarter = () => {
-    const starter = parsedBundle(starterSource);
-    setSourceOverrides(DEFAULT_SOURCE_OVERRIDES);
-    setFormId(firstAttachedFormId(starterSource));
-    setProjectId(null);
-    setSavedAt(null);
-    setTab("bundle");
-    applyBundle(starter, true, DEFAULT_SOURCE_OVERRIDES);
-  };
-
-  const useCuratedBundle = (template: ArtifactTemplateDefinition) => {
-    const nextSource = template.yaml;
-    setSourceOverrides(DEFAULT_SOURCE_OVERRIDES);
+  const restoreStarter = async () => {
+    const nextSource = starterTemplate ? (await loadArtifactTemplate(starterTemplate.id)).yaml : starterSource;
+    const overrides = await catalogSourcesForBundle(parsedBundle(nextSource));
+    const starter = parsedBundle(nextSource);
+    setSourceOverrides(overrides);
     setFormId(firstAttachedFormId(nextSource));
     setProjectId(null);
     setSavedAt(null);
     setTab("bundle");
-    applyBundle(parsedBundle(nextSource), true, DEFAULT_SOURCE_OVERRIDES);
+    applyBundle(starter, true, overrides);
   };
 
-  const startNew = () => {
+  const useCuratedBundle = async (metadata: (typeof BUNDLE_TEMPLATES)[number]) => {
+    const nextSource = (await loadArtifactTemplate(metadata.id)).yaml;
+    const overrides = await catalogSourcesForBundle(parsedBundle(nextSource));
+    setSourceOverrides(overrides);
+    setFormId(firstAttachedFormId(nextSource));
+    setProjectId(null);
+    setSavedAt(null);
+    setTab("bundle");
+    applyBundle(parsedBundle(nextSource), true, overrides);
+  };
+
+  const startNew = async () => {
     const choice = availableWorkflowChoices.find((candidate) => candidate.ref === bundle.spec.workflowRef) ?? availableWorkflowChoices[0];
     if (!choice) return;
     const localProject = libraryProjects.find((project) => choice.ref.endsWith(`/${project.id}`));
     const template = WORKFLOW_TEMPLATES.find((candidate) => candidate.id === choice.id);
-    const workflowSource = localProject?.yaml ?? template?.yaml ?? bundleAssetSource(choice.ref, sourceOverrides);
+    const workflowSource =
+      localProject?.yaml ??
+      (template ? (await loadWorkflowTemplate(template.id)).yaml : undefined) ??
+      bundleAssetSource(choice.ref, sourceOverrides);
     if (!workflowSource) return;
     const workflow = parse(workflowSource) as Workflow;
     const nextOverrides = { ...sourceOverrides, [choice.ref]: workflowSource };
@@ -691,7 +753,8 @@ export default function BundleStudio({
 
   if (editingFormRef) {
     const editingTemplate = attachedForms.find((template) => template.ref === editingFormRef);
-    const editingSource = sourceOverrides[editingFormRef] ?? editingTemplate?.yaml;
+    const editingSource =
+      sourceOverrides[editingFormRef] ?? (editingTemplate && "yaml" in editingTemplate ? editingTemplate.yaml : undefined);
     if (editingSource) {
       return (
         <Suspense fallback={<div className="workspace-loading">Opening form studio…</div>}>
@@ -872,7 +935,8 @@ export default function BundleStudio({
                 <BundleAssetPicker
                   assetTemplates={assetTemplates}
                   bundle={bundle}
-                  onAttach={(template) => {
+                  onAttach={async (choice) => {
+                    const template = "yaml" in choice ? choice : await loadArtifactTemplate(choice.id);
                     const nextOverrides = { ...sourceOverrides, [template.ref]: template.yaml };
                     setSourceOverrides(nextOverrides);
                     applyBundle(attachBundleArtifact(bundle, template), true, nextOverrides);
@@ -884,12 +948,15 @@ export default function BundleStudio({
                   onRestoreStarter={restoreStarter}
                   onUseCuratedBundle={useCuratedBundle}
                   starterLabel={starterTemplate?.title ?? "Curated starter"}
-                  onWorkflowChange={(workflowId) => {
+                  onWorkflowChange={async (workflowId) => {
                     const choice = availableWorkflowChoices.find((candidate) => candidate.id === workflowId);
                     if (!choice) return;
                     const localProject = libraryProjects.find((project) => choice.ref.endsWith(`/${project.id}`));
                     const template = WORKFLOW_TEMPLATES.find((candidate) => candidate.id === workflowId);
-                    const workflowSource = localProject?.yaml ?? template?.yaml ?? bundleAssetSource(choice.ref, sourceOverrides);
+                    const workflowSource =
+                      localProject?.yaml ??
+                      (template ? (await loadWorkflowTemplate(template.id)).yaml : undefined) ??
+                      bundleAssetSource(choice.ref, sourceOverrides);
                     if (!workflowSource) return;
                     const workflow = parse(workflowSource) as Workflow;
                     const nextOverrides = { ...sourceOverrides, [choice.ref]: workflowSource };

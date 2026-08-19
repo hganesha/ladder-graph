@@ -1,6 +1,5 @@
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES } from "../generated/artifactCatalog";
-import { WORKFLOW_TEMPLATES } from "../generated/catalog";
+import { ARTIFACT_INDEX, WORKFLOW_TEMPLATES } from "../generated/catalog";
 import { nodeContractRefs } from "./workflowContracts";
 import type {
   ArtifactTemplateDefinition,
@@ -20,7 +19,7 @@ export interface BundleAssetOption {
   kind: "workflow" | "ontology" | "form" | "document";
   title: string;
   description: string;
-  source: string;
+  source?: string;
 }
 
 export interface BindingPathOption {
@@ -35,10 +34,9 @@ export const WORKFLOW_ASSET_OPTIONS: BundleAssetOption[] = WORKFLOW_TEMPLATES.ma
   kind: "workflow",
   title: template.title,
   description: template.description,
-  source: template.yaml,
 }));
 
-export const ARTIFACT_ASSET_OPTIONS: BundleAssetOption[] = ARTIFACT_TEMPLATES.flatMap((template) =>
+export const ARTIFACT_ASSET_OPTIONS: BundleAssetOption[] = ARTIFACT_INDEX.flatMap((template) =>
   template.kind === "workflow-bundle"
     ? []
     : [
@@ -47,7 +45,6 @@ export const ARTIFACT_ASSET_OPTIONS: BundleAssetOption[] = ARTIFACT_TEMPLATES.fl
           kind: template.kind,
           title: template.title,
           description: template.description,
-          source: template.yaml,
         },
       ],
 );
@@ -119,7 +116,7 @@ export function attachedBundleRefs(bundle: WorkflowBundle) {
 
 export function resolveBundleAssets(bundle: WorkflowBundle, sourceOverrides: Record<string, string> = {}): ResolvedBundleAsset[] {
   return [...new Set(attachedBundleRefs(bundle))].flatMap((ref) => {
-    const source = sourceOverrides[ref] ?? ASSET_BY_REF.get(ref)?.source;
+    const source = sourceOverrides[ref];
     return source ? [{ ref, source }] : [];
   });
 }

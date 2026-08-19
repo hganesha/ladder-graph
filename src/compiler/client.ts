@@ -23,7 +23,7 @@ export class CompilerClient {
   private worker: Worker | null = null;
   private sequence = 0;
   private pending = new Map<number, Pending>();
-  runtime: "wasm" | "fallback" = "fallback";
+  runtime: "wasm" = "wasm";
 
   private failAll(error: Error) {
     const worker = this.worker;
@@ -47,7 +47,7 @@ export class CompilerClient {
         ok: boolean;
         result: never;
         error?: string;
-        runtime: "wasm" | "fallback";
+        runtime: "wasm";
       };
       this.runtime = runtime;
       const pending = this.pending.get(id);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import vocabulary from "../catalog/capability-vocabulary.json";
-import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import type { Workflow } from "../src/types";
 
 const EXPECTED_AREAS = {

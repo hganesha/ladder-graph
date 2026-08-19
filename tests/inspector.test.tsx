@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 import { Inspector } from "../src/components/Inspector";
 import { defaultNode } from "../src/lib/nodeMeta";
-import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import { useStudioStore } from "../src/store/useStudioStore";
 import type { AnalysisResult, Workflow } from "../src/types";
 

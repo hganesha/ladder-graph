@@ -3,6 +3,7 @@ import { parseDocument } from "yaml";
 import { createStore, type StoreApi, useStore } from "zustand";
 import { compiler } from "../compiler/client";
 import { createAgentStarterSource } from "../lib/agentStarter";
+import { loadRoleTemplate, loadWorkflowTemplate } from "../lib/catalogRepository";
 import { autoLayout, groupMemberPosition, scaleNodeSpacing } from "../lib/layout";
 import { type MacroKind, materializeMacro } from "../lib/macros";
 import { defaultNode, ROLE_TEMPLATES } from "../lib/nodeMeta";
@@ -35,7 +36,7 @@ export interface StudioState {
   inspectorOpen: boolean;
   nodeSpacing: number;
   busy: boolean;
-  runtime: "wasm" | "fallback";
+  runtime: "wasm";
   savedAt: number | null;
   past: string[];
   future: string[];
@@ -226,14 +227,14 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
     inspectorOpen: true,
     nodeSpacing: 1,
     busy: false,
-    runtime: "fallback",
+    runtime: "wasm",
     savedAt: null,
     past: [],
     future: [],
     setView: (view) => set({ view }),
     openTemplate: async (id) => {
-      const template = WORKFLOW_TEMPLATES.find((candidate) => candidate.id === id);
-      if (!template) return;
+      if (!WORKFLOW_TEMPLATES.some((candidate) => candidate.id === id)) return;
+      const template = await loadWorkflowTemplate(id);
       const templateWorkflow = parseWorkflow(template.yaml);
       const source = templateWorkflow
         ? patchYaml(template.yaml, ["spec", "nodes"], autoLayout(templateWorkflow.spec.nodes, templateWorkflow.spec.edges))
@@ -254,8 +255,8 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
       await analyzeAndPersist(runtime, set, get, source);
     },
     openAgentTemplate: async (id) => {
-      const template = ROLE_TEMPLATES.find((candidate) => candidate.id === id);
-      if (!template) return;
+      if (!ROLE_TEMPLATES.some((candidate) => candidate.id === id)) return;
+      const template = await loadRoleTemplate(id);
       const source = createAgentStarterSource(template);
       set({
         view: "studio",
@@ -487,9 +488,10 @@ export function createStudioStore(options: CreateStudioStoreOptions = {}): Store
       await get().setSource(source);
     },
     addRole: async (name) => {
-      const role = ROLE_TEMPLATES.find((candidate) => candidate.name === name);
+      const metadata = ROLE_TEMPLATES.find((candidate) => candidate.name === name);
       const workflow = parseWorkflow(get().source);
-      if (!role || !workflow) return;
+      if (!metadata || !workflow) return;
+      const role = await loadRoleTemplate(metadata.id);
       const node = defaultNode("agent", workflow.spec.nodes.length + 1);
       node.name = role.name;
       node.role = role.role;

@@ -11,7 +11,7 @@ export type UserWorkflowTemplate = TemplateDefinition & {
   userRecord?: UserTemplateRecord;
 };
 export type UserAgentTemplate = RoleTemplate & { userRecord: UserTemplateRecord };
-export type UserArtifactTemplate = ArtifactTemplateMetadata & {
+export type UserArtifactTemplate = Omit<ArtifactTemplateMetadata, "bodyUrl" | "bodyHash"> & {
   subject: string;
   userProject: ProjectRecord;
 };

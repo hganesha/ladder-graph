@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import claim from "../fixtures/reference-host/insurance-claim.json";
-import { compileBundleFallback } from "../src/compiler/artifacts/fallback";
+import { compileBundleWasm as compileBundleFallback } from "./wasmCompiler";
 import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
-import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import type { ResolvedBundleAsset } from "../src/types";
 
 function insuranceAssets(): ResolvedBundleAsset[] {

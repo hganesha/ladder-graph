@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { MATH_MUSIC_PHYSICS_ROLES, MATH_MUSIC_PHYSICS_WORKFLOW_TEMPLATES } from "../src/lib/mathMusicPhysicsTemplates";
+import { ROLE_TEMPLATES, WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import type { Workflow } from "../src/types";
 
 describe("mathematics, music, and physics research templates", () => {
+  const MATH_MUSIC_PHYSICS_ROLES = ROLE_TEMPLATES.filter((role) =>
+    ["research/mathematics/", "research/music/", "research/physics/"].some((prefix) => role.path.startsWith(prefix)),
+  );
+  const MATH_MUSIC_PHYSICS_WORKFLOW_TEMPLATES = WORKFLOW_TEMPLATES.filter((workflow) =>
+    ["Mathematics", "Music", "Physics"].includes(workflow.area),
+  );
   it("imports every agent with unique IDs and the expected domain counts", () => {
     expect(MATH_MUSIC_PHYSICS_ROLES).toHaveLength(26);
     expect(new Set(MATH_MUSIC_PHYSICS_ROLES.map((role) => role.id)).size).toBe(26);

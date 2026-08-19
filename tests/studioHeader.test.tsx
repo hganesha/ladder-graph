@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 import { StudioHeader } from "../src/components/StudioHeader";
-import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import { useStudioStore } from "../src/store/useStudioStore";
 import type { AnalysisResult, Workflow } from "../src/types";
 

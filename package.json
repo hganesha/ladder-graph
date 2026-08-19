@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run catalog:generate && npm run icons:generate && tsc -b && vite build",
+    "bundle:size": "node scripts/check-bundle-size.mjs",
     "catalog:audit": "node scripts/audit-catalog.mjs --check",
     "catalog:generate": "node scripts/generate-catalog-index.mjs && biome format --write src/generated/catalog.ts src/generated/artifactCatalog.ts",
     "catalog:generate-roadmap": "node scripts/generate-roadmap-expansion.mjs && node scripts/normalize-capability-vocabulary.mjs && node scripts/mark-inline-catalog-roles.mjs && node scripts/update-agent-usage.mjs && npm run catalog:generate",
@@ -29,7 +30,7 @@
     "wasm:build": "wasm-pack build crates/lgir-wasm --target web --out-dir ../../src/wasm/pkg --release && node scripts/normalize-wasm-artifacts.mjs",
     "rust:format:check": "cargo fmt --all -- --check",
     "rust:test": "cargo test --workspace",
-    "check": "npm run catalog:audit && npm run catalog:sync-roles:check && npm run format:check && npm run lint && npm run rust:format:check && npm run typecheck && npm run test && npm run rust:test && npm run build"
+    "check": "npm run catalog:audit && npm run catalog:sync-roles:check && npm run format:check && npm run lint && npm run rust:format:check && npm run typecheck && npm run test && npm run rust:test && npm run build && npm run bundle:size"
   },
   "dependencies": {
     "@codemirror/lang-yaml": "^6.1.2",

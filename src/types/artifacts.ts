@@ -1,4 +1,4 @@
-import type { Diagnostic, IconRef, Target } from "../types";
+import type { CatalogBodyReference, Diagnostic, IconRef, Target } from "../types";
 
 export type ArtifactKind = "Ontology" | "Form" | "Document" | "WorkflowBundle";
 export type CatalogArtifactKind = "ontology" | "form" | "document" | "workflow-bundle";
@@ -14,7 +14,26 @@ export interface ArtifactTemplateDefinition {
   ref: string;
 }
 
-export type ArtifactTemplateMetadata = Omit<ArtifactTemplateDefinition, "yaml">;
+export type ArtifactTemplateMetadata = Omit<ArtifactTemplateDefinition, "yaml"> &
+  CatalogBodyReference & {
+    bundleSummary?: {
+      workflowRef: string;
+      formCount: number;
+      documentCount: number;
+      bindingCount: number;
+      hasOntology: boolean;
+    };
+  };
+
+export interface ArtifactUsageMetadata {
+  id: string;
+  kind: "form" | "document" | "workflow-bundle";
+  title: string;
+  ontologyRef?: string;
+  workflowRef?: string;
+  propertyRefs: string[];
+  relationshipIds: string[];
+}
 
 export interface ArtifactSource {
   system: "lattice" | "docubricks" | "ladder" | string;

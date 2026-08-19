@@ -12,7 +12,7 @@ The existing architecture is already favorable:
 
 - LGIR has nodes, edges, control branches, joins, bounded loops, approvals, groups, aggregators, and subgraphs.
 - Compilation is already target-specific and deterministic.
-- The Rust/Wasm compiler and TypeScript fallback already share the same compile-result contract.
+- The Rust compiler and its committed WebAssembly build expose the same compile-result contract.
 - Generated Python and TypeScript modules already embed normalized workflow data, a stable node order, dependencies, and capability declarations.
 
 LangGraph's `StateGraph` is also a strong conceptual match: it combines a shared state schema with executable node functions, fixed edges, conditional edges, `START`/`END`, reducers for parallel state updates, and a compile step. The official Python API describes a node as `State -> Partial<State>` and requires a `StateGraph` builder to be compiled before invocation. See the [Python `StateGraph` reference](https://reference.langchain.com/python/langgraph/graph/state/StateGraph) and [Graph API overview](https://docs.langchain.com/oss/python/langgraph/graph-api).
@@ -24,7 +24,7 @@ For one engineer familiar with this repository:
 | Delivery level | Scope | Estimated effort |
 | --- | --- | --- |
 | Topology proof of concept | New target, `StateGraph`, fixed edges, host-supplied node handlers, simple conditional routers | 2-4 working days |
-| Trustworthy Python MVP | Strict diagnostics, parallel state reducer, `join: all`, handler/router contracts, output assembly, Rust/fallback parity, MCP/UI support, tests | 1-2 weeks |
+| Trustworthy Python MVP | Strict diagnostics, parallel state reducer, `join: all`, handler/router contracts, output assembly, Rust/WASM verification, MCP/UI support, tests | 1-2 weeks |
 | Broad LGIR coverage | Bounded-loop lowering, approvals with interrupts, groups, aggregators, `allSettled`, stronger schemas | 3-5 weeks total |
 | Python and TypeScript parity plus deployable bundles | LangGraph.js adapter, multi-file output or archive, deployment config, compatibility tests | 5-8 weeks total |
 
@@ -47,16 +47,15 @@ Start with Python because the Python `StateGraph` API is mature, its shared-stat
 The relevant implementation is compact and already organized around adapters:
 
 - `src/types.ts` defines the target union and LGIR types.
-- `src/compiler/fallback.ts` contains browser fallback validation and target emitters.
 - `crates/lgir-core/src/lib.rs` contains the canonical Rust validation and emitters.
-- `src/compiler/worker.ts` routes the same operation through Wasm or fallback.
+- `src/compiler/worker.ts` runs the committed WebAssembly compiler and reports initialization failures explicitly.
 - `src/components/StudioHeader.tsx` and `src/components/OutputPanel.tsx` expose target selection and artifact download.
 - `crates/ladder-catalog/src/lib.rs` and `crates/ladder-graph-mcp/src/server.rs` validate target names for catalog/MCP compilation.
 - `tests/compiler.test.ts` and the Rust tests already check deterministic output and adapter behavior.
 
 No parser rewrite or graph-editor rewrite is required for the first target. The existing LGIR remains the source language; LangGraph is an output adapter.
 
-There is one maintenance cost: target behavior exists in both Rust and the TypeScript fallback. A production change must implement the same lowering and diagnostics twice, then regenerate the committed Wasm artifacts. This is manageable, but it makes a seemingly small adapter larger than a Rust-only change.
+Target behavior has one production authority in Rust. A production compiler change must update the Rust implementation and tests, then regenerate and verify the committed WebAssembly artifact.
 
 ## Evidence from the bundled workflows
 
@@ -304,12 +303,11 @@ Add `langgraph-python` to:
 - desktop target selectors and download labels;
 - capability catalog target metadata;
 - Rust compiler target validation and title/MIME/filename handling;
-- TypeScript fallback target validation and emission;
 - catalog and MCP target allowlists/descriptions;
 - compiler tests, Rust tests, UI tests, and MCP tests;
 - README, specification, help text, and capability reporting.
 
-Add a dedicated lowering layer in both implementations rather than extending the current `compile_python` data emitter with many conditionals. Useful internal structures are:
+Add a dedicated Rust lowering layer rather than extending the current `compile_python` data emitter with many conditionals. Useful internal structures are:
 
 ```text
 LangGraphPlan
@@ -322,7 +320,7 @@ LangGraphPlan
   unsupported: stable diagnostics
 ```
 
-Planning first and rendering second makes semantic tests easier and prevents output-order differences between Rust and fallback.
+Planning first and rendering second makes semantic tests easier and keeps output ordering deterministic.
 
 Suggested output metadata:
 
@@ -357,7 +355,7 @@ The existing `CompileResult` contains one content string. That works for a singl
 ### Golden and parity tests
 
 - Compile the same LGIR twice and assert byte-identical output.
-- Compile through Rust and TypeScript fallback and assert equivalent plans, diagnostics, filenames, MIME types, and capability reports.
+- Run the same golden cases through native Rust tests and the committed WebAssembly build, asserting the same diagnostics, filenames, MIME types, and capability reports.
 - Snapshot simple sequence, parallel fan-out, conditional branch, and `join: all` workflows.
 - Test hostile node IDs and string escaping.
 

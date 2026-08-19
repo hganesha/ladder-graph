@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parse, stringify } from "yaml";
-import { analyzeFallback } from "../src/compiler/fallback";
+import { analyzeWasm as analyzeFallback } from "./wasmCompiler";
 import { materializeMacro } from "../src/lib/macros";
 import { BLANK_WORKFLOW } from "../src/lib/templates";
 import type { Workflow } from "../src/types";

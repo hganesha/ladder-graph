@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { connectCompanion, publishToCompanion } from "../src/lib/mcpCompanion";
 import { db, getSetting, setSetting } from "../src/lib/persistence";
-import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 
 function jsonResponse(value: unknown, status = 200) {
   return new Response(JSON.stringify(value), {

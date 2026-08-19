@@ -142,9 +142,7 @@ export function Studio({
             ? `Saved locally ${new Date(state.savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
             : draftLabel}
         </span>
-        <span className={state.runtime === "wasm" ? "wasm-ready" : "fallback-ready"}>
-          {state.runtime === "wasm" ? "Rust/WASM core" : "Safe web core"}
-        </span>
+        <span className="wasm-ready">Rust/WASM core</span>
       </footer>
       {state.diagnosticsOpen && <Diagnostics />}
       {state.outputOpen && <OutputPanel />}

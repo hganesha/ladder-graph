@@ -290,4 +290,27 @@ mod tests {
             5
         );
     }
+
+    #[test]
+    fn rejects_bundle_fields_incompatible_with_ontology_properties() {
+        let mut form: Value = serde_yaml_ng::from_str(FORM).unwrap();
+        *form
+            .pointer_mut("/spec/pages/0/sections/2/fields/0/dataType")
+            .unwrap() = serde_json::json!("boolean");
+        let assets = serde_json::json!([
+            { "ref": "ladder://workflows/builtin/wf-insr-01", "source": WORKFLOW },
+            { "ref": "ladder://ontologies/builtin/insurance", "source": ONTOLOGY },
+            { "ref": "ladder://forms/builtin/first-notice-of-loss", "source": serde_yaml_ng::to_string(&form).unwrap() },
+            { "ref": "ladder://forms/builtin/claim-review-decision", "source": DECISION_FORM },
+            { "ref": "ladder://documents/builtin/insurance-claim-file", "source": DOCUMENT }
+        ]);
+        let result = compile_bundle(
+            BUNDLE,
+            &serde_json::to_string(&assets).unwrap(),
+            "typescript",
+        );
+        assert!(!result.ok);
+        assert!(result.diagnostics.iter().any(|item| item.code == "LB213"));
+        assert!(result.artifacts.is_empty());
+    }
 }

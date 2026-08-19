@@ -213,6 +213,13 @@ export interface TemplateDefinition {
   yaml: string;
 }
 
+export type CatalogBodyReference = {
+  bodyUrl: string;
+  bodyHash: string;
+};
+
+export type WorkflowTemplateMetadata = Omit<TemplateDefinition, "yaml"> & CatalogBodyReference;
+
 export interface SubjectAreaDefinition {
   name: string;
   agentPathPrefixes: string[];
@@ -236,6 +243,8 @@ export interface RoleTemplate {
   connectors?: string[];
   permissions?: string[];
 }
+
+export type RoleTemplateMetadata = Omit<RoleTemplate, "prompt"> & CatalogBodyReference;
 
 export interface ProjectRecord {
   id: string;

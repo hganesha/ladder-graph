@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { analyzeArtifactFallback } from "../src/compiler/artifacts/fallback";
+import { analyzeArtifactWasm as analyzeArtifactFallback } from "./wasmCompiler";
 import { importFormJson } from "../src/lib/formJsonImport";
 import type { LadderForm } from "../src/types";
 
