@@ -1,11 +1,11 @@
 import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
-import { analyzeFallback } from "../src/compiler/fallback";
 import { createAgentStarterSource } from "../src/lib/agentStarter";
-import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../src/lib/roleTemplates";
-import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
+import { ROLE_TEMPLATES, WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
+import { roleTemplatesForSubject } from "../src/lib/roleTemplates";
 import { userAgentTemplate } from "../src/lib/userCatalogAssets";
 import type { Workflow } from "../src/types";
+import { analyzeWasm as analyzeFallback } from "./wasmCompiler";
 
 describe("agent starter workflows", () => {
   it("creates a valid input-to-agent workflow from the selected template", async () => {

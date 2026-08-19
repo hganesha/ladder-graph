@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
+import { ARTIFACT_INDEX } from "../../generated/catalog";
+import { loadArtifactTemplate } from "../../lib/catalogRepository";
 import { saveArtifactProject } from "../../lib/persistence";
 import type { ProjectRecord } from "../../types";
 import FormStudio from "./FormStudio";
@@ -16,17 +17,39 @@ export default function StandaloneFormStudio({
   initialTemplateId?: string;
   onBack: () => void;
 }) {
-  const template = ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "form" && artifact.id === initialTemplateId);
-  const initialSource =
-    initialProject?.yaml ?? providedSource ?? template?.yaml ?? ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "form")?.yaml ?? "";
-  const [savedSource, setSavedSource] = useState(initialSource);
+  const template = ARTIFACT_INDEX.find((artifact) => artifact.kind === "form" && artifact.id === initialTemplateId);
+  const [savedSource, setSavedSource] = useState(initialProject?.yaml ?? providedSource ?? "");
+  const [ontologySource, setOntologySource] = useState<string>();
+  const [loading, setLoading] = useState(!initialProject?.yaml && !providedSource);
+  const [loadError, setLoadError] = useState<string>();
   const [projectId, setProjectId] = useState<string | null>(initialProject?.id ?? null);
   const [savedAt, setSavedAt] = useState<number | null>(initialProject?.updatedAt ?? null);
-  const industry = template?.path.split("/")[0] ?? "";
-  const ontologySource = useMemo(
-    () => ARTIFACT_TEMPLATES.find((artifact) => artifact.kind === "ontology" && artifact.path.startsWith(`${industry}/`))?.yaml,
-    [industry],
-  );
+  useEffect(() => {
+    let active = true;
+    const selected = template ?? ARTIFACT_INDEX.find((artifact) => artifact.kind === "form");
+    const industry = selected?.path.split("/")[0] ?? "";
+    const ontology = ARTIFACT_INDEX.find((artifact) => artifact.kind === "ontology" && artifact.path.startsWith(`${industry}/`));
+    void Promise.all([
+      initialProject?.yaml || providedSource || !selected
+        ? Promise.resolve(initialProject?.yaml ?? providedSource ?? "")
+        : loadArtifactTemplate(selected.id).then((body) => body.yaml),
+      ontology ? loadArtifactTemplate(ontology.id).then((body) => body.yaml) : Promise.resolve(undefined),
+    ])
+      .then(([source, ontologyYaml]) => {
+        if (!active) return;
+        setSavedSource(source);
+        setOntologySource(ontologyYaml);
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof Error ? error.message : "The catalog form could not be loaded.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [initialProject?.yaml, providedSource, template]);
 
   const save = async (source: string) => {
     const form = parse(source) as { metadata?: { name?: string; title?: string } };
@@ -43,6 +66,9 @@ export default function StandaloneFormStudio({
     setSavedAt(project.updatedAt);
     setSavedSource(source);
   };
+
+  if (loading) return <div className="workspace-loading">Opening form…</div>;
+  if (loadError) return <div className="workspace-loading">Could not open form: {loadError}</div>;
 
   return (
     <FormStudio

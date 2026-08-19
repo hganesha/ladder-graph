@@ -1,7 +1,6 @@
 import { stringify } from "yaml";
-import type { Workflow } from "../types";
+import type { RoleTemplate, Workflow } from "../types";
 import { inputContractSchema } from "./inputContracts";
-import type { RoleTemplate } from "./roleTemplates";
 
 export function createAgentStarterSource(template: RoleTemplate): string {
   const workflow: Workflow = {

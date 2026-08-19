@@ -67,6 +67,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ARTIFACT_INDEX, SUBJECT_AREAS } from "../generated/catalog";
+import { preloadCatalogBody } from "../lib/catalogRepository";
 import { INPUT_CONTRACT_PRESETS } from "../lib/inputContracts";
 import { deleteProject, listProjects, listUserTemplates, type UserTemplateRecord } from "../lib/persistence";
 import { roleSubcategory } from "../lib/roleCategories";
@@ -196,7 +197,7 @@ function pathMatchesPrefix(path: string, prefix: string): boolean {
   return path === normalizedPrefix || path.startsWith(`${normalizedPrefix}/`);
 }
 
-function subjectForAgent(agent: (typeof ROLE_TEMPLATES)[number]): string {
+function subjectForAgent(agent: { areas: string[]; id: string; path: string }): string {
   if (agent.areas.includes(USER_ASSETS_SUBJECT)) return USER_ASSETS_SUBJECT;
   const declaredArea = agent.areas.find((area) => SUBJECT_AREAS.some((subject) => subject.name === area));
   if (declaredArea) return declaredArea;
@@ -214,7 +215,7 @@ function subjectForAgent(agent: (typeof ROLE_TEMPLATES)[number]): string {
   );
 }
 
-function agentMatchesSubject(agent: (typeof ROLE_TEMPLATES)[number], subjectName: string): boolean {
+function agentMatchesSubject(agent: { areas: string[]; id: string; path: string }, subjectName: string): boolean {
   if (agent.areas.includes(subjectName)) return true;
   const subject = SUBJECT_AREAS.find((candidate) => candidate.name === subjectName);
   if (!subject) return false;
@@ -720,6 +721,12 @@ export function Welcome({
                               ? openUserTemplate(userRecord)
                               : openTemplate(template.id))
                         }
+                        onFocus={() => {
+                          if ("bodyUrl" in template) preloadCatalogBody(template);
+                        }}
+                        onPointerEnter={() => {
+                          if ("bodyUrl" in template) preloadCatalogBody(template);
+                        }}
                         style={{ "--accent": template.accent } as React.CSSProperties}
                       >
                         <div className="topology-art" aria-hidden="true">
@@ -809,6 +816,12 @@ export function Welcome({
                         data-asset-origin={userRecord ? "user" : "builtin"}
                         key={`${userRecord ? "user" : "builtin"}:${agent.id}`}
                         onClick={() => void (userRecord ? openUserTemplate(userRecord) : openAgentTemplate(agent.id))}
+                        onFocus={() => {
+                          if ("bodyUrl" in agent) preloadCatalogBody(agent);
+                        }}
+                        onPointerEnter={() => {
+                          if ("bodyUrl" in agent) preloadCatalogBody(agent);
+                        }}
                         style={{ "--accent": "#e86b5d" } as React.CSSProperties}
                       >
                         <div className="agent-card-icon" aria-hidden="true">
@@ -852,6 +865,12 @@ export function Welcome({
                         data-asset-origin={userProject ? "user" : "builtin"}
                         key={`${userProject ? "user" : "builtin"}:${form.id}`}
                         onClick={() => (userProject ? onForm(userProject) : onForm(undefined, form.id))}
+                        onFocus={() => {
+                          if ("bodyUrl" in form) preloadCatalogBody(form);
+                        }}
+                        onPointerEnter={() => {
+                          if ("bodyUrl" in form) preloadCatalogBody(form);
+                        }}
                       >
                         <div className="agent-card-icon" aria-hidden="true">
                           <ItemSubjectIcon />
@@ -889,6 +908,12 @@ export function Welcome({
                         data-asset-origin={userProject ? "user" : "builtin"}
                         key={`${userProject ? "user" : "builtin"}:${document.id}`}
                         onClick={() => (userProject ? onDocument(userProject) : onDocument(undefined, document.id))}
+                        onFocus={() => {
+                          if ("bodyUrl" in document) preloadCatalogBody(document);
+                        }}
+                        onPointerEnter={() => {
+                          if ("bodyUrl" in document) preloadCatalogBody(document);
+                        }}
                       >
                         <div className="agent-card-icon" aria-hidden="true">
                           <ItemSubjectIcon />
@@ -921,6 +946,8 @@ export function Welcome({
                       className="template-card form-template-card"
                       key={ontology.id}
                       onClick={() => onOntology(undefined, ontology.id)}
+                      onFocus={() => preloadCatalogBody(ontology)}
+                      onPointerEnter={() => preloadCatalogBody(ontology)}
                     >
                       <div className="agent-card-icon" aria-hidden="true">
                         <Boxes />

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { analyzeFallback } from "../src/compiler/fallback";
-import { ROLE_TEMPLATES, SUBJECT_AREAS, WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { analyzeWasm as analyzeFallback } from "./wasmCompiler";
+import { ROLE_TEMPLATES, SUBJECT_AREAS, WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import type { Workflow } from "../src/types";
 
 const AREA = "Office productivity";

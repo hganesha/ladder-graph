@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
-import { analyzeArtifactFallback } from "../src/compiler/artifacts/fallback";
+import { analyzeArtifactWasm as analyzeArtifactFallback } from "./wasmCompiler";
 import { importOwlRdfXml } from "../src/lib/owlImport";
 
 const OWL = `<?xml version="1.0"?>

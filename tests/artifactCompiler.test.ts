@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { parse, stringify } from "yaml";
-import {
-  analyzeArtifactFallback,
-  compileBundleFallback,
-  formatArtifactFallback,
-  sliceOntologyFallback,
-} from "../src/compiler/artifacts/fallback";
-import { compileFallback } from "../src/compiler/fallback";
 import { ARTIFACT_TEMPLATES } from "../src/generated/artifactCatalog";
-import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import type { LadderForm, Ontology, ResolvedBundleAsset, WorkflowBundle } from "../src/types";
+import {
+  analyzeArtifactWasm as analyzeArtifactFallback,
+  compileBundleWasm as compileBundleFallback,
+  compileWasm as compileFallback,
+  formatArtifactWasm as formatArtifactFallback,
+  sliceOntologyWasm as sliceOntologyFallback,
+} from "./wasmCompiler";
 
 const bundleTemplate = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance-claim-review");
 const ontologyTemplate = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "insurance");
@@ -39,7 +39,7 @@ function assetsForBundle(bundle: WorkflowBundle): ResolvedBundleAsset[] {
   ];
 }
 
-describe("artifact fallback compiler", () => {
+describe("Rust/Wasm artifact compiler", () => {
   it("analyzes every bundled ontology, form, document, and workflow bundle", async () => {
     for (const artifact of ARTIFACT_TEMPLATES) {
       const result = await analyzeArtifactFallback(artifact.yaml);
@@ -111,6 +111,7 @@ describe("artifact fallback compiler", () => {
   it("fails compilation for unresolved pointers and incompatible ontology bindings", async () => {
     if (!bundleTemplate || !ontologyTemplate) throw new Error("Insurance bundle fixtures are required.");
     const bundle = parse(bundleTemplate.yaml) as WorkflowBundle;
+    const validTargetPath = bundle.spec.bindings![0].target.path;
     bundle.spec.bindings![0].target.path = "/spec/nodes/999";
     const formAsset = ARTIFACT_TEMPLATES.find((artifact) => artifact.id === "first-notice-of-loss");
     if (!formAsset) throw new Error("FNOL fixture is required.");
@@ -118,13 +119,17 @@ describe("artifact fallback compiler", () => {
     form.spec.pages[0].sections[2].fields[0].dataType = "boolean";
     const assets = insuranceAssets().map((asset) => (asset.ref === formAsset.ref ? { ...asset, source: stringify(form) } : asset));
 
-    const result = await compileBundleFallback(stringify(bundle), assets, "typescript");
+    const unresolved = await compileBundleFallback(stringify(bundle), assets, "typescript");
 
-    expect(result.ok).toBe(false);
-    expect(result.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: "LB211" }), expect.objectContaining({ code: "LB213" })]),
-    );
-    expect(result.artifacts).toEqual([]);
+    expect(unresolved.ok).toBe(false);
+    expect(unresolved.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LB211" })]));
+    expect(unresolved.artifacts).toEqual([]);
+
+    bundle.spec.bindings![0].target.path = validTargetPath;
+    const incompatible = await compileBundleFallback(stringify(bundle), assets, "typescript");
+    expect(incompatible.ok).toBe(false);
+    expect(incompatible.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LB213" })]));
+    expect(incompatible.artifacts).toEqual([]);
   });
 
   it("formats valid artifacts and rejects executable YAML features", async () => {

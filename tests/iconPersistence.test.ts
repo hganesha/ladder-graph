@@ -1,10 +1,13 @@
 import { parse, stringify } from "yaml";
 import { describe, expect, it } from "vitest";
-import { analyzeArtifactFallback, sliceOntologyFallback } from "../src/compiler/artifacts/fallback";
-import { analyzeFallback } from "../src/compiler/fallback";
 import { createStudioStore } from "../src/store/useStudioStore";
 import type { Ontology, Workflow } from "../src/types";
-import { WORKFLOW_TEMPLATES } from "../src/lib/templates";
+import {
+  analyzeArtifactWasm as analyzeArtifactFallback,
+  analyzeWasm as analyzeFallback,
+  sliceOntologyWasm as sliceOntologyFallback,
+} from "./wasmCompiler";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 
 describe("icon persistence", () => {
   it("round-trips agent icons and rejects workflow icons outside exact agent nodes", async () => {
@@ -54,14 +57,14 @@ describe("icon persistence", () => {
     };
     const source = stringify(ontology);
 
-    const analysis = await analyzeArtifactFallback<Ontology>(source);
+    const analysis = await analyzeArtifactFallback(source);
     const slice = await sliceOntologyFallback(source, { typeIds: ["person"] });
 
-    expect(analysis.normalized?.spec.types[0].icon).toEqual({ set: "lucide", name: "contact-round" });
+    expect((analysis.normalized as Ontology | undefined)?.spec.types[0].icon).toEqual({ set: "lucide", name: "contact-round" });
     expect(slice.ontology?.spec.types[0].icon).toEqual({ set: "lucide", name: "contact-round" });
 
     ontology.spec.types[0].icon = { set: "lucide", name: "not-in-the-catalog" };
-    const unknown = await analyzeArtifactFallback<Ontology>(stringify(ontology));
+    const unknown = await analyzeArtifactFallback(stringify(ontology));
     expect(unknown.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: "LO110", severity: "warning" })]));
   });
 });

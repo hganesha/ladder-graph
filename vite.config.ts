@@ -22,9 +22,20 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,wasm,json,svg,png,woff2}"],
+        globIgnores: ["catalog/bodies/**"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: "/index.html",
-        runtimeCaching: [],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes("/catalog/bodies/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "ladder-catalog-bodies-v1",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 800, maxAgeSeconds: 365 * 24 * 60 * 60 },
+            },
+          },
+        ],
       },
     }),
   ],

@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 import BundleStudio from "../src/components/BundleStudio";
-import { WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import { db } from "../src/lib/persistence";
 import type { BundleCompileResult } from "../src/types";
 
@@ -54,7 +54,7 @@ const { analyze, analyzeArtifact, compileBundle } = vi.hoisted(() => ({
   compileBundle: vi.fn(),
 }));
 
-vi.mock("../src/compiler/client", () => ({ compiler: { analyze, analyzeArtifact, compileBundle, runtime: "fallback" } }));
+vi.mock("../src/compiler/client", () => ({ compiler: { analyze, analyzeArtifact, compileBundle, runtime: "wasm" } }));
 
 describe("bundle workspace", () => {
   beforeEach(() => {

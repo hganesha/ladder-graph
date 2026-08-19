@@ -77,6 +77,48 @@ fn collect_property_refs(value: &Value, result: &mut BTreeSet<String>) {
     }
 }
 
+fn ontology_property<'a>(ontology: &'a Value, reference: &str) -> Option<&'a Value> {
+    ontology
+        .pointer("/spec/types")?
+        .as_array()?
+        .iter()
+        .flat_map(|kind| {
+            kind.get("properties")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+        })
+        .find(|property| property.get("id").and_then(Value::as_str) == Some(reference))
+}
+
+fn normalized_data_type(value: &str) -> &str {
+    match value {
+        "decimal" => "number",
+        "date" | "datetime" => "string",
+        other => other,
+    }
+}
+
+fn incompatible_field(
+    asset: &Value,
+    pointer: &str,
+    property: &Value,
+) -> Option<(String, String, String, String)> {
+    let field = asset.pointer(pointer)?;
+    let name = field.get("name")?.as_str()?;
+    let field_type = field.get("dataType")?.as_str()?;
+    let property_id = property.get("id")?.as_str()?;
+    let property_type = property.get("dataType")?.as_str()?;
+    (normalized_data_type(field_type) != normalized_data_type(property_type)).then(|| {
+        (
+            name.into(),
+            field_type.into(),
+            property_id.into(),
+            property_type.into(),
+        )
+    })
+}
+
 fn agent_ontology(mut ontology: Value) -> Value {
     if let Some(metadata) = ontology.get_mut("metadata").and_then(Value::as_object_mut) {
         metadata.remove("source");
@@ -250,11 +292,12 @@ pub fn compile(source: &str, resolved_assets_json: &str, target: &str) -> Bundle
             source_hashes.insert(reference, analysis.source_hash);
         }
     }
-    for binding in bundle
+    for (binding_index, binding) in bundle
         .pointer("/spec/bindings")
         .and_then(Value::as_array)
         .into_iter()
         .flatten()
+        .enumerate()
     {
         for endpoint in ["source", "target"] {
             let reference = binding
@@ -271,10 +314,54 @@ pub fn compile(source: &str, resolved_assets_json: &str, target: &str) -> Bundle
                 .is_none()
             {
                 diagnostics.push(diagnostic(
-                    "LB210",
+                    if endpoint == "source" {
+                        "LB210"
+                    } else {
+                        "LB211"
+                    },
                     "error",
-                    "/spec/bindings",
+                    format!("/spec/bindings/{binding_index}/{endpoint}/path"),
                     format!("{endpoint} pointer '{pointer}' does not exist in '{reference}'."),
+                ));
+            }
+        }
+        if let Some(property_ref) = binding.get("ontologyPropertyRef").and_then(Value::as_str) {
+            let property = bundle
+                .pointer("/spec/ontology/ref")
+                .and_then(Value::as_str)
+                .and_then(|reference| parsed_assets.get(reference))
+                .and_then(|ontology| ontology_property(ontology, property_ref));
+            if let Some(property) = property {
+                for endpoint in ["source", "target"] {
+                    let reference = binding
+                        .pointer(&format!("/{endpoint}/ref"))
+                        .and_then(Value::as_str)
+                        .unwrap_or_default();
+                    let pointer = binding
+                        .pointer(&format!("/{endpoint}/path"))
+                        .and_then(Value::as_str)
+                        .unwrap_or_default();
+                    if let Some((field_name, field_type, property_id, property_type)) =
+                        parsed_assets
+                            .get(reference)
+                            .and_then(|asset| incompatible_field(asset, pointer, property))
+                    {
+                        diagnostics.push(diagnostic(
+                            "LB213",
+                            "error",
+                            format!("/spec/bindings/{binding_index}"),
+                            format!(
+                                "Field '{field_name}' type '{field_type}' is incompatible with ontology property '{property_id}' type '{property_type}'."
+                            ),
+                        ));
+                    }
+                }
+            } else {
+                diagnostics.push(diagnostic(
+                    "LB212",
+                    "error",
+                    format!("/spec/bindings/{binding_index}/ontologyPropertyRef"),
+                    format!("Ontology property '{property_ref}' does not exist."),
                 ));
             }
         }

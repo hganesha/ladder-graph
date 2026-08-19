@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { Code2, Sparkles, Workflow } from "lucide-react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Welcome, WORKFLOW_AREAS } from "../src/components/Welcome";
-import { ARTIFACT_INDEX } from "../src/generated/catalog";
+import { ARTIFACT_INDEX } from "../src/generated/catalogTestFixtures";
 import { deleteProject, listProjects, listUserTemplates } from "../src/lib/persistence";
 import { ROLE_TEMPLATES, roleTemplatesForSubject } from "../src/lib/roleTemplates";
 import { WORKFLOW_TEMPLATES } from "../src/lib/templates";

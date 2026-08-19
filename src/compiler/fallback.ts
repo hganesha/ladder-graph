@@ -1,3 +1,4 @@
+// Reference implementation for targeted tests only. Production compilation is exclusively Rust/WebAssembly.
 import { parseDocument, stringify, visit } from "yaml";
 import { ICON_ALIASES, ICON_NAMES } from "../generated/iconRegistry";
 import { inputContractModality } from "../lib/inputContracts";

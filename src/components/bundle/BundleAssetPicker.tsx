@@ -1,9 +1,10 @@
 import { ChevronDown, FileJson2, FileText, GitFork, PackageOpen, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { parse } from "yaml";
-import { ARTIFACT_TEMPLATES } from "../../generated/artifactCatalog";
+import { ARTIFACT_INDEX } from "../../generated/catalog";
 import { bundleAsset } from "../../lib/bundleEditor";
-import type { ArtifactTemplateDefinition, WorkflowBundle } from "../../types";
+import type { ArtifactTemplateDefinition, ArtifactTemplateMetadata, WorkflowBundle } from "../../types";
+
+export type BundleArtifactChoice = ArtifactTemplateDefinition | ArtifactTemplateMetadata;
 
 export interface BundleWorkflowChoice {
   id: string;
@@ -14,13 +15,13 @@ export interface BundleWorkflowChoice {
 
 interface BundleAssetPickerProps {
   bundle: WorkflowBundle;
-  assetTemplates: ArtifactTemplateDefinition[];
-  onAttach: (template: ArtifactTemplateDefinition) => void;
+  assetTemplates: BundleArtifactChoice[];
+  onAttach: (template: BundleArtifactChoice) => void;
   onDetach: (ref: string) => void;
   onNew: () => void;
   onNewForm: () => void;
   onRestoreStarter: () => void;
-  onUseCuratedBundle: (template: ArtifactTemplateDefinition) => void;
+  onUseCuratedBundle: (template: ArtifactTemplateMetadata) => void;
   onOntologyModeChange: (mode: "full" | "sliver") => void;
   starterLabel: string;
   onWorkflowChange: (workflowId: string) => void;
@@ -71,15 +72,11 @@ export function BundleAssetPicker({
   ]);
   const workflowId = workflowChoices.find((choice) => choice.ref === bundle.spec.workflowRef)?.id ?? workflowChoices[0]?.id ?? "";
   const workflow = workflowChoices.find((choice) => choice.id === workflowId) ?? bundleAsset(bundle.spec.workflowRef);
-  const recommendedBundle = useMemo(
-    () =>
-      ARTIFACT_TEMPLATES.filter((template) => template.kind === "workflow-bundle")
-        .map((template) => ({ template, bundle: parse(template.yaml) as WorkflowBundle }))
-        .find(
-          (candidate) =>
-            candidate.bundle.spec.workflowRef === bundle.spec.workflowRef && candidate.bundle.metadata.name !== bundle.metadata.name,
-        ),
-    [bundle.metadata.name, bundle.spec.workflowRef],
+  const recommendedBundle = ARTIFACT_INDEX.find(
+    (template) =>
+      template.kind === "workflow-bundle" &&
+      template.id !== bundle.metadata.name &&
+      template.bundleSummary?.workflowRef === bundle.spec.workflowRef,
   );
   const industries = useMemo(() => [...new Set(assetTemplates.map((template) => template.path.split("/")[0]))].sort(), [assetTemplates]);
   const filteredTemplates = useMemo(() => {
@@ -124,17 +121,17 @@ export function BundleAssetPicker({
         <small>{workflow?.description}</small>
       </label>
 
-      {recommendedBundle ? (
+      {recommendedBundle?.bundleSummary ? (
         <aside className="bundle-compatibility-card" aria-label="Curated bundle recommendation">
           <span>
-            <strong>Curated match: {recommendedBundle.template.title}</strong>
+            <strong>Curated match: {recommendedBundle.title}</strong>
             <small>
-              {(recommendedBundle.bundle.spec.forms?.length ?? 0) + (recommendedBundle.bundle.spec.documents?.length ?? 0)} domain assets ·{" "}
-              {recommendedBundle.bundle.spec.bindings?.length ?? 0} explicit bindings ·{" "}
-              {recommendedBundle.bundle.spec.ontology ? "ontology sliver included" : "ontology optional"}
+              {recommendedBundle.bundleSummary.formCount + recommendedBundle.bundleSummary.documentCount} domain assets ·{" "}
+              {recommendedBundle.bundleSummary.bindingCount} explicit bindings ·{" "}
+              {recommendedBundle.bundleSummary.hasOntology ? "ontology sliver included" : "ontology optional"}
             </small>
           </span>
-          <button className="quiet-button" onClick={() => onUseCuratedBundle(recommendedBundle.template)} type="button">
+          <button className="quiet-button" onClick={() => onUseCuratedBundle(recommendedBundle)} type="button">
             Use curated bundle
           </button>
         </aside>

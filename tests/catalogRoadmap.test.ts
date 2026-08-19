@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
-import { ROLE_TEMPLATES, WORKFLOW_TEMPLATES } from "../src/generated/catalog";
+import { ROLE_TEMPLATES, WORKFLOW_TEMPLATES } from "../src/generated/catalogTestFixtures";
 import type { Workflow } from "../src/types";
 
 const expectedAreas = new Map([

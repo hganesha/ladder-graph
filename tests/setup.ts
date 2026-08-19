@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import "fake-indexeddb/auto";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 const localValues = new Map<string, string>();
 Object.defineProperty(window, "localStorage", {
@@ -41,3 +43,18 @@ class TestResizeObserver implements ResizeObserver {
 }
 
 Object.defineProperty(globalThis, "ResizeObserver", { configurable: true, value: TestResizeObserver });
+
+Object.defineProperty(globalThis, "fetch", {
+  configurable: true,
+  writable: true,
+  value: async (input: RequestInfo | URL) => {
+    const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url, window.location.origin);
+    if (!url.pathname.startsWith("/catalog/bodies/")) throw new Error(`Unexpected test fetch: ${url}`);
+    try {
+      const body = await readFile(resolve(process.cwd(), "public", url.pathname.slice(1)), "utf8");
+      return new Response(body, { status: 200, headers: { "content-type": "application/json" } });
+    } catch {
+      return new Response("Not found", { status: 404 });
+    }
+  },
+});

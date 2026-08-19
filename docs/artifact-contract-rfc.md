@@ -14,7 +14,7 @@ Ladder Graph treats `Ontology`, `Form`, `Document`, and `WorkflowBundle` as port
 
 ## Determinism
 
-Source hashes use canonical JSON with lexicographically ordered object keys. Ontology closure and bundle files are path-sorted. Equivalent inputs must produce identical normalized values, diagnostic order, hashes, lockfiles, and artifact paths in Rust, Wasm, and the TypeScript fallback.
+Source hashes use canonical JSON with lexicographically ordered object keys. Ontology closure and bundle files are path-sorted. Equivalent inputs must produce identical normalized values, diagnostic order, hashes, lockfiles, and artifact paths through the Rust compiler and its committed WebAssembly build. The TypeScript reference implementation is not a production compiler authority.
 
 ## Diagnostic registry
 
