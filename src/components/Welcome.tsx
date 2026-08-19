@@ -655,7 +655,7 @@ export function Welcome({
               </div>
 
               <label className={`user-assets-filter ${userAssetCount === 0 ? "disabled" : ""}`}>
-                <span className="eyebrow">Personal library</span>
+                <span className="eyebrow">   Personal library</span>
                 <span className="user-assets-toggle">
                   <input
                     aria-label="Include your assets"
