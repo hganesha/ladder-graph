@@ -5461,19 +5461,25 @@ button:disabled {
 .node-form-contracts {
   display: grid;
   gap: 8px;
+  min-width: 0;
   margin-bottom: 16px;
-  border: 1px solid #2d3b42;
+  border: 1px solid var(--border);
   border-radius: 9px;
   padding: 11px;
-  background: #10171b;
+  background: var(--surface-2);
 }
 .node-form-contracts > header,
-.node-form-attach,
 .node-form-reference {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+.node-form-attach {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
 }
 .node-form-contracts > header > div,
 .node-form-reference > span {
@@ -5484,7 +5490,7 @@ button:disabled {
 .node-form-contracts > header span,
 .node-form-contracts > header small,
 .node-form-reference small {
-  color: #69767e;
+  color: var(--muted);
   font-family: "IBM Plex Mono", monospace;
   font-size: 8px;
 }
@@ -5493,9 +5499,11 @@ button:disabled {
   text-transform: uppercase;
 }
 .node-form-reference {
-  border: 1px solid #28333a;
+  min-width: 0;
+  border: 1px solid var(--border);
   border-radius: 7px;
   padding: 8px;
+  background: var(--surface);
 }
 .node-form-reference > span {
   flex: 1;
@@ -5515,27 +5523,32 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #2d3b42;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #141b20;
-  color: #8d9aa1;
+  background: var(--surface-3);
+  color: var(--muted);
 }
 .node-form-reference button {
   width: 26px;
   height: 26px;
 }
 .node-form-attach select {
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   height: 31px;
-  flex: 1;
-  border: 1px solid #28333a;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0 7px;
-  background: #0f1519;
-  color: #dfe6e6;
+  background: var(--surface);
+  color: var(--text);
   font-size: 9px;
 }
 .node-form-attach .quiet-button {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  justify-content: center;
+  width: 100%;
   min-height: 31px;
   padding: 0 9px;
   font-size: 9px;
