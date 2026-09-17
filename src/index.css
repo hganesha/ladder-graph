@@ -9787,9 +9787,9 @@ button:disabled {
   height: 8px;
 }
 
-.react-flow__node-isoGroup {
+.react-flow__nodes .react-flow__node.react-flow__node-isoGroup {
   /* Only the projected floor plane is interactive, not its rectangular bounding box. */
-  pointer-events: none !important;
+  pointer-events: none;
 }
 .iso-group-node {
   position: relative;
@@ -9821,4 +9821,7 @@ button:disabled {
   .projection-switch button span {
     display: none;
   }
+}
+.iso-task-node.dimmed {
+  opacity: 0.22;
 }

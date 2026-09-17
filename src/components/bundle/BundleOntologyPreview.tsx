@@ -50,6 +50,7 @@ export function BundleOntologyPreview({ ontology, title }: { ontology: Ontology;
             query={query}
             selectedRelationshipId={selectedRelationshipId}
             selectedTypeId={selectedTypeId}
+            showProjection={false}
           />
         </section>
         <aside className="artifact-detail-card ontology-selection-inspector" aria-label="Bundled ontology inspector">

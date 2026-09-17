@@ -3,6 +3,7 @@ import {
   Background,
   type Connection,
   Controls,
+  type Edge,
   Handle,
   MarkerType,
   MiniMap,
@@ -10,13 +11,17 @@ import {
   type NodeProps,
   Position,
   ReactFlow,
+  type ReactFlowInstance,
   useNodesState,
 } from "@xyflow/react";
-import { memo, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { resolveOntologyIcon } from "../../lib/nodeIcons";
-import type { Ontology, OntologyType } from "../../types";
+import { flatTaskPosition, getInitialProjection, isoTaskPosition, type Projection, saveProjection } from "../../lib/projection";
+import type { Ontology, OntologyType, Position as FlatPosition } from "../../types";
 import { InlineNodeField } from "../InlineNodeField";
+import { IsometricEdge, IsoTile } from "../IsometricNodes";
 import { NodeIcon } from "../NodeIcon";
+import { ProjectionSwitch } from "../ProjectionSwitch";
 
 interface OntologyNodeData extends Record<string, unknown> {
   label: string;
@@ -29,6 +34,12 @@ interface OntologyNodeData extends Record<string, unknown> {
 }
 
 type OntologyFlowNode = Node<OntologyNodeData, "ontologyType">;
+type OntologyIsoFlowNode = Node<OntologyNodeData, "ontologyIsoType">;
+type OntologyCanvasNode = OntologyFlowNode | OntologyIsoFlowNode;
+
+const ONTOLOGY_NODE = { width: 210, height: 124 };
+// The dagre layout packs rows tighter than the workflow grid; spread it so tile labels clear the tile in front.
+const ISO_SPREAD = 1.3;
 
 const OntologyTypeNode = memo(function OntologyTypeNode({ data, selected }: NodeProps<OntologyFlowNode>) {
   return (
@@ -66,7 +77,49 @@ const OntologyTypeNode = memo(function OntologyTypeNode({ data, selected }: Node
   );
 });
 
-const nodeTypes = { ontologyType: OntologyTypeNode };
+const OntologyIsoTypeNode = memo(function OntologyIsoTypeNode({ data, selected }: NodeProps<OntologyIsoFlowNode>) {
+  return (
+    <IsoTile
+      ariaLabel={`Entity type: ${data.label}`}
+      className={`ontology-iso-node ${data.matched ? "" : "dimmed"}`}
+      color="var(--cyan)"
+      handleClassName="ontology-node-handle"
+      icon={<NodeIcon name={data.iconName} size={14} />}
+      kicker="Entity type"
+      name={
+        <InlineNodeField
+          as="h3"
+          editable={Boolean(data.onInlineEdit)}
+          label="entity name"
+          onCommit={(label) => data.onInlineEdit?.(data.typeId, { label })}
+          placeholder="Untitled entity"
+          showAffordance={selected}
+          value={data.label}
+        />
+      }
+      selected={selected}
+      title={`${data.description ? `${data.description}\n` : ""}${data.typeId} · ${data.propertyCount} properties`}
+    />
+  );
+});
+
+const nodeTypes = { ontologyType: OntologyTypeNode, ontologyIsoType: OntologyIsoTypeNode };
+const edgeTypes = { iso: IsometricEdge };
+
+/** Layout positions stay flat; the isometric view only projects them for display. */
+function displayNodes(layoutNodes: OntologyFlowNode[], projection: Projection, flatPositions: Map<string, FlatPosition>) {
+  const nodes = layoutNodes.map((node): OntologyCanvasNode => {
+    const flat = flatPositions.get(node.id) ?? node.position;
+    flatPositions.set(node.id, flat);
+    return projection === "isometric"
+      ? { ...node, type: "ontologyIsoType", position: isoTaskPosition({ x: flat.x * ISO_SPREAD, y: flat.y * ISO_SPREAD }, ONTOLOGY_NODE) }
+      : { ...node, position: flat };
+  });
+  if (projection !== "isometric") return nodes;
+  // Tiles nearer the viewer (lower on screen) stack above the ones behind them.
+  const depth = [...nodes].sort((left, right) => left.position.y - right.position.y).map((node) => node.id);
+  return nodes.map((node) => ({ ...node, zIndex: depth.indexOf(node.id) + 1 }));
+}
 
 function graphElements(
   ontology: Ontology,
@@ -135,6 +188,7 @@ export function OntologyCanvas({
   onSelectRelationship,
   onSelectType,
   onUpdateType,
+  showProjection = true,
 }: {
   ontology: Ontology;
   onConnectTypes?: (sourceTypeId: string, targetTypeId: string) => void;
@@ -144,22 +198,41 @@ export function OntologyCanvas({
   onSelectRelationship: (id: string) => void;
   onSelectType: (id: string) => void;
   onUpdateType?: (id: string, patch: Pick<Partial<OntologyType>, "label" | "description">) => void;
+  /** Embedded previews stay flat so the switch cannot cover a node on a small canvas. */
+  showProjection?: boolean;
 }) {
-  const { edges, nodes: layoutNodes } = useMemo(
+  const [projection, setProjection] = useState<Projection>(() => (showProjection ? getInitialProjection("ontology") : "orthogonal"));
+  const { edges: layoutEdges, nodes: layoutNodes } = useMemo(
     () => graphElements(ontology, query, selectedTypeId, selectedRelationshipId, onUpdateType),
     [ontology, onUpdateType, query, selectedRelationshipId, selectedTypeId],
   );
-  const [nodes, setNodes, onNodesChange] = useNodesState<OntologyFlowNode>(layoutNodes);
+  const edges = useMemo(
+    (): Edge[] => (projection === "isometric" ? layoutEdges.map((edge) => ({ ...edge, type: "iso" })) : layoutEdges),
+    [layoutEdges, projection],
+  );
+  const flatPositions = useRef(new Map<string, FlatPosition>());
+  const [initialNodes] = useState(() => displayNodes(layoutNodes, projection, flatPositions.current));
+  const [nodes, setNodes, onNodesChange] = useNodesState<OntologyCanvasNode>(initialNodes);
+  const flowRef = useRef<ReactFlowInstance<OntologyCanvasNode, Edge> | null>(null);
+  const previousProjection = useRef(projection);
 
   useEffect(() => {
-    setNodes((currentNodes) => {
-      const currentById = new Map(currentNodes.map((node) => [node.id, node]));
-      return layoutNodes.map((node) => {
-        const current = currentById.get(node.id);
-        return current ? { ...node, position: current.position } : node;
-      });
+    setNodes(displayNodes(layoutNodes, projection, flatPositions.current));
+  }, [layoutNodes, projection, setNodes]);
+
+  useEffect(() => {
+    if (previousProjection.current === projection) return;
+    previousProjection.current = projection;
+    const frame = requestAnimationFrame(() => {
+      void flowRef.current?.fitView({ padding: 0.16, duration: 220 });
     });
-  }, [layoutNodes, setNodes]);
+    return () => cancelAnimationFrame(frame);
+  }, [projection]);
+
+  const changeProjection = (next: Projection) => {
+    setProjection(next);
+    saveProjection(next, "ontology");
+  };
 
   const connect = (connection: Connection) => {
     if (!connection.source || !connection.target || !onConnectTypes) return;
@@ -170,6 +243,7 @@ export function OntologyCanvas({
     <section className="ontology-graph-canvas" aria-label="Ontology relationship canvas">
       <ReactFlow
         edges={edges}
+        edgeTypes={edgeTypes}
         fitView
         fitViewOptions={{ padding: 0.16 }}
         maxZoom={1.6}
@@ -181,6 +255,15 @@ export function OntologyCanvas({
         onConnect={connect}
         onEdgeClick={(_, edge) => onSelectRelationship(edge.id)}
         onNodeClick={(_, node) => onSelectType(node.id)}
+        onInit={(instance) => {
+          flowRef.current = instance;
+        }}
+        onNodeDragStop={(_, _node, dragged) => {
+          for (const node of dragged) {
+            const spread = projection === "isometric" ? flatTaskPosition(node.position, ONTOLOGY_NODE) : undefined;
+            flatPositions.current.set(node.id, spread ? { x: spread.x / ISO_SPREAD, y: spread.y / ISO_SPREAD } : node.position);
+          }
+        }}
         onNodesChange={onNodesChange}
         proOptions={{ hideAttribution: true }}
       >
@@ -188,6 +271,7 @@ export function OntologyCanvas({
         <Controls showInteractive={false} />
         <MiniMap nodeColor="var(--cyan)" pannable zoomable />
       </ReactFlow>
+      {showProjection && <ProjectionSwitch value={projection} onChange={changeProjection} />}
       <div className="ontology-canvas-hint">
         Double-click text to edit · drag nodes · connect handles to create relationships · click edges to inspect
       </div>

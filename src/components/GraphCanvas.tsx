@@ -10,7 +10,7 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-import { Box, Network, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { exportGraphImage, type GraphImageFormat } from "../lib/graphImage";
@@ -21,6 +21,7 @@ import { useStudioStore } from "../store/useStudioStore";
 import type { LgirEdge, LgirNode } from "../types";
 import { type GroupFlowData, GroupNode } from "./GroupNode";
 import { IsometricEdge, type IsoGroupFlowNode, type IsoTaskFlowNode, IsometricGroupNode, IsometricTaskNode } from "./IsometricNodes";
+import { ProjectionSwitch } from "./ProjectionSwitch";
 import { type TaskFlowData, TaskNode, type WorkflowInlineEdit } from "./TaskNode";
 
 export type TaskFlowNode = Node<TaskFlowData, "task">;
@@ -173,11 +174,6 @@ export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[], projection: Pr
 
 export const workflowNodeTypes = { task: TaskNode, group: GroupNode, isoTask: IsometricTaskNode, isoGroup: IsometricGroupNode };
 export const workflowEdgeTypes = { iso: IsometricEdge };
-
-const PROJECTIONS: { id: Projection; label: string; title: string; Icon: typeof Box }[] = [
-  { id: "isometric", label: "Isometric", title: "Isometric projection", Icon: Box },
-  { id: "orthogonal", label: "Orthogonal", title: "Orthogonal top-down projection", Icon: Network },
-];
 
 export interface GraphCanvasHandle {
   exportImage: (format: GraphImageFormat) => Promise<void>;
@@ -337,22 +333,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
           zoomable
         />
       </ReactFlow>
-      <fieldset className="projection-switch">
-        <legend className="sr-only">Canvas projection</legend>
-        {PROJECTIONS.map(({ id, label, title, Icon }) => (
-          <button
-            key={id}
-            type="button"
-            className={projection === id ? "active" : ""}
-            aria-pressed={projection === id}
-            title={title}
-            onClick={() => changeProjection(id)}
-          >
-            <Icon size={14} aria-hidden="true" />
-            <span>{label}</span>
-          </button>
-        ))}
-      </fieldset>
+      <ProjectionSwitch value={projection} onChange={changeProjection} />
       {(selectedNode || selectedEdge) && (
         <button
           type="button"

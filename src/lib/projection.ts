@@ -7,25 +7,36 @@ import { GRID_LAYOUT, groupDimensions } from "./layout";
  * inverts the projection when a drag is committed.
  */
 export type Projection = "orthogonal" | "isometric";
+export type ProjectionCanvas = "workflow" | "ontology";
 
-const PROJECTION_KEY = "ladder-graph-canvas-projection";
+const PROJECTION_KEYS: Record<ProjectionCanvas, string> = {
+  workflow: "ladder-graph-canvas-projection",
+  ontology: "ladder-graph-ontology-projection",
+};
 const COS = Math.cos(Math.PI / 6);
 const SIN = Math.sin(Math.PI / 6);
 
 /** Size of the DOM box that holds an isometric task tile, and where the tile's floor center sits in it. */
 export const ISO_TILE = { width: 184, height: 168, anchorX: 92, anchorY: 84 } as const;
 
-export function getInitialProjection(): Projection {
+interface Size {
+  width: number;
+  height: number;
+}
+
+const WORKFLOW_NODE: Size = { width: GRID_LAYOUT.nodeWidth, height: GRID_LAYOUT.nodeHeight };
+
+export function getInitialProjection(canvas: ProjectionCanvas = "workflow"): Projection {
   try {
-    return window.localStorage.getItem(PROJECTION_KEY) === "isometric" ? "isometric" : "orthogonal";
+    return window.localStorage.getItem(PROJECTION_KEYS[canvas]) === "isometric" ? "isometric" : "orthogonal";
   } catch {
     return "orthogonal";
   }
 }
 
-export function saveProjection(projection: Projection) {
+export function saveProjection(projection: Projection, canvas: ProjectionCanvas = "workflow") {
   try {
-    window.localStorage.setItem(PROJECTION_KEY, projection);
+    window.localStorage.setItem(PROJECTION_KEYS[canvas], projection);
   } catch {
     // The canvas still switches when storage is unavailable.
   }
@@ -41,16 +52,16 @@ export function isoUnproject({ x, y }: Position): Position {
   return { x: (sum + difference) / 2, y: (sum - difference) / 2 };
 }
 
-/** Flow position for a task whose flat top-left corner is `position`. */
-export function isoTaskPosition(position: Position): Position {
-  const center = isoProject({ x: position.x + GRID_LAYOUT.nodeWidth / 2, y: position.y + GRID_LAYOUT.nodeHeight / 2 });
+/** Flow position for a tile whose flat card (of `size`) has its top-left corner at `position`. */
+export function isoTaskPosition(position: Position, size: Size = WORKFLOW_NODE): Position {
+  const center = isoProject({ x: position.x + size.width / 2, y: position.y + size.height / 2 });
   return { x: center.x - ISO_TILE.anchorX, y: center.y - ISO_TILE.anchorY };
 }
 
-/** Flat top-left corner for a task tile rendered at the absolute flow position `position`. */
-export function flatTaskPosition(position: Position): Position {
+/** Flat top-left corner for a tile rendered at the absolute flow position `position`. */
+export function flatTaskPosition(position: Position, size: Size = WORKFLOW_NODE): Position {
   const center = isoUnproject({ x: position.x + ISO_TILE.anchorX, y: position.y + ISO_TILE.anchorY });
-  return { x: center.x - GRID_LAYOUT.nodeWidth / 2, y: center.y - GRID_LAYOUT.nodeHeight / 2 };
+  return { x: center.x - size.width / 2, y: center.y - size.height / 2 };
 }
 
 /**

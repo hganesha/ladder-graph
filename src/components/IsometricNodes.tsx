@@ -1,6 +1,6 @@
 import { BaseEdge, type EdgeProps, Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { AlertTriangle } from "lucide-react";
-import { memo } from "react";
+import { type CSSProperties, memo, type ReactNode } from "react";
 import { NODE_META } from "../lib/nodeMeta";
 import { resolveAgentIcon } from "../lib/nodeIcons";
 import { ISO_TILE, isoEdgePath } from "../lib/projection";
@@ -35,19 +35,38 @@ const blockTop = diamond(30, 28);
 const targetHandle = { left: (platform.top[0] + platform.left[0]) / 2, top: (platform.top[1] + platform.left[1]) / 2 };
 const sourceHandle = { left: (platform.right[0] + platform.bottom[0]) / 2, top: (platform.right[1] + platform.bottom[1]) / 2 };
 
-export const IsometricTaskNode = memo(function IsometricTaskNode({ data, selected }: NodeProps<IsoTaskFlowNode>) {
-  const meta = NODE_META[data.kind];
-  const Icon = TASK_NODE_ICONS[data.kind];
-  const agentIcon = data.kind === "agent" ? resolveAgentIcon(data) : undefined;
-  const incomplete = hasIncompleteConfig(data);
+/** An upright isometric block on a floor platform, with an icon badge and a label underneath. */
+export function IsoTile({
+  alert,
+  ariaLabel,
+  className = "",
+  color,
+  handleClassName,
+  icon,
+  kicker,
+  name,
+  selected,
+  title,
+}: {
+  alert?: ReactNode;
+  ariaLabel: string;
+  className?: string;
+  color: string;
+  handleClassName: string;
+  icon: ReactNode;
+  kicker: string;
+  name: ReactNode;
+  selected: boolean;
+  title?: string;
+}) {
   return (
     <article
-      className={`iso-task-node ${selected ? "selected" : ""}`}
-      style={{ "--node-color": meta.color, width: ISO_TILE.width, height: ISO_TILE.height } as React.CSSProperties}
-      aria-label={`${meta.label}: ${data.name}`}
-      title={data.summary || meta.hint}
+      className={`iso-task-node ${selected ? "selected" : ""} ${className}`}
+      style={{ "--node-color": color, width: ISO_TILE.width, height: ISO_TILE.height } as CSSProperties}
+      aria-label={ariaLabel}
+      title={title}
     >
-      <Handle type="target" position={Position.Left} className="node-handle" style={targetHandle} />
+      <Handle type="target" position={Position.Left} className={handleClassName} style={targetHandle} />
       <svg aria-hidden="true" className="iso-tile" width={ISO_TILE.width} height={ISO_TILE.height}>
         <ellipse className="iso-shadow" cx={ax} cy={ay + 16} rx="62" ry="22" />
         {selected && <polygon className="iso-ring" points={points(ring.top, ring.right, ring.bottom, ring.left)} />}
@@ -62,11 +81,31 @@ export const IsometricTaskNode = memo(function IsometricTaskNode({ data, selecte
         <polygon className="iso-block-top" points={points(blockTop.top, blockTop.right, blockTop.bottom, blockTop.left)} />
       </svg>
       <span className="iso-node-badge">
-        {agentIcon ? <NodeIcon name={agentIcon.name} size={14} /> : <Icon aria-hidden="true" size={14} />}
-        {incomplete && <AlertTriangle size={11} className="node-alert" aria-label="Incomplete configuration" />}
+        {icon}
+        {alert}
       </span>
       <div className="iso-node-label">
-        <span>{meta.label}</span>
+        <span>{kicker}</span>
+        {name}
+      </div>
+      <Handle type="source" position={Position.Right} className={handleClassName} style={sourceHandle} />
+    </article>
+  );
+}
+
+export const IsometricTaskNode = memo(function IsometricTaskNode({ data, selected }: NodeProps<IsoTaskFlowNode>) {
+  const meta = NODE_META[data.kind];
+  const Icon = TASK_NODE_ICONS[data.kind];
+  const agentIcon = data.kind === "agent" ? resolveAgentIcon(data) : undefined;
+  return (
+    <IsoTile
+      alert={hasIncompleteConfig(data) && <AlertTriangle size={11} className="node-alert" aria-label="Incomplete configuration" />}
+      ariaLabel={`${meta.label}: ${data.name}`}
+      color={meta.color}
+      handleClassName="node-handle"
+      icon={agentIcon ? <NodeIcon name={agentIcon.name} size={14} /> : <Icon aria-hidden="true" size={14} />}
+      kicker={meta.label}
+      name={
         <InlineNodeField
           as="h3"
           editable={Boolean(data.onInlineEdit)}
@@ -76,9 +115,10 @@ export const IsometricTaskNode = memo(function IsometricTaskNode({ data, selecte
           showAffordance={selected}
           value={data.name}
         />
-      </div>
-      <Handle type="source" position={Position.Right} className="node-handle" style={sourceHandle} />
-    </article>
+      }
+      selected={selected}
+      title={data.summary || meta.hint}
+    />
   );
 });
 

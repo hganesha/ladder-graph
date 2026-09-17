@@ -57,3 +57,36 @@ test("canvas switches between orthogonal and isometric projections without rewri
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   expect(consoleErrors).toEqual([]);
 });
+
+test("ontology canvas switches between orthogonal cards and isometric tiles", async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: /new ontology/i })
+    .first()
+    .click();
+  const canvas = page.getByLabel("Ontology relationship canvas");
+  await expect(canvas.locator(".ontology-graph-node")).toHaveCount(1);
+  await page.getByRole("button", { name: "Add entity" }).click();
+  await expect(canvas.locator(".ontology-graph-node")).toHaveCount(2);
+  const flatTransforms = await canvas
+    .locator(".react-flow__node")
+    .evaluateAll((nodes) => nodes.map((node) => (node as HTMLElement).style.transform));
+
+  await canvas.getByRole("button", { name: /isometric/i }).click();
+  await expect(canvas.locator(".ontology-iso-node")).toHaveCount(2);
+  await expect(canvas.locator(".ontology-graph-node")).toHaveCount(0);
+
+  await canvas.getByRole("button", { name: /orthogonal/i }).click();
+  await expect(canvas.locator(".ontology-graph-node")).toHaveCount(2);
+  expect(
+    await canvas.locator(".react-flow__node").evaluateAll((nodes) => nodes.map((node) => (node as HTMLElement).style.transform)),
+  ).toEqual(flatTransforms);
+
+  await expect(page.locator("vite-error-overlay")).toHaveCount(0);
+  expect(consoleErrors).toEqual([]);
+});
