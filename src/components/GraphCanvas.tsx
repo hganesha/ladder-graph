@@ -10,22 +10,28 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-import { Trash2 } from "lucide-react";
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react";
+import { Box, Network, Trash2 } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { exportGraphImage, type GraphImageFormat } from "../lib/graphImage";
 import { groupDimensions } from "../lib/layout";
 import { NODE_META } from "../lib/nodeMeta";
+import { draggedPositions, getInitialProjection, isoGroupFrame, isoTaskPosition, type Projection, saveProjection } from "../lib/projection";
 import { useStudioStore } from "../store/useStudioStore";
 import type { LgirEdge, LgirNode } from "../types";
 import { type GroupFlowData, GroupNode } from "./GroupNode";
+import { IsometricEdge, type IsoGroupFlowNode, type IsoTaskFlowNode, IsometricGroupNode, IsometricTaskNode } from "./IsometricNodes";
 import { type TaskFlowData, TaskNode, type WorkflowInlineEdit } from "./TaskNode";
 
 export type TaskFlowNode = Node<TaskFlowData, "task">;
 export type GroupFlowNode = Node<GroupFlowData, "group">;
-export type WorkflowFlowNode = TaskFlowNode | GroupFlowNode;
+export type WorkflowFlowNode = TaskFlowNode | GroupFlowNode | IsoTaskFlowNode | IsoGroupFlowNode;
 
-export function toFlowNodes(nodes: LgirNode[], onInlineEdit?: WorkflowInlineEdit): WorkflowFlowNode[] {
+export function toFlowNodes(
+  nodes: LgirNode[],
+  onInlineEdit?: WorkflowInlineEdit,
+  projection: Projection = "orthogonal",
+): WorkflowFlowNode[] {
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const owner = new Map<string, LgirNode>();
   nodes
@@ -35,6 +41,7 @@ export function toFlowNodes(nodes: LgirNode[], onInlineEdit?: WorkflowInlineEdit
         owner.set(id, group);
       });
     });
+  if (projection === "isometric") return toIsometricFlowNodes(nodes, byId, owner, onInlineEdit);
   return [...nodes]
     .sort((left, right) => Number(left.kind !== "group") - Number(right.kind !== "group"))
     .map((node) => {
@@ -64,13 +71,60 @@ export function toFlowNodes(nodes: LgirNode[], onInlineEdit?: WorkflowInlineEdit
     });
 }
 
-export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
+function toIsometricFlowNodes(
+  nodes: LgirNode[],
+  byId: Map<string, LgirNode>,
+  owner: Map<string, LgirNode>,
+  onInlineEdit?: WorkflowInlineEdit,
+): WorkflowFlowNode[] {
+  const groups = nodes
+    .filter((node) => node.kind === "group")
+    .map((node) => {
+      const frame = isoGroupFrame(node);
+      return {
+        id: node.id,
+        type: "isoGroup",
+        position: frame.position,
+        data: {
+          ...node,
+          memberCount: node.config?.members?.filter((id) => byId.has(id)).length ?? 0,
+          onInlineEdit,
+          plane: { ...frame.flat, transform: frame.transform },
+        },
+        style: { width: frame.width, height: frame.height },
+        zIndex: -1,
+      } satisfies IsoGroupFlowNode;
+    });
+  // Tiles nearer the viewer (lower on screen) stack above the ones behind them.
+  const tasks = nodes
+    .filter((node) => node.kind !== "group")
+    .map((node) => ({ node, absolute: isoTaskPosition(node.position ?? { x: 0, y: 0 }) }))
+    .sort((left, right) => left.absolute.y - right.absolute.y);
+  return [
+    ...groups,
+    ...tasks.map(({ node, absolute }, index) => {
+      const group = owner.get(node.id);
+      const origin = group ? isoGroupFrame(group).position : { x: 0, y: 0 };
+      return {
+        id: node.id,
+        type: "isoTask",
+        position: { x: absolute.x - origin.x, y: absolute.y - origin.y },
+        data: { ...node, onInlineEdit },
+        parentId: group?.id,
+        zIndex: 2 + index,
+      } satisfies IsoTaskFlowNode;
+    }),
+  ];
+}
+
+export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[], projection: Projection = "orthogonal"): Edge[] {
   const nodeIds = new Set(nodes.map((node) => node.id));
+  const type = projection === "isometric" ? "iso" : "smoothstep";
   const stored = edges.map((edge) => ({
     id: edge.id,
     source: edge.from,
     target: edge.to,
-    type: "smoothstep",
+    type,
     label: edge.contract || edge.condition,
     animated: edge.kind === "control",
     style: {
@@ -107,7 +161,7 @@ export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
       }));
       return [...executionEdges, ...collectionEdges].map((edge) => ({
         ...edge,
-        type: "smoothstep",
+        type,
         selectable: false,
         focusable: false,
         className: "group-internal-edge",
@@ -117,7 +171,13 @@ export function toFlowEdges(edges: LgirEdge[], nodes: LgirNode[]): Edge[] {
   return [...stored, ...virtual];
 }
 
-export const workflowNodeTypes = { task: TaskNode, group: GroupNode };
+export const workflowNodeTypes = { task: TaskNode, group: GroupNode, isoTask: IsometricTaskNode, isoGroup: IsometricGroupNode };
+export const workflowEdgeTypes = { iso: IsometricEdge };
+
+const PROJECTIONS: { id: Projection; label: string; title: string; Icon: typeof Box }[] = [
+  { id: "isometric", label: "Isometric", title: "Isometric projection", Icon: Box },
+  { id: "orthogonal", label: "Orthogonal", title: "Orthogonal top-down projection", Icon: Network },
+];
 
 export interface GraphCanvasHandle {
   exportImage: (format: GraphImageFormat) => Promise<void>;
@@ -134,15 +194,23 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
   const deleteElements = useStudioStore((state) => state.deleteElements);
   const patchNode = useStudioStore((state) => state.patchNode);
   const updatePositions = useStudioStore((state) => state.updatePositions);
+  const [projection, setProjection] = useState<Projection>(getInitialProjection);
   const onInlineEdit = useCallback<WorkflowInlineEdit>((id, patch) => void patchNode(id, patch), [patchNode]);
-  const sourceNodes = useMemo(() => toFlowNodes(workflow?.spec.nodes ?? [], onInlineEdit), [onInlineEdit, workflow]);
-  const sourceEdges = useMemo(() => toFlowEdges(workflow?.spec.edges ?? [], workflow?.spec.nodes ?? []), [workflow]);
+  const sourceNodes = useMemo(
+    () => toFlowNodes(workflow?.spec.nodes ?? [], onInlineEdit, projection),
+    [onInlineEdit, projection, workflow],
+  );
+  const sourceEdges = useMemo(
+    () => toFlowEdges(workflow?.spec.edges ?? [], workflow?.spec.nodes ?? [], projection),
+    [projection, workflow],
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowFlowNode>(sourceNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(sourceEdges);
   const canvasRef = useRef<HTMLElement>(null);
   const flowRef = useRef<ReactFlowInstance<WorkflowFlowNode, Edge> | null>(null);
   const fitAddedNodes = useRef<(() => void) | null>(null);
   const previousNodeCount = useRef(sourceNodes.length);
+  const previousProjection = useRef(projection);
   const selectedNode = workflow?.spec.nodes.find((node) => node.id === selectedNodeId);
   const selectedEdge = workflow?.spec.edges.find((edge) => edge.id === selectedEdgeId);
   const displayNodes = useMemo(() => nodes.map((node) => ({ ...node, selected: node.id === selectedNodeId })), [nodes, selectedNodeId]);
@@ -189,6 +257,20 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
     return () => cancelAnimationFrame(frame);
   }, [sourceNodes.length]);
 
+  useEffect(() => {
+    if (previousProjection.current === projection) return;
+    previousProjection.current = projection;
+    const frame = requestAnimationFrame(() => {
+      void flowRef.current?.fitView({ padding: 0.2, minZoom: 0.25, maxZoom: 1, duration: 220 });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [projection]);
+
+  const changeProjection = (next: Projection) => {
+    setProjection(next);
+    saveProjection(next);
+  };
+
   const onConnect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
     void connect({ from: connection.source, to: connection.target, kind: "dependency" });
@@ -205,6 +287,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
         nodes={displayNodes}
         edges={displayEdges}
         nodeTypes={workflowNodeTypes}
+        edgeTypes={workflowEdgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -225,28 +308,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
           };
         }}
         onNodeDragStop={(_, node) => {
-          const source = workflow?.spec.nodes.find((candidate) => candidate.id === node.id);
-          if (!source) return;
-          if (source.kind === "group") {
-            const previous = source.position ?? { x: 0, y: 0 };
-            const delta = { x: node.position.x - previous.x, y: node.position.y - previous.y };
-            const positions = Object.fromEntries(
-              [source.id, ...(source.config?.members ?? [])].map((id) => {
-                const member = workflow?.spec.nodes.find((candidate) => candidate.id === id);
-                const position = member?.position ?? previous;
-                return [id, id === source.id ? node.position : { x: position.x + delta.x, y: position.y + delta.y }];
-              }),
-            );
-            void updatePositions(positions);
-            return;
-          }
-          const parent = workflow?.spec.nodes.find(
-            (candidate) => candidate.kind === "group" && candidate.config?.members?.includes(node.id),
-          );
-          const parentPosition = parent?.position ?? { x: 0, y: 0 };
-          void updatePositions({
-            [node.id]: parent ? { x: parentPosition.x + node.position.x, y: parentPosition.y + node.position.y } : node.position,
-          });
+          if (!workflow) return;
+          const parentPosition = node.parentId ? nodes.find((candidate) => candidate.id === node.parentId)?.position : undefined;
+          const positions = draggedPositions(workflow.spec.nodes, node.id, node.position, projection, parentPosition);
+          if (Object.keys(positions).length) void updatePositions(positions);
         }}
         nodesDraggable={validYaml}
         nodesConnectable={validYaml}
@@ -272,6 +337,22 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle>(function GraphCanvas(_,
           zoomable
         />
       </ReactFlow>
+      <fieldset className="projection-switch">
+        <legend className="sr-only">Canvas projection</legend>
+        {PROJECTIONS.map(({ id, label, title, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={projection === id ? "active" : ""}
+            aria-pressed={projection === id}
+            title={title}
+            onClick={() => changeProjection(id)}
+          >
+            <Icon size={14} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        ))}
+      </fieldset>
       {(selectedNode || selectedEdge) && (
         <button
           type="button"

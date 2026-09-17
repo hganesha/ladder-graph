@@ -31,7 +31,7 @@ export type TaskFlowData = LgirNode & {
 
 type TaskFlowNode = Node<TaskFlowData, "task">;
 
-const icons = {
+export const TASK_NODE_ICONS = {
   input: LogIn,
   output: LogOut,
   agent: Bot,
@@ -48,14 +48,19 @@ const icons = {
   subgraph: CircleDot,
 };
 
+export function hasIncompleteConfig(node: LgirNode) {
+  return (
+    (node.kind === "agent" && !node.role) ||
+    (node.kind === "teacher" && !node.config?.teacherModel) ||
+    (node.kind === "loop" && !node.config?.maxIterations)
+  );
+}
+
 export const TaskNode = memo(function TaskNode({ data, selected }: NodeProps<TaskFlowNode>) {
   const meta = NODE_META[data.kind];
-  const Icon = icons[data.kind];
+  const Icon = TASK_NODE_ICONS[data.kind];
   const agentIcon = data.kind === "agent" ? resolveAgentIcon(data) : undefined;
-  const incomplete =
-    (data.kind === "agent" && !data.role) ||
-    (data.kind === "teacher" && !data.config?.teacherModel) ||
-    (data.kind === "loop" && !data.config?.maxIterations);
+  const incomplete = hasIncompleteConfig(data);
   const inputLabel = data.kind === "input" ? inputContractLabel(data.inputSchema) : null;
   const configLabel =
     inputLabel ??

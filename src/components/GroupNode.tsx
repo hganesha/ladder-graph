@@ -10,7 +10,7 @@ export type GroupFlowData = LgirNode & {
   onInlineEdit?: WorkflowInlineEdit;
 };
 
-type GroupFlowNode = Node<GroupFlowData, "group">;
+export type GroupFlowNode = Node<GroupFlowData, "group">;
 
 export const GroupNode = memo(function GroupNode({ data, selected }: NodeProps<GroupFlowNode>) {
   const parallel = data.config?.execution !== "sequential";
